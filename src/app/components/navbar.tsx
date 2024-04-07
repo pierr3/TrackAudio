@@ -1,5 +1,5 @@
 import React from "react";
-import "../style/navbar.css";
+import "../style/navbar.scss";
 
 interface NavbarProps {
   version: string;
@@ -8,8 +8,11 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ version }) => {
   return (
     <>
-      <button className="btn btn-primary">Hi this is a click</button>
-      <h1 className="navbar">Hello world</h1>
+      <div className="custom-navbar container-fluid navbar w-100 d-flex justify-content-between align-items-center">
+        <div className="d-flex justify-content-center position-absolute start-50 translate-middle-x text-center align-items-center">
+          <div className="package-text">TrackAudio</div>
+        </div>
+      </div>
     </>
   );
 };

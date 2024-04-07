@@ -115,9 +115,370 @@ $input-border-color: none;
 $form-label-margin-bottom: 2px;
 $form-label-font-size: $font-size-base - 1;
 
-
+$main-font-size: 12px;
+$sub-font-size: 11px;
+$modal-border: 2px solid $dark-border;
+$modal-border-danger: 2px solid $dark-border;
+$sidebar-width: 250px;
+$navbar-height: 36px;
+$focusbar-height: 30px;
 
 /* buttons */
 $btn-padding-x: 7px;
 $btn-padding-y: 5px;
 $btn-text-color: white;
+
+$toolbar-border-radius: 4px;
+$toolbar-item-height: 26px;
+
+.form-control::-webkit-scrollbar-track {
+  padding: 0px 0;
+  background-color: $dark;
+}
+
+.form-control::-webkit-scrollbar {
+  width: 2px;
+}
+
+.form-control::-webkit-scrollbar-thumb {
+  background-color: $body-color;
+}
+
+
+.toolbar-item {
+  position: relative;
+  // margin-right: 20px;
+  // margin-left: 20px;
+  font-family: $font-medium;
+  height: $toolbar-item-height;
+  font-weight: 500;
+
+}
+
+.toolbar-btn {
+  height: 100%;
+  margin: 0px;
+  font-size: $main-font-size;
+  background-color: lighten($dark, 10);
+  color: $body-color;
+  border: 2px solid darken($dark, 5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: normal;
+}
+
+.unfocused-color {
+  color: darken($body-color, 10%) !important;
+}
+
+.toolbar-btn-info {
+  background-color: darken($info, 10) !important;
+}
+
+.toolbar-btn-active {
+  background-color: darken($success, 10) !important;
+}
+
+.toolbar-btn.hover-enabled:hover {
+  background-color: lighten($dark, 15);
+}
+
+.toolbar-btn.dark {
+  background-color: darken($dark, 5);
+}
+
+.toolbar-btn.dark:hover {
+  background-color: darken($dark, 0);
+}
+
+.toolbar-btn:last-child {
+  border-top-right-radius: $toolbar-border-radius;
+  border-bottom-right-radius: $toolbar-border-radius;
+}
+
+.toolbar-btn:first-child {
+  border-top-left-radius: $toolbar-border-radius;
+  border-bottom-left-radius: $toolbar-border-radius;
+}
+
+.toolbar-btn:not(:last-child) {
+  border-right: 0px;
+}
+
+.toolbar-dropdown-value {
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbar-dropdown-menu {
+  background-color: darken($dark, 5);
+  max-height: 150px;
+  overflow-y: scroll;
+}
+
+.toolbar-dropdown-menu::-webkit-scrollbar-track {
+  padding: 0px 0;
+  background-color: darken($dark, 5);
+}
+
+.toolbar-dropdown-menu::-webkit-scrollbar {
+  width: 2px;
+}
+
+.toolbar-dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: $body-color;
+}
+
+.toolbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-regular;
+  font-size: $main-font-size;
+  line-height: $main-font-size;
+}
+
+.toolbar-dropdown-item:hover {
+  background-color: darken($dark, 5);
+}
+
+.ng-select.toolbar ::ng-deep {
+  .ng-input input {
+    padding: 4px 0px !important;
+    margin: 0 !important;
+  }
+
+  .ng-select-container {
+    color: $body-color;
+    background-color: darken($dark, 5) !important;
+    border-radius: 0 $toolbar-border-radius $toolbar-border-radius 0 !important;
+    font-size: 12px;
+    border: 0;
+    height: $toolbar-item-height !important;
+    min-width: 150px !important;
+    align-items: center;
+  }
+
+  .ng-select-container:first-child {
+    border-top-left-radius: $toolbar-border-radius;
+    border-bottom-left-radius: $toolbar-border-radius;
+  }
+
+  .ng-select.ng-select-focused:not(.ng-select-opened) > .ng-select-container {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .ng-dropdown-panel {
+    background-color: darken($dark, 5);
+    border: none;
+    box-shadow: none;
+    left: 0;
+    border-radius: 0 !important;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+    font-size: 12px;
+    color: $body-color;
+    padding: 4px 8px;
+    border-radius: 0 !important;
+    background-color: darken($dark, 5);
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-marked {
+    background-color: lighten($dark, 5);
+    color: $body-color;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items::-webkit-scrollbar-track {
+    padding: 0px 0;
+    background-color: transparent;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items::-webkit-scrollbar-thumb {
+    background-color: $body-color;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items .ng-optgroup {
+    user-select: none;
+    font-size: 12px;
+    padding: 4px 8px;
+    color: $body-color;
+    background-color: darken($body-bg, 10);
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+}
+
+$global-select-height: 30px;
+
+.ng-select.global ::ng-deep {
+  .ng-input input {
+    height: $global-select-height;
+    padding: 1px 0px !important;
+    margin: 0 !important;
+  }
+
+  .ng-select-container {
+    color: $body-color;
+    background-color: $dark !important;
+    border-radius: $toolbar-border-radius !important;
+    font-size: 12px;
+    border: 0;
+    height: $global-select-height !important;
+    align-items: center;
+    min-height: $global-select-height !important;
+  }
+
+  .ng-select.ng-select-focused:not(.ng-select-opened) > .ng-select-container {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .ng-dropdown-panel {
+    background-color: $dark;
+    border: none;
+    box-shadow: none;
+    left: 0;
+    border-radius: 0 !important;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+    font-size: 12px;
+    color: $body-color;
+    padding: 4px 8px;
+    border-radius: 0 !important;
+    background-color: $dark;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-marked {
+    background-color: lighten($dark, 5);
+    color: $body-color;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items::-webkit-scrollbar-track {
+    padding: 0px 0;
+    background-color: transparent;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items::-webkit-scrollbar-thumb {
+    background-color: $body-color;
+  }
+
+  .ng-dropdown-panel .ng-dropdown-panel-items .ng-optgroup {
+    user-select: none;
+    font-size: 12px;
+    padding: 4px 8px;
+    color: $body-color;
+    background-color: darken($body-bg, 10);
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+}
+
+//
+// Standard buttons
+//
+
+@mixin setBgColorAndHover($baseColor) {
+    background-color: $baseColor;
+    &:hover {
+        background-color: lighten($baseColor, 5%)
+    }
+}
+
+button {
+  font-family: RobotoMono-Medium;
+  color: $btn-text-color;
+  height: 25px;
+  // line-height: 10px;
+}
+
+.btn {
+  height: 25px;
+  line-height: 13px; /* Make this equal to the height */
+  /* other styles if needed */
+  // font-weight: bold;
+}
+
+button:hover {
+  color: $btn-text-color;
+}
+
+.btn-success,
+.btn-success:focus {
+  color: $btn-text-color;
+  @include setBgColorAndHover($success);
+  border-color: darken($success, 15%);
+  outline: darken($success, 15%) solid 2px;
+}
+
+.btn-info,
+.btn-info:focus {
+  color: $btn-text-color;
+  @include setBgColorAndHover($info);
+  border-color: darken($info, 15%);
+  outline: darken($info, 15%) solid 2px;
+}
+
+.btn-danger,
+.btn-danger:focus {
+  color: $btn-text-color;
+  @include setBgColorAndHover($danger);
+  border-color: darken($danger, 15%);
+  outline: darken($danger, 15%) solid 2px;
+}
+
+.btn-secondary,
+.btn-secondary:focus {
+  color: $btn-text-color;
+  @include setBgColorAndHover($secondary);
+  border-color: darken($secondary, 15%);
+  outline: darken($secondary, 15%) solid 2px;
+}
+
+.btn-warning,
+.btn-warning:focus {
+  color: $btn-text-color;
+  @include setBgColorAndHover($warning);
+  border-color: darken($warning, 15%);
+  outline: darken($warning, 15%) solid 2px;
+}
+
+.btn-primary,
+.btn-primary:focus {
+  color: $btn-text-color;
+  @include setBgColorAndHover($primary);
+  border-color: darken($primary, 15%);
+  outline: darken($primary, 15%) solid 2px;
+}
+
+// .btn-primary:disabled {
+//   outline: darken($primary, 16%) solid 2px;
+
+// }
+
+
+button:disabled {
+  color: darken($btn-text-color, 10%);
+  background-color: $disabled;
+  // border-color: darken($disabled, 10%);
+  border-width: 0px;
+  outline: #050506 solid 2px;
+  &:hover {
+    background-color: $disabled;
+  }
+}
