@@ -8,11 +8,22 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ version }) => {
   return (
     <>
-      <div className="custom-navbar container-fluid navbar w-100 d-flex justify-content-between align-items-center">
-        <div className="d-flex justify-content-center position-absolute start-50 translate-middle-x text-center align-items-center">
-          <div className="package-text">TrackAudio</div>
-        </div>
-      </div>
+      <nav className="navbar">
+        <form className="form-inline">
+          <input
+            className="form-control mr-sm-2"
+            type="search"
+            placeholder="Search"
+            aria-label="Search"
+          ></input>
+          <button
+            className="btn btn-info"
+            type="submit"
+          >
+            Search
+          </button>
+        </form>
+      </nav>
     </>
   );
 };

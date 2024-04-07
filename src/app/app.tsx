@@ -2,7 +2,11 @@ import { createRoot } from "react-dom/client";
 import Navbar from "./components/navbar";
 
 function App() {
-  return <Navbar version={""} />;
+  return (
+    <div className="container">
+      <Navbar version={""} />
+    </div>
+  );
 }
 
 const root = createRoot(document.body);
