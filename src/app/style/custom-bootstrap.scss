@@ -428,3 +428,14 @@ button:disabled {
 #stationInput {
   text-transform: uppercase;
 }
+
+.settingsModalBackground {
+  background-color: rgba(255, 255, 255, 0.163);
+  display: block;
+}
+
+.settingsModal {
+  border-color: lighten($disabled, 20%);
+  outline: lighten($disabled, 25%) solid 4px;
+  border-radius: var(--bs-modal-border-radius);
+}
