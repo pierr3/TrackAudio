@@ -1,13 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 
 export type SettingsModalProps = {
   closeModal: () => void;
 };
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
+  const [alwaysOnTop, setAlwaysOnTop] = useState(false);
+
   const closeHander = () => {
     closeModal();
   };
+
+  const saveSettings = () => {
+    window.api.setAlwaysOnTop(alwaysOnTop);
+    closeModal();
+  };
+
   return (
     <>
       <div className="modal settingsModalBackground" role="dialog">
@@ -52,9 +60,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                   </select>
 
                   <label className="mt-2">Keep window on top</label>
-                  <select id="" className="form-control mt-1">
+                  <select
+                    id=""
+                    className="form-control mt-1"
+                    onChange={(choice) =>
+                      choice.currentTarget.value === "1"
+                        ? setAlwaysOnTop(true)
+                        : setAlwaysOnTop(false)
+                    }
+                  >
                     <option value="1">Yes</option>
-                    <option value="0" selected>No</option>
+                    <option value="0" selected>
+                      No
+                    </option>
                   </select>
                 </div>
               </div>
@@ -107,7 +125,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
               </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-success m-1">
+              <button
+                type="button"
+                className="btn btn-success m-1"
+                onClick={saveSettings}
+              >
                 Save changes
               </button>
               <button
