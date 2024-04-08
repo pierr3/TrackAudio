@@ -7,37 +7,20 @@ $transition-speed: 0.1s;
   align-content: center;
 }
 
-.gear {
-  line-height: 0px;
-}
-
 .custom-navbar {
-  position: relative;
   height: $navbar-height;
-  z-index: 1000;
-  // background-color: $navbar;
-  border-bottom: 1px solid $dark-border;
-  font: 600 15px sans-serif;
+  background-color: $navbar;
+  border-color: lighten($disabled, 5%);
+  outline: lighten($disabled, 5%) solid 2px;
+  font: 600 15px;
   color: $body-color;
-  -webkit-app-region: drag;
+  line-height: $navbar-height;
   padding: 0;
-
-  &.focused {
-    background-color: $navbar;
-  }
-
-  &.unfocused {
-    background-color: $disabled;
-  }
-
-  .d-flex {
-    align-items: center;
-  }
-
-  .gear,
-  .clock {
-    -webkit-app-region: no-drag;
-  }
+  font-weight: normal;
+  
+  ul,li {
+    display: inline-block;
+   }
 
   .clock {
     // font-size: 16px;
@@ -58,78 +41,7 @@ $transition-speed: 0.1s;
     justify-content: center;
 
   }
-
-  .gear,
-  .flex-grow-1,
-  .clock.macOS {
-    cursor: pointer;
-  }
-
-  .clock.macOS {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
 }
-
-.not-draggable {
-  -webkit-app-region: no-drag;
-}
-
-.windows-caption-buttons {
-  display: flex;
-  right: 0;
-  z-index: 10;
-  -webkit-app-region: no-drag;
-  // border-bottom: 1px solid $dark-border;
-
-  .element {
-    line-height: 34px;
-    height: 100%;
-    width: 16px;
-    stroke: #a4a9b0;
-    padding: 0 5px;
-    box-sizing: content-box;
-    fill: transparent;
-    text-align: center;
-    transition: background-color $transition-speed linear, color $transition-speed linear;
-
-    &:hover {
-      background-color: rgba(196, 196, 196, 0.4);
-      transition: none;
-      stroke: #fff;
-
-    }
-
-    &:active {
-      background-color: rgba(168, 168, 168, 0.5);
-    }
-
-    &.caption-close:hover {
-      background-color: #e81123;
-
-      > svg {
-        stroke: #fff;
-        stroke-width: 1.1px;
-      }
-    }
-
-    &.caption-close:active {
-      background-color: rgba(232, 17, 35, 0.6);
-    }
-
-    > svg {
-      width: 12px;
-      height: 12px;
-    }
-  }
-}
-
-body:not(.task-overlay-is-shown).dark-theme .windows-caption-buttons .element {
-  stroke: #fff;
-}
-
 
 
 

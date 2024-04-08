@@ -1,29 +1,17 @@
 import React from "react";
 import "../style/navbar.scss";
+import Clock from "./clock";
 
-interface NavbarProps {
-  version: string;
-}
-
-const Navbar: React.FC<NavbarProps> = ({ version }) => {
+const Navbar: React.FC = () => {
   return (
     <>
-      <nav className="navbar">
-        <form className="form-inline">
-          <input
-            className="form-control mr-sm-2"
-            type="search"
-            placeholder="Search"
-            aria-label="Search"
-          ></input>
-          <button
-            className="btn btn-info"
-            type="submit"
-          >
-            Search
-          </button>
-        </form>
-      </nav>
+    <div className="d-flex flex-md-row align-items-center p-3 px-md-4 mb-3 custom-navbar">
+      <Clock />
+      <span className="btn text-box-container m-2">Not Connected</span>
+      <a className="btn btn-info m-2 hide-connect-flex" href="#">Connect</a> 
+      <a className="btn btn-info m-2 hide-settings-flex" href="#">Settings</a>
+      {/* <span className="btn text-box-container m-2 fadeshow1">Datasource: Slurper</span> */}
+    </div>
     </>
   );
 };

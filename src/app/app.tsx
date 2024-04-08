@@ -1,11 +1,17 @@
 import { createRoot } from "react-dom/client";
 import Navbar from "./components/navbar";
+import RadioContainer from "./components/radiocontainer";
+import Sidebar from "./components/sidebar";
 
 function App() {
   return (
-    <div className="container">
-      <Navbar version={""} />
-    </div>
+    <>
+      <Navbar />
+      <div className="structure">
+        <RadioContainer />
+        <Sidebar />
+      </div>
+    </>
   );
 }
 
