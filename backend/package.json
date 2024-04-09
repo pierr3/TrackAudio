@@ -1,0 +1,22 @@
+{
+    "main": "js/binding.js",
+    "private": true,
+    "dependencies": {
+        "bindings": "^1.5.0",
+        "node-addon-api": "^1.1.0"
+    },
+    "binary": {
+        "napi_versions": [
+            7
+        ]
+    },
+    "scripts": {
+        "install": "cmake-js compile"
+    },
+    "gypfile": true,
+    "name": "trackaudio-afv",
+    "version": "1.0.0",
+    "description": "AFV bindings for trackaudio",
+    "author": "Pierre Ferran",
+    "license": "GPL-3.0-only"
+}

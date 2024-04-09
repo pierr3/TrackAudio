@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import Navbar from "./components/navbar";
-import RadioContainer from "./components/radiocontainer";
+import RadioContainer from "./components/radio-container";
 import Sidebar from "./components/sidebar";
 
 function App() {

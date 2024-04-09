@@ -1,7 +1,7 @@
 import React from "react";
 import "../style/navbar.scss";
 import Clock from "./clock";
-import SettingsModal from "./settingsmodal";
+import SettingsModal from "./settings-modal";
 
 const Navbar: React.FC = () => {
   const [showModal, setShowModal] = React.useState(false);
