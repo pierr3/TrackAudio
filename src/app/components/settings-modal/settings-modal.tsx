@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import AudioApis from "./settings-modal/audio-apis";
-import AudioInput from "./settings-modal/audio-input";
-import AudioOutputs from "./settings-modal/audio-outputs";
+import AudioApis from "./audio-apis";
+import AudioInput from "./audio-input";
+import AudioOutputs from "./audio-outputs";
 
 export type SettingsModalProps = {
   closeModal: () => void;

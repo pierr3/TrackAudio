@@ -279,7 +279,7 @@ button:hover {
 
 .btn-success,
 .btn-success:focus {
-  color: $btn-text-color;
+  color: $btn-text-color !important;
   @include setBgColorAndHover($success);
   border-color: darken($success, 15%);
   outline: darken($success, 15%) solid 2px;
@@ -287,7 +287,7 @@ button:hover {
 
 .btn-info,
 .btn-info:focus {
-  color: $btn-text-color;
+  color: $btn-text-color !important;
   @include setBgColorAndHover($info);
   border-color: darken($info, 15%);
   outline: darken($info, 15%) solid 2px;
@@ -295,7 +295,7 @@ button:hover {
 
 .btn-danger,
 .btn-danger:focus {
-  color: $btn-text-color;
+  color: $btn-text-color !important;
   @include setBgColorAndHover($danger);
   border-color: darken($danger, 15%);
   outline: darken($danger, 15%) solid 2px;
@@ -303,7 +303,7 @@ button:hover {
 
 .btn-secondary,
 .btn-secondary:focus {
-  color: $btn-text-color;
+  color: $btn-text-color !important;
   @include setBgColorAndHover($secondary);
   border-color: darken($secondary, 15%);
   outline: darken($secondary, 15%) solid 2px;
@@ -311,7 +311,7 @@ button:hover {
 
 .btn-warning,
 .btn-warning:focus {
-  color: $btn-text-color;
+  color: $btn-text-color !important;
   @include setBgColorAndHover($warning);
   border-color: darken($warning, 15%);
   outline: darken($warning, 15%) solid 2px;
@@ -319,7 +319,7 @@ button:hover {
 
 .btn-primary,
 .btn-primary:focus {
-  color: $btn-text-color;
+  color: $btn-text-color !important;
   @include setBgColorAndHover($primary);
   border-color: darken($primary, 15%);
   outline: darken($primary, 15%) solid 2px;
@@ -382,6 +382,8 @@ button:disabled {
   width: 25%;
   float: right;
   margin-right: 25px;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 @media only screen and (max-width: 670px) { 
@@ -438,4 +440,33 @@ button:disabled {
   border-color: lighten($disabled, 20%);
   outline: lighten($disabled, 25%) solid 4px;
   border-radius: var(--bs-modal-border-radius);
+}
+
+.btn-no-interact,
+.btn-no-interact:focus,
+.btn-no-interact:hover,
+.btn-no-interact:active {
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.licenses {
+  font-size: 10px;
+}
+
+.alert-popup {
+  float: left;
+  width: 60%;
+  z-index: 1000;
+  position: absolute;
+  top: 0;
+  left: 20%;
+  margin-top: 5%;
+  line-height: 25px;
+}
+
+.btn-sm {
+  height: 20px;
+  line-height: 10px;
 }

@@ -41,7 +41,7 @@ const createWindow = (): void => {
 
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    height: 650,
+    height: 660,
     width: 800,
     minWidth: 265,
     minHeight: 230,

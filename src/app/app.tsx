@@ -1,12 +1,14 @@
 import { createRoot } from "react-dom/client";
 import Navbar from "./components/navbar";
-import RadioContainer from "./components/radio-container";
-import Sidebar from "./components/sidebar";
+import RadioContainer from "./components/radio/radio-container";
+import Sidebar from "./components/sidebar/sidebar";
+import ErrorDialog from "./components/error";
 
 function App() {
   return (
     <>
       <Navbar />
+      <ErrorDialog />
       <div className="structure">
         <RadioContainer />
         <Sidebar />
@@ -15,5 +17,5 @@ function App() {
   );
 }
 
-const root = createRoot(document.body);
+const root = createRoot(document.getElementById('root'));
 root.render(<App />);
