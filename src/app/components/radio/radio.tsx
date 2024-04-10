@@ -1,28 +1,91 @@
 import React from "react";
 import useRadioState, { RadioType, RadioHelper } from "../../store/radioStore";
 import clsx from "clsx";
+import useErrorStore from "../../store/errorStore";
 
 export type RadioProps = {
   radio: RadioType;
 };
 
 const Radio: React.FC<RadioProps> = ({ radio }) => {
-  const { setRx, setTx, setXc, setOnSpeaker, selectRadio } = useRadioState();
+  const postError = useErrorStore((state) => state.postError);
+  const { setRx, setTx, setXc, setOnSpeaker, selectRadio, removeRadio } =
+    useRadioState();
 
   const clickRx = () => {
-    setRx(radio.frequency, !radio.rx);
+    window.api
+      .setFrequencyState(
+        radio.frequency,
+        !radio.rx,
+        radio.tx,
+        radio.xc,
+        radio.onSpeaker
+      )
+      .then((ret) => {
+        if (!ret) {
+          postError("Invalid action on invalid radio: RX.");
+          removeRadio(radio.frequency);
+          return;
+        }
+        setRx(radio.frequency, !radio.rx);
+      });
   };
 
   const clickTx = () => {
-    setTx(radio.frequency, !radio.tx);
+    window.api
+      .setFrequencyState(
+        radio.frequency,
+        radio.rx,
+        !radio.tx,
+        radio.xc,
+        radio.onSpeaker
+      )
+      .then((ret) => {
+        if (!ret) {
+          postError("Invalid action on invalid radio: TX.");
+          //removeRadio(radio.frequency);
+          return;
+        }
+        setTx(radio.frequency, !radio.tx);
+      });
   };
 
   const clickXc = () => {
-    setXc(radio.frequency, !radio.xc);
+    window.api
+      .setFrequencyState(
+        radio.frequency,
+        radio.rx,
+        radio.tx,
+        !radio.xc,
+        radio.onSpeaker
+      )
+      .then((ret) => {
+        if (!ret) {
+          postError("Invalid action on invalid radio: XC.");
+          //removeRadio(radio.frequency);
+          return;
+        }
+        setXc(radio.frequency, !radio.xc);
+      });
   };
 
   const clickSpK = () => {
-    setOnSpeaker(radio.frequency, !radio.onSpeaker);
+    window.api
+      .setFrequencyState(
+        radio.frequency,
+        radio.rx,
+        radio.tx,
+        radio.xc,
+        !radio.onSpeaker
+      )
+      .then((ret) => {
+        if (!ret) {
+          postError("Invalid action on invalid radio: OnSPK.");
+          removeRadio(radio.frequency);
+          return;
+        }
+        setOnSpeaker(radio.frequency, !radio.onSpeaker);
+      });
   };
 
   return (
@@ -31,7 +94,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         <div style={{ width: "48%", height: "45%", float: "left" }}>
           <button
             className="btn btn-no-interact"
-            style={{ height: "100%", marginBottom: "4%"}}
+            style={{ height: "100%", marginBottom: "4%" }}
             onClick={() => selectRadio(radio.frequency)}
           >
             {RadioHelper.convertHzToMhzString(radio.frequency)}

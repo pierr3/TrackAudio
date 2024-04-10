@@ -149,5 +149,21 @@ ipcMain.handle("connect", () => {
 });
 
 ipcMain.handle("disconnect", () => {
-  return TrackAudioAfv.Disconnect();
+  TrackAudioAfv.Disconnect();
+});
+
+ipcMain.handle("audio-add-frequency", (event: IpcMainEvent, frequency: number, callsign: string) => {
+  return TrackAudioAfv.AddFrequency(frequency, callsign);
+});
+
+ipcMain.handle("audio-remove-frequency", (event: IpcMainEvent, frequency: number) => {
+  TrackAudioAfv.RemoveFrequency(frequency);
+});
+
+ipcMain.handle("audio-set-frequency-state", (event: IpcMainEvent, frequency: number, rx: boolean, tx: boolean, xc: boolean, onSpeaker: boolean) => {
+  return TrackAudioAfv.SetFrequencyState(frequency, rx, tx, xc, onSpeaker);
+});
+
+ipcMain.handle("audio-get-frequency-state", (event: IpcMainEvent, frequency: number) => {
+  return TrackAudioAfv.GetFrequencyState(frequency);
 });

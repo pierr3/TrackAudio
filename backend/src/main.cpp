@@ -1,5 +1,5 @@
-#include <absl/strings/match.h>
 #include "afv-native/event.h"
+#include <absl/strings/match.h>
 #include <afv-native/atcClientWrapper.h>
 #include <memory>
 #include <napi.h>
@@ -62,7 +62,7 @@ Napi::Array GetAudioOutputDevices(const Napi::CallbackInfo &info) {
 Napi::Boolean Connect(const Napi::CallbackInfo &info) {
   if (mClient->IsVoiceConnected()) {
     return Napi::Boolean::New(info.Env(), false);
-    ;
+    
   }
   Napi::Env env = info.Env();
   auto cid = info[0].As<Napi::String>().Utf8Value();
@@ -71,6 +71,7 @@ Napi::Boolean Connect(const Napi::CallbackInfo &info) {
 
   mClient->SetCallsign(callsign);
   mClient->SetCredentials(cid, password);
+  mClient->SetClientPosition(33.9424964, -118.4080486, 150, 150);
   return Napi::Boolean::New(env, mClient->Connect());
 }
 
@@ -128,21 +129,56 @@ void RemoveFrequency(const Napi::CallbackInfo &info) {
   mClient->RemoveFrequency(frequency);
 }
 
+Napi::Boolean SetFrequencyState(const Napi::CallbackInfo &info) {
+  if (!mClient->IsVoiceConnected()) {
+    return Napi::Boolean::New(info.Env(), false);
+  }
+
+  int frequency = info[0].As<Napi::Number>().Int32Value();
+  if (!mClient->IsFrequencyActive(frequency)) {
+    return Napi::Boolean::New(info.Env(), false);
+  }
+
+  bool rx = info[1].As<Napi::Boolean>().Value();
+  bool tx = info[2].As<Napi::Boolean>().Value();
+  bool xc = info[3].As<Napi::Boolean>().Value();
+  bool onSpeaker = info[4].As<Napi::Boolean>().Value();
+
+  mClient->SetRx(frequency, rx);
+  mClient->SetTx(frequency, tx);
+  mClient->SetXc(frequency, xc);
+  mClient->SetOnHeadset(frequency, !onSpeaker);
+
+  return Napi::Boolean::New(info.Env(), true);
+}
+
+Napi::Object GetFrequencyState(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  int frequency = info[0].As<Napi::Number>().Int32Value();
+  Napi::Object obj = Napi::Object::New(env);
+
+  obj.Set("rx", mClient->GetRxState(frequency));
+  obj.Set("tx", mClient->GetTxState(frequency));
+  obj.Set("xc", mClient->GetXcState(frequency));
+  obj.Set("onSpeaker", !mClient->GetOnHeadset(frequency));
+
+  return obj;
+}
+
 Napi::String Version(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   return Napi::String::New(env, VERSION);
 }
 
-inline void HandleAfvEvents(afv_native::ClientEventType eventType, void * data1, void * data2) {
-
-}
+inline void HandleAfvEvents(afv_native::ClientEventType eventType, void *data1,
+                            void *data2) {}
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   // Setup afv
-  mClient->RaiseClientEvent([](afv_native::ClientEventType eventType, void * data1, void * data2) {
-    HandleAfvEvents(eventType, data1, data2);
-  });
-
+  mClient->RaiseClientEvent(
+      [](afv_native::ClientEventType eventType, void *data1, void *data2) {
+        HandleAfvEvents(eventType, data1, data2);
+      });
 
   exports.Set(Napi::String::New(env, "GetVersion"),
               Napi::Function::New(env, Version));
@@ -165,8 +201,19 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set(Napi::String::New(env, "SetAudioSettings"),
               Napi::Function::New(env, SetAudioSettings));
 
+  exports.Set(Napi::String::New(env, "AddFrequency"),
+              Napi::Function::New(env, AddFrequency));
+
+  exports.Set(Napi::String::New(env, "RemoveFrequency"),
+              Napi::Function::New(env, RemoveFrequency));
+
+  exports.Set(Napi::String::New(env, "SetFrequencyState"),
+              Napi::Function::New(env, SetFrequencyState));
+
+  exports.Set(Napi::String::New(env, "GetFrequencyState"),
+              Napi::Function::New(env, GetFrequencyState));
+
   return exports;
 }
 
 NODE_API_MODULE(addon, Init)
-

@@ -1,5 +1,5 @@
 export interface AudioApi {
-  id: string;
+  id: number;
   name: string;
 }
 
@@ -16,7 +16,11 @@ export interface TrackAudioAfv {
   GetAudioOutputDevices: (apiId: string) => Promise<Array<AudioDevice>>;
   GetAudioInputDevices: (apiId: string) => Promise<Array<AudioDevice>>;
 
-  Connect: (cid: string, password: string, callsign: string) => Promise<boolean>;
+  Connect: (
+    cid: string,
+    password: string,
+    callsign: string
+  ) => Promise<boolean>;
   Disconnect: () => Promise<void>;
   SetAudioSettings: (
     apiId: number,
@@ -24,4 +28,22 @@ export interface TrackAudioAfv {
     headsetDevice: string,
     speakerDevice: string
   ) => Promise<void>;
+
+  AddFrequency: (frequency: number, callign: string) => Promise<boolean>;
+  RemoveFrequency: (frequency: number) => Promise<void>;
+
+  SetFrequencyState: (
+    frequency: number,
+    rx: boolean,
+    tx: boolean,
+    xc: boolean,
+    onSpeaker: boolean
+  ) => Promise<boolean>;
+
+  GetFrequencyState: (frequency: number) => Promise<{
+    rx: boolean;
+    tx: boolean;
+    xc: boolean;
+    onSpeaker: boolean;
+  }>;
 }

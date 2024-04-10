@@ -5,9 +5,10 @@ import useErrorStore from "../../store/errorStore";
 const AddFrequency: React.FC = () => {
   const [readyToAdd, setReadyToAdd] = useState(false);
   const [previousValue, setPreviousValue] = useState("");
-  const [addRadio, isRadioUnique] = useRadioState((state) => [
+  const [addRadio, isRadioUnique, setRx] = useRadioState((state) => [
     state.addRadio,
     state.isRadioUnique,
+    state.setRx
   ]);
   const postError = useErrorStore((state) => state.postError);
 
@@ -26,8 +27,14 @@ const AddFrequency: React.FC = () => {
     if (!isRadioUnique(frequencyInHz)) {
       postError("Frequency already exists!");
     } else {
-      addRadio(frequencyInHz, "MANUAL");
-      // todo: send to afv
+      window.api.addFrequency(frequencyInHz, "").then((ret) => {
+        if (!ret) {
+          postError("Error adding frequency, check AFV logs.");
+          return;
+        }
+        addRadio(frequencyInHz, "MANUAL");
+        setRx(frequencyInHz, true);
+      });
     }
 
     frequency.value = "";

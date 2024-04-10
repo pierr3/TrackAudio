@@ -2,10 +2,16 @@ import React from "react";
 import useRadioState, { RadioHelper } from "../../store/radioStore";
 
 const RadioStatus: React.FC = () => {
-  const [selectedRadio, removeRadio] = useRadioState((state) => [
+  const [doesRadioExist, selectedRadio, removeRadio] = useRadioState((state) => [
+    state.isRadioUnique,
     state.getSelectedRadio(),
     state.removeRadio,
   ]);
+
+  const handleDeleteRadio = () => {
+    window.api.removeFrequency(selectedRadio.frequency);
+    removeRadio(selectedRadio.frequency);
+  };
 
   return (
     <div className="box-container mt-3 w-100">
@@ -32,9 +38,7 @@ const RadioStatus: React.FC = () => {
       <button
         className="btn btn-danger w-100 mt-2 btn-sm"
         disabled={!selectedRadio}
-        onClick={() => {
-          removeRadio(selectedRadio.frequency);
-        }}
+        onClick={() => handleDeleteRadio()}
       >
         Delete
       </button>

@@ -26,6 +26,7 @@ type RadioState = {
   selectRadio: (frequency: number) => void;
   getSelectedRadio: () => RadioType | undefined;
   isRadioUnique: (frequency: number) => boolean;
+  reset: () => void;
 };
 
 export class RadioHelper {
@@ -54,26 +55,27 @@ const useRadioState = create<RadioState>((set) => ({
   radios: [],
   addRadio: (frequency, callsign) => {
     if (
-      !RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)
+      RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)
     ) {
-      set((state) => ({
-        radios: [
-          ...state.radios,
-          {
-            frequency,
-            callsign,
-            rx: false,
-            tx: false,
-            xc: false,
-            currentlyTx: false,
-            currentlyRx: false,
-            onSpeaker: false,
-            selected: false,
-            transceiverCount: 0,
-          },
-        ],
-      }));
+      return;
     }
+    set((state) => ({
+      radios: [
+        ...state.radios,
+        {
+          frequency,
+          callsign,
+          rx: false,
+          tx: false,
+          xc: false,
+          currentlyTx: false,
+          currentlyRx: false,
+          onSpeaker: false,
+          selected: false,
+          transceiverCount: 0,
+        },
+      ],
+    }));
   },
   removeRadio: (frequency) => {
     set((state) => ({
@@ -132,14 +134,22 @@ const useRadioState = create<RadioState>((set) => ({
     }));
   },
   getSelectedRadio: (): RadioType | undefined => {
-    const selectedRadio = useRadioState.getState().radios.find(
-      (radio) => radio.selected
-    );
+    const selectedRadio = useRadioState
+      .getState()
+      .radios.find((radio) => radio.selected);
     return selectedRadio;
   },
   isRadioUnique: (frequency): boolean => {
-    return !RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency);
+    return !RadioHelper.doesRadioExist(
+      useRadioState.getState().radios,
+      frequency
+    );
   },
+  reset: () => {
+    set(() => ({
+      radios: []
+    }));
+  }
 }));
 
 export default useRadioState;

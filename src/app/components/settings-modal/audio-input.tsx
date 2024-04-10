@@ -1,23 +1,38 @@
 import { AudioDevice } from "../../../../backend/js/trackaudio-afv.d";
 import React, { useEffect, useState } from "react";
 
-const AudioInput: React.FC = () => {
-  const [devices, setDevices] = useState<Array<AudioDevice>>([]);
+export type AudioInputProps = {
+  devices: Array<AudioDevice>;
+  selectedDeviceId: string;
+  setDevice: (device: AudioDevice) => void;
+};
 
-  useEffect(() => {
-    window.api.getAudioInputDevices(-1).then((apis) => {
-      setDevices(apis);
-    });
-  }, []);
-
+const AudioInput: React.FC<AudioInputProps> = ({
+  devices,
+  selectedDeviceId: selectedDeviceId,
+  setDevice,
+}) => {
   const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    // setDevice(devices.find((device) => device.id === e.target.value));
+    setDevice(devices.find((device) => device.id === e.target.value));
   };
 
   return (
-    <select className="form-control mt-1" onChange={handleDeviceChange}>
+    <select
+      className="form-control mt-1"
+      onChange={handleDeviceChange}
+      value={
+        devices.some((device) => device.id === selectedDeviceId)
+          ? selectedDeviceId
+          : ""
+      }
+    >
+      <option disabled value="">
+        {" "}
+        -- select an option --{" "}
+      </option>
       {devices.map(({ id, name, isDefault }) => (
-        <option value={id} selected={isDefault}>
+        <option key={id} value={id}>
+          {isDefault ? "* " : ""}
           {name}
         </option>
       ))}
