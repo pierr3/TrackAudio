@@ -17,8 +17,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-add_definitions(-DNAPI_VERSION=3)
-
 project(trackaudio-afv)
 
 # Set the C++ standard to C++17
@@ -32,6 +30,7 @@ add_library(trackaudio-afv SHARED
   ${CMAKE_JS_SRC})
 
 # Find the required packages
+find_package(Threads REQUIRED)
 find_package(httplib CONFIG REQUIRED)
 find_package(unofficial-node-addon-api CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -74,6 +73,7 @@ target_include_directories(trackaudio-afv PRIVATE ${CMAKE_JS_INC})
 target_link_libraries(trackaudio-afv PRIVATE 
     ${LIB_AFV}
     httplib::httplib
+    Threads::Threads
     unofficial::node-addon-api::node-addon-api
     OpenSSL::SSL OpenSSL::Crypto
     absl::strings absl::any absl::base
