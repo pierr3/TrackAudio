@@ -1,16 +1,13 @@
 import React, { useState } from "react";
 import useRadioState, { RadioHelper } from "../../store/radioStore";
-import useErrorStore from "../../store/errorStore";
 
 const AddFrequency: React.FC = () => {
   const [readyToAdd, setReadyToAdd] = useState(false);
   const [previousValue, setPreviousValue] = useState("");
-  const [addRadio, isRadioUnique, setRx] = useRadioState((state) => [
+  const [addRadio, setRx] = useRadioState((state) => [
     state.addRadio,
-    state.isRadioUnique,
-    state.setRx
+    state.setRx,
   ]);
-  const postError = useErrorStore((state) => state.postError);
 
   const addFrequency = () => {
     if (!readyToAdd) {
@@ -24,18 +21,14 @@ const AddFrequency: React.FC = () => {
     const frequencyInHz = RadioHelper.convertMHzToHz(
       parseFloat(frequency.value)
     );
-    if (!isRadioUnique(frequencyInHz)) {
-      postError("Frequency already exists!");
-    } else {
-      window.api.addFrequency(frequencyInHz, "").then((ret) => {
-        if (!ret) {
-          postError("Error adding frequency, check AFV logs.");
-          return;
-        }
-        addRadio(frequencyInHz, "MANUAL");
-        setRx(frequencyInHz, true);
-      });
-    }
+
+    window.api.addFrequency(frequencyInHz, "").then((ret) => {
+      if (!ret) {
+        return; // This will check if the frequency exists and send an error message already
+      }
+      addRadio(frequencyInHz, "MANUAL");
+      setRx(frequencyInHz, true);
+    });
 
     frequency.value = "";
     setPreviousValue("");

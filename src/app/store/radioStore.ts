@@ -62,6 +62,9 @@ const useRadioState = create<RadioState>((set) => ({
     if (
       RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)
     ) {
+      postMessage(
+        "Frequency already exists in local client, but maybe not in AFV, delete it and try again"
+      );
       return;
     }
     set((state) => ({
@@ -110,7 +113,7 @@ const useRadioState = create<RadioState>((set) => ({
           ? {
               ...radio,
               tx: value,
-              rx: value && !radio.rx  ? true : radio.rx,
+              rx: value && !radio.rx ? true : radio.rx,
               currentlyTx: value ? radio.currentlyTx : false,
             }
           : radio
@@ -181,9 +184,9 @@ const useRadioState = create<RadioState>((set) => ({
     }));
   },
   isInactive: (frequency): boolean => {
-    const radio = useRadioState.getState().radios.find(
-      (radio) => radio.frequency === frequency
-    );
+    const radio = useRadioState
+      .getState()
+      .radios.find((radio) => radio.frequency === frequency);
     return !radio.rx && !radio.tx;
   },
 }));

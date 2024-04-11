@@ -2,8 +2,7 @@ import React from "react";
 import useRadioState, { RadioHelper } from "../../store/radioStore";
 
 const RadioStatus: React.FC = () => {
-  const [doesRadioExist, selectedRadio, removeRadio] = useRadioState((state) => [
-    state.isRadioUnique,
+  const [selectedRadio, removeRadio] = useRadioState((state) => [
     state.getSelectedRadio(),
     state.removeRadio,
   ]);
@@ -11,6 +10,10 @@ const RadioStatus: React.FC = () => {
   const handleDeleteRadio = () => {
     window.api.removeFrequency(selectedRadio.frequency);
     removeRadio(selectedRadio.frequency);
+  };
+
+  const handleForceRefresh = () => {
+    window.api.RefreshStation(selectedRadio.callsign);
   };
 
   return (
@@ -31,6 +34,7 @@ const RadioStatus: React.FC = () => {
       <br />
       <button
         className="btn btn-info w-100 mt-2 btn-sm"
+        onClick={() => handleForceRefresh()}
         disabled={!selectedRadio}
       >
         Force Refresh

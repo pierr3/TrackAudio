@@ -257,5 +257,13 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
     mainWindow.webContents.send("error", arg2);
   }
 
+  if (arg == AFVEventTypes.VoiceConnected) {
+    mainWindow.webContents.send("VoiceConnected");
+  }
+
+  if (arg == AFVEventTypes.VoiceDisconnected) {
+    mainWindow.webContents.send("VoiceDisconnected");
+  }
+
   return;
 });

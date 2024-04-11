@@ -9,96 +9,55 @@ export type RadioProps = {
 
 const Radio: React.FC<RadioProps> = ({ radio }) => {
   const postError = useErrorStore((state) => state.postError);
-  const [
-    setRx,
-    setTx,
-    setXc,
-    setOnSpeaker,
-    selectRadio,
-    removeRadio,
-    isInactive,
-  ] = useRadioState((state) => [
-    state.setRx,
-    state.setTx,
-    state.setXc,
-    state.setOnSpeaker,
-    state.selectRadio,
-    state.removeRadio,
-    state.isInactive,
-  ]);
+  const [setRx, setTx, setXc, setOnSpeaker, selectRadio, removeRadio] =
+    useRadioState((state) => [
+      state.setRx,
+      state.setTx,
+      state.setXc,
+      state.setOnSpeaker,
+      state.selectRadio,
+      state.removeRadio,
+    ]);
 
   const clickRx = () => {
     const newState = !radio.rx;
-    window.api.IsFrequencyActive(radio.frequency).then(async (ret) => {
-      if (!ret) {
-        const isAdded = await window.api.addFrequency(
-          radio.frequency,
-          radio.callsign
-        );
-        if (!isAdded) {
-          postError("Could not re-activate radio, try adding it again");
-          removeRadio(radio.frequency);
-          return;
-        }
-      }
-      setRx(radio.frequency, newState);
-      const isUpdated = await window.api.setFrequencyState(
+
+    window.api
+      .setFrequencyState(
         radio.frequency,
         newState,
         radio.tx,
         radio.xc,
         radio.onSpeaker
-      );
-
-      if (!isUpdated) {
-        postError("Invalid action on invalid radio: RX.");
-        removeRadio(radio.frequency);
-        return;
-      }
-    });
+      )
+      .then((ret) => {
+        if (!ret) {
+          postError("Invalid action on invalid radio: RX.");
+          removeRadio(radio.frequency);
+          return;
+        }
+        setRx(radio.frequency, newState);
+      });
   };
 
   const clickTx = () => {
     const newState = !radio.tx;
 
-    if (isInactive(radio.frequency)) {
-      setTx(radio.frequency, newState);
-      window.api
-        .addFrequency(radio.frequency, radio.callsign)
-        .then((ret) => {
-          if (!ret) {
-            postError("Could not re-active radio, try adding it again");
-            removeRadio(radio.frequency);
-            return;
-          }
-        })
-        .then(() => {
-          window.api.setFrequencyState(
-            radio.frequency,
-            radio.rx,
-            newState,
-            radio.xc,
-            radio.onSpeaker
-          );
-        });
-    } else {
-      setTx(radio.frequency, newState);
-      window.api
-        .setFrequencyState(
-          radio.frequency,
-          radio.rx,
-          newState,
-          radio.xc,
-          radio.onSpeaker
-        )
-        .then((ret) => {
-          if (!ret) {
-            postError("Invalid action on invalid radio: RX.");
-            removeRadio(radio.frequency);
-            return;
-          }
-        });
-    }
+    window.api
+      .setFrequencyState(
+        radio.frequency,
+        radio.rx,
+        newState,
+        radio.xc,
+        radio.onSpeaker
+      )
+      .then((ret) => {
+        if (!ret) {
+          postError("Invalid action on invalid radio: TX.");
+          return;
+        }
+        setTx(radio.frequency, newState);
+      });
   };
 
   const clickXc = () => {
@@ -114,7 +73,6 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       .then((ret) => {
         if (!ret) {
           postError("Invalid action on invalid radio: XC.");
-          //removeRadio(radio.frequency);
           return;
         }
         setXc(radio.frequency, newState);

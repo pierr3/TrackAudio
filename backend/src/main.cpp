@@ -13,6 +13,19 @@ static std::unique_ptr<afv_native::api::atcClient> mClient =
 static Napi::ThreadSafeFunction callbackRef;
 static bool callbackAvailable = false;
 
+static void CallbackWithError(std::string message) {
+  if (!callbackAvailable) {
+    return;
+  }
+
+  callbackRef.NonBlockingCall(
+      [message](Napi::Env env, Napi::Function jsCallback) {
+        jsCallback.Call({Napi::String::New(env, "error"),
+                         Napi::String::New(env, message),
+                         Napi::String::New(env, "")});
+      });
+}
+
 Napi::Array GetAudioApis(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Array arr = Napi::Array::New(env);
@@ -105,18 +118,15 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo &info) {
 
   int frequency = info[0].As<Napi::Number>().Int32Value();
   auto callsign = info[1].As<Napi::String>().Utf8Value();
-  if (mClient->IsFrequencyActive(frequency)) {
+
+  auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
+  if (!hasBeenAddded) {
+    CallbackWithError("Could not add frequency: it already exists");
     return Napi::Boolean::New(info.Env(), false);
   }
 
-  mClient->AddFrequency(frequency, callsign);
   if (!callsign.empty()) {
     mClient->FetchTransceiverInfo(callsign);
-    if (!absl::EndsWith(callsign, "_ATIS")) {
-      mClient->SetRx(frequency, true);
-    }
-  } else {
-    mClient->SetRx(frequency, true);
   }
 
   return Napi::Boolean::New(info.Env(), true);
@@ -126,6 +136,8 @@ void RemoveFrequency(const Napi::CallbackInfo &info) {
   int frequency = info[0].As<Napi::Number>().Int32Value();
   mClient->RemoveFrequency(frequency);
 }
+
+void Reset(const Napi::CallbackInfo &info) { mClient->reset(); }
 
 Napi::Boolean SetFrequencyState(const Napi::CallbackInfo &info) {
   if (!mClient->IsVoiceConnected()) {
@@ -198,19 +210,6 @@ Napi::Boolean IsFrequencyActive(const Napi::CallbackInfo &info) {
 Napi::String Version(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   return Napi::String::New(env, VERSION);
-}
-
-static void CallbackWithError(std::string message) {
-  if (!callbackAvailable) {
-    return;
-  }
-
-  callbackRef.NonBlockingCall(
-      [message](Napi::Env env, Napi::Function jsCallback) {
-        jsCallback.Call({Napi::String::New(env, "error"),
-                         Napi::String::New(env, message),
-                         Napi::String::New(env, "")});
-      });
 }
 
 static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
@@ -446,6 +445,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   exports.Set(Napi::String::New(env, "IsFrequencyActive"),
               Napi::Function::New(env, IsFrequencyActive));
+
+  exports.Set(Napi::String::New(env, "Reset"),
+              Napi::Function::New(env, Reset));
 
   return exports;
 }

@@ -11,7 +11,7 @@
         ]
     },
     "scripts": {
-        "install": "cmake-js compile"
+        "install": "cmake-js compile -B Release"
     },
     "gypfile": true,
     "name": "trackaudio-afv",

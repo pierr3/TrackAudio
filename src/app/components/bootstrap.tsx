@@ -1,20 +1,24 @@
 import React, { useEffect } from "react";
 import useRadioState from "../store/radioStore";
 import useErrorStore from "../store/errorStore";
+import useSessionStore from "../store/sessionStore";
 
 const Bootsrap: React.FC = () => {
   const [
     setTransceiverCountForStationCallsign,
     addRadio,
-    setRx,
     setCurrentlyRx,
     setCurrentlyTx,
   ] = useRadioState((state) => [
     state.setTransceiverCountForStationCallsign,
     state.addRadio,
-    state.setRx,
     state.setCurrentlyRx,
     state.setCurrentlyTx,
+  ]);
+
+  const [setIsConnected, setIsConnecting] = useSessionStore((state) => [
+    state.setIsConnected,
+    state.setIsConnecting,
   ]);
 
   const postError = useErrorStore((state) => state.postError);
@@ -28,8 +32,12 @@ const Bootsrap: React.FC = () => {
     window.api.on("station-data-received", (station, frequency) => {
       console.log("station-data-received", station, frequency);
       const freq = parseInt(frequency);
-      addRadio(freq, station);
-      setRx(freq, false);
+      window.api.addFrequency(freq, station).then((ret) => {
+        if (!ret) {
+          return;
+        }
+        addRadio(freq, station);
+      });
     });
 
     window.api.on("FrequencyRxBegin", (frequency) => {
@@ -48,6 +56,16 @@ const Bootsrap: React.FC = () => {
 
     window.api.on("error", (message: string) => {
       postError(message);
+    });
+
+    window.api.on("VoiceConnected", () => {
+      setIsConnecting(false);
+      setIsConnected(true);
+    });
+
+    window.api.on("VoiceDisconnected", () => {
+      setIsConnecting(false);
+      setIsConnected(false);
     });
   }, []);
 

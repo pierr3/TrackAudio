@@ -10,6 +10,20 @@
 namespace afv_native {
     typedef void (*log_fn)(const char *subsystem, const char *file, int line, const char *lineOut);
     typedef std::function<void(std::string subsystem, std::string file, int line, std::string lineOut)> modern_log_fn;
+
+    struct SimpleAtcRadioState {
+        bool            tx;
+        bool            rx;
+        bool            xc;
+        bool            onHeadset;
+        unsigned int    Frequency;
+        std::string     stationName       = "";
+        HardwareType    simulatedHardware = HardwareType::Schmid_ED_137B;
+        bool            isATIS            = false;
+        PlaybackChannel playbackChannel   = PlaybackChannel::Both;
+
+        std::string lastTransmitCallsign = "";
+    };
 } // namespace afv_native
 
 namespace afv_native::api {
@@ -107,9 +121,12 @@ namespace afv_native::api {
         AFV_NATIVE_API void SetPlaybackChannel(unsigned int freq, PlaybackChannel channel);
         AFV_NATIVE_API int GetPlaybackChannel(unsigned int freq);
 
-        AFV_NATIVE_API void AddFrequency(unsigned int freq, std::string stationName = "");
+        AFV_NATIVE_API bool AddFrequency(unsigned int freq, std::string stationName = "");
         AFV_NATIVE_API void RemoveFrequency(unsigned int freq);
         AFV_NATIVE_API bool IsFrequencyActive(unsigned int freq);
+        AFV_NATIVE_API std::map<unsigned int, SimpleAtcRadioState> getRadioState();
+
+        AFV_NATIVE_API void reset();
 
         AFV_NATIVE_API void SetHardware(afv_native::HardwareType hardware);
 
