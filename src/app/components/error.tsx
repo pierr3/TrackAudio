@@ -2,7 +2,7 @@ import React from "react";
 import useErrorStore from "../store/errorStore";
 
 const ErrorDialog: React.FC = () => {
-  const errorStore = useErrorStore();
+  const errorStore = useErrorStore((state) => state);
 
   if (!errorStore.pending) {
     return null;

@@ -20,12 +20,17 @@ type RadioState = {
   setRx: (frequency: number, value: boolean) => void;
   setTx: (frequency: number, value: boolean) => void;
   setXc: (frequency: number, value: boolean) => void;
-  setCurrentlyTx: (frequency: number, value: boolean) => void;
+  setCurrentlyTx: (value: boolean) => void;
   setCurrentlyRx: (frequency: number, value: boolean) => void;
   setOnSpeaker: (frequency: number, value: boolean) => void;
   selectRadio: (frequency: number) => void;
   getSelectedRadio: () => RadioType | undefined;
   isRadioUnique: (frequency: number) => boolean;
+  isInactive: (frequency: number) => boolean;
+  setTransceiverCountForStationCallsign: (
+    callsign: string,
+    count: number
+  ) => void;
   reset: () => void;
 };
 
@@ -85,14 +90,30 @@ const useRadioState = create<RadioState>((set) => ({
   setRx: (frequency, value) => {
     set((state) => ({
       radios: state.radios.map((radio) =>
-        radio.frequency === frequency ? { ...radio, rx: value } : radio
+        radio.frequency === frequency
+          ? {
+              ...radio,
+              rx: value,
+              tx: value ? radio.tx : false,
+              xc: value ? radio.xc : false,
+              currentlyRx: value ? radio.currentlyRx : false,
+              currentlyTx: value ? radio.currentlyTx : false,
+            }
+          : radio
       ),
     }));
   },
   setTx: (frequency, value) => {
     set((state) => ({
       radios: state.radios.map((radio) =>
-        radio.frequency === frequency ? { ...radio, tx: value } : radio
+        radio.frequency === frequency
+          ? {
+              ...radio,
+              tx: value,
+              rx: value && !radio.rx  ? true : radio.rx,
+              currentlyTx: value ? radio.currentlyTx : false,
+            }
+          : radio
       ),
     }));
   },
@@ -100,13 +121,6 @@ const useRadioState = create<RadioState>((set) => ({
     set((state) => ({
       radios: state.radios.map((radio) =>
         radio.frequency === frequency ? { ...radio, xc: value } : radio
-      ),
-    }));
-  },
-  setCurrentlyTx: (frequency, value) => {
-    set((state) => ({
-      radios: state.radios.map((radio) =>
-        radio.frequency === frequency ? { ...radio, currentlyTx: value } : radio
       ),
     }));
   },
@@ -147,9 +161,31 @@ const useRadioState = create<RadioState>((set) => ({
   },
   reset: () => {
     set(() => ({
-      radios: []
+      radios: [],
     }));
-  }
+  },
+  setTransceiverCountForStationCallsign: (callsign, count) => {
+    set((state) => ({
+      radios: state.radios.map((radio) =>
+        radio.callsign === callsign
+          ? { ...radio, transceiverCount: count }
+          : radio
+      ),
+    }));
+  },
+  setCurrentlyTx: (value) => {
+    set((state) => ({
+      radios: state.radios.map((radio) =>
+        radio.tx ? { ...radio, currentlyTx: value } : radio
+      ),
+    }));
+  },
+  isInactive: (frequency): boolean => {
+    const radio = useRadioState.getState().radios.find(
+      (radio) => radio.frequency === frequency
+    );
+    return !radio.rx && !radio.tx;
+  },
 }));
 
 export default useRadioState;

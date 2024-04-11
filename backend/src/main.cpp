@@ -72,7 +72,7 @@ Napi::Boolean Connect(const Napi::CallbackInfo &info) {
 
   mClient->SetCallsign(callsign);
   mClient->SetCredentials(cid, password);
-  mClient->SetClientPosition(33.9424964, -118.4080486, 150, 150);
+  mClient->SetClientPosition(51.4775, -0.461389, 150, 150);
   return Napi::Boolean::New(env, mClient->Connect());
 }
 
@@ -190,6 +190,11 @@ void RefreshStation(const Napi::CallbackInfo &info) {
   mClient->FetchTransceiverInfo(callsign);
 }
 
+Napi::Boolean IsFrequencyActive(const Napi::CallbackInfo &info) {
+  int frequency = info[0].As<Napi::Number>().Int32Value();
+  return Napi::Boolean::New(info.Env(), mClient->IsFrequencyActive(frequency));
+}
+
 Napi::String Version(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   return Napi::String::New(env, VERSION);
@@ -266,6 +271,11 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
         *reinterpret_cast<std::pair<std::string, unsigned int> *>(data2);
     std::string callsign = stationData.first;
     unsigned int frequency = stationData.second;
+
+    if (mClient->IsFrequencyActive(frequency)) {
+      return;
+    }
+
     callbackRef.NonBlockingCall(
         [callsign, frequency](Napi::Env env, Napi::Function jsCallback) {
           jsCallback.Call({Napi::String::New(env, "StationDataReceived"),
@@ -284,6 +294,11 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
     for (const auto &station : stations) {
       const std::string &callsign = station.first;
       const unsigned int frequency = station.second;
+
+      if (mClient->IsFrequencyActive(frequency)) {
+        continue;
+      }
+
       callbackRef.NonBlockingCall(
           [callsign, frequency](Napi::Env env, Napi::Function jsCallback) {
             jsCallback.Call(
@@ -428,6 +443,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   exports.Set(Napi::String::New(env, "RefreshStation"),
               Napi::Function::New(env, RefreshStation));
+
+  exports.Set(Napi::String::New(env, "IsFrequencyActive"),
+              Napi::Function::New(env, IsFrequencyActive));
 
   return exports;
 }

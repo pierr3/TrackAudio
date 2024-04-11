@@ -9,54 +9,106 @@ export type RadioProps = {
 
 const Radio: React.FC<RadioProps> = ({ radio }) => {
   const postError = useErrorStore((state) => state.postError);
-  const { setRx, setTx, setXc, setOnSpeaker, selectRadio, removeRadio } =
-    useRadioState();
+  const [
+    setRx,
+    setTx,
+    setXc,
+    setOnSpeaker,
+    selectRadio,
+    removeRadio,
+    isInactive,
+  ] = useRadioState((state) => [
+    state.setRx,
+    state.setTx,
+    state.setXc,
+    state.setOnSpeaker,
+    state.selectRadio,
+    state.removeRadio,
+    state.isInactive,
+  ]);
 
   const clickRx = () => {
-    window.api
-      .setFrequencyState(
-        radio.frequency,
-        !radio.rx,
-        radio.tx,
-        radio.xc,
-        radio.onSpeaker
-      )
-      .then((ret) => {
-        if (!ret) {
-          postError("Invalid action on invalid radio: RX.");
+    const newState = !radio.rx;
+    window.api.IsFrequencyActive(radio.frequency).then(async (ret) => {
+      if (!ret) {
+        const isAdded = await window.api.addFrequency(
+          radio.frequency,
+          radio.callsign
+        );
+        if (!isAdded) {
+          postError("Could not re-activate radio, try adding it again");
           removeRadio(radio.frequency);
           return;
         }
-        setRx(radio.frequency, !radio.rx);
-      });
+      }
+      setRx(radio.frequency, newState);
+      const isUpdated = await window.api.setFrequencyState(
+        radio.frequency,
+        newState,
+        radio.tx,
+        radio.xc,
+        radio.onSpeaker
+      );
+
+      if (!isUpdated) {
+        postError("Invalid action on invalid radio: RX.");
+        removeRadio(radio.frequency);
+        return;
+      }
+    });
   };
 
   const clickTx = () => {
-    window.api
-      .setFrequencyState(
-        radio.frequency,
-        radio.rx,
-        !radio.tx,
-        radio.xc,
-        radio.onSpeaker
-      )
-      .then((ret) => {
-        if (!ret) {
-          postError("Invalid action on invalid radio: TX.");
-          //removeRadio(radio.frequency);
-          return;
-        }
-        setTx(radio.frequency, !radio.tx);
-      });
+    const newState = !radio.tx;
+
+    if (isInactive(radio.frequency)) {
+      setTx(radio.frequency, newState);
+      window.api
+        .addFrequency(radio.frequency, radio.callsign)
+        .then((ret) => {
+          if (!ret) {
+            postError("Could not re-active radio, try adding it again");
+            removeRadio(radio.frequency);
+            return;
+          }
+        })
+        .then(() => {
+          window.api.setFrequencyState(
+            radio.frequency,
+            radio.rx,
+            newState,
+            radio.xc,
+            radio.onSpeaker
+          );
+        });
+    } else {
+      setTx(radio.frequency, newState);
+      window.api
+        .setFrequencyState(
+          radio.frequency,
+          radio.rx,
+          newState,
+          radio.xc,
+          radio.onSpeaker
+        )
+        .then((ret) => {
+          if (!ret) {
+            postError("Invalid action on invalid radio: RX.");
+            removeRadio(radio.frequency);
+            return;
+          }
+        });
+    }
   };
 
   const clickXc = () => {
+    const newState = !radio.xc;
     window.api
       .setFrequencyState(
         radio.frequency,
         radio.rx,
         radio.tx,
-        !radio.xc,
+        newState,
         radio.onSpeaker
       )
       .then((ret) => {
@@ -65,18 +117,19 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           //removeRadio(radio.frequency);
           return;
         }
-        setXc(radio.frequency, !radio.xc);
+        setXc(radio.frequency, newState);
       });
   };
 
   const clickSpK = () => {
+    const newState = !radio.onSpeaker;
     window.api
       .setFrequencyState(
         radio.frequency,
         radio.rx,
         radio.tx,
         radio.xc,
-        !radio.onSpeaker
+        newState
       )
       .then((ret) => {
         if (!ret) {
@@ -84,7 +137,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           removeRadio(radio.frequency);
           return;
         }
-        setOnSpeaker(radio.frequency, !radio.onSpeaker);
+        setOnSpeaker(radio.frequency, newState);
       });
   };
 

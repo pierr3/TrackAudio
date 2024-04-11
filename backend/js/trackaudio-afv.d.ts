@@ -41,9 +41,10 @@ export interface TrackAudioAfv {
 
   AddFrequency: (frequency: number, callign: string) => Promise<boolean>;
   RemoveFrequency: (frequency: number) => void;
+  IsFrequencyActive: (frequency: number) => boolean;
 
-  GetStation(): (callsign: string) => void;
-  RefreshStation(): (callsign: string) => void;
+  GetStation: (callsign: string) => Promise<void>;
+  RefreshStation: (callsign: string) => Promise<void>;
 
   SetFrequencyState: (
     frequency: number,

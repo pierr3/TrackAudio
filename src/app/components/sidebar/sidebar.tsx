@@ -4,7 +4,12 @@ import RadioStatus from "./radio-status";
 
 const Sidebar: React.FC = () => {
   const addStation = () => {
-    console.log("Add station");
+    const callsign = (document.getElementById("stationInput") as HTMLInputElement).value.toUpperCase();
+    if (callsign.length === 0) {
+      return;
+    }
+
+    window.api.GetStation(callsign);
   };
 
   return (
@@ -17,6 +22,9 @@ const Sidebar: React.FC = () => {
             className="form-control mt-2"
             id="stationInput"
             placeholder="XXXX_XXX"
+            onKeyDown={(e) => {
+              e.key === "Enter" && addStation();
+            }}
           ></input>
           <button className="btn btn-primary mt-2 w-100" onClick={addStation}>
             Add
