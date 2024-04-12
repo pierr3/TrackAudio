@@ -14,13 +14,21 @@ const Navbar: React.FC = () => {
     state.removeRadio,
   ]);
   const postError = useErrorStore((state) => state.postError);
-  const [isConnected, isConnecting, setIsConnecting, setIsConnected] =
-    useSessionStore((state) => [
-      state.isConnected,
-      state.isConnecting,
-      state.setIsConnecting,
-      state.setIsConnected,
-    ]);
+  const [
+    isConnected,
+    isConnecting,
+    setIsConnecting,
+    setIsConnected,
+    callsign,
+    isNetworkConnected,
+  ] = useSessionStore((state) => [
+    state.isConnected,
+    state.isConnecting,
+    state.setIsConnecting,
+    state.setIsConnected,
+    state.callsign,
+    state.isNetworkConnected,
+  ]);
 
   const handleConnectDisconnect = () => {
     if (isConnected) {
@@ -49,7 +57,9 @@ const Navbar: React.FC = () => {
     <>
       <div className="d-flex flex-md-row align-items-center p-3 px-md-4 mb-3 custom-navbar">
         <Clock />
-        <span className="btn text-box-container m-2">Not Connected</span>
+        <span className="btn text-box-container m-2">
+          {isNetworkConnected ? callsign : "Not Connected"}
+        </span>
         <button
           className={clsx(
             "btn m-2 hide-connect-flex",
@@ -58,7 +68,7 @@ const Navbar: React.FC = () => {
             isConnected && "btn-danger"
           )}
           onClick={() => handleConnectDisconnect()}
-          disabled={isConnecting}
+          disabled={isConnecting || !isNetworkConnected}
         >
           {isConnected
             ? "Disconnect"

@@ -60,4 +60,8 @@ contextBridge.exposeInMainWorld("api", {
     ),
   getFrequencyState: (frequency: number) =>
     ipcRenderer.invoke("audio-get-frequency-state", frequency),
+
+  SetupPtt: () => ipcRenderer.invoke("setup-ptt"),
+
+  getVersion: () => ipcRenderer.invoke("get-version"),
 });

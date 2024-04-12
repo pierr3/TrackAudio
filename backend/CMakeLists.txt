@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.29.2)
 
 # Include vcpkg toolchain file
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
@@ -23,6 +23,8 @@ project(trackaudio-afv)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT=1)
+
 include_directories(${CMAKE_SOURCE_DIR}/extern/afv-native/include)
 
 add_library(trackaudio-afv SHARED 
@@ -35,6 +37,7 @@ find_package(httplib CONFIG REQUIRED)
 find_package(unofficial-node-addon-api CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(absl CONFIG REQUIRED)
+find_package(Poco REQUIRED Foundation Util)
 
 if (WIN32)
   find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/$<CONFIGURATION> NO_DEFAULT_PATH)
@@ -77,6 +80,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     unofficial::node-addon-api::node-addon-api
     OpenSSL::SSL OpenSSL::Crypto
     absl::strings absl::any
+    Poco::Util
     ${CMAKE_JS_LIB})
 
 # Set the output directory for the built executable

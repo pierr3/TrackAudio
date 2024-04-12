@@ -9,16 +9,6 @@ export interface AudioDevice {
   isDefault: boolean;
 }
 
-export enum AFVEventTypes {
-  Error = "error",
-  VoiceConnected = "VoiceConnected",
-  VoiceDisconnected = "VoiceDisconnected",
-  StationTransceiversUpdated = "StationTransceiversUpdated",
-  StationDataReceived = "StationDataReceived",
-  FrequencyRxBegin = "FrequencyRxBegin",
-  PttState = "PttState",
-}
-
 export interface TrackAudioAfv {
   GetVersion(): string;
   GetAudioApis(): Array<AudioApi>;
@@ -26,11 +16,7 @@ export interface TrackAudioAfv {
   GetAudioOutputDevices: (apiId: string) => Promise<Array<AudioDevice>>;
   GetAudioInputDevices: (apiId: string) => Promise<Array<AudioDevice>>;
 
-  Connect: (
-    cid: string,
-    password: string,
-    callsign: string
-  ) => Promise<boolean>;
+  Connect: (password: string) => Promise<boolean>;
   Disconnect: () => void;
   SetAudioSettings: (
     apiId: number,
@@ -61,5 +47,12 @@ export interface TrackAudioAfv {
     onSpeaker: boolean;
   }>;
 
-  RegisterCallback: (func: (arg: string, arg2: string, arg3: string) => void) => void;
+  SetCid: (cid: string) => void;
+
+  SetRadioGain: (gain: number) => void;
+  SetPtt: (activate: boolean) => void;
+
+  RegisterCallback: (
+    func: (arg: string, arg2: string, arg3: string) => void
+  ) => void;
 }

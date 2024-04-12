@@ -1,30 +1,15 @@
-#include "afv-native/event.h"
 #include <absl/strings/match.h>
-#include <afv-native/atcClientWrapper.h>
+#include <afv-native/afv_native.h>
 #include <memory>
 #include <napi.h>
 #include <string>
 
-#define VERSION "1.0.0"
+#include "Helpers.hpp"
+#include "RemoteData.hpp"
+#include "Shared.hpp"
 
-static std::unique_ptr<afv_native::api::atcClient> mClient =
-    std::make_unique<afv_native::api::atcClient>("TrackAudio");
-
-static Napi::ThreadSafeFunction callbackRef;
-static bool callbackAvailable = false;
-
-static void CallbackWithError(std::string message) {
-  if (!callbackAvailable) {
-    return;
-  }
-
-  callbackRef.NonBlockingCall(
-      [message](Napi::Env env, Napi::Function jsCallback) {
-        jsCallback.Call({Napi::String::New(env, "error"),
-                         Napi::String::New(env, message),
-                         Napi::String::New(env, "")});
-      });
-}
+static std::unique_ptr<RemoteData> mRemoteDataHandler =
+    std::make_unique<RemoteData>();
 
 Napi::Array GetAudioApis(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
@@ -75,17 +60,21 @@ Napi::Array GetAudioOutputDevices(const Napi::CallbackInfo &info) {
 }
 
 Napi::Boolean Connect(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+
+  if (!UserSession::isConnectedToTheNetwork) {
+    return Napi::Boolean::New(env, false);
+  }
+
   if (mClient->IsVoiceConnected()) {
     return Napi::Boolean::New(info.Env(), false);
   }
-  Napi::Env env = info.Env();
-  auto cid = info[0].As<Napi::String>().Utf8Value();
-  auto password = info[1].As<Napi::String>().Utf8Value();
-  auto callsign = info[2].As<Napi::String>().Utf8Value();
 
-  mClient->SetCallsign(callsign);
-  mClient->SetCredentials(cid, password);
-  mClient->SetClientPosition(51.4775, -0.461389, 150, 150);
+  auto password = info[0].As<Napi::String>().Utf8Value();
+
+  mClient->SetCallsign(UserSession::callsign);
+  mClient->SetCredentials(UserSession::cid, password);
+  mClient->SetClientPosition(UserSession::lat, UserSession::lon, 150, 150);
   return Napi::Boolean::New(env, mClient->Connect());
 }
 
@@ -121,7 +110,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo &info) {
 
   auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
   if (!hasBeenAddded) {
-    CallbackWithError("Could not add frequency: it already exists");
+    Helpers::CallbackWithError("Could not add frequency: it already exists");
     return Napi::Boolean::New(info.Env(), false);
   }
 
@@ -155,8 +144,14 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo &info) {
   bool onSpeaker = info[4].As<Napi::Boolean>().Value();
 
   mClient->SetRx(frequency, rx);
-  mClient->SetTx(frequency, tx);
-  mClient->SetXc(frequency, xc);
+  if (UserSession::isATC) {
+    mClient->SetTx(frequency, tx);
+    mClient->SetXc(frequency, xc);
+  } else {
+    mClient->SetTx(frequency, false);
+    mClient->SetXc(frequency, false);
+  }
+
   mClient->SetOnHeadset(frequency, !onSpeaker);
 
   return Napi::Boolean::New(info.Env(), true);
@@ -205,6 +200,34 @@ void RefreshStation(const Napi::CallbackInfo &info) {
 Napi::Boolean IsFrequencyActive(const Napi::CallbackInfo &info) {
   int frequency = info[0].As<Napi::Number>().Int32Value();
   return Napi::Boolean::New(info.Env(), mClient->IsFrequencyActive(frequency));
+}
+
+void SetCid(const Napi::CallbackInfo &info) {
+  auto cid = info[0].As<Napi::String>().Utf8Value();
+  UserSession::cid = cid;
+}
+
+void SetPtt(const Napi::CallbackInfo &info) {
+  if (!mClient->IsVoiceConnected()) {
+    return;
+  }
+
+  if (!UserSession::isATC) {
+    mClient->SetPtt(false);
+    return;
+  }
+
+  bool state = info[0].As<Napi::Boolean>().Value();
+  mClient->SetPtt(state);
+}
+
+void SetRadioGain(const Napi::CallbackInfo &info) {
+  if (!mClient->IsVoiceConnected()) {
+    return;
+  }
+
+  int gain = info[0].As<Napi::Number>().FloatValue();
+  mClient->SetRadioGainAll(gain);
 }
 
 Napi::String Version(const Napi::CallbackInfo &info) {
@@ -263,7 +286,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
 
     bool found = *reinterpret_cast<bool *>(data);
     if (!found) {
-      CallbackWithError("Station not found");
+      Helpers::CallbackWithError("Station not found");
       return;
     }
     auto stationData =
@@ -354,7 +377,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
   }
 
   if (eventType == afv_native::ClientEventType::AudioError) {
-    CallbackWithError("Error stating audio devices, check your configuration.");
+    Helpers::CallbackWithError(
+        "Error stating audio devices, check your configuration.");
   }
 
   if (eventType == afv_native::ClientEventType::APIServerError) {
@@ -366,40 +390,47 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
 
     if (err == afv_native::afv::APISessionError::BadPassword ||
         err == afv_native::afv::APISessionError::RejectedCredentials) {
-      CallbackWithError("Invalid Credentials");
+      Helpers::CallbackWithError("Invalid Credentials");
     }
 
     if (err == afv_native::afv::APISessionError::ConnectionError) {
-      CallbackWithError(
+      Helpers::CallbackWithError(
           "API Connection Error, check your internet connection.");
     }
 
     if (err ==
         afv_native::afv::APISessionError::BadRequestOrClientIncompatible) {
-      CallbackWithError("Bad Request or Client Incompatible");
+      Helpers::CallbackWithError("Bad Request or Client Incompatible");
     }
 
     if (err == afv_native::afv::APISessionError::InvalidAuthToken) {
-      CallbackWithError("Invalid Auth Token.");
+      Helpers::CallbackWithError("Invalid Auth Token.");
     }
 
     if (err == afv_native::afv::APISessionError::AuthTokenExpiryTimeInPast) {
-      CallbackWithError(
+      Helpers::CallbackWithError(
           "Auth Token has expired, check if your system time is correct.");
     }
 
     if (err == afv_native::afv::APISessionError::OtherRequestError) {
-      CallbackWithError("Unknown Error with AFV API");
+      Helpers::CallbackWithError("Unknown Error with AFV API");
     }
   }
 }
 
-Napi::Object Init(Napi::Env env, Napi::Object exports) {
+void Bootstrap() {
   // Setup afv
   mClient->RaiseClientEvent(
       [](afv_native::ClientEventType eventType, void *data1, void *data2) {
         HandleAfvEvents(eventType, data1, data2);
       });
+
+  //
+}
+
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+
+  Bootstrap();
 
   exports.Set(Napi::String::New(env, "GetVersion"),
               Napi::Function::New(env, Version));
@@ -446,8 +477,16 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set(Napi::String::New(env, "IsFrequencyActive"),
               Napi::Function::New(env, IsFrequencyActive));
 
-  exports.Set(Napi::String::New(env, "Reset"),
-              Napi::Function::New(env, Reset));
+  exports.Set(Napi::String::New(env, "Reset"), Napi::Function::New(env, Reset));
+
+  exports.Set(Napi::String::New(env, "SetCid"),
+              Napi::Function::New(env, SetCid));
+
+  exports.Set(Napi::String::New(env, "SetPtt"),
+              Napi::Function::New(env, SetPtt));
+
+  exports.Set(Napi::String::New(env, "SetRadioGain"),
+              Napi::Function::New(env, SetRadioGain));
 
   return exports;
 }

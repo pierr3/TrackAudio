@@ -2,6 +2,7 @@ import React from "react";
 import useRadioState, { RadioType, RadioHelper } from "../../store/radioStore";
 import clsx from "clsx";
 import useErrorStore from "../../store/errorStore";
+import useSessionStore from "../../store/sessionStore";
 
 export type RadioProps = {
   radio: RadioType;
@@ -18,6 +19,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       state.selectRadio,
       state.removeRadio,
     ]);
+
+  const isATC = useSessionStore((state) => state.isAtc);
 
   const clickRx = () => {
     const newState = !radio.rx;
@@ -120,6 +123,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             )}
             style={{ width: "45%", height: "100%", marginTop: "4%" }}
             onClick={clickXc}
+            disabled={!isATC}
           >
             XC
           </button>
@@ -169,6 +173,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             )}
             style={{ width: "100%", height: "100%", marginTop: "8%" }}
             onClick={clickTx}
+            disabled={!isATC}
           >
             TX
           </button>

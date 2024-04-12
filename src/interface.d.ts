@@ -2,6 +2,7 @@ import { AudioApi } from "../backend/js/trackaudio-afv.d";
 import { Configuration } from "./config.d";
 
 export interface IElectronAPI {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on: (channel: string, listener: (...args: any[]) => void) => void;
 
     setAlwaysOnTop: (state: boolean) => Promise<void>;
@@ -28,6 +29,10 @@ export interface IElectronAPI {
     setFrequencyState: (frequency: number, rx: boolean, tx: boolean, xc: boolean, onSpeaker: boolean) => Promise<boolean>;
     getFrequencyState: (frequency: number) => Promise<{rx: boolean, tx: boolean, xc: boolean, onSpeaker: boolean}>;
     IsFrequencyActive: (frequency: number) => Promise<boolean>;
+
+    SetupPtt(): Promise<void>;
+
+    getVersion: () => Promise<string>;
   }
 
 declare global {

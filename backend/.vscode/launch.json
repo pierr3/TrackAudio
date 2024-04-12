@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "attach",
             "processId":"${command:pickProcess}",
-            "program": "${workspaceFolder}/build/Debug/trackaudio-afv.node",
+            "program": "${workspaceFolder}/build/Release/trackaudio-afv.node",
             "MIMode": "lldb",
             "targetArchitecture": "arm64"
         }

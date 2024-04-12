@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import useRadioState, { RadioHelper } from "../../store/radioStore";
+import useSessionStore from "../../store/sessionStore";
 
 const AddFrequency: React.FC = () => {
   const [readyToAdd, setReadyToAdd] = useState(false);
@@ -8,6 +9,8 @@ const AddFrequency: React.FC = () => {
     state.addRadio,
     state.setRx,
   ]);
+
+  const isNetworkConnected = useSessionStore((state) => state.isNetworkConnected);
 
   const addFrequency = () => {
     if (!readyToAdd) {
@@ -77,7 +80,7 @@ const AddFrequency: React.FC = () => {
       <button
         className="btn btn-primary mt-2 w-100"
         onClick={addFrequency}
-        disabled={!readyToAdd}
+        disabled={!readyToAdd || !isNetworkConnected}
       >
         Add
       </button>

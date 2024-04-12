@@ -7,4 +7,6 @@ export interface Configuration {
     cid: string;
     password: string;
     callsign: string;
+
+    pttKey: number;
 }

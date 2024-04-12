@@ -16,9 +16,24 @@ const Bootsrap: React.FC = () => {
     state.setCurrentlyTx,
   ]);
 
-  const [setIsConnected, setIsConnecting] = useSessionStore((state) => [
+  const [
+    setIsConnected,
+    setIsConnecting,
+    setVersion,
+    setNetworkConnected,
+    setCallsign,
+    setFrequency,
+    setIsAtc,
+    setPttKeyName
+  ] = useSessionStore((state) => [
     state.setIsConnected,
     state.setIsConnecting,
+    state.setVersion,
+    state.setNetworkConnected,
+    state.setCallsign,
+    state.setFrequency,
+    state.setIsAtc,
+    state.setPttKeyName
   ]);
 
   const postError = useErrorStore((state) => state.postError);
@@ -66,6 +81,31 @@ const Bootsrap: React.FC = () => {
     window.api.on("VoiceDisconnected", () => {
       setIsConnecting(false);
       setIsConnected(false);
+    });
+
+    window.api.on("network-connected", (callsign, dataString) => {
+      setNetworkConnected(true);
+      setCallsign(callsign);
+      const dataArr = dataString.split(",");
+      const isAtc = dataArr[0] === "1";
+      const frequency = parseInt(dataArr[1]);
+      setIsAtc(isAtc);
+      setFrequency(frequency);
+    });
+
+    window.api.on("network-disconnected", () => {
+      setNetworkConnected(false);
+      setCallsign("");
+      setIsAtc(false);
+      setFrequency(199998000);
+    });
+
+    window.api.on("ptt-key-set", (key) => {
+      setPttKeyName(key);
+    });
+
+    window.api.getVersion().then((version) => {
+      setVersion(version);
     });
   }, []);
 

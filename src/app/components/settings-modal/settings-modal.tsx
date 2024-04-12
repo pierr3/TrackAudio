@@ -4,6 +4,8 @@ import AudioInput from "./audio-input";
 import AudioOutputs from "./audio-outputs";
 import { useDebouncedCallback } from "use-debounce";
 import { Configuration } from "../../../config.d";
+import useSessionStore from "../../store/sessionStore";
+import { getKeyFromNumber } from "../../../helper";
 
 export type SettingsModalProps = {
   closeModal: () => void;
@@ -21,6 +23,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [audioOutputDevices, setAudioOutputDevices] = useState([]);
   const [audioInputDevices, setAudioInputDevices] = useState([]);
   const [config, setConfig] = useState({} as Configuration);
+
+  const [isSettingPtt, setIsSettingPtt] = useState(false);
+  const [pttKeyName, setPttKeyName] = useSessionStore((state) => [state.pttKeyName, state.setPttKeyName]);
 
   const [cid, setCid] = useState("");
   const debouncedCid = useDebouncedCallback((cid) => {
@@ -45,6 +50,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       setConfig(config);
       setCid(config.cid || "");
       setPassword(config.password || "");
+      setPttKeyName(getKeyFromNumber(config.pttKey) || "None");
     });
 
     window.api.getAudioApis().then((apis) => {
@@ -99,6 +105,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     window.api.setAlwaysOnTop(e.target.value === "1");
     setChangesSaved(SaveStatus.Saved);
   };
+
+  const handleSetPtt = () => {
+    setIsSettingPtt(true);
+    window.api.SetupPtt().then(() => {
+      setIsSettingPtt(false);
+    });
+  }
 
   const closeHander = () => {
     closeModal();
@@ -206,9 +219,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     <div className="progress-bar w-0" role="progressbar"></div>
                   </div>
                   <button className="btn text-box-container mt-3 w-100">
-                    Ptt: None
+                    Ptt: { isSettingPtt ? "Press any key" : pttKeyName}
                   </button>
-                  <button className="btn btn-info mt-2 w-100">
+                  <button className="btn btn-info mt-2 w-100" onClick={handleSetPtt}>
                     Set new PTT
                   </button>
                 </div>
