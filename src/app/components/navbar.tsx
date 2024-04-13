@@ -21,6 +21,8 @@ const Navbar: React.FC = () => {
     setIsConnected,
     callsign,
     isNetworkConnected,
+    radioGain,
+    setRadioGain
   ] = useSessionStore((state) => [
     state.isConnected,
     state.isConnecting,
@@ -28,6 +30,8 @@ const Navbar: React.FC = () => {
     state.setIsConnected,
     state.callsign,
     state.isNetworkConnected,
+    state.radioGain,
+    state.setRadioGain,
   ]);
 
   const handleConnectDisconnect = () => {
@@ -50,6 +54,12 @@ const Navbar: React.FC = () => {
         setIsConnecting(false);
         setIsConnected(false);
       }
+    });
+  };
+
+  const handleRadioGainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    window.api.SetRadioGain(event.target.valueAsNumber / 100).then(() => {
+      setRadioGain(event.target.valueAsNumber);
     });
   };
 
@@ -83,6 +93,10 @@ const Navbar: React.FC = () => {
         >
           Settings
         </button>
+
+        <span className="btn text-box-container m-2 hide-gain-value">Gain: {radioGain}%</span>
+        <input type="range" className="form-range m-2 gain-slider" min="0" max="100" step="1" onChange={handleRadioGainChange}></input>
+        
       </div>
       {showModal && <SettingsModal closeModal={() => setShowModal(false)} />}
     </>

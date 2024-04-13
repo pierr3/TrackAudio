@@ -31,6 +31,7 @@ export interface IElectronAPI {
     IsFrequencyActive: (frequency: number) => Promise<boolean>;
 
     SetupPtt(): Promise<void>;
+    SetRadioGain(gain: number): Promise<void>;
 
     getVersion: () => Promise<string>;
   }

@@ -24,7 +24,8 @@ const Bootsrap: React.FC = () => {
     setCallsign,
     setFrequency,
     setIsAtc,
-    setPttKeyName
+    setPttKeyName,
+    setRadioGain,
   ] = useSessionStore((state) => [
     state.setIsConnected,
     state.setIsConnecting,
@@ -33,7 +34,8 @@ const Bootsrap: React.FC = () => {
     state.setCallsign,
     state.setFrequency,
     state.setIsAtc,
-    state.setPttKeyName
+    state.setPttKeyName,
+    state.setRadioGain
   ]);
 
   const postError = useErrorStore((state) => state.postError);
@@ -79,6 +81,7 @@ const Bootsrap: React.FC = () => {
     });
 
     window.api.on("VoiceDisconnected", () => {
+      setRadioGain(50);
       setIsConnecting(false);
       setIsConnected(false);
     });

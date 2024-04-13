@@ -226,7 +226,7 @@ void SetRadioGain(const Napi::CallbackInfo &info) {
     return;
   }
 
-  int gain = info[0].As<Napi::Number>().FloatValue();
+  float gain = info[0].As<Napi::Number>().FloatValue();
   mClient->SetRadioGainAll(gain);
 }
 

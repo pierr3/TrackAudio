@@ -4,7 +4,9 @@
 import { ipcRenderer, contextBridge, IpcRendererEvent } from "electron";
 
 contextBridge.exposeInMainWorld("api", {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on: (channel: string, listener: (...args: any[]) => void) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ipcRenderer.on(channel, (event: IpcRendererEvent, ...args: any[]) =>
       listener(...args)
     );
@@ -42,7 +44,8 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.invoke("audio-add-frequency", frequency, callsign),
   removeFrequency: (frequency: number) =>
     ipcRenderer.invoke("audio-remove-frequency", frequency),
-  IsFrequencyActive: (frequency: number) => ipcRenderer.invoke("audio-is-frequency-active", frequency),
+  IsFrequencyActive: (frequency: number) =>
+    ipcRenderer.invoke("audio-is-frequency-active", frequency),
   setFrequencyState: (
     frequency: number,
     rx: boolean,
@@ -62,6 +65,8 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.invoke("audio-get-frequency-state", frequency),
 
   SetupPtt: () => ipcRenderer.invoke("setup-ptt"),
+
+  SetRadioGain: (gain: number) => ipcRenderer.invoke("set-radio-gain", gain),
 
   getVersion: () => ipcRenderer.invoke("get-version"),
 });

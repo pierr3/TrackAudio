@@ -62,10 +62,7 @@ const setupUiHook = () => {
       saveConfig();
       isSettingPtt = false;
 
-      mainWindow.webContents.send(
-        "ptt-key-set",
-        getKeyFromNumber(e.keycode)
-      );
+      mainWindow.webContents.send("ptt-key-set", getKeyFromNumber(e.keycode));
     } else {
       if (e.keycode == currentConfiguration.pttKey && e.keycode != 0) {
         TrackAudioAfv.SetPtt(true);
@@ -120,7 +117,7 @@ const createWindow = (): void => {
       title: "Confirm",
       message: "Are you sure you want to quit?",
     });
-  
+
     if (response == 1) e.preventDefault();
   });
 };
@@ -254,6 +251,10 @@ ipcMain.handle("refresh-station", (_, callsign: string) => {
 
 ipcMain.handle("setup-ptt", () => {
   isSettingPtt = true;
+});
+
+ipcMain.handle("set-radio-gain", (_, gain: number) => {
+  TrackAudioAfv.SetRadioGain(gain);
 });
 
 ipcMain.handle("get-version", () => {

@@ -427,6 +427,18 @@ button:disabled {
   } 
 }
 
+@media only screen and (max-width: 670px) { 
+  .gain-slider { 
+    display: none; 
+  } 
+}
+
+@media only screen and (max-width: 550px) { 
+  .hide-gain-value { 
+    display: none; 
+  } 
+}
+
 #stationInput {
   text-transform: uppercase;
 }
@@ -469,4 +481,8 @@ button:disabled {
 .btn-sm {
   height: 20px;
   line-height: 10px;
+}
+
+.gain-slider {
+  width: 15%;
 }
