@@ -64,7 +64,7 @@ const Sidebar: React.FC = () => {
         <RadioStatus />
 
         <div className="box-container mt-3 w-100 licenses">
-          Version: {version} |&nbsp;
+          {version} |&nbsp;
           <a
             href="https://raw.githubusercontent.com/pierr3/VectorAudio/main/resources/LICENSE.txt"
             target="_blank"

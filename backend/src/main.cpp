@@ -5,6 +5,7 @@
 #include <napi.h>
 #include <semver.hpp>
 #include <string>
+#include <absl/strings/ascii.h>
 
 #include "Helpers.hpp"
 #include "RemoteData.hpp"
@@ -437,7 +438,9 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
   }
 
   try {
-    semver::version mandatoryVersion = semver::version(res->body);
+    std::string cleanBody = res->body;
+    absl::StripAsciiWhitespace(&cleanBody);
+    semver::version mandatoryVersion = semver::version(cleanBody);
     if (VERSION < mandatoryVersion) {
       ShouldRun = false;
       return Napi::Boolean::New(info.Env(), false);

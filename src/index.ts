@@ -124,8 +124,8 @@ const createWindow = (): void => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-  const shouldUpdate = TrackAudioAfv.Bootstrap(process.resourcesPath);
-  if (!shouldUpdate) {
+  const continueWithoutUpdate = TrackAudioAfv.Bootstrap(process.resourcesPath);
+  if (!continueWithoutUpdate) {
     dialog.showMessageBoxSync({
       type: "error",
       message:
