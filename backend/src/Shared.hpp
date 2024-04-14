@@ -2,6 +2,9 @@
 #include "afv-native/afv_native.h"
 #include <napi.h>
 #include <vector>
+#include <string>
+#include <mutex>
+#include <memory>
 
 #define VERSION "beta-1"
 

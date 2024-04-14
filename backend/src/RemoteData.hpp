@@ -1,6 +1,7 @@
 #include <Poco/Timer.h>
 #include <absl/strings/str_split.h>
 #include <httplib.h>
+#include <string>
 
 #include "Helpers.hpp"
 #include "Shared.hpp"

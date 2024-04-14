@@ -3,6 +3,8 @@
 #include "Shared.hpp"
 
 #include <cmath>
+#include <mutex>
+#include <string>
 
 class Helpers {
 public:

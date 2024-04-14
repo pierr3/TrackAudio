@@ -18,8 +18,14 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     osxSign: {},
-    icon: "resources/AppIcon",
+    icon: "resources/AppIcon/AppIcon",
     name: "TrackAudio",
+    extraResource: [
+      "resources/AC_Bus_f32.wav",
+      "resources/Click_f32.wav",
+      "resources/Crackle_f32.wav",
+      "resources/HF_WhiteNoise_f32.wav"
+    ]
   },
   rebuildConfig: {},
   makers: [
