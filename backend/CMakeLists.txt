@@ -28,15 +28,17 @@ add_definitions(-DNAPI_VERSION=7)
 
 include_directories(${CMAKE_SOURCE_DIR}/extern/afv-native/include)
 
+if(MSVC)
+    add_compile_options(
+        $<$<CONFIG:>:/MD>
+        $<$<CONFIG:Debug>:/MDd>
+        $<$<CONFIG:Release>:/MD>
+    )
+endif()
+
 add_library(trackaudio-afv SHARED 
   src/main.cpp
   ${CMAKE_JS_SRC})
-  
-
-if (WIN32)
-  set_property(TARGET trackaudio-afv PROPERTY
-    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>DLL")
-endif()
 
 # Find the required packages
 find_package(Threads REQUIRED)
