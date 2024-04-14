@@ -85,7 +85,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     unofficial::node-addon-api::node-addon-api
     OpenSSL::SSL OpenSSL::Crypto
     absl::strings absl::any
-    Poco::Util
+    Poco::Foundation Poco::Util
     ${CMAKE_JS_LIB})
 
 # Set the output directory for the built executable
