@@ -38,7 +38,7 @@ find_package(httplib CONFIG REQUIRED)
 find_package(unofficial-node-addon-api CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(absl CONFIG REQUIRED)
-find_package(Poco REQUIRED Foundation Util)
+find_package(Poco REQUIRED Util)
 
 if (WIN32)
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -85,7 +85,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     unofficial::node-addon-api::node-addon-api
     OpenSSL::SSL OpenSSL::Crypto
     absl::strings absl::any
-    Poco::Foundation Poco::Util
+    Poco::Util
     ${CMAKE_JS_LIB})
 
 # Set the output directory for the built executable
