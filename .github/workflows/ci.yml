@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: | 
           npm -g i cmake-js
-          npm run prepare-backend
+          npm run build-backend
           npm install
 
       - name: Build
