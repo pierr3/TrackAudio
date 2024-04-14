@@ -3,7 +3,6 @@ import { execSync } from 'child_process';
 // Function to change the rpath of the binary
 function changeRpath(binaryPath) {
     try {
-        
         // execSync(`install_name_tool -change "@rpath/libafv_native.dylib" "@loader_path/afv/libafv_native.dylib" ${binaryPath}`);
         // execSync(`install_name_tool -add_rpath "@loader_path/afv/" ${binaryPath}`);
         console.log('Rpath changed successfully!');
