@@ -35,7 +35,7 @@ add_library(trackaudio-afv SHARED
 
 if (WIN32)
   set_property(TARGET trackaudio-afv PROPERTY
-    MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Release>:Release>")
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>DLL")
 endif()
 
 # Find the required packages

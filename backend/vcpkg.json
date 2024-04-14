@@ -3,7 +3,6 @@
     "version": "1.0.0",
     "dependencies": [
         "cpp-httplib",
-        "openssl",
         "poco",
         "node-addon-api",
         "abseil"
