@@ -28,6 +28,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Update cmake
+        run: |
+          pip install cmake
+          cmake --version
+
       - name: Installing codesign certificates
         if: matrix.os == 'macos-latest'
         uses: apple-actions/import-codesign-certs@v2
