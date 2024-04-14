@@ -14,6 +14,7 @@ export const rendererConfig: Configuration = {
   },
   plugins,
   resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.mp3'],
+    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.mp3', '.ttf'],
   },
+  devtool: 'source-map',
 };

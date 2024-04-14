@@ -1,4 +1,4 @@
-import { AudioApi } from "../backend/js/trackaudio-afv.d";
+import { AudioApi } from "trackaudio-afv/types/trackaudio-afv";
 import { Configuration } from "./config.d";
 
 export interface IElectronAPI {

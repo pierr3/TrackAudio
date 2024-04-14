@@ -1,4 +1,4 @@
-import { AudioDevice } from "../../../../backend/js/trackaudio-afv.d";
+import { AudioDevice } from "trackaudio-afv";
 import React from "react";
 
 export type AudioOutputsProps = {

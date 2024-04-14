@@ -9,7 +9,7 @@ class RemoteData {
 
 public:
   RemoteData()
-      : timer(5*1000, TIMER_CALLBACK_INTERVAL_SEC * 1000),
+      : timer(3*1000, TIMER_CALLBACK_INTERVAL_SEC * 1000),
         slurperCli(SLURPER_BASE_URL) {
     timer.start(Poco::TimerCallback<RemoteData>(*this, &RemoteData::onTimer));
   }

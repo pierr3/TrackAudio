@@ -37,6 +37,12 @@ exec(`${command} > ${outputFile}`, (error, stdout, stderr) => {
     fs.appendFileSync(outputFile, swiftLicenseContent);
     console.log(`Swift license content appended to ${outputFile}`);
 
+    const fontLicense = './src/app/assets/fonts/OFL.txt';
+    const fontLicenseContent = fs.readFileSync(fontLicense, 'utf8');
+
+    fs.appendFileSync(outputFile, fontLicenseContent);
+    console.log(`Font license content appended to ${outputFile}`);
+
     const markedContent = marked(fs.readFileSync(outputFile, 'utf8'));
     const htmlOutputFile = './LICENSES_COMPILED.html';
     fs.writeFileSync(htmlOutputFile, markedContent);

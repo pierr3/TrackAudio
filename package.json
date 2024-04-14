@@ -5,6 +5,7 @@
   "description": "A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows",
   "main": ".webpack/main",
   "scripts": {
+    "preinstall": "cd backend && npm install && npm run build",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
@@ -40,7 +41,6 @@
     "ref-loader": "^1.0.3",
     "sass-loader": "^14.1.1",
     "style-loader": "^3.3.4",
-    "tailwindcss": "^3.4.3",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "~4.5.4"
@@ -63,8 +63,12 @@
     "react-dom": "^18.2.0",
     "sass": "^1.74.1",
     "styled-components": "^5.3.11",
+    "trackaudio-afv": "file:backend/trackaudio-afv-1.0.0.tgz",
     "uiohook-napi": "^1.5.4",
     "use-debounce": "^10.0.0",
     "zustand": "^4.5.2"
+  },
+  "cmake-js": {
+    "runtime": "electron"
   }
 }

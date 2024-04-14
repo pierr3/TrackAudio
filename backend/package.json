@@ -1,5 +1,5 @@
 {
-    "main": "js/binding.js",
+    "main": "js/bindings.js",
     "private": true,
     "dependencies": {
         "bindings": "^1.5.0",
@@ -10,9 +10,18 @@
             7
         ]
     },
+    "types": "types/index.d.ts",
     "scripts": {
-        "install": "cmake-js compile -B Release"
+        "build": "cmake-js compile -B Release && node unix_install.mjs && npm pack"
     },
+    "cmake-js": {
+        "runtime": "electron"
+    },
+    "files": [
+        "build/Release/**",
+        "js/bindings.js",
+        "types/index.d.ts"
+    ],
     "gypfile": true,
     "name": "trackaudio-afv",
     "version": "1.0.0",

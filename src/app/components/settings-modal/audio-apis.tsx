@@ -1,4 +1,4 @@
-import { AudioApi } from "../../../../backend/js/trackaudio-afv.d";
+import { AudioApi } from "trackaudio-afv";
 import React from "react";
 
 export type AudioApisProps = {

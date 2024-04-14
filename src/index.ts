@@ -6,9 +6,7 @@ import {
   systemPreferences,
 } from "electron";
 
-import TrackAudioAfv, {
-  AFVEventTypes,
-} from "../backend/js/trackaudio-afv-wrapper";
+import { TrackAudioAfv, AFVEventTypes } from "trackaudio-afv";
 import { Configuration } from "./config.d";
 import Store from "electron-store";
 import { uIOhook } from "uiohook-napi";
@@ -90,8 +88,6 @@ const createWindow = (): void => {
 
   version = TrackAudioAfv.GetVersion();
 
-  systemPreferences.isTrustedAccessibilityClient(true);
-
   // Create the browser window.
   mainWindow = new BrowserWindow({
     height: 660,
@@ -118,14 +114,26 @@ const createWindow = (): void => {
       message: "Are you sure you want to quit?",
     });
 
-    if (response == 1) e.preventDefault();
+    if (response == 1) {
+      e.preventDefault();
+    }
   });
 };
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", createWindow);
+app.on("ready", () => {
+  if (!systemPreferences.isTrustedAccessibilityClient(true)) {
+    dialog.showMessageBoxSync({
+      type: "info",
+      message:
+        "This application requires accessibility permissions. Please grant these in System Preferences.",
+      buttons: ["OK"],
+    });
+  }
+  createWindow();
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -264,8 +272,10 @@ ipcMain.handle("get-version", () => {
 //
 // Callbacks
 //
-
 TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
+  if (arg == undefined) {
+    return;
+  }
   if (arg == AFVEventTypes.FrequencyRxBegin) {
     mainWindow.webContents.send("FrequencyRxBegin", arg2);
   }

@@ -307,7 +307,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
   }
 
   if (eventType == afv_native::ClientEventType::VccsReceived) {
-    if (data == nullptr || data2 == nullptr) {
+    if (data == nullptr || data2 == nullptr || !callbackAvailable) {
       return;
     }
     std::map<std::string, unsigned int> stations =
@@ -332,7 +332,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
   }
 
   if (eventType == afv_native::ClientEventType::FrequencyRxBegin) {
-    if (data == nullptr) {
+    if (data == nullptr || !callbackAvailable) {
       return;
     }
 

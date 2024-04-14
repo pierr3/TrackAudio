@@ -24,16 +24,6 @@ export const rules: Required<ModuleOptions>["rules"] = [
     },
   },
   {
-    test: /[/\\]backend[/\\]build[/\\](Release|Debug)[/\\].+\.(m?js|node|dylib|dll|so)$/,
-    parser: { amd: false },
-    use: {
-      loader: "@vercel/webpack-asset-relocator-loader",
-      options: {
-        outputAssetBase: "native_modules",
-      },
-    },
-  },
-  {
     test: /\.tsx?$/,
     exclude: /(node_modules|\.webpack)/,
     use: {
@@ -55,7 +45,7 @@ export const rules: Required<ModuleOptions>["rules"] = [
     ],
   },
   {
-    test: /\.(png|svg|jpg|jpeg|gif|ogg|mp3|wav)$/i,
+    test: /\.(png|svg|jpg|jpeg|gif|ogg|mp3|wav|ttf)$/i,
     type: 'asset/resource',
   },
 ];

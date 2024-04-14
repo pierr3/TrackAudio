@@ -24,6 +24,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT=1)
+add_definitions(-DNAPI_VERSION=7)
 
 include_directories(${CMAKE_SOURCE_DIR}/extern/afv-native/include)
 
@@ -98,5 +99,5 @@ if (WIN32)
   add_custom_command(TARGET trackaudio-afv POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/$<CONFIGURATION>
-      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)
+      ${CMAKE_SOURCE_DIR}/$<CONFIG>)
 endif()
