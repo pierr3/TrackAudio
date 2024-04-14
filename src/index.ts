@@ -84,7 +84,7 @@ const createWindow = (): void => {
   ) as Configuration;
 
   // Set the store CID
-  TrackAudioAfv.SetCid(currentConfiguration.cid);
+  TrackAudioAfv.SetCid(currentConfiguration.cid || "");
 
   version = TrackAudioAfv.GetVersion();
 
@@ -99,6 +99,9 @@ const createWindow = (): void => {
     },
   });
 
+  if (process.platform !== "darwin") {
+    mainWindow.setMenu(null);
+  }
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
@@ -135,7 +138,7 @@ app.on("ready", () => {
     app.quit();
   }
 
-  if (!systemPreferences.isTrustedAccessibilityClient(true)) {
+  if (process.platform === "darwin" && !systemPreferences.isTrustedAccessibilityClient(true)) {
     dialog.showMessageBoxSync({
       type: "info",
       message:
@@ -221,6 +224,9 @@ ipcMain.handle("set-password", (_, password: string) => {
 //
 
 ipcMain.handle("connect", () => {
+  if (!currentConfiguration.password || !currentConfiguration.cid) {
+    return false;
+  }
   setAudioSettings();
   return TrackAudioAfv.Connect(currentConfiguration.password);
 });
