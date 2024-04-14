@@ -111,9 +111,9 @@ if (UNIX)
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)   
 endif()
 
-if (WIN32)
-  add_custom_command(TARGET trackaudio-afv POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/$<CONFIGURATION>
-      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)
-endif()
+# if (WIN32)
+#   add_custom_command(TARGET trackaudio-afv POST_BUILD
+#   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#       ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/$<CONFIGURATION>
+#       ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)
+# endif()

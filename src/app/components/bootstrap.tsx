@@ -51,6 +51,7 @@ const Bootsrap: React.FC = () => {
       const freq = parseInt(frequency);
       window.api.addFrequency(freq, station).then((ret) => {
         if (!ret) {
+          console.error("Failed to add frequency", freq, station);
           return;
         }
         addRadio(freq, station);
@@ -58,7 +59,6 @@ const Bootsrap: React.FC = () => {
     });
 
     window.api.on("FrequencyRxBegin", (frequency) => {
-      console.log("Begin" + parseInt(frequency));
       setCurrentlyRx(parseInt(frequency), true);
     });
 

@@ -12,7 +12,7 @@
     },
     "types": "types/index.d.ts",
     "scripts": {
-        "build": "cmake-js compile -B Release && node unix_install.mjs && npm pack"
+        "build": "cmake-js compile -B Release && node custom_build.mjs && npm pack"
     },
     "cmake-js": {
         "runtime": "electron"
@@ -27,5 +27,8 @@
     "version": "1.0.0",
     "description": "AFV bindings for trackaudio",
     "author": "Pierre Ferran",
-    "license": "GPL-3.0-only"
+    "license": "GPL-3.0-only",
+    "engines": {
+        "node": ">=18.0.0 <19.0.0"
+    }
 }

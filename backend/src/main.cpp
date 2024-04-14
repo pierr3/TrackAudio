@@ -121,6 +121,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo &info) {
     Helpers::CallbackWithError("Could not add frequency: it already exists");
     return Napi::Boolean::New(info.Env(), false);
   }
+  mClient->SetRx(frequency, false);
 
   if (!callsign.empty()) {
     mClient->FetchTransceiverInfo(callsign);
@@ -249,14 +250,6 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
     return;
   }
 
-  auto eventId = static_cast<int>(eventType);
-
-  callbackRef.NonBlockingCall([eventId](Napi::Env env,
-                                        Napi::Function jsCallback) {
-    jsCallback.Call({Napi::String::New(env, std::to_string(eventId)),
-                     Napi::String::New(env, ""), Napi::String::New(env, "")});
-  });
-
   if (eventType == afv_native::ClientEventType::VoiceServerConnected) {
     callbackRef.NonBlockingCall([](Napi::Env env, Napi::Function jsCallback) {
       jsCallback.Call({Napi::String::New(env, "VoiceConnected"),
@@ -315,7 +308,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
   }
 
   if (eventType == afv_native::ClientEventType::VccsReceived) {
-    if (data == nullptr || data2 == nullptr || !callbackAvailable) {
+    if (data == nullptr || data2 == nullptr) {
       return;
     }
     std::map<std::string, unsigned int> stations =
@@ -340,7 +333,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
   }
 
   if (eventType == afv_native::ClientEventType::FrequencyRxBegin) {
-    if (data == nullptr || !callbackAvailable) {
+    if (data == nullptr) {
       return;
     }
 
