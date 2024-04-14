@@ -5,19 +5,21 @@
 #include <string>
 #include <mutex>
 #include <memory>
+#include <semver.hpp>
 
-#define VERSION "beta-1"
+constexpr semver::version VERSION = semver::version{1, 0, 0, semver::prerelease::beta, 1};
 
 static Napi::ThreadSafeFunction callbackRef;
 static bool callbackAvailable = false;
 
-static std::unique_ptr<afv_native::api::atcClient> mClient =
-    std::make_unique<afv_native::api::atcClient>(std::string("TrackAudio-") +
-                                                 VERSION);
+static std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 
 #define TIMER_CALLBACK_INTERVAL_SEC 15
 #define SLURPER_BASE_URL "https://slurper.vatsim.net"
 #define SLURPER_DATA_ENDPOINT "/users/info/"
+
+#define VERSION_CHECK_BASE_URL "https://raw.githubusercontent.com"
+#define VERSION_CHECK_ENDPOINT "/pierr3/TrackAudio/main/MANDATORY_VERSION"
 
 #define OBS_FREQUENCY 199998000      // 199.998
 #define UNICOM_FREQUENCY = 122800000 // 122.800

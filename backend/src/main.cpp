@@ -1,15 +1,18 @@
 #include <absl/strings/match.h>
 #include <afv-native/afv_native.h>
+#include <httplib.h>
 #include <memory>
 #include <napi.h>
+#include <semver.hpp>
 #include <string>
 
 #include "Helpers.hpp"
 #include "RemoteData.hpp"
 #include "Shared.hpp"
 
-static std::unique_ptr<RemoteData> mRemoteDataHandler =
-    std::make_unique<RemoteData>();
+static std::unique_ptr<RemoteData> mRemoteDataHandler = nullptr;
+
+static bool ShouldRun = true;
 
 Napi::Array GetAudioApis(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
@@ -60,6 +63,10 @@ Napi::Array GetAudioOutputDevices(const Napi::CallbackInfo &info) {
 }
 
 Napi::Boolean Connect(const Napi::CallbackInfo &info) {
+  if (!ShouldRun) {
+    return Napi::Boolean::New(info.Env(), false);
+  }
+
   Napi::Env env = info.Env();
 
   if (!UserSession::isConnectedToTheNetwork) {
@@ -232,7 +239,7 @@ void SetRadioGain(const Napi::CallbackInfo &info) {
 
 Napi::String Version(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
-  return Napi::String::New(env, VERSION);
+  return Napi::String::New(env, VERSION.to_string());
 }
 
 static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
@@ -418,19 +425,51 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
   }
 }
 
-void Bootstrap() {
+Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
+  // We force do a mandatory version check, if an update is needed, the
+  // programme won't run
+
+  httplib::Client client(VERSION_CHECK_BASE_URL);
+  auto res = client.Get(VERSION_CHECK_ENDPOINT);
+  if (!res || res->status != 200) {
+    ShouldRun = false;
+    return Napi::Boolean::New(info.Env(), false);
+  }
+
+  try {
+    semver::version mandatoryVersion = semver::version(res->body);
+    if (VERSION < mandatoryVersion) {
+      ShouldRun = false;
+      return Napi::Boolean::New(info.Env(), false);
+    }
+  } catch (const std::exception &e) {
+    ShouldRun = false;
+    return Napi::Boolean::New(info.Env(), false);
+  }
+
+  std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
+  mClient = std::make_unique<afv_native::api::atcClient>(
+      std::string("TrackAudio-") + VERSION.to_string(), resourcePath);
+  mRemoteDataHandler = std::make_unique<RemoteData>();
+
   // Setup afv
   mClient->RaiseClientEvent(
       [](afv_native::ClientEventType eventType, void *data1, void *data2) {
         HandleAfvEvents(eventType, data1, data2);
       });
 
-  //
+  return Napi::Boolean::New(info.Env(), true);
+}
+
+void Exit(const Napi::CallbackInfo &info) {
+  if (mClient->IsVoiceConnected()) {
+    mClient->Disconnect();
+  }
+  mClient.reset();
+  mRemoteDataHandler.reset();
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
-
-  Bootstrap();
 
   exports.Set(Napi::String::New(env, "GetVersion"),
               Napi::Function::New(env, Version));
@@ -487,6 +526,11 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   exports.Set(Napi::String::New(env, "SetRadioGain"),
               Napi::Function::New(env, SetRadioGain));
+
+  exports.Set(Napi::String::New(env, "BootStrap"),
+              Napi::Function::New(env, Bootstrap));
+
+  exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 
   return exports;
 }

@@ -5,6 +5,7 @@
         "cpp-httplib",
         "poco",
         "node-addon-api",
-        "abseil"
+        "abseil",
+        "neargye-semver"
     ]
 }

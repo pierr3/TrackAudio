@@ -124,14 +124,26 @@ const createWindow = (): void => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
+  const shouldUpdate = TrackAudioAfv.Bootstrap(process.resourcesPath);
+  if (!shouldUpdate) {
+    dialog.showMessageBoxSync({
+      type: "error",
+      message:
+        "A new mandatory version is available, please update in order to continue.",
+      buttons: ["OK"],
+    });
+    app.quit();
+  }
+
   if (!systemPreferences.isTrustedAccessibilityClient(true)) {
     dialog.showMessageBoxSync({
       type: "info",
       message:
-        "This application requires accessibility permissions. Please grant these in System Preferences.",
+        "This application requires accessibility permissions (for push to talk to work). Please grant these in System Preferences.",
       buttons: ["OK"],
     });
   }
+
   createWindow();
 });
 

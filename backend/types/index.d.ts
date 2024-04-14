@@ -69,4 +69,7 @@ declare namespace TrackAudioAfv {
       export function RegisterCallback(
         func: (arg: string, arg2: string, arg3: string) => void
       ): void;
+
+      export function Bootstrap(resourcePath: string): Promise<boolean>;
+      export function Exit(): void;
 }
