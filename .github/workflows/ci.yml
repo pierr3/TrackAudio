@@ -36,7 +36,9 @@ jobs:
           p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
 
       - name: Install dependencies
-        run: npm install
+        run: | 
+          npm run prepare-backend
+          npm install
 
       - name: Build
         run: npm run package

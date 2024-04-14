@@ -5,6 +5,7 @@
   "description": "A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows",
   "main": ".webpack/main",
   "scripts": {
+    "prepare-backend": "cd backend && npm install && npm run build",
     "preinstall": "cd backend && npm install && npm run build",
     "start": "electron-forge start",
     "package": "electron-forge package",
