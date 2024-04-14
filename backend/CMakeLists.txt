@@ -31,6 +31,12 @@ include_directories(${CMAKE_SOURCE_DIR}/extern/afv-native/include)
 add_library(trackaudio-afv SHARED 
   src/main.cpp
   ${CMAKE_JS_SRC})
+  
+
+if (WIN32)
+  set_property(TARGET trackaudio-afv PROPERTY
+    MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Release>:Release>")
+endif()
 
 # Find the required packages
 find_package(Threads REQUIRED)
@@ -38,7 +44,7 @@ find_package(httplib CONFIG REQUIRED)
 find_package(unofficial-node-addon-api CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(absl CONFIG REQUIRED)
-find_package(Poco REQUIRED Util)
+find_package(Poco COMPONENTS Foundation Util REQUIRED)
 
 if (WIN32)
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -85,7 +91,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     unofficial::node-addon-api::node-addon-api
     OpenSSL::SSL OpenSSL::Crypto
     absl::strings absl::any
-    Poco::Util
+    Poco::Foundation Poco::Util
     ${CMAKE_JS_LIB})
 
 # Set the output directory for the built executable
