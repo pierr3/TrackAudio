@@ -527,7 +527,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set(Napi::String::New(env, "SetRadioGain"),
               Napi::Function::New(env, SetRadioGain));
 
-  exports.Set(Napi::String::New(env, "BootStrap"),
+  exports.Set(Napi::String::New(env, "Bootstrap"),
               Napi::Function::New(env, Bootstrap));
 
   exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
