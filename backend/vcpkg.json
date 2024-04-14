@@ -6,6 +6,7 @@
         "poco",
         "node-addon-api",
         "abseil",
-        "neargye-semver"
+        "neargye-semver",
+        "openssl"
     ]
 }
