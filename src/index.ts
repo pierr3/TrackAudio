@@ -106,8 +106,10 @@ const createWindow = (): void => {
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   setupUiHook();
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // Open the DevTools only in development mode.
+  if (process.env.NODE_ENV === "development") {
+    mainWindow.webContents.openDevTools();
+  }
 
   mainWindow.on("close", (e) => {
     const response = dialog.showMessageBoxSync(mainWindow, {

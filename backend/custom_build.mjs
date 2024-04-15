@@ -2,16 +2,15 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-// Function to change the rpath of the binary
-function changeRpath(binaryPath) {
-    try {
-        // execSync(`install_name_tool -change "@rpath/libafv_native.dylib" "@loader_path/afv/libafv_native.dylib" ${binaryPath}`);
-        // execSync(`install_name_tool -add_rpath "@loader_path/afv/" ${binaryPath}`);
-        console.log('Rpath changed successfully!');
-    } catch (error) {
-        console.error('Error changing rpath:', error.message);
-    }
-}
+// // Function to change the rpath of the binary
+// function changeRpath(binaryPath) {
+//     try {
+//         execSync(`install_name_tool -change "@rpath/libafv_native.dylib" "@executable_path/libafv_native.dylib" ${binaryPath}`);
+//         console.log('Rpath changed successfully!');
+//     } catch (error) {
+//         console.error('Error changing rpath:', error.message);
+//     }
+// }
 
 // Function to copy DLL files
 function copyDLLs() {
@@ -52,9 +51,9 @@ const libraryPath = process.platform === 'darwin' ? 'build/Release/libafv_native
 const certificate = 'Developer ID Application';
 
 // Change the rpath of the binary
-if (process.platform === 'darwin' || process.platform === 'linux') {
-    changeRpath(binaryPath);
-}
+// if (process.platform === 'darwin' || process.platform === 'linux') {
+//     changeRpath(binaryPath);
+// }
 
 // Codesign the binary on macOS
 if (process.platform === 'darwin') {

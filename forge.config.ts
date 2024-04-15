@@ -67,31 +67,19 @@ const config: ForgeConfig = {
   hooks: {
     packageAfterExtract: async (forgeConfig, buildPath) => {
       console.info("Packages built at:", buildPath);
-
-      console.log("Subdirectories of buildPath:");
-      const subdirectories = fs.readdirSync(buildPath, { withFileTypes: true })
-        .filter((dirent) => dirent.isDirectory())
-        .map((dirent) => dirent.name);
-
-      subdirectories.forEach((subdirectory) => {
-        console.log(subdirectory);
-        const subdirectoryPath = path.join(buildPath, subdirectory);
-        const subSubdirectories = fs.readdirSync(subdirectoryPath, { withFileTypes: true })
+      const recursiveSubdirectories = (dirPath: string) => {
+        const subdirectories = fs.readdirSync(dirPath, { withFileTypes: true })
           .filter((dirent) => dirent.isDirectory())
           .map((dirent) => dirent.name);
 
-        subSubdirectories.forEach((subSubdirectory) => {
-          console.log(`  ${subSubdirectory}`);
-          const subSubdirectoryPath = path.join(subdirectoryPath, subSubdirectory);
-          const subSubSubdirectories = fs.readdirSync(subSubdirectoryPath, { withFileTypes: true })
-            .filter((dirent) => dirent.isDirectory())
-            .map((dirent) => dirent.name);
-
-          subSubSubdirectories.forEach((subSubSubdirectory) => {
-            console.log(`    ${subSubSubdirectory}`);
-          });
+        subdirectories.forEach((subdirectory) => {
+          const subdirectoryPath = path.join(dirPath, subdirectory);
+          console.log(subdirectoryPath);
+          recursiveSubdirectories(subdirectoryPath);
         });
-      });
+      };
+
+      recursiveSubdirectories(buildPath);
 
       try {
         if (process.platform === "darwin") {
@@ -116,7 +104,13 @@ const config: ForgeConfig = {
           console.log("file found at", trackAudioAfvPath);
           console.log(
             "Copied libafv_native.dylib to",
-            path.join(buildPath, "afv", "libafv_native.dylib")
+            path.join(
+              buildPath,
+              "Electron.app",
+              "Contents",
+              "Frameworks",
+              "libafv_native.dylib"
+            )
           );
         }
 
