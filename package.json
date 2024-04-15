@@ -64,7 +64,7 @@
     "sass": "^1.74.1",
     "styled-components": "^5.3.11",
     "trackaudio-afv": "file:backend/trackaudio-afv-1.0.0.tgz",
-    "uiohook-napi": "^1.5.4",
+    "uiohook-napi": "1.5.2",
     "use-debounce": "^10.0.0",
     "zustand": "^4.5.2"
   },
