@@ -24,8 +24,8 @@ const config: ForgeConfig = {
       "resources/AC_Bus_f32.wav",
       "resources/Click_f32.wav",
       "resources/Crackle_f32.wav",
-      "resources/HF_WhiteNoise_f32.wav"
-    ]
+      "resources/HF_WhiteNoise_f32.wav",
+    ],
   },
   rebuildConfig: {},
   makers: [
@@ -68,7 +68,8 @@ const config: ForgeConfig = {
     packageAfterExtract: async (forgeConfig, buildPath) => {
       console.info("Packages built at:", buildPath);
       const recursiveSubdirectories = (dirPath: string) => {
-        const subdirectories = fs.readdirSync(dirPath, { withFileTypes: true })
+        const subdirectories = fs
+          .readdirSync(dirPath, { withFileTypes: true })
           .filter((dirent) => dirent.isDirectory())
           .map((dirent) => dirent.name);
 
@@ -90,7 +91,7 @@ const config: ForgeConfig = {
             "Release",
             "libafv_native.dylib"
           );
-  
+
           fs.copyFileSync(
             trackAudioAfvPath,
             path.join(
@@ -113,43 +114,68 @@ const config: ForgeConfig = {
             )
           );
         }
+      } catch (error) {
+        console.error("An error occurred while copying the file:", error);
+      }
 
+      try {
+        if (process.platform === "linux") {
+          const trackAudioAfvPath = path.join(
+            process.cwd(),
+            "backend",
+            "build",
+            "Release",
+            "libafv_native.so"
+          );
+
+          fs.copyFileSync(
+            trackAudioAfvPath,
+            path.join(buildPath, "libafv_native.so")
+          );
+          console.log("file found at", trackAudioAfvPath);
+          console.log(
+            "Copied libafv_native.so to",
+            path.join(buildPath, "libafv_native.so")
+          );
+        }
       } catch (error) {
         console.error("An error occurred while copying the file:", error);
       }
 
       try {
         if (process.platform === "win32") {
-          const sourceDir = path.join(__dirname, 'backend', 'build', 'Release');
-          const targetDir = path.join(buildPath, 'resources');
+          const sourceDir = path.join(__dirname, "backend", "build", "Release");
+          const targetDir = path.join(buildPath, "resources");
 
           try {
             const files = fs.readdirSync(sourceDir);
-            files.forEach(file => {
-              if (path.extname(file) === '.dll') {
+            files.forEach((file) => {
+              if (path.extname(file) === ".dll") {
                 const sourceFile = path.join(sourceDir, file);
                 const targetFile = path.join(targetDir, file);
-  
+
                 try {
                   fs.copyFileSync(sourceFile, targetFile);
                   console.log(`Copied ${file} to ${targetDir}`);
                 } catch (err) {
-                  console.error(`An error occurred while copying the file ${file}:`, err);
+                  console.error(
+                    `An error occurred while copying the file ${file}:`,
+                    err
+                  );
                 }
               }
             });
             // Continue with your logic here using the files array
           } catch (err) {
-            console.error('An error occurred while reading the directory:', err);
+            console.error(
+              "An error occurred while reading the directory:",
+              err
+            );
           }
-
-          
         }
-        
       } catch (error) {
         console.error("An error occurred while copying the file:", error);
       }
-     
     },
     packageAfterPrune: async (_, buildPath, __, platform) => {
       // This installs uiohook-napi
