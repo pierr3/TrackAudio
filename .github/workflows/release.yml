@@ -59,6 +59,14 @@ jobs:
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
+        if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest'
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
-          files: "out/make/**/*.{deb,zip}"
+          files: "out/make/**/*.zip"
+
+      - name: Upload artifacts
+        uses: softprops/action-gh-release@v2
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          tag_name: ${{ steps.relinfo.outputs.release }}
+          files: "out/make/**/*.deb"
