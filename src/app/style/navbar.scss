@@ -1,4 +1,4 @@
-@import "./custom-bootstrap.scss";
+@import "variables";
 $transition-speed: 0.1s;
 
 .clock-text {
@@ -12,7 +12,7 @@ $transition-speed: 0.1s;
   background-color: $navbar;
   border-color: lighten($disabled, 5%);
   outline: lighten($disabled, 5%) solid 2px;
-  font: 600 15px;
+  font-size: 18px;
   color: $body-color;
   line-height: $navbar-height;
   padding: 0;

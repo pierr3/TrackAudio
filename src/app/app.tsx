@@ -5,7 +5,7 @@ import Sidebar from "./components/sidebar/sidebar";
 import ErrorDialog from "./components/error";
 import Bootstrap from "./components/bootstrap";
 
-import './assets/fonts/SometypeMono-VariableFont_wght.ttf';
+import './style/app.scss';
 
 function App() {
 
