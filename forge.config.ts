@@ -29,16 +29,16 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    {
-      "name": "@electron-forge/maker-squirrel",
-      "config": {
-        "name": "my_electron_app"
-      }
-    },
+    // {
+    //   "name": "@electron-forge/maker-squirrel",
+    //   "config": {
+    //     "name": "my_electron_app"
+    //   }
+    // },
     {
       "name": "@electron-forge/maker-zip",
       config: {
-        platforms: ['darwin']
+        platforms: ['darwin', 'win64']
       }
     },
     {
