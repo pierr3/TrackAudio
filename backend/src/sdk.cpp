@@ -1,4 +1,6 @@
 #include "sdk.hpp"
+#include <mutex>
+#include <nlohmann/json_fwd.hpp>
 
 SDK::SDK() {
   try {
@@ -34,6 +36,18 @@ void SDK::buildServer() {
 void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
                                      const std::optional<std::string> &callsign,
                                      const std::optional<int> &frequencyHz) {
+
+  if (event == sdk::types::Event::kDisconnectFrequencyStateUpdate) {
+    nlohmann::json jsonMessage = WebsocketMessage::buildMessage(
+        WebsocketMessageType::kFrequencyStateUpdate);
+
+    jsonMessage["value"]["rx"] = nlohmann::json::array();
+    jsonMessage["value"]["tx"] = nlohmann::json::array();
+    jsonMessage["value"]["xc"] = nlohmann::json::array();
+    this->broadcastOnWebsocket(jsonMessage.dump());
+    return;
+  }
+
   if (!this->pSDKServer || !mClient->IsVoiceConnected()) {
     return;
   }
@@ -207,6 +221,7 @@ SDK::handleWebSocketSDKCall(const restinio::request_handle_t &req) {
 };
 
 void SDK::broadcastOnWebsocket(const std::string &data) {
+  std::lock_guard<std::mutex> lock(BroadcastMutex);
   restinio::websocket::basic::message_t outgoingMessage;
   outgoingMessage.set_opcode(restinio::websocket::basic::opcode_t::text_frame);
   outgoingMessage.set_payload(data);

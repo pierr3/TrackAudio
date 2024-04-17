@@ -93,6 +93,7 @@ void Disconnect(const Napi::CallbackInfo &info) {
     return;
   }
   mClient->Disconnect();
+  mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kDisconnectFrequencyStateUpdate, {}, {});
 }
 
 void SetAudioSettings(const Napi::CallbackInfo &info) {
@@ -125,12 +126,15 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo &info) {
   }
   mClient->SetRx(frequency, false);
 
+  mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
+
   return Napi::Boolean::New(info.Env(), true);
 }
 
 void RemoveFrequency(const Napi::CallbackInfo &info) {
   int frequency = info[0].As<Napi::Number>().Int32Value();
   mClient->RemoveFrequency(frequency);
+  mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
 }
 
 void Reset(const Napi::CallbackInfo &info) { mClient->reset(); }
@@ -169,6 +173,8 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo &info) {
   }
 
   mClient->SetOnHeadset(frequency, !onSpeaker);
+
+  mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
 
   return Napi::Boolean::New(info.Env(), true);
 }

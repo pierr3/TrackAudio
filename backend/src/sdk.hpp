@@ -31,6 +31,7 @@ enum Event {
   kRxBegin,
   kRxEnd,
   kFrequencyStateUpdate,
+  kDisconnectFrequencyStateUpdate
 };
 }
 
@@ -70,6 +71,8 @@ private:
 
   static inline std::mutex TransmittingMutex;
   static inline std::set<std::string> CurrentlyTransmittingData;
+
+  static inline std::mutex BroadcastMutex;
 
   static inline std::map<sdkCall, std::string> mSDKCallUrl = {
       {kTransmitting, "/transmitting"},
