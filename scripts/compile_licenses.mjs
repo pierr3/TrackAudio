@@ -1,5 +1,4 @@
 import { exec } from 'child_process';
-import { marked } from 'marked';
 import fs from 'fs';
 
 // Requires npm install -g license-report
@@ -37,7 +36,7 @@ exec(`${command} > ${outputFile}`, (error, stdout, stderr) => {
     fs.appendFileSync(outputFile, swiftLicenseContent);
     console.log(`Swift license content appended to ${outputFile}`);
 
-    const fontLicense = './src/app/assets/fonts/LICENSE.txt';
+    const fontLicense = './src/app/assets/fonts/LICENCE.txt';
     const fontLicenseContent = fs.readFileSync(fontLicense, 'utf8');
 
     fs.appendFileSync(outputFile, fontLicenseContent);

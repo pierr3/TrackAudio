@@ -1,17 +1,19 @@
 | Name                                       | Related to | License type | Installed version | Defined version | Remote version | Latest remote version | Latest remote modified   | Author                                                                        |
 | :----------------------------------------- | :--------- | :----------- | :---------------- | :-------------- | :------------- | :-------------------- | :----------------------- | :---------------------------------------------------------------------------- |
+| @electron-forge/plugin-auto-unpack-natives | UI         | MIT          | 7.4.0             | ^7.4.0          | 7.4.0          | 7.4.0                 | 2024-04-11T22:02:15.553Z | Samuel Attard                                                                 |
 | bootstrap                                  | UI         | MIT          | 5.3.3             | ^5.3.3          | 5.3.3          | 5.3.3                 | 2024-02-20T15:21:36.972Z | The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors) |
 | bootstrap-scss                             | UI         | MIT          | 5.3.3             | ^5.3.3          | 5.3.3          | 5.3.3                 | 2024-02-28T12:59:34.474Z | Cristian Trifan criss.trifan@gmail.com https://crissdev.com                   |
 | clsx                                       | UI         | MIT          | 2.1.0             | ^2.1.0          | 2.1.0          | 2.1.0                 | 2023-12-29T20:34:39.232Z | Luke Edwards luke.edwards05@gmail.com https://lukeed.com                      |
 | electron-squirrel-startup                  | UI         | Apache-2.0   | 1.0.0             | ^1.0.0          | 1.0.0          | 1.0.0                 | 2024-01-17T12:36:36.911Z | Lucas Hrabovsky <lucas@mongodb.com> (http://imlucas.com)                      |
 | electron-store                             | UI         | MIT          | 8.2.0             | ^8.2.0          | 8.2.0          | 8.2.0                 | 2024-03-08T06:12:28.852Z | Sindre Sorhus sindresorhus@gmail.com https://sindresorhus.com                 |
 | i                                          | UI         | MIT          | 0.3.7             | ^0.3.7          | 0.3.7          | 0.3.7                 | 2024-04-07T09:52:46.734Z | Pavan Kumar Sunkara <pavan.sss1991@gmail.com> (pksunkara.github.com)          |
-| npm                                        | UI         | Artistic-2.0 | 10.5.2            | ^10.5.1         | 10.5.2         | 10.5.2                | 2024-04-10T20:23:51.177Z | GitHub Inc.                                                                   |
-| react                                      | UI         | MIT          | 18.2.0            | ^18.2.0         | 18.2.0         | 18.2.0                | 2024-04-12T16:17:20.738Z | n/a                                                                           |
-| react-dom                                  | UI         | MIT          | 18.2.0            | ^18.2.0         | 18.2.0         | 18.2.0                | 2024-04-12T16:17:35.509Z | n/a                                                                           |
+| npm                                        | UI         | Artistic-2.0 | 10.5.2            | ^10.5.1         | 10.5.2         | 10.5.2                | 2024-04-15T20:07:34.189Z | GitHub Inc.                                                                   |
+| react                                      | UI         | MIT          | 18.2.0            | ^18.2.0         | 18.2.0         | 18.2.0                | 2024-04-17T16:20:31.280Z | n/a                                                                           |
+| react-dom                                  | UI         | MIT          | 18.2.0            | ^18.2.0         | 18.2.0         | 18.2.0                | 2024-04-17T16:21:01.539Z | n/a                                                                           |
 | sass                                       | UI         | MIT          | 1.75.0            | ^1.74.1         | 1.75.0         | 1.75.0                | 2024-04-11T23:05:47.609Z | Natalie Weizenbaum nweiz@google.com https://github.com/nex3                   |
 | styled-components                          | UI         | MIT          | 5.3.11            | ^5.3.11         | 5.3.11         | 6.1.8                 | 2024-01-08T21:28:16.891Z | Glen Maddern                                                                  |
-| uiohook-napi                               | UI         | MIT          | 1.5.4             | ^1.5.4          | 1.5.4          | 1.5.4                 | 2024-03-29T11:54:44.556Z | Alexander Drozdov                                                             |
+| trackaudio-afv                             | UI         | GPL-3.0-only | 1.0.0             | n/a             | n/a            | n/a                   | n/a                      | Pierre Ferran                                                                 |
+| uiohook-napi                               | UI         | MIT          | 1.5.2             | 1.5.2           | 1.5.2          | 1.5.4                 | 2024-03-29T11:54:44.556Z | Alexander Drozdov                                                             |
 | use-debounce                               | UI         | MIT          | 10.0.0            | ^10.0.0         | 10.0.0         | 10.0.0                | 2023-11-05T23:38:32.399Z | Nik (nik@xnim.me)                                                             |
 | zustand                                    | UI         | MIT          | 4.5.2             | ^4.5.2          | 4.5.2          | 4.5.2                 | 2024-03-23T04:07:13.480Z | Paul Henschel                                                                 |
 | @electron-forge/cli                        | UI         | MIT          | 7.4.0             | ^7.3.1          | 7.4.0          | 7.4.0                 | 2024-04-11T22:02:23.118Z | Samuel Attard                                                                 |
@@ -19,32 +21,29 @@
 | @electron-forge/maker-rpm                  | UI         | MIT          | 7.4.0             | ^7.3.1          | 7.4.0          | 7.4.0                 | 2024-04-11T22:02:13.577Z | Samuel Attard                                                                 |
 | @electron-forge/maker-squirrel             | UI         | MIT          | 7.4.0             | ^7.3.1          | 7.4.0          | 7.4.0                 | 2024-04-11T22:02:14.440Z | Samuel Attard                                                                 |
 | @electron-forge/maker-zip                  | UI         | MIT          | 7.4.0             | ^7.3.1          | 7.4.0          | 7.4.0                 | 2024-04-11T22:02:14.718Z | Samuel Attard                                                                 |
-| @electron-forge/plugin-auto-unpack-natives | UI         | MIT          | 7.4.0             | ^7.3.1          | 7.4.0          | 7.4.0                 | 2024-04-11T22:02:15.553Z | Samuel Attard                                                                 |
 | @electron-forge/plugin-fuses               | UI         | MIT          | 7.4.0             | ^7.3.1          | 7.4.0          | 7.4.0                 | 2024-04-11T22:02:16.706Z | Erik Moura <erikian@erikian.dev>                                              |
 | @electron-forge/plugin-webpack             | UI         | MIT          | 7.4.0             | ^7.3.1          | 7.4.0          | 7.4.0                 | 2024-04-11T22:02:17.005Z | Samuel Attard                                                                 |
 | @electron/fuses                            | UI         | MIT          | 1.8.0             | ^1.8.0          | 1.8.0          | 1.8.0                 | 2024-03-25T17:41:45.228Z | Electron Community                                                            |
-| @types/react                               | UI         | MIT          | 18.2.77           | ^18.2.74        | 18.2.78        | 18.2.78               | 2024-04-13T09:35:42.159Z | n/a                                                                           |
+| @types/react                               | UI         | MIT          | 18.2.78           | ^18.2.74        | 18.2.79        | 18.2.79               | 2024-04-15T22:07:36.197Z | n/a                                                                           |
 | @types/react-dom                           | UI         | MIT          | 18.2.25           | ^18.2.24        | 18.2.25        | 18.2.25               | 2024-04-11T17:36:31.915Z | n/a                                                                           |
-| @typescript-eslint/eslint-plugin           | UI         | MIT          | 5.62.0            | ^5.62.0         | 5.62.0         | 7.6.0                 | 2024-04-09T20:08:19.620Z | n/a                                                                           |
-| @typescript-eslint/parser                  | UI         | BSD-2-Clause | 5.62.0            | ^5.62.0         | 5.62.0         | 7.6.0                 | 2024-04-09T20:07:11.092Z | n/a                                                                           |
+| @typescript-eslint/eslint-plugin           | UI         | MIT          | 5.62.0            | ^5.62.0         | 5.62.0         | 7.7.0                 | 2024-04-15T17:36:11.625Z | n/a                                                                           |
+| @typescript-eslint/parser                  | UI         | BSD-2-Clause | 5.62.0            | ^5.62.0         | 5.62.0         | 7.7.0                 | 2024-04-15T17:35:26.352Z | n/a                                                                           |
 | @vercel/webpack-asset-relocator-loader     | UI         | MIT          | 1.7.3             | ^1.7.3          | 1.7.3          | 1.7.3                 | 2023-06-13T18:55:50.624Z | n/a                                                                           |
 | copy-webpack-plugin                        | UI         | MIT          | 12.0.2            | ^12.0.2         | 12.0.2         | 12.0.2                | 2024-01-17T12:35:30.966Z | Len Boyette                                                                   |
 | css-loader                                 | UI         | MIT          | 6.11.0            | ^6.11.0         | 6.11.0         | 7.1.1                 | 2024-04-10T15:13:03.150Z | Tobias Koppers @sokra                                                         |
-| electron                                   | UI         | MIT          | 29.2.0            | 29.2.0          | 29.2.0         | 29.3.0                | 2024-04-11T22:18:31.569Z | Electron Community                                                            |
+| electron                                   | UI         | MIT          | 29.2.0            | 29.2.0          | 29.2.0         | 30.0.0                | 2024-04-17T20:40:45.650Z | Electron Community                                                            |
 | electron-rebuild                           | UI         | MIT          | 3.2.9             | ^3.2.9          | 3.2.9          | 3.2.9                 | 2022-11-01T20:43:19.426Z | Paul Betts <paul@paulbetts.org>                                               |
 | eslint                                     | UI         | MIT          | 8.57.0            | ^8.57.0         | 8.57.0         | 9.0.0                 | 2024-04-05T20:53:31.340Z | Nicholas C. Zakas <nicholas+npm@nczconsulting.com>                            |
 | eslint-plugin-import                       | UI         | MIT          | 2.29.1            | ^2.29.1         | 2.29.1         | 2.29.1                | 2023-12-14T18:54:57.280Z | Ben Mosher <me@benmosher.com>                                                 |
 | file-loader                                | UI         | MIT          | 6.2.0             | ^6.2.0          | 6.2.0          | 6.2.0                 | 2023-04-11T03:19:11.452Z | Tobias Koppers @sokra                                                         |
 | fork-ts-checker-webpack-plugin             | UI         | MIT          | 7.3.0             | ^7.3.0          | 7.3.0          | 9.0.2                 | 2023-10-29T20:31:09.525Z | Piotr Oleś <piotrek.oles@gmail.com>                                           |
-| marked                                     | UI         | MIT          | 12.0.1            | ^12.0.1         | 12.0.1         | 12.0.1                | 2024-03-06T07:43:07.538Z | Christopher Jeffrey                                                           |
 | node-loader                                | UI         | MIT          | 2.0.0             | ^2.0.0          | 2.0.0          | 2.0.0                 | 2023-04-11T03:19:23.013Z | Tobias Koppers @sokra                                                         |
 | ref-loader                                 | UI         | MIT          | 1.0.3             | ^1.0.3          | 1.0.3          | 1.0.3                 | 2022-05-15T16:31:43.112Z | leecjson                                                                      |
-| sass-loader                                | UI         | MIT          | 14.2.0            | ^14.1.1         | 14.2.0         | 14.2.0                | 2024-04-11T15:30:09.153Z | J. Tangelder                                                                  |
+| sass-loader                                | UI         | MIT          | 14.2.0            | ^14.1.1         | 14.2.1         | 14.2.1                | 2024-04-16T16:54:44.167Z | J. Tangelder                                                                  |
 | style-loader                               | UI         | MIT          | 3.3.4             | ^3.3.4          | 3.3.4          | 4.0.0                 | 2024-04-08T17:04:35.814Z | Tobias Koppers @sokra                                                         |
-| tailwindcss                                | UI         | MIT          | 3.4.3             | ^3.4.3          | 3.4.3          | 3.4.3                 | 2024-04-09T19:02:15.537Z | n/a                                                                           |
 | ts-loader                                  | UI         | MIT          | 9.5.1             | ^9.5.1          | 9.5.1          | 9.5.1                 | 2023-11-15T02:19:37.832Z | John Reilly <johnny_reilly@hotmail.com> (https://johnnyreilly.com)            |
 | ts-node                                    | UI         | MIT          | 10.9.2            | ^10.9.2         | 10.9.2         | 10.9.2                | 2023-12-08T12:04:46.309Z | Blake Embrey hello@blakeembrey.com http://blakeembrey.me                      |
-| typescript                                 | UI         | Apache-2.0   | 4.5.5             | ~4.5.4          | 4.5.5          | 5.4.5                 | 2024-04-13T07:11:31.889Z | Microsoft Corp.                                                               |
+| typescript                                 | UI         | Apache-2.0   | 4.5.5             | ~4.5.4          | 4.5.5          | 5.4.5                 | 2024-04-17T07:12:02.406Z | Microsoft Corp.                                                               |
 
 # License for TrackAudio
 
@@ -2989,96 +2988,99 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
-Copyright 2018 The Sometype Mono Project Authors (https://github.com/googlefonts/sometype-mono)
-
-This Font Software is licensed under the SIL Open Font License, Version 1.1.
-This license is copied below, and is also available with a FAQ at:
-https://openfontlicense.org
-
-
------------------------------------------------------------
-SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
------------------------------------------------------------
+-------------------------------
+UBUNTU FONT LICENCE Version 1.0
+-------------------------------
 
 PREAMBLE
-The goals of the Open Font License (OFL) are to stimulate worldwide
-development of collaborative font projects, to support the font creation
-efforts of academic and linguistic communities, and to provide a free and
-open framework in which fonts may be shared and improved in partnership
-with others.
-
-The OFL allows the licensed fonts to be used, studied, modified and
-redistributed freely as long as they are not sold by themselves. The
-fonts, including any derivative works, can be bundled, embedded, 
-redistributed and/or sold with any software provided that any reserved
-names are not used by derivative works. The fonts and derivatives,
-however, cannot be released under any other type of license. The
-requirement for fonts to remain under this license does not apply
-to any document created using the fonts or their derivatives.
+This licence allows the licensed fonts to be used, studied, modified and
+redistributed freely. The fonts, including any derivative works, can be
+bundled, embedded, and redistributed provided the terms of this licence
+are met. The fonts and derivatives, however, cannot be released under
+any other licence. The requirement for fonts to remain under this
+licence does not require any document created using the fonts or their
+derivatives to be published under this licence, as long as the primary
+purpose of the document is not to be a vehicle for the distribution of
+the fonts.
 
 DEFINITIONS
 "Font Software" refers to the set of files released by the Copyright
-Holder(s) under this license and clearly marked as such. This may
+Holder(s) under this licence and clearly marked as such. This may
 include source files, build scripts and documentation.
 
-"Reserved Font Name" refers to any names specified as such after the
-copyright statement(s).
-
-"Original Version" refers to the collection of Font Software components as
-distributed by the Copyright Holder(s).
+"Original Version" refers to the collection of Font Software components
+as received under this licence.
 
 "Modified Version" refers to any derivative made by adding to, deleting,
 or substituting -- in part or in whole -- any of the components of the
-Original Version, by changing formats or by porting the Font Software to a
-new environment.
+Original Version, by changing formats or by porting the Font Software to
+a new environment.
 
-"Author" refers to any designer, engineer, programmer, technical
-writer or other person who contributed to the Font Software.
+"Copyright Holder(s)" refers to all individuals and companies who have a
+copyright ownership of the Font Software.
+
+"Substantially Changed" refers to Modified Versions which can be easily
+identified as dissimilar to the Font Software by users of the Font
+Software comparing the Original Version with the Modified Version.
+
+To "Propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy. Propagation includes copying,
+distribution (with or without modification and with or without charging
+a redistribution fee), making available to the public, and in some
+countries other activities as well.
 
 PERMISSION & CONDITIONS
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of the Font Software, to use, study, copy, merge, embed, modify,
-redistribute, and sell modified and unmodified copies of the Font
-Software, subject to the following conditions:
+This licence does not grant any rights under trademark law and all such
+rights are reserved.
 
-1) Neither the Font Software nor any of its individual components,
-in Original or Modified Versions, may be sold by itself.
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of the Font Software, to propagate the Font Software, subject to
+the below conditions:
 
-2) Original or Modified Versions of the Font Software may be bundled,
-redistributed and/or sold with any software, provided that each copy
-contains the above copyright notice and this license. These can be
-included either as stand-alone text files, human-readable headers or
-in the appropriate machine-readable metadata fields within text or
-binary files as long as those fields can be easily viewed by the user.
+1) Each copy of the Font Software must contain the above copyright
+notice and this licence. These can be included either as stand-alone
+text files, human-readable headers or in the appropriate machine-
+readable metadata fields within text or binary files as long as those
+fields can be easily viewed by the user.
 
-3) No Modified Version of the Font Software may use the Reserved Font
-Name(s) unless explicit written permission is granted by the corresponding
-Copyright Holder. This restriction only applies to the primary font name as
-presented to the users.
+2) The font name complies with the following:
+(a) The Original Version must retain its name, unmodified.
+(b) Modified Versions which are Substantially Changed must be renamed to
+avoid use of the name of the Original Version or similar names entirely.
+(c) Modified Versions which are not Substantially Changed must be
+renamed to both (i) retain the name of the Original Version and (ii) add
+additional naming elements to distinguish the Modified Version from the
+Original Version. The name of such Modified Versions must be the name of
+the Original Version, with "derivative X" where X represents the name of
+the new work, appended to that name.
 
-4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
-Software shall not be used to promote, endorse or advertise any
-Modified Version, except to acknowledge the contribution(s) of the
-Copyright Holder(s) and the Author(s) or with their explicit written
-permission.
+3) The name(s) of the Copyright Holder(s) and any contributor to the
+Font Software shall not be used to promote, endorse or advertise any
+Modified Version, except (i) as required by this licence, (ii) to
+acknowledge the contribution(s) of the Copyright Holder(s) or (iii) with
+their explicit written permission.
 
-5) The Font Software, modified or unmodified, in part or in whole,
-must be distributed entirely under this license, and must not be
-distributed under any other license. The requirement for fonts to
-remain under this license does not apply to any document created
-using the Font Software.
+4) The Font Software, modified or unmodified, in part or in whole, must
+be distributed entirely under this licence, and must not be distributed
+under any other licence. The requirement for fonts to remain under this
+licence does not affect any document created using the Font Software,
+except any version of the Font Software extracted from a document
+created using the Font Software may only be distributed under this
+licence.
 
 TERMINATION
-This license becomes null and void if any of the above conditions are
+This licence becomes null and void if any of the above conditions are
 not met.
 
 DISCLAIMER
 THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
-OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
 COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
-OTHER DEALINGS IN THE FONT SOFTWARE.
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER
+DEALINGS IN THE FONT SOFTWARE.
