@@ -68,5 +68,7 @@ contextBridge.exposeInMainWorld("api", {
 
   SetRadioGain: (gain: number) => ipcRenderer.invoke("set-radio-gain", gain),
 
+  SetHardwareType: (type: number) => ipcRenderer.invoke("set-hardware-type", type),
+
   getVersion: () => ipcRenderer.invoke("get-version"),
 });

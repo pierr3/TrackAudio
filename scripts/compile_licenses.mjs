@@ -4,7 +4,7 @@ import fs from 'fs';
 // Requires npm install -g license-report
 
 const command = 'license-report --config license_report_config.json --relatedTo.value=UI';
-const outputFile = '../LICENSES_COMPILED.md';
+const outputFile = './LICENSES_COMPILED.md';
 
 exec(`${command} > ${outputFile}`, (error, stdout, stderr) => {
     if (error) {

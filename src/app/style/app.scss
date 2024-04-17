@@ -284,6 +284,12 @@ button:disabled {
   height: 100%;
 }
 
+select:disabled {
+  color: darken($btn-text-color, 40%);
+  background-color: #28283c !important;
+  border-color: darken($disabled, 10%);
+}
+
 @media only screen and (max-width: 450px) { 
   .hide-settings-flex { 
     display: none; 

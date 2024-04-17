@@ -37,6 +37,7 @@ let currentConfiguration: Configuration = {
   password: "",
   callsign: "",
   pttKey: 0,
+  hardwareType: 0,
 };
 const store = new Store();
 
@@ -46,11 +47,12 @@ const saveConfig = () => {
 
 const setAudioSettings = () => {
   TrackAudioAfv.SetAudioSettings(
-    currentConfiguration.audioApi,
-    currentConfiguration.audioInputDeviceId,
-    currentConfiguration.headsetOutputDeviceId,
-    currentConfiguration.speakerOutputDeviceId
+    currentConfiguration.audioApi || -1,
+    currentConfiguration.audioInputDeviceId || "",
+    currentConfiguration.headsetOutputDeviceId || "",
+    currentConfiguration.speakerOutputDeviceId || ""
   );
+  TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
 };
 
 const setupUiHook = () => {
@@ -284,6 +286,12 @@ ipcMain.handle("setup-ptt", () => {
 
 ipcMain.handle("set-radio-gain", (_, gain: number) => {
   TrackAudioAfv.SetRadioGain(gain);
+});
+
+ipcMain.handle("set-hardware-type", (_, type: number) => {
+  currentConfiguration.hardwareType = type;
+  saveConfig();
+  TrackAudioAfv.SetHardwareType(type);
 });
 
 ipcMain.handle("get-version", () => {

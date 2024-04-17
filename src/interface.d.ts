@@ -33,6 +33,8 @@ export interface IElectronAPI {
     SetupPtt(): Promise<void>;
     SetRadioGain(gain: number): Promise<void>;
 
+    SetHardwareType(type: number): Promise<void>;
+
     getVersion: () => Promise<string>;
   }
 

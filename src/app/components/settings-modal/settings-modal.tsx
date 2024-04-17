@@ -22,34 +22,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [audioApis, setAudioApis] = useState([]);
   const [audioOutputDevices, setAudioOutputDevices] = useState([]);
   const [audioInputDevices, setAudioInputDevices] = useState([]);
+  const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
 
   const [isSettingPtt, setIsSettingPtt] = useState(false);
-  const [pttKeyName, setPttKeyName] = useSessionStore((state) => [state.pttKeyName, state.setPttKeyName]);
+  const [pttKeyName, setPttKeyName] = useSessionStore((state) => [
+    state.pttKeyName,
+    state.setPttKeyName,
+  ]);
 
   const [cid, setCid] = useState("");
-  const debouncedCid = useDebouncedCallback((cid) => {
-    setChangesSaved(SaveStatus.Saving);
-    setCid(cid);
-    setConfig({ ...config, cid: cid });
-    window.api.setCid(cid);
-    setChangesSaved(SaveStatus.Saved);
-  }, 500);
-
   const [password, setPassword] = useState("");
-  const debouncedPassword = useDebouncedCallback((password) => {
-    setChangesSaved(SaveStatus.Saving);
-    setPassword(password);
-    setConfig({ ...config, password: password });
-    window.api.setPassword(password);
-    setChangesSaved(SaveStatus.Saved);
-  }, 1000);
 
   useEffect(() => {
     window.api.getConfig().then((config) => {
       setConfig(config);
       setCid(config.cid || "");
       setPassword(config.password || "");
+      setHardwareType(config.hardwareType || 0);
       setPttKeyName(getKeyFromNumber(config.pttKey) || "None");
     });
 
@@ -65,6 +55,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       setAudioInputDevices(devices);
     });
   }, []);
+
+  const debouncedCid = useDebouncedCallback((cid) => {
+    setChangesSaved(SaveStatus.Saving);
+    setCid(cid);
+    setConfig({ ...config, cid: cid });
+    window.api.setCid(cid);
+    setChangesSaved(SaveStatus.Saved);
+  }, 500);
+
+  const debouncedPassword = useDebouncedCallback((password) => {
+    setChangesSaved(SaveStatus.Saving);
+    setPassword(password);
+    setConfig({ ...config, password: password });
+    window.api.setPassword(password);
+    setChangesSaved(SaveStatus.Saved);
+  }, 1000);
 
   const changeAudioApi = (api: number) => {
     setChangesSaved(SaveStatus.Saving);
@@ -110,8 +116,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setIsSettingPtt(true);
     window.api.SetupPtt().then(() => {
       setIsSettingPtt(false);
+      setChangesSaved(SaveStatus.Saved);
     });
-  }
+  };
+
+  const handleHardwareTypeChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setChangesSaved(SaveStatus.Saving);
+    const hardwareType = parseInt(e.target.value);
+    window.api.SetHardwareType(hardwareType);
+    setHardwareType(hardwareType);
+    setConfig({ ...config, hardwareType: hardwareType });
+    setChangesSaved(SaveStatus.Saved);
+  };
 
   const closeHander = () => {
     closeModal();
@@ -149,19 +167,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                   ></input>
 
                   <h5 className="mt-4">Other</h5>
-                  <label className="mt-1">Radio Effects</label>
-                  <select id="" className="form-control mt-1">
-                    <option value="volvo">On</option>
+                  {/* <label className="mt-1">Radio Effects</label>
+                  <select id="" className="form-control mt-1" disabled>
+                    <option value="on">On</option>
                     <option value="saab">Input only</option>
                     <option value="mercedes">Output only</option>
                     <option value="audi">Off</option>
-                  </select>
+                  </select> */}
                   <label className="mt-2">Radio Hardware</label>
-                  <select id="" className="form-control mt-1">
-                    <option value="volvo">Volvo</option>
-                    <option value="saab">Saab</option>
-                    <option value="mercedes">Mercedes</option>
-                    <option value="audi">Audi</option>
+                  <select
+                    id=""
+                    className="form-control mt-1"
+                    value={hardwareType}
+                    onChange={handleHardwareTypeChange}
+                  >
+                    <option value="0">Schmid ED-137B</option>
+                    <option value="1">Rockwell Collins 2100</option>
+                    <option value="2">Garex 220</option>
                   </select>
 
                   <label className="mt-2">Keep window on top</label>
@@ -212,16 +234,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       setInputDevice(device.id);
                     }}
                   />
-                  <button className="btn btn-warning mt-3 w-100">
+                  <button className="btn btn-warning mt-3 w-100" disabled>
                     Start mic test
                   </button>
                   <div className="progress mt-2" style={{ height: "4px" }}>
                     <div className="progress-bar w-0" role="progressbar"></div>
                   </div>
                   <button className="btn text-box-container mt-3 w-100">
-                    Ptt: { isSettingPtt ? "Press any key" : pttKeyName}
+                    Ptt: {isSettingPtt ? "Press any key" : pttKeyName}
                   </button>
-                  <button className="btn btn-info mt-2 w-100" onClick={handleSetPtt}>
+                  <button
+                    className="btn btn-info mt-2 w-100"
+                    onClick={handleSetPtt}
+                  >
                     Set new PTT
                   </button>
                 </div>

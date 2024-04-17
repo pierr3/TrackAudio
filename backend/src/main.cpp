@@ -93,7 +93,8 @@ void Disconnect(const Napi::CallbackInfo &info) {
     return;
   }
   mClient->Disconnect();
-  mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kDisconnectFrequencyStateUpdate, {}, {});
+  mApiServer->handleAFVEventForWebsocket(
+      sdk::types::Event::kDisconnectFrequencyStateUpdate, {}, {});
 }
 
 void SetAudioSettings(const Napi::CallbackInfo &info) {
@@ -126,7 +127,8 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo &info) {
   }
   mClient->SetRx(frequency, false);
 
-  mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
+  mApiServer->handleAFVEventForWebsocket(
+      sdk::types::Event::kFrequencyStateUpdate, {}, {});
 
   return Napi::Boolean::New(info.Env(), true);
 }
@@ -134,7 +136,8 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo &info) {
 void RemoveFrequency(const Napi::CallbackInfo &info) {
   int frequency = info[0].As<Napi::Number>().Int32Value();
   mClient->RemoveFrequency(frequency);
-  mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
+  mApiServer->handleAFVEventForWebsocket(
+      sdk::types::Event::kFrequencyStateUpdate, {}, {});
 }
 
 void Reset(const Napi::CallbackInfo &info) { mClient->reset(); }
@@ -174,7 +177,8 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo &info) {
 
   mClient->SetOnHeadset(frequency, !onSpeaker);
 
-  mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
+  mApiServer->handleAFVEventForWebsocket(
+      sdk::types::Event::kFrequencyStateUpdate, {}, {});
 
   return Napi::Boolean::New(info.Env(), true);
 }
@@ -227,6 +231,21 @@ Napi::Boolean IsFrequencyActive(const Napi::CallbackInfo &info) {
 void SetCid(const Napi::CallbackInfo &info) {
   auto cid = info[0].As<Napi::String>().Utf8Value();
   UserSession::cid = cid;
+}
+
+void SetHardwareType(const Napi::CallbackInfo &info) {
+  auto hardwareTypeIndex = info[0].As<Napi::Number>().Int32Value();
+  auto hardware = afv_native::HardwareType::Schmid_ED_137B;
+
+  if (hardwareTypeIndex == 1) {
+    hardware = afv_native::HardwareType::Rockwell_Collins_2100;
+  }
+
+  if (hardwareTypeIndex == 2) {
+    hardware = afv_native::HardwareType::Garex_220;
+  }
+
+  mClient->SetHardware(hardware);
 }
 
 void SetPtt(const Napi::CallbackInfo &info) {
@@ -566,6 +585,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   exports.Set(Napi::String::New(env, "SetRadioGain"),
               Napi::Function::New(env, SetRadioGain));
+
+  exports.Set(Napi::String::New(env, "SetHardwareType"),
+              Napi::Function::New(env, SetHardwareType));
 
   exports.Set(Napi::String::New(env, "Bootstrap"),
               Napi::Function::New(env, Bootstrap));

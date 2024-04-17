@@ -9,4 +9,5 @@ export interface Configuration {
     callsign: string;
 
     pttKey: number;
+    hardwareType: number;
 }

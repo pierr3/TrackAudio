@@ -66,6 +66,8 @@ declare namespace TrackAudioAfv {
       export function SetRadioGain(gain: number): void;
       export function SetPtt(activate: boolean): void;
 
+      export function SetHardwareType(type: number): void;
+
       export function RegisterCallback(
         func: (arg: string, arg2: string, arg3: string) => void
       ): void;

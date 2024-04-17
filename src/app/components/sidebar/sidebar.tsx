@@ -55,9 +55,9 @@ const Sidebar: React.FC = () => {
 
         <AddFrequency />
 
-        <span className="btn text-box-container mt-3 w-100">
+        {/* <span className="btn text-box-container mt-3 w-100">
           Source: Slurper
-        </span>
+        </span> */}
 
         <div className="box-container mt-3 w-100">Last RX: [TO BE ADDED]</div>
 
