@@ -66,7 +66,7 @@ const Sidebar: React.FC = () => {
         <div className="box-container mt-3 w-100 licenses">
           {version} |&nbsp;
           <a
-            href="https://raw.githubusercontent.com/pierr3/VectorAudio/main/resources/LICENSE.txt"
+            href="https://github.com/pierr3/TrackAudio/blob/main/LICENSES_COMPILED.md"
             target="_blank"
           >
             Licenses
