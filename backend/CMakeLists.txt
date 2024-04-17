@@ -38,6 +38,7 @@ endif()
 
 add_library(trackaudio-afv SHARED 
   src/main.cpp
+  src/sdk.cpp
   ${CMAKE_JS_SRC})
 
 # Find the required packages
@@ -48,6 +49,8 @@ find_package(OpenSSL REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(Poco COMPONENTS Foundation Util REQUIRED)
 find_package(semver CONFIG REQUIRED)
+find_package(restinio CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 if (WIN32)
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -96,6 +99,8 @@ target_link_libraries(trackaudio-afv PRIVATE
     absl::strings absl::any
     Poco::Foundation Poco::Util
     semver::semver
+    restinio::restinio
+    nlohmann_json::nlohmann_json
     ${CMAKE_JS_LIB})
 
 # Set the output directory for the built executable

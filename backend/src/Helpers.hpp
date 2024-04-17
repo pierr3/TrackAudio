@@ -30,4 +30,9 @@ public:
                            Napi::String::New(env, "")});
         });
   }
+
+  static std::string ConvertHzToHumanString(int frequencyHz) {
+    std::string temp = std::to_string(frequencyHz / 1000);
+    return  temp.substr(0, 3) + "." + temp.substr(3, 7);
+  }
 };

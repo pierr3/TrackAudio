@@ -9,6 +9,8 @@
 
 constexpr semver::version VERSION = semver::version{1, 0, 0, semver::prerelease::beta, 1};
 
+static const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
+
 static Napi::ThreadSafeFunction callbackRef;
 static bool callbackAvailable = false;
 
@@ -23,6 +25,8 @@ static std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 
 #define OBS_FREQUENCY 199998000      // 199.998
 #define UNICOM_FREQUENCY = 122800000 // 122.800
+
+#define API_SERVER_PORT 49080
 
 const std::vector<std::string> allowedYx = {"_CTR", "_APP", "_TWR", "_GND",
                                             "_DEL", "_FSS", "_SUP", "_RDO",

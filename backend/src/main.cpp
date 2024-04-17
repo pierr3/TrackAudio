@@ -1,3 +1,4 @@
+#include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
 #include <afv-native/afv_native.h>
 #include <httplib.h>
@@ -5,13 +6,14 @@
 #include <napi.h>
 #include <semver.hpp>
 #include <string>
-#include <absl/strings/ascii.h>
 
 #include "Helpers.hpp"
 #include "RemoteData.hpp"
 #include "Shared.hpp"
+#include "sdk.hpp"
 
 static std::unique_ptr<RemoteData> mRemoteDataHandler = nullptr;
+static std::unique_ptr<SDK> mApiServer = nullptr;
 
 static bool ShouldRun = true;
 
@@ -123,10 +125,6 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo &info) {
   }
   mClient->SetRx(frequency, false);
 
-  if (!callsign.empty()) {
-    mClient->FetchTransceiverInfo(callsign);
-  }
-
   return Napi::Boolean::New(info.Env(), true);
 }
 
@@ -151,6 +149,15 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo &info) {
   bool tx = info[2].As<Napi::Boolean>().Value();
   bool xc = info[3].As<Napi::Boolean>().Value();
   bool onSpeaker = info[4].As<Napi::Boolean>().Value();
+
+  if (!mClient->GetRxState(frequency) && rx) {
+    // When turning on RX, we refresh the transceivers
+    auto states = mClient->getRadioState();
+    if (states.find(frequency) != states.end() &&
+        !states[frequency].stationName.empty()) {
+      mClient->FetchTransceiverInfo(states[frequency].stationName);
+    }
+  }
 
   mClient->SetRx(frequency, rx);
   if (UserSession::isATC) {
@@ -344,6 +351,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
                            Napi::String::New(env, std::to_string(frequency)),
                            Napi::String::New(env, "")});
         });
+
+    return;
   }
 
   if (eventType == afv_native::ClientEventType::FrequencyRxEnd) {
@@ -358,6 +367,31 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
                            Napi::String::New(env, std::to_string(frequency)),
                            Napi::String::New(env, "")});
         });
+    return;
+  }
+
+  if (eventType == afv_native::ClientEventType::StationRxBegin) {
+    if (data == nullptr || data2 == nullptr) {
+      return;
+    }
+
+    int frequency = *reinterpret_cast<int *>(data);
+    std::string callsign = *reinterpret_cast<std::string *>(data2);
+
+    mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxBegin,
+                                           callsign, frequency);
+  }
+
+  if (eventType == afv_native::ClientEventType::StationRxEnd) {
+    if (data == nullptr || data2 == nullptr) {
+      return;
+    }
+
+    int frequency = *reinterpret_cast<int *>(data);
+    std::string callsign = *reinterpret_cast<std::string *>(data2);
+
+    mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxEnd, callsign,
+                                           frequency);
   }
 
   if (eventType == afv_native::ClientEventType::PttOpen) {
@@ -444,8 +478,8 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
   }
 
   std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
-  mClient = std::make_unique<afv_native::api::atcClient>(
-      std::string("TrackAudio-") + VERSION.to_string(), resourcePath);
+  mClient =
+      std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath);
   mRemoteDataHandler = std::make_unique<RemoteData>();
 
   // Setup afv
@@ -454,6 +488,8 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
         HandleAfvEvents(eventType, data1, data2);
       });
 
+  mApiServer = std::make_unique<SDK>();
+
   return Napi::Boolean::New(info.Env(), true);
 }
 
@@ -461,8 +497,10 @@ void Exit(const Napi::CallbackInfo &info) {
   if (mClient->IsVoiceConnected()) {
     mClient->Disconnect();
   }
-  mClient.reset();
+  mApiServer.reset();
   mRemoteDataHandler.reset();
+
+  mClient.reset();
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {

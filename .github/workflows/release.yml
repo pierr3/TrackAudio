@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Update cmake
+        if: matrix.os != 'macos-latest'
+        run: |
+          pip install cmake
+          cmake --version
+          
+      - name: Setup environment
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew update
+          brew upgrade cmake
+          cmake --version
+
+      - name: Installing codesign certificates
+        if: matrix.os == 'macos-latest'
+        uses: apple-actions/import-codesign-certs@v2
+        with: 
+          p12-file-base64: ${{ secrets.APPLE_CERT_DATA }}
+          p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+
+      - name: Install dependencies
+        run: | 
+          npm -g i cmake-js
+          npm run build-backend
+          npm install
+
+      - name: Package app
+        run: npm run make
+
+      - id: relinfo
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: pierr3/TrackAudio
+
+      - name: Upload artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.relinfo.outputs.release }}
+          files: out/make/**/*.{deb,zip}

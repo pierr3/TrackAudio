@@ -7,6 +7,8 @@
         "node-addon-api",
         "abseil",
         "neargye-semver",
-        "openssl"
+        "openssl",
+        "restinio",
+        "nlohmann-json"
     ]
 }
