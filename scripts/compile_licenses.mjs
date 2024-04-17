@@ -5,7 +5,7 @@ import fs from 'fs';
 // Requires npm install -g license-report
 
 const command = 'license-report --config license_report_config.json --relatedTo.value=UI';
-const outputFile = './LICENSES_COMPILED.md';
+const outputFile = '../LICENSES_COMPILED.md';
 
 exec(`${command} > ${outputFile}`, (error, stdout, stderr) => {
     if (error) {
@@ -43,8 +43,8 @@ exec(`${command} > ${outputFile}`, (error, stdout, stderr) => {
     fs.appendFileSync(outputFile, fontLicenseContent);
     console.log(`Font license content appended to ${outputFile}`);
 
-    const markedContent = marked(fs.readFileSync(outputFile, 'utf8'));
-    const htmlOutputFile = './LICENSES_COMPILED.html';
-    fs.writeFileSync(htmlOutputFile, markedContent);
-    console.log(`Output converted to HTML and saved to ${htmlOutputFile}`);
+    // const markedContent = marked(fs.readFileSync(outputFile, 'utf8'));
+    // const htmlOutputFile = './LICENSES_COMPILED.html';
+    // fs.writeFileSync(htmlOutputFile, markedContent);
+    // console.log(`Output converted to HTML and saved to ${htmlOutputFile}`);
 });

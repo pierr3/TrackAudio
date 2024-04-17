@@ -16,23 +16,43 @@ import { spawn } from "child_process";
 
 const config: ForgeConfig = {
   packagerConfig: {
+    name: 'trackaudio',
     asar: true,
     osxSign: {},
     icon: "resources/AppIcon/AppIcon",
-    name: "TrackAudio",
     extraResource: [
       "resources/AC_Bus_f32.wav",
       "resources/Click_f32.wav",
       "resources/Crackle_f32.wav",
-      "resources/HF_WhiteNoise_f32.wav",
+      "resources/HF_WhiteNoise_f32.wav"
     ],
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
-    new MakerZIP({}, ["darwin"]),
-    new MakerRpm({}),
-    new MakerDeb({}),
+    {
+      "name": "@electron-forge/maker-squirrel",
+      "config": {
+        "name": "my_electron_app"
+      }
+    },
+    {
+      "name": "@electron-forge/maker-zip",
+      config: {
+        platforms: ['darwin']
+      }
+    },
+    {
+      "name": "@electron-forge/maker-deb",
+      "config": {
+        productName: 'TrackAudio',
+        icon: 'resources/AppIcon/AppIcon.tiff',
+        categories: 'Game',
+        homepage: 'https://github.com/pierr3/TrackAudio/',
+        scripts: {
+          postinst: 'scripts/install_library_deb.sh'
+        }
+      }
+    }
   ],
   plugins: [
     new AutoUnpackNativesPlugin({}),
@@ -66,22 +86,6 @@ const config: ForgeConfig = {
   ],
   hooks: {
     packageAfterExtract: async (forgeConfig, buildPath) => {
-      console.info("Packages built at:", buildPath);
-      const recursiveSubdirectories = (dirPath: string) => {
-        const subdirectories = fs
-          .readdirSync(dirPath, { withFileTypes: true })
-          .filter((dirent) => dirent.isDirectory())
-          .map((dirent) => dirent.name);
-
-        subdirectories.forEach((subdirectory) => {
-          const subdirectoryPath = path.join(dirPath, subdirectory);
-          console.log(subdirectoryPath);
-          recursiveSubdirectories(subdirectoryPath);
-        });
-      };
-
-      recursiveSubdirectories(buildPath);
-
       try {
         if (process.platform === "darwin") {
           const trackAudioAfvPath = path.join(
@@ -145,7 +149,7 @@ const config: ForgeConfig = {
       try {
         if (process.platform === "win32") {
           const sourceDir = path.join(__dirname, "backend", "build", "Release");
-          const targetDir = path.join(buildPath, "resources");
+          const targetDir = buildPath;
 
           try {
             const files = fs.readdirSync(sourceDir);
