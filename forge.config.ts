@@ -46,7 +46,7 @@ const config: ForgeConfig = {
       "config": {
         productName: 'TrackAudio',
         icon: 'resources/AppIcon/AppIcon.tiff',
-        categories: 'Game',
+        categories: ['Game'],
         homepage: 'https://github.com/pierr3/TrackAudio/',
         scripts: {
           postinst: 'scripts/install_library_deb.sh'
