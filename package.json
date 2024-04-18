@@ -1,7 +1,7 @@
 {
   "name": "trackaudio",
   "productName": "TrackAudio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows",
   "main": ".webpack/main",
   "scripts": {

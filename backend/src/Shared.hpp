@@ -7,7 +7,7 @@
 #include <memory>
 #include <semver.hpp>
 
-constexpr semver::version VERSION = semver::version{1, 0, 0, semver::prerelease::beta, 1};
+constexpr semver::version VERSION = semver::version{1, 0, 0, semver::prerelease::beta, 2};
 
 static const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
 
