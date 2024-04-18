@@ -10,7 +10,7 @@ class RemoteData {
 
 public:
   RemoteData()
-      : timer(3*1000, TIMER_CALLBACK_INTERVAL_SEC * 1000),
+      : timer(3 * 1000, TIMER_CALLBACK_INTERVAL_SEC * 1000),
         slurperCli(SLURPER_BASE_URL) {
     timer.start(Poco::TimerCallback<RemoteData>(*this, &RemoteData::onTimer));
   }
@@ -63,6 +63,7 @@ protected:
     bool foundNotAtisConnection = false;
 
     for (const auto &line : lines) {
+      pYx = false;
       if (line.empty()) {
         continue;
       }
@@ -108,11 +109,6 @@ protected:
            : k422 == 1 && absl::EndsWith(callsign, "_SUP") ? 1
                                                            : 0;
 
-    if (UserSession::isConnectedToTheNetwork &&
-        UserSession::callsign != callsign && !UserSession::callsign.empty()){
-      return false;
-    }
-
     // Update the session info
     UserSession::callsign = callsign;
     UserSession::frequency = Helpers::CleanUpFrequency(u334);
@@ -123,47 +119,43 @@ protected:
   }
 
   void updateSessionStatus(std::string previousCallsign, bool isConnected) {
-
     if (UserSession::isConnectedToTheNetwork &&
-        UserSession::callsign != previousCallsign && !previousCallsign.empty()) {
+        UserSession::callsign != previousCallsign &&
+        !previousCallsign.empty() && isConnected &&
+        mClient->IsVoiceConnected()) {
       mClient->Disconnect();
-      Helpers::CallbackWithError(
-          "Callsign changed during an active session, you have "
-          "been disconnected.");
-      UserSession::isConnectedToTheNetwork = false;
-      return;
+      Helpers::CallbackWithError("Callsign changed during an active session, "
+                                 "you have been disconnected.");
     }
 
-    if (UserSession::isConnectedToTheNetwork && !isConnected) {
-      // We are no longer connected to the network
-      mClient->Disconnect();
-      UserSession::isConnectedToTheNetwork = false;
-      UserSession::isATC = false;
-      UserSession::callsign = "";
-      return;
-    }
-
-    if (!UserSession::isConnectedToTheNetwork && isConnected) {
+    if (isConnected) {
       // We are now connected to the network
-      std::string isAtc = std::to_string(static_cast<int>(UserSession::isATC));
+      // We update the session state
+      std::string callsign = UserSession::callsign;
+      std::string isatc = UserSession::isATC ? "1" : "0";
+      std::string datastring =
+          isatc + "," + std::to_string(UserSession::frequency);
 
       if (callbackAvailable) {
-        callbackRef.NonBlockingCall([&, isAtc](Napi::Env env,
-                                               Napi::Function jsCallback) {
-          jsCallback.Call(
-              {Napi::String::New(env, "network-connected"),
-               Napi::String::New(env, UserSession::callsign),
-               Napi::String::New(
-                   env, isAtc + "," + std::to_string(UserSession::frequency))});
-        });
+        callbackRef.NonBlockingCall(
+            [callsign, datastring](Napi::Env env, Napi::Function jsCallback) {
+              jsCallback.Call({Napi::String::New(env, "network-connected"),
+                               Napi::String::New(env, UserSession::callsign),
+                               Napi::String::New(env, datastring)});
+            });
       }
 
       UserSession::isConnectedToTheNetwork = true;
       return;
-    }
+    } else {
+      if (mClient->IsVoiceConnected()) {
+        mClient->Disconnect();
+      }
 
-    if (!UserSession::isConnectedToTheNetwork && !isConnected) {
-      // We are still connected to the network
+      UserSession::isConnectedToTheNetwork = false;
+      UserSession::isATC = false;
+      UserSession::callsign = "";
+
       if (callbackAvailable) {
         callbackRef.NonBlockingCall(
             [&](Napi::Env env, Napi::Function jsCallback) {
@@ -172,7 +164,6 @@ protected:
                                Napi::String::New(env, "")});
             });
       }
-      return;
     }
   }
 

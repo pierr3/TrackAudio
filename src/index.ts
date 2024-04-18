@@ -142,7 +142,10 @@ app.on("ready", () => {
     app.quit();
   }
 
-  if (process.platform === "darwin" && !systemPreferences.isTrustedAccessibilityClient(true)) {
+  if (
+    process.platform === "darwin" &&
+    !systemPreferences.isTrustedAccessibilityClient(true)
+  ) {
     dialog.showMessageBoxSync({
       type: "info",
       message:
@@ -294,6 +297,24 @@ ipcMain.handle("set-hardware-type", (_, type: number) => {
   TrackAudioAfv.SetHardwareType(type);
 });
 
+ipcMain.handle(
+  "dialog",
+  (
+    _,
+    type: "none" | "info" | "error" | "question" | "warning",
+    title: string,
+    message: string,
+    buttons: string[]
+  ) => {
+    return dialog.showMessageBox(mainWindow, {
+      type,
+      title,
+      buttons,
+      message,
+    });
+  }
+);
+
 ipcMain.handle("get-version", () => {
   return version;
 });
@@ -305,6 +326,7 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   if (arg == undefined) {
     return;
   }
+
   if (arg == AFVEventTypes.FrequencyRxBegin) {
     mainWindow.webContents.send("FrequencyRxBegin", arg2);
   }

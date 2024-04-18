@@ -10,6 +10,7 @@ type sessionStore = {
   frequency: number;
   pttKeyName: string;
   radioGain: number;
+  stationCallsign: string;
   setCallsign: (callsign: string) => void;
   setIsAtc: (isAtc: boolean) => void;
   setIsConnected: (isConnected: boolean) => void;
@@ -19,6 +20,9 @@ type sessionStore = {
   setFrequency: (frequency: number) => void;
   setPttKeyName: (pttKeyName: string) => void;
   setRadioGain: (radioGain: number) => void;
+  setStationCallsign: (stationCallsign: string) => void;
+  getStationCallsign: () => string;
+  getIsAtc: () => boolean;
 };
 
 const useSessionStore = create<sessionStore>((set) => ({
@@ -31,15 +35,24 @@ const useSessionStore = create<sessionStore>((set) => ({
   version: "0.0.0",
   pttKeyName: "",
   radioGain: 50,
+  stationCallsign: "",
   setCallsign: (callsign) => set({ callsign }),
   setIsAtc: (isAtc) => set({ isAtc }),
   setIsConnected: (isConnected) => set({ isConnected }),
   setIsConnecting: (isConnecting) => set({ isConnecting }),
   setVersion: (version) => set({ version }),
-  setNetworkConnected: (isConnected) => set({ isNetworkConnected: isConnected }),
+  setNetworkConnected: (isConnected) =>
+    set({ isNetworkConnected: isConnected }),
   setFrequency: (frequency) => set({ frequency }),
   setPttKeyName: (pttKeyName) => set({ pttKeyName }),
   setRadioGain: (radioGain) => set({ radioGain }),
+  setStationCallsign: (stationCallsign) => set({ stationCallsign }),
+  getStationCallsign: (): string => {
+    return useSessionStore.getState().stationCallsign;
+  },
+  getIsAtc: (): boolean => {
+    return useSessionStore.getState().isAtc;
+  },
 }));
 
 export default useSessionStore;
