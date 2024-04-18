@@ -16,7 +16,7 @@ import { spawn } from "child_process";
 
 const config: ForgeConfig = {
   packagerConfig: {
-    name: 'trackaudio',
+    name: 'TrackAudio',
     asar: true,
     osxSign: {},
     icon: "resources/AppIcon/AppIcon",
@@ -38,7 +38,18 @@ const config: ForgeConfig = {
     {
       "name": "@electron-forge/maker-zip",
       config: {
-        platforms: ['darwin', 'win64']
+        platforms: ['win64']
+      }
+    },
+    {
+      name: '@electron-forge/maker-dmg',
+      config: {
+        icon: "resources/AppIcon/AppIcon.icns",
+        additionalDMGOptions: {
+          "code-sign": {
+            "signing-identity": "Developer ID Application"
+          }
+        }
       }
     },
     {
