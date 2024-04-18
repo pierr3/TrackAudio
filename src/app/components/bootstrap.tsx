@@ -8,12 +8,14 @@ const Bootsrap: React.FC = () => {
     setTransceiverCountForStationCallsign,
     addRadio,
     setCurrentlyRx,
-    setCurrentlyTx
+    setCurrentlyTx,
+    resetRadioState
   ] = useRadioState((state) => [
     state.setTransceiverCountForStationCallsign,
     state.addRadio,
     state.setCurrentlyRx,
     state.setCurrentlyTx,
+    state.reset
   ]);
 
   const [
@@ -91,6 +93,7 @@ const Bootsrap: React.FC = () => {
       setRadioGain(50);
       setIsConnecting(false);
       setIsConnected(false);
+      resetRadioState();
     });
 
     window.api.on("network-connected", (callsign, dataString) => {

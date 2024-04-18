@@ -57,11 +57,7 @@ const Navbar: React.FC = () => {
 
   const handleConnectDisconnect = () => {
     if (isConnected) {
-      window.api.disconnect().then(() => {
-        radios.map((e) => {
-          removeRadio(e.frequency);
-        });
-      });
+      window.api.disconnect();
       return;
     }
 
@@ -138,7 +134,7 @@ const Navbar: React.FC = () => {
         </button>
 
         <span className="btn text-box-container m-2 hide-gain-value">
-          Gain: {radioGain}%
+          Gain: {(radioGain + "").padStart(2, '0')}%
         </span>
         <input
           type="range"
