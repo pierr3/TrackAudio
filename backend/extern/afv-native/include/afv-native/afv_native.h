@@ -172,6 +172,7 @@ namespace afv_native {
         bool            tx;
         bool            rx;
         bool            xc;
+        bool            crossCoupleAcross;
         bool            onHeadset;
         unsigned int    Frequency;
         std::string     stationName       = "";
@@ -235,15 +236,18 @@ namespace afv_native::api {
         AFV_NATIVE_API void SetTx(unsigned int freq, bool active);
         AFV_NATIVE_API void SetRx(unsigned int freq, bool active);
         AFV_NATIVE_API void SetXc(unsigned int freq, bool active);
+        AFV_NATIVE_API void SetCrossCoupleAcross(unsigned int freq, bool active);
         AFV_NATIVE_API void SetOnHeadset(unsigned int freq, bool active);
 
         AFV_NATIVE_API bool GetTxActive(unsigned int freq);
         AFV_NATIVE_API bool GetRxActive(unsigned int freq);
+
         AFV_NATIVE_API bool GetOnHeadset(unsigned int freq);
 
         AFV_NATIVE_API bool GetTxState(unsigned int freq);
         AFV_NATIVE_API bool GetRxState(unsigned int freq);
         AFV_NATIVE_API bool GetXcState(unsigned int freq);
+        AFV_NATIVE_API bool GetCrossCoupleAcrossState(unsigned int freq);
 
         // Use this to set the current transceivers to the transceivers from this station, pulled from the AFV database, only one at a time can be active
         AFV_NATIVE_API void UseTransceiversFromStation(std::string station, int freq);
