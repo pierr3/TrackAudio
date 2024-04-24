@@ -10,6 +10,7 @@
         "openssl",
         "restinio",
         "nlohmann-json",
-        "quill"
+        "quill",
+        "platform-folders"
     ]
 }

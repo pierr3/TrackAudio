@@ -2,7 +2,6 @@
 #include <absl/strings/str_split.h>
 #include <httplib.h>
 #include <quill/Quill.h>
-#include <quill/detail/LogMacros.h>
 #include <string>
 
 #include "Helpers.hpp"

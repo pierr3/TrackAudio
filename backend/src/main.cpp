@@ -4,8 +4,9 @@
 #include <httplib.h>
 #include <memory>
 #include <napi.h>
-#import <quill/Quill.h>
+#include <quill/Quill.h>
 #include <quill/detail/LogMacros.h>
+#include <sago/platform_folders.h>
 #include <semver.hpp>
 #include <string>
 
@@ -491,8 +492,25 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
   }
 }
 
-Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
+std::filesystem::path GetStateFolderPath() {
+  return std::filesystem::path(sago::getStateDir()) / "trackaudio";
+}
 
+Napi::String GetStateFolderNapi(const Napi::CallbackInfo &info) {
+  return Napi::String::New(info.Env(), GetStateFolderPath().string());
+}
+
+void CreateLogFolders() {
+  if (!std::filesystem::exists(GetStateFolderPath())) {
+    std::error_code err;
+    if (!std::filesystem::create_directory(GetStateFolderPath(), err)) {
+      LOG_ERROR(logger, "Could not create state directory at {}: {}",
+                GetStateFolderPath().string(), err.message());
+    }
+  }
+}
+
+void CreateLoggers() {
   quill::configure([]() {
     quill::Config cfg;
     return cfg;
@@ -502,19 +520,20 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
   quill::start();
 
   std::shared_ptr<quill::Handler> trackaudio_logger =
-      quill::rotating_file_handler("trackaudio.log", []() {
-        quill::RotatingFileHandlerConfig cfg;
-        cfg.set_rotation_max_file_size(5e+6); // 5MB files
-        cfg.set_max_backup_files(2);
-        cfg.set_overwrite_rolled_files(true);
-        return cfg;
-      }());
+      quill::rotating_file_handler(
+          GetStateFolderPath() / "trackaudio.log", []() {
+            quill::RotatingFileHandlerConfig cfg;
+            cfg.set_rotation_max_file_size(5e+6); // 5MB files
+            cfg.set_max_backup_files(2);
+            cfg.set_overwrite_rolled_files(true);
+            return cfg;
+          }());
 
   logger =
       quill::create_logger("trackaudio_logger", std::move(trackaudio_logger));
 
-  std::shared_ptr<quill::Handler> afv_logger =
-      quill::rotating_file_handler("trackaudio-afv.log", []() {
+  std::shared_ptr<quill::Handler> afv_logger = quill::rotating_file_handler(
+      GetStateFolderPath() / "trackaudio-afv.log", []() {
         quill::RotatingFileHandlerConfig cfg;
         cfg.set_rotation_max_file_size(5e+6); // 5MB files
         cfg.set_max_backup_files(2);
@@ -526,6 +545,16 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
   // Create a file logger
   auto _ = quill::create_logger("afv_logger", std::move(afv_logger));
 
+  afv_native::api::setLogger([](std::string subsystem, std::string file,
+                                int line, std::string lineOut) {
+    auto logger = quill::get_logger("afv_logger");
+    auto strippedFiledName = file.substr(file.find_last_of("/") + 1);
+    LOG_INFO(logger, "[{}] [{}@{}] {}", subsystem, strippedFiledName, line,
+             lineOut);
+  });
+}
+
+bool CheckVersionSync(const Napi::CallbackInfo &info) {
   // We force do a mandatory version check, if an update is needed, the
   // programme won't run
 
@@ -534,7 +563,7 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
   if (!res || res->status != 200) {
     ShouldRun = false;
     LOG_CRITICAL(logger, "Error fetching version: {}", res->status);
-    return Napi::Boolean::New(info.Env(), false);
+    return false;
   }
 
   try {
@@ -543,22 +572,26 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
     semver::version mandatoryVersion = semver::version(cleanBody);
     if (VERSION < mandatoryVersion) {
       ShouldRun = false;
-      LOG_ERROR(logger, "Mandatory update required: {}", mandatoryVersion);
-      return Napi::Boolean::New(info.Env(), false);
+      LOG_ERROR(logger, "Mandatory update required: {} -> {}",
+                VERSION.to_string(), mandatoryVersion.to_string());
+      return false;
     }
   } catch (const std::exception &e) {
     ShouldRun = false;
     LOG_CRITICAL(logger, "Error parsing version: {}", e.what());
-    return Napi::Boolean::New(info.Env(), false);
+    return false;
   }
 
-  afv_native::api::setLogger([](std::string subsystem, std::string file,
-                                int line, std::string lineOut) {
-    auto logger = quill::get_logger("afv_logger");
-    auto strippedFiledName = file.substr(file.find_last_of("/") + 1);
-    LOG_INFO(logger, "[{}] [{}@{}] {}", subsystem, strippedFiledName, line,
-             lineOut);
-  });
+  return true;
+}
+
+Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
+
+  CreateLoggers();
+
+  if (!CheckVersionSync(info)) {
+    return Napi::Boolean::New(info.Env(), false);
+  }
 
   std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
   mClient =
@@ -653,6 +686,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   exports.Set(Napi::String::New(env, "IsConnected"),
               Napi::Function::New(env, IsConnected));
+
+  exports.Set(Napi::String::New(env, "GetStateFolder"),
+              Napi::Function::New(env, GetStateFolderNapi));
 
   exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 

@@ -52,6 +52,7 @@ find_package(semver CONFIG REQUIRED)
 find_package(restinio CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(quill CONFIG REQUIRED)
+find_package(platform_folders CONFIG REQUIRED)
 
 if (WIN32)
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -103,6 +104,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     restinio::restinio
     nlohmann_json::nlohmann_json
     quill::quill
+    sago::platform_folders
     ${CMAKE_JS_LIB})
 
 # Set the output directory for the built executable
