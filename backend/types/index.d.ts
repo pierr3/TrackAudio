@@ -69,6 +69,9 @@ declare namespace TrackAudioAfv {
 
       export function SetHardwareType(type: number): void;
 
+      export function StartMicTest(): void;
+      export function StopMicTest(): void;
+
       export function RegisterCallback(
         func: (arg: string, arg2: string, arg3: string) => void
       ): void;

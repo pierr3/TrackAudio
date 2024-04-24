@@ -6,6 +6,8 @@ import { useDebouncedCallback } from "use-debounce";
 import { Configuration } from "../../../config.d";
 import useSessionStore from "../../store/sessionStore";
 import { getKeyFromNumber } from "../../../helper";
+import useUtilStore from "../../store/utilStore";
+import clsx from "clsx";
 
 export type SettingsModalProps = {
   closeModal: () => void;
@@ -33,6 +35,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
   const [cid, setCid] = useState("");
   const [password, setPassword] = useState("");
+
+  const [vu, vuPeak] = useUtilStore((state) => [state.vu, state.peakVu]);
+  const [isMicTesting, setIsMicTesting] = useState(false);
 
   useEffect(() => {
     window.api.getConfig().then((config) => {
@@ -120,6 +125,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     });
   };
 
+  const handleMicTest = () => {
+    if (isMicTesting) {
+      window.api.StopMicTest();
+      setIsMicTesting(false);
+      return;
+    }
+    setIsMicTesting(true);
+    window.api.StartMicTest();
+  };
+
   const handleHardwareTypeChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
@@ -132,6 +147,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   };
 
   const closeHander = () => {
+    window.api.StopMicTest();
+    setIsMicTesting(false);
     closeModal();
   };
 
@@ -234,11 +251,33 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       setInputDevice(device.id);
                     }}
                   />
-                  <button className="btn btn-warning mt-3 w-100" disabled>
-                    Start mic test
+                  <button
+                    className={clsx(
+                      "btn mt-3 w-100",
+                      !isMicTesting && "btn-info",
+                      isMicTesting && "btn-warning"
+                    )}
+                    onClick={handleMicTest}
+                    disabled={
+                      isSettingPtt ||
+                      config.headsetOutputDeviceId === "" ||
+                      config.speakerOutputDeviceId === "" ||
+                      config.audioInputDeviceId === ""
+                    }
+                  >
+                    {isMicTesting ? "Stop mic test" : "Start mic test"}
                   </button>
                   <div className="progress mt-2" style={{ height: "4px" }}>
-                    <div className="progress-bar w-0" role="progressbar"></div>
+                    <div
+                      className="progress-bar bg-success no-amination"
+                      role="progressbar"
+                      style={{ width: vu + "%" }}
+                    ></div>
+                    <div
+                      className="progress-bar bg-danger no-amination"
+                      role="progressbar"
+                      style={{ width: vuPeak - vu + "%" }}
+                    ></div>
                   </div>
                   <button className="btn text-box-container mt-3 w-100">
                     Ptt: {isSettingPtt ? "Press any key" : pttKeyName}

@@ -2,12 +2,24 @@ import React, { useEffect } from "react";
 import useRadioState from "../store/radioStore";
 import useErrorStore from "../store/errorStore";
 import useSessionStore from "../store/sessionStore";
+import useUtilStore from "../store/utilStore";
 
 const Bootsrap: React.FC = () => {
-
   useEffect(() => {
+    window.api.on("MicTest", (vu, peakVu) => {
+      const vuFloat = Math.abs(parseFloat(vu));
+      const peakVuFloat = Math.abs(parseFloat(peakVu));
+      
+      // Convert to a scale of 0 - 100
+      useUtilStore
+        .getState()
+        .updateVu(vuFloat*100, peakVuFloat*100);
+    });
+
     window.api.on("station-transceivers-updated", (station, count) => {
-      useRadioState.getState().setTransceiverCountForStationCallsign(station, parseInt(count));
+      useRadioState
+        .getState()
+        .setTransceiverCountForStationCallsign(station, parseInt(count));
     });
 
     window.api.on("station-data-received", (station, frequency) => {

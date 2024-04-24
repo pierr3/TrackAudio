@@ -75,6 +75,9 @@ contextBridge.exposeInMainWorld("api", {
 
   getVersion: () => ipcRenderer.invoke("get-version"),
 
+  StartMicTest: () => ipcRenderer.invoke("start-mic-test"),
+  StopMicTest: () => ipcRenderer.invoke("stop-mic-test"),
+
   dialog: (
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,

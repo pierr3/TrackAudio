@@ -1,6 +1,9 @@
 #include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
 #include <afv-native/afv_native.h>
+#include <atomic>
+#include <chrono>
+#include <cstddef>
 #include <httplib.h>
 #include <memory>
 #include <napi.h>
@@ -19,6 +22,9 @@ static std::unique_ptr<RemoteData> mRemoteDataHandler = nullptr;
 static std::unique_ptr<SDK> mApiServer = nullptr;
 
 static bool ShouldRun = true;
+
+static std::unique_ptr<std::thread> vuMeterThread = nullptr;
+static std::atomic_bool runVuMeterCallback = false;
 
 Napi::Array GetAudioApis(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
@@ -288,6 +294,78 @@ Napi::String Version(const Napi::CallbackInfo &info) {
 
 Napi::Boolean IsConnected(const Napi::CallbackInfo &info) {
   return Napi::Boolean::New(info.Env(), mClient->IsVoiceConnected());
+}
+
+void StartMicTest(const Napi::CallbackInfo &info) {
+  if (!mClient || !callbackAvailable || vuMeterThread != nullptr) {
+    LOG_WARNING(logger, "Attempted to start mic test without callback or "
+                        "uninitiated client, or already running mic test, this will be useless");
+    return;
+  }
+
+  mClient->StartAudio();
+  runVuMeterCallback = true;
+
+  vuMeterThread = std::make_unique<std::thread>([] {
+    for (int i = 0; i < 2400;
+         i++) { // Max of 2 minutes, don't allow infinite test
+#ifndef WIN32
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+#else
+      Sleep(50); // std::this_thread::sleep_for is boinked on windows
+#endif
+      if (!mClient->IsAudioRunning()) {
+        break;
+      }
+
+      if (!runVuMeterCallback) {
+        break;
+      }
+
+      auto vuMeter = mClient->GetInputVu();
+      auto vuMeterPeak = mClient->GetInputPeak();
+
+      callbackRef.NonBlockingCall(
+          [vuMeter, vuMeterPeak](Napi::Env env, Napi::Function jsCallback) {
+            jsCallback.Call(
+                {Napi::String::New(env, "MicTest"),
+                 Napi::String::New(env, std::to_string(vuMeter)),
+                 Napi::String::New(env, std::to_string(vuMeterPeak))});
+          });
+    }
+  });
+}
+
+void StopMicTest(const Napi::CallbackInfo &info) {
+  if (!mClient) {
+    return;
+  }
+
+  runVuMeterCallback = false;
+  if (vuMeterThread && vuMeterThread->joinable()) {
+    vuMeterThread->join();
+  }
+  vuMeterThread.reset(nullptr);
+
+  mClient->StopAudio();
+}
+
+void StartAudio(const Napi::CallbackInfo &info) {
+  if (!mClient || mClient->IsAudioRunning()) {
+    LOG_WARNING(logger, "Attempted to start audio when audio already running");
+    return;
+  }
+
+  mClient->StartAudio();
+}
+
+void StopAudio(const Napi::CallbackInfo &info) {
+  if (!mClient || !mClient->IsAudioRunning()) {
+    LOG_WARNING(logger, "Attempted to stop audio when audio not running");
+    return;
+  }
+
+  mClient->StopAudio();
 }
 
 static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
@@ -689,6 +767,18 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   exports.Set(Napi::String::New(env, "GetStateFolder"),
               Napi::Function::New(env, GetStateFolderNapi));
+
+  exports.Set(Napi::String::New(env, "StartMicTest"),
+              Napi::Function::New(env, StartMicTest));
+
+  exports.Set(Napi::String::New(env, "StopMicTest"),
+              Napi::Function::New(env, StopMicTest));
+
+  exports.Set(Napi::String::New(env, "StartAudio"),
+              Napi::Function::New(env, StartAudio));
+
+  exports.Set(Napi::String::New(env, "StopAudio"),
+              Napi::Function::New(env, StopAudio));
 
   exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 

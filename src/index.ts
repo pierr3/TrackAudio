@@ -307,6 +307,16 @@ ipcMain.handle("set-hardware-type", (_, type: number) => {
   TrackAudioAfv.SetHardwareType(type);
 });
 
+ipcMain.handle("start-mic-test", () => {
+  setAudioSettings();
+  TrackAudioAfv.StartMicTest();
+});
+
+ipcMain.handle("stop-mic-test", () => {
+  mainWindow.webContents.send("MicTest", "0.0", "0.0");
+  TrackAudioAfv.StopMicTest();
+});
+
 ipcMain.handle(
   "dialog",
   (
@@ -335,6 +345,10 @@ ipcMain.handle("get-version", () => {
 TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   if (arg == undefined) {
     return;
+  }
+
+  if (arg == "MicTest") {
+    mainWindow.webContents.send("MicTest", arg2, arg3);
   }
 
   if (arg == AFVEventTypes.FrequencyRxBegin) {

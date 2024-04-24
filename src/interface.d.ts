@@ -44,6 +44,9 @@ export interface IElectronAPI {
 
   SetHardwareType(type: number): Promise<void>;
 
+  StartMicTest(): Promise<void>;
+  StopMicTest(): Promise<void>;
+
   getVersion: () => Promise<string>;
 
   dialog: (
