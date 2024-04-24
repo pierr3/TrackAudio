@@ -7,6 +7,7 @@
 #include <httplib.h>
 #include <memory>
 #include <napi.h>
+#include <thread>
 #include <quill/Quill.h>
 #include <quill/detail/LogMacros.h>
 #include <sago/platform_folders.h>
