@@ -31,7 +31,8 @@ export interface IElectronAPI {
     rx: boolean,
     tx: boolean,
     xc: boolean,
-    onSpeaker: boolean
+    onSpeaker: boolean,
+    crossCoupleAcross: boolean
   ) => Promise<boolean>;
   getFrequencyState: (
     frequency: number

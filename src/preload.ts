@@ -51,7 +51,8 @@ contextBridge.exposeInMainWorld("api", {
     rx: boolean,
     tx: boolean,
     xc: boolean,
-    onSpeaker: boolean
+    onSpeaker: boolean,
+    crossCoupleAcross: boolean,
   ) =>
     ipcRenderer.invoke(
       "audio-set-frequency-state",
@@ -59,7 +60,8 @@ contextBridge.exposeInMainWorld("api", {
       rx,
       tx,
       xc,
-      onSpeaker
+      onSpeaker,
+      crossCoupleAcross
     ),
   getFrequencyState: (frequency: number) =>
     ipcRenderer.invoke("audio-get-frequency-state", frequency),

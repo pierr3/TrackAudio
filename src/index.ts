@@ -261,9 +261,10 @@ ipcMain.handle(
     rx: boolean,
     tx: boolean,
     xc: boolean,
-    onSpeaker: boolean
+    onSpeaker: boolean,
+    crossCoupleAcross: boolean
   ) => {
-    return TrackAudioAfv.SetFrequencyState(frequency, rx, tx, xc, onSpeaker);
+    return TrackAudioAfv.SetFrequencyState(frequency, rx, tx, xc, onSpeaker, crossCoupleAcross);
   }
 );
 

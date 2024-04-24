@@ -6,6 +6,7 @@ export type RadioType = {
   rx: boolean;
   tx: boolean;
   xc: boolean;
+  crossCoupleAcross: boolean;
   currentlyTx: boolean;
   currentlyRx: boolean;
   onSpeaker: boolean;
@@ -20,6 +21,7 @@ type RadioState = {
   setRx: (frequency: number, value: boolean) => void;
   setTx: (frequency: number, value: boolean) => void;
   setXc: (frequency: number, value: boolean) => void;
+  setCrossCoupleAcross: (frequency: number, value: boolean) => void;
   setCurrentlyTx: (value: boolean) => void;
   setCurrentlyRx: (frequency: number, value: boolean) => void;
   setOnSpeaker: (frequency: number, value: boolean) => void;
@@ -76,6 +78,7 @@ const useRadioState = create<RadioState>((set) => ({
           rx: false,
           tx: false,
           xc: false,
+          crossCoupleAcross: false,
           currentlyTx: false,
           currentlyRx: false,
           onSpeaker: false,
@@ -188,6 +191,13 @@ const useRadioState = create<RadioState>((set) => ({
       .getState()
       .radios.find((radio) => radio.frequency === frequency);
     return !radio.rx && !radio.tx;
+  },
+  setCrossCoupleAcross: (frequency, value) => {
+    set((state) => ({
+      radios: state.radios.map((radio) =>
+        radio.frequency === frequency ? { ...radio, crossCoupleAcross: value } : radio
+      ),
+    }));
   },
 }));
 

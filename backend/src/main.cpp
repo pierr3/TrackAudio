@@ -156,6 +156,8 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo &info) {
   bool tx = info[2].As<Napi::Boolean>().Value();
   bool xc = info[3].As<Napi::Boolean>().Value();
   bool onSpeaker = info[4].As<Napi::Boolean>().Value();
+  bool crossCoupleAcrossFrequencies =
+      info[5].As<Napi::Boolean>().Value(); // Not used
 
   if (!mClient->GetRxState(frequency) && rx) {
     // When turning on RX, we refresh the transceivers
@@ -170,9 +172,11 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo &info) {
   if (UserSession::isATC) {
     mClient->SetTx(frequency, tx);
     mClient->SetXc(frequency, xc);
+    mClient->SetCrossCoupleAcross(frequency, crossCoupleAcrossFrequencies);
   } else {
     mClient->SetTx(frequency, false);
     mClient->SetXc(frequency, false);
+    mClient->SetCrossCoupleAcross(frequency, false);
   }
 
   mClient->SetOnHeadset(frequency, !onSpeaker);
@@ -192,6 +196,7 @@ Napi::Object GetFrequencyState(const Napi::CallbackInfo &info) {
   obj.Set("tx", mClient->GetTxState(frequency));
   obj.Set("xc", mClient->GetXcState(frequency));
   obj.Set("onSpeaker", !mClient->GetOnHeadset(frequency));
+  obj.Set("crossCoupleAcross", !mClient->GetCrossCoupleAcrossState(frequency));
 
   return obj;
 }
