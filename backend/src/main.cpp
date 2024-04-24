@@ -4,6 +4,8 @@
 #include <httplib.h>
 #include <memory>
 #include <napi.h>
+#import <quill/Quill.h>
+#include <quill/detail/LogMacros.h>
 #include <semver.hpp>
 #include <string>
 
@@ -123,6 +125,8 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo &info) {
   auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
   if (!hasBeenAddded) {
     Helpers::CallbackWithError("Could not add frequency: it already exists");
+    LOG_WARNING(logger, "Could not add frequency, it already exists: {} {}",
+                frequency, callsign);
     return Napi::Boolean::New(info.Env(), false);
   }
   mClient->SetRx(frequency, false);
@@ -488,6 +492,40 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
 }
 
 Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
+
+  quill::configure([]() {
+    quill::Config cfg;
+    return cfg;
+  }());
+
+  // Starts the logging backend thread
+  quill::start();
+
+  std::shared_ptr<quill::Handler> trackaudio_logger =
+      quill::rotating_file_handler("trackaudio.log", []() {
+        quill::RotatingFileHandlerConfig cfg;
+        cfg.set_rotation_max_file_size(5e+6); // 5MB files
+        cfg.set_max_backup_files(2);
+        cfg.set_overwrite_rolled_files(true);
+        return cfg;
+      }());
+
+  logger =
+      quill::create_logger("trackaudio_logger", std::move(trackaudio_logger));
+
+  std::shared_ptr<quill::Handler> afv_logger =
+      quill::rotating_file_handler("trackaudio-afv.log", []() {
+        quill::RotatingFileHandlerConfig cfg;
+        cfg.set_rotation_max_file_size(5e+6); // 5MB files
+        cfg.set_max_backup_files(2);
+        cfg.set_overwrite_rolled_files(true);
+        cfg.set_pattern("%(ascii_time) [%(thread)] %(message)");
+        return cfg;
+      }());
+
+  // Create a file logger
+  auto _ = quill::create_logger("afv_logger", std::move(afv_logger));
+
   // We force do a mandatory version check, if an update is needed, the
   // programme won't run
 
@@ -495,6 +533,7 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
   auto res = client.Get(VERSION_CHECK_ENDPOINT);
   if (!res || res->status != 200) {
     ShouldRun = false;
+    LOG_CRITICAL(logger, "Error fetching version: {}", res->status);
     return Napi::Boolean::New(info.Env(), false);
   }
 
@@ -504,12 +543,22 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
     semver::version mandatoryVersion = semver::version(cleanBody);
     if (VERSION < mandatoryVersion) {
       ShouldRun = false;
+      LOG_ERROR(logger, "Mandatory update required: {}", mandatoryVersion);
       return Napi::Boolean::New(info.Env(), false);
     }
   } catch (const std::exception &e) {
     ShouldRun = false;
+    LOG_CRITICAL(logger, "Error parsing version: {}", e.what());
     return Napi::Boolean::New(info.Env(), false);
   }
+
+  afv_native::api::setLogger([](std::string subsystem, std::string file,
+                                int line, std::string lineOut) {
+    auto logger = quill::get_logger("afv_logger");
+    auto strippedFiledName = file.substr(file.find_last_of("/") + 1);
+    LOG_INFO(logger, "[{}] [{}@{}] {}", subsystem, strippedFiledName, line,
+             lineOut);
+  });
 
   std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
   mClient =
@@ -528,6 +577,7 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo &info) {
 }
 
 void Exit(const Napi::CallbackInfo &info) {
+  LOG_INFO(logger, "Exiting TrackAudio");
   if (mClient->IsVoiceConnected()) {
     mClient->Disconnect();
   }

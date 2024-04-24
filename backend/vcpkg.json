@@ -9,6 +9,7 @@
         "neargye-semver",
         "openssl",
         "restinio",
-        "nlohmann-json"
+        "nlohmann-json",
+        "quill"
     ]
 }

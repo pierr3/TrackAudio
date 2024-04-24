@@ -1,14 +1,7 @@
 #include "sdk.hpp"
-#include <mutex>
-#include <nlohmann/json_fwd.hpp>
 
-SDK::SDK() {
-  try {
-    this->buildServer();
-  } catch (std::exception &ex) {
-    // TODO: log stuff
-  }
-}
+
+SDK::SDK() { this->buildServer(); }
 
 SDK::~SDK() {
   for (auto [id, ws] : this->pWsRegistry) {
@@ -24,13 +17,17 @@ SDK::~SDK() {
 void SDK::buildServer() {
   this->buildRouter();
 
-  pSDKServer =
-      restinio::run_async<>(restinio::own_io_context(),
-                            restinio::server_settings_t<serverTraits>{}
-                                .port(API_SERVER_PORT)
-                                .address("0.0.0.0")
-                                .request_handler(std::move(this->pRouter)),
-                            16U);
+  try {
+    pSDKServer =
+        restinio::run_async<>(restinio::own_io_context(),
+                              restinio::server_settings_t<serverTraits>{}
+                                  .port(API_SERVER_PORT)
+                                  .address("0.0.0.0")
+                                  .request_handler(std::move(this->pRouter)),
+                              16U);
+  } catch (const std::exception &ex) {
+    LOG_ERROR(logger, "Error while starting SDK server: {}", ex.what());
+  }
 }
 
 void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
@@ -109,38 +106,41 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
 };
 
 void SDK::buildRouter() {
-  this->pRouter = std::make_unique<restinio::router::express_router_t<>>();
+  try {
+    this->pRouter = std::make_unique<restinio::router::express_router_t<>>();
+    this->pRouter->http_get(mSDKCallUrl[sdkCall::kTransmitting],
+                            [&](auto req, auto /*params*/) {
+                              return SDK::handleTransmittingSDKCall(req);
+                            });
 
-  this->pRouter->http_get(mSDKCallUrl[sdkCall::kTransmitting],
-                          [&](auto req, auto /*params*/) {
-                            return SDK::handleTransmittingSDKCall(req);
-                          });
+    this->pRouter->http_get(
+        mSDKCallUrl[sdkCall::kRx],
+        [&](auto req, auto /*params*/) { return this->handleRxSDKCall(req); });
 
-  this->pRouter->http_get(
-      mSDKCallUrl[sdkCall::kRx],
-      [&](auto req, auto /*params*/) { return this->handleRxSDKCall(req); });
+    this->pRouter->http_get(
+        mSDKCallUrl[sdkCall::kTx],
+        [&](auto req, auto /*params*/) { return this->handleTxSDKCall(req); });
 
-  this->pRouter->http_get(
-      mSDKCallUrl[sdkCall::kTx],
-      [&](auto req, auto /*params*/) { return this->handleTxSDKCall(req); });
+    this->pRouter->http_get(
+        mSDKCallUrl[sdkCall::kWebSocket],
+        [&](auto req, auto /*params*/) { return handleWebSocketSDKCall(req); });
 
-  this->pRouter->http_get(
-      mSDKCallUrl[sdkCall::kWebSocket],
-      [&](auto req, auto /*params*/) { return handleWebSocketSDKCall(req); });
+    this->pRouter->non_matched_request_handler([](auto req) {
+      return req->create_response().set_body(CLIENT_NAME).done();
+    });
 
-  this->pRouter->non_matched_request_handler([](auto req) {
-    return req->create_response().set_body(CLIENT_NAME).done();
-  });
+    auto methodNotAllowed = [](const auto &req, auto) {
+      return req->create_response(restinio::status_method_not_allowed())
+          .connection_close()
+          .done();
+    };
 
-  auto methodNotAllowed = [](const auto &req, auto) {
-    return req->create_response(restinio::status_method_not_allowed())
-        .connection_close()
-        .done();
-  };
-
-  this->pRouter->add_handler(
-      restinio::router::none_of_methods(restinio::http_method_get()), "/",
-      methodNotAllowed);
+    this->pRouter->add_handler(
+        restinio::router::none_of_methods(restinio::http_method_get()), "/",
+        methodNotAllowed);
+  } catch (const std::exception &ex) {
+    LOG_ERROR(logger, "Error while creating router: {}", ex.what());
+  }
 }
 
 restinio::request_handling_status_t
@@ -230,7 +230,8 @@ void SDK::broadcastOnWebsocket(const std::string &data) {
     try {
       ws->send_message(outgoingMessage);
     } catch (const std::exception &ex) {
-      // TODO: log stuff
+      LOG_ERROR(logger, "Error while sending message to websocket: {}",
+                ex.what());
     }
   }
 };

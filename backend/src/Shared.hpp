@@ -1,6 +1,7 @@
 #pragma once
 #include "afv-native/afv_native.h"
 #include <napi.h>
+#include <quill/Logger.h>
 #include <vector>
 #include <string>
 #include <mutex>
@@ -47,3 +48,5 @@ static bool isSlurperAvailable = false;
 }
 
 static std::mutex errorCallbackMutex;
+
+static quill::Logger *logger = nullptr;

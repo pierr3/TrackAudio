@@ -1,6 +1,8 @@
 #include <Poco/Timer.h>
 #include <absl/strings/str_split.h>
 #include <httplib.h>
+#include <quill/Quill.h>
+#include <quill/detail/LogMacros.h>
 #include <string>
 
 #include "Helpers.hpp"
@@ -38,6 +40,7 @@ protected:
     if (!res || res->status != 200) {
       // Notify the client the slurper is offline
       RemoteDataStatus::isSlurperAvailable = false;
+      LOG_ERROR(logger, "Slurper is offline {}", res->status);
       return "";
     }
 
@@ -98,6 +101,8 @@ protected:
     }
 
     if (!foundNotAtisConnection) {
+      LOG_WARNING(logger, "No active connection found in the slurper data, but "
+                          "ATIS connections are present.");
       return false;
     }
 
@@ -115,6 +120,9 @@ protected:
     UserSession::isATC = k422 == 1;
     UserSession::lat = std::stod(lat);
     UserSession::lon = std::stod(lon);
+    LOG_INFO(logger,
+             "Updating session data - Callsign: {}, Frequency: {}, ATC: {}",
+             callsign, UserSession::frequency, k422);
     return true;
   }
 
@@ -123,6 +131,8 @@ protected:
         UserSession::callsign != previousCallsign &&
         !previousCallsign.empty() && isConnected &&
         mClient->IsVoiceConnected()) {
+      LOG_INFO(logger, "Callsign changed during an active session, "
+                       "disconnecting ({} -> {})", previousCallsign, UserSession::callsign);
       mClient->Disconnect();
       Helpers::CallbackWithError("Callsign changed during an active session, "
                                  "you have been disconnected.");

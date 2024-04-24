@@ -51,6 +51,7 @@ find_package(Poco COMPONENTS Foundation Util REQUIRED)
 find_package(semver CONFIG REQUIRED)
 find_package(restinio CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(quill CONFIG REQUIRED)
 
 if (WIN32)
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -101,6 +102,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     semver::semver
     restinio::restinio
     nlohmann_json::nlohmann_json
+    quill::quill
     ${CMAKE_JS_LIB})
 
 # Set the output directory for the built executable
