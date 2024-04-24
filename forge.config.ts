@@ -12,7 +12,7 @@ import { spawn } from "child_process";
 
 const config: ForgeConfig = {
   packagerConfig: {
-    name: 'TrackAudio',
+    name: "TrackAudio",
     asar: true,
     osxSign: {},
     icon: "resources/AppIcon/AppIcon",
@@ -20,46 +20,48 @@ const config: ForgeConfig = {
       "resources/AC_Bus_f32.wav",
       "resources/Click_f32.wav",
       "resources/Crackle_f32.wav",
-      "resources/HF_WhiteNoise_f32.wav"
+      "resources/HF_WhiteNoise_f32.wav",
     ],
   },
   rebuildConfig: {},
   makers: [
     {
-      "name": "@electron-forge/maker-squirrel",
-      "config": {
-        
-      }
-    },
-    {
-      "name": "@electron-forge/maker-zip",
+      name: "@electron-forge/maker-squirrel",
       config: {
-        platforms: ['win64']
-      }
+        iconUrl:
+          "https://raw.githubusercontent.com/pierr3/TrackAudio/main/resources/AppIcon/AppIcon.ico",
+        setupIcon: "resources/AppIcon/AppIcon.ico",
+      },
     },
     {
-      name: '@electron-forge/maker-dmg',
+      name: "@electron-forge/maker-zip",
+      config: {
+        platforms: ["win64"],
+      },
+    },
+    {
+      name: "@electron-forge/maker-dmg",
       config: {
         icon: "resources/AppIcon/AppIcon.icns",
         additionalDMGOptions: {
           "code-sign": {
-            "signing-identity": "Developer ID Application"
-          }
-        }
-      }
+            "signing-identity": "Developer ID Application",
+          },
+        },
+      },
     },
     {
-      "name": "@electron-forge/maker-deb",
-      "config": {
-        productName: 'TrackAudio',
-        icon: 'resources/AppIcon/AppIcon.tiff',
-        categories: ['Game'],
-        homepage: 'https://github.com/pierr3/TrackAudio/',
+      name: "@electron-forge/maker-deb",
+      config: {
+        productName: "TrackAudio",
+        icon: "resources/AppIcon/AppIcon.tiff",
+        categories: ["Game"],
+        homepage: "https://github.com/pierr3/TrackAudio/",
         scripts: {
-          postinst: 'scripts/install_library_deb.sh'
-        }
-      }
-    }
+          postinst: "scripts/install_library_deb.sh",
+        },
+      },
+    },
   ],
   plugins: [
     new AutoUnpackNativesPlugin({}),
