@@ -80,7 +80,8 @@ const Navbar: React.FC = () => {
           } else {
             setStationCallsign(reliefCallsign);
           }
-        }).then(() => {
+        })
+        .then(() => {
           doConnect();
         });
     } else {
@@ -133,8 +134,11 @@ const Navbar: React.FC = () => {
           Settings
         </button>
 
-        <span className="btn text-box-container m-2 hide-gain-value">
-          Gain: {(radioGain + "").padStart(2, '0')}%
+        <span
+          className="btn text-box-container m-2 hide-gain-value"
+          style={{ width: "88px" }}
+        >
+          Gain: {(radioGain + "").padStart(3, "0")}%
         </span>
         <input
           type="range"
