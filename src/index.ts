@@ -114,15 +114,17 @@ const createWindow = (): void => {
   }
 
   mainWindow.on("close", (e) => {
-    const response = dialog.showMessageBoxSync(mainWindow, {
-      type: "question",
-      buttons: ["Yes", "No"],
-      title: "Confirm",
-      message: "Are you sure you want to quit?",
-    });
+    if (TrackAudioAfv.IsConnected()) {
+      const response = dialog.showMessageBoxSync(mainWindow, {
+        type: "question",
+        buttons: ["Yes", "No"],
+        title: "Confirm",
+        message: "Are you sure you want to quit?",
+      });
 
-    if (response == 1) {
-      e.preventDefault();
+      if (response == 1) {
+        e.preventDefault();
+      }
     }
   });
 };
@@ -264,7 +266,14 @@ ipcMain.handle(
     onSpeaker: boolean,
     crossCoupleAcross: boolean
   ) => {
-    return TrackAudioAfv.SetFrequencyState(frequency, rx, tx, xc, onSpeaker, crossCoupleAcross);
+    return TrackAudioAfv.SetFrequencyState(
+      frequency,
+      rx,
+      tx,
+      xc,
+      onSpeaker,
+      crossCoupleAcross
+    );
   }
 );
 

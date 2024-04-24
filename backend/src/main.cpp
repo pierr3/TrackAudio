@@ -281,6 +281,10 @@ Napi::String Version(const Napi::CallbackInfo &info) {
   return Napi::String::New(env, VERSION.to_string());
 }
 
+Napi::Boolean IsConnected(const Napi::CallbackInfo &info) {
+  return Napi::Boolean::New(info.Env(), mClient->IsVoiceConnected());
+}
+
 static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
                             void *data2) {
   if (!callbackAvailable) {
@@ -596,6 +600,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   exports.Set(Napi::String::New(env, "Bootstrap"),
               Napi::Function::New(env, Bootstrap));
+
+  exports.Set(Napi::String::New(env, "IsConnected"),
+              Napi::Function::New(env, IsConnected));
 
   exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 
