@@ -22,11 +22,11 @@ TrackAudio is simply the next iteration of VectorAudio, using a different set of
 
 macOS has strict permissioning around background keyboard inputs. TrackAudio should prompt you on first launch to request accesibility permissions. Sometimes, upon updating the app, this setting will undo itself. In that case, please go to your Settings -> Privacy & Security -> Accessibility and add TrackAudio in the list (remove it if it was already there).
 
-<!-- ### Where is the configuration file/log file stored?
+### Where are the log files stored?
 
-On macOS: `~/Library/Application\ Support/VectorAudio`
-On Linux: `~/.config/vector_audio`
-On Windows: where VectorAudio.exe is installed -->
+On macOS: `~/Library/Application\ Support/trackaudio`
+On Linux: `~/.local/state/trackaudio`
+On Windows: `%LocalAppData%\trackaudio`
 
 ### Does TrackAudio support joystick PTT?
 
