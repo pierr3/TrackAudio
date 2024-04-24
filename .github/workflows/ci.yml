@@ -28,12 +28,17 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Install Python 3.x
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.x"
+
       - name: Update cmake
         if: matrix.os != 'macos-latest'
         run: |
           pip install cmake
           cmake --version
-          
+
       - name: Setup environment
         if: matrix.os == 'macos-latest'
         run: |
@@ -44,12 +49,12 @@ jobs:
       - name: Installing codesign certificates
         if: matrix.os == 'macos-latest'
         uses: apple-actions/import-codesign-certs@v2
-        with: 
+        with:
           p12-file-base64: ${{ secrets.APPLE_CERT_DATA }}
           p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
 
       - name: Install dependencies
-        run: | 
+        run: |
           npm -g i cmake-js
           npm run build-backend
           npm install
