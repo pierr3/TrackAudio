@@ -28,6 +28,12 @@ jobs:
         with:
           python-version: "3.11.x"
 
+      - name: Add msbuild to PATH
+        if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v2
+        with:
+          vs-version: "[17.9,17.9.4]"
+
       - name: Update cmake
         if: matrix.os != 'macos-latest'
         run: |
