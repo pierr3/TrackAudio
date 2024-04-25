@@ -33,11 +33,11 @@ jobs:
         with:
           python-version: "3.11.x"
 
-      - name: Add msbuild to PATH
+      - name: Setup msbuild
         if: matrix.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v2
-        with:
-          vs-version: "17.8.3"
+        run: |
+          choco install visualstudio2017-workload-vctools
+          npm config set msvs_version 2017
 
       - name: Update cmake
         if: matrix.os != 'macos-latest'
