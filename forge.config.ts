@@ -94,6 +94,17 @@ const config: ForgeConfig = {
     }),
   ],
   hooks: {
+    postPackage: async (config, packageResult) => {
+      if (process.platform === "linux") {
+        fs.rename(
+          path.join(packageResult.outputPaths[0], "TrackAudio"),
+          path.join(packageResult.outputPaths[0], "trackaudio"),
+          function (err) {
+            if (err) throw err;
+          }
+        );
+      }
+    },
     packageAfterExtract: async (forgeConfig, buildPath) => {
       try {
         if (process.platform === "darwin") {
