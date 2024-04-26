@@ -84,6 +84,7 @@ jobs:
         uses: pozetroninc/github-action-get-latest-release@master
         with:
           repository: pierr3/TrackAudio
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
