@@ -68,7 +68,16 @@ Read this document entirely first. If you can't find the answer to your problem,
 
 ### Linux
 
-TrackAudio is packaged as a .dep and should run without any specific actions.
+#### Archlinux
+
+TrackAudio is available in the [AUR](https://aur.archlinux.org/packages/trackaudio-bin) and can be installed using your favourite AUR helper, for example:
+
+ * `yay -S trackaudio-bin`
+ * `paru -S trackaudio-bin`
+
+#### Debian
+
+TrackAudio is packaged as a `.deb` and should run without any specific actions.
 
 Download the latest release on the [release page](https://github.com/pierr3/TrackAudio/releases) and run the .deb
 If it does not open, you might want to make sure it has permission to run as an executable by running `chmod +x` on the .deb File.
