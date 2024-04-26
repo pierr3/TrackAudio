@@ -48,14 +48,37 @@ jobs:
           p12-file-base64: ${{ secrets.APPLE_CERT_DATA }}
           p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
 
-      - name: Install dependencies
+      - name: Install dependencies (x64)
         run: |
           npm -g i cmake-js
-          npm run build-backend
+          cd backend/
+          npm install
+          cmake-js compile -B Release -a x64
+          node custom_build.mjs
+          npm pack
+          cd ..
+          npm install ./backend/trackaudio-afv-1.0.0.tgz
           npm install
 
       - name: Package app
-        run: npm run make
+        run: npm run make -- --arch x64
+
+      - name: Install dependencies (arm64)
+        if: matrix.os == 'macos-latest'
+        run: |
+          rm -rf ./backend/build
+          rm -rf ./backend/trackaudio-afv-1.0.0.tgz
+          cd backend/
+          npm install
+          cmake-js compile -B Release -a arm64
+          node custom_build.mjs
+          npm pack
+          cd ..
+          npm install ./backend/trackaudio-afv-1.0.0.tgz
+
+      - name: Package app
+        if: matrix.os == 'macos-latest'
+        run: npm run make -- --arch arm64
 
       - id: relinfo
         uses: pozetroninc/github-action-get-latest-release@master
