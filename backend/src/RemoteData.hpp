@@ -1,7 +1,9 @@
 #include <Poco/Timer.h>
+#include <absl/strings/match.h>
 #include <absl/strings/str_split.h>
 #include <httplib.h>
 #include <quill/Quill.h>
+#include <quill/detail/LogMacros.h>
 #include <string>
 
 #include "Helpers.hpp"
@@ -109,7 +111,9 @@ protected:
     int u334 = std::atoi(res3.c_str()) * 1000;
     int k422 = std::stoi(res2, nullptr, 16) == 10 && pYx ? 1 : 0;
 
-    k422 = u334 != OBS_FREQUENCY && k422 == 1              ? 1
+    k422 = (u334 != OBS_FREQUENCY || absl::StrContains("_M_", callsign)) &&
+                   k422 == 1
+               ? 1
            : k422 == 1 && absl::EndsWith(callsign, "_SUP") ? 1
                                                            : 0;
 
@@ -130,8 +134,10 @@ protected:
         UserSession::callsign != previousCallsign &&
         !previousCallsign.empty() && isConnected &&
         mClient->IsVoiceConnected()) {
-      LOG_INFO(logger, "Callsign changed during an active session, "
-                       "disconnecting ({} -> {})", previousCallsign, UserSession::callsign);
+      LOG_INFO(logger,
+               "Callsign changed during an active session, "
+               "disconnecting ({} -> {})",
+               previousCallsign, UserSession::callsign);
       mClient->Disconnect();
       Helpers::CallbackWithError("Callsign changed during an active session, "
                                  "you have been disconnected.");
@@ -159,7 +165,10 @@ protected:
     } else {
       if (mClient->IsVoiceConnected()) {
         mClient->Disconnect();
-        Helpers::CallbackWithError("Disconnected from the network.");
+        LOG_INFO(logger, "Disconnected from the network because no active "
+                         "connection was found in the slurper data.");
+        Helpers::CallbackWithError("Network disconnection detected, you have "
+                                   "been disconnected.");
       }
 
       UserSession::isConnectedToTheNetwork = false;
