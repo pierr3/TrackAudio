@@ -43,9 +43,7 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     window.api.getConfig().then((config) => {
       if (config) {
-        console.log("config says", config.radioGain);
         window.api.SetRadioGain((config.radioGain || 0.5)).then(() => {
-          console.log("gain from effect")
           setRadioGain(config.radioGain*100 || 50);
         });
       }
@@ -104,14 +102,13 @@ const Navbar: React.FC = () => {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     window.api.SetRadioGain(event.target.valueAsNumber / 100).then(() => {
-      console.log("gain from slider")
       setRadioGain(event.target.valueAsNumber);
     });
   };
 
   return (
     <>
-      <div className="d-flex flex-md-row align-items-center p-3 px-md-4 mb-3 custom-navbar">
+      <div className="d-flex flex-md-row align-items-center p-3 px-md-4 mb-3 custom-navbar hide-topbar">
         <Clock />
         <span
           className={clsx(

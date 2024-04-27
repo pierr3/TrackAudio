@@ -28,7 +28,6 @@ const Bootsrap: React.FC = () => {
           return;
         }
         useRadioState.getState().addRadio(freq, station);
-        console.log("gain from callback")
         window.api.SetRadioGain(useSessionStore.getState().radioGain / 100);
       });
     });

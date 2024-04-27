@@ -5,16 +5,17 @@ import Sidebar from "./components/sidebar/sidebar";
 import ErrorDialog from "./components/error";
 import Bootstrap from "./components/bootstrap";
 
-import './style/app.scss';
+import "./style/app.scss";
+import Mini from "./components/mini";
 
 function App() {
-
   return (
     <>
       <Bootstrap />
       <Navbar />
       <ErrorDialog />
       <div className="structure">
+        <Mini />
         <RadioContainer />
         <Sidebar />
       </div>
@@ -22,5 +23,5 @@ function App() {
   );
 }
 
-const root = createRoot(document.getElementById('root'));
+const root = createRoot(document.getElementById("root"));
 root.render(<App />);

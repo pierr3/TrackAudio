@@ -173,7 +173,6 @@ const useRadioState = create<RadioState>((set) => ({
     if (callsign === useSessionStore.getState().stationCallsign) {
       return; // Ignore our transmissions
     }
-    console.log(callsign);
     set((state) => ({
       radios: state.radios.map((radio) =>
         radio.frequency === frequency

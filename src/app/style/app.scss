@@ -239,6 +239,12 @@ button:disabled {
   padding-right: 0;
 }
 
+@media only screen and (max-width: 300px) { 
+  .freq-box { 
+    display: none; 
+  } 
+}
+
 @media only screen and (max-width: 670px) { 
   .freq-box { 
     width: calc(100% - 50px);
@@ -364,4 +370,27 @@ select:disabled {
 
 .color-warning {
   color: $warning !important;
+}
+
+.mini {
+  display: none;
+  height: calc(100vh - 14px) !important;
+  width: calc(100% - 14px);
+  margin-right: 7px;
+  margin-left: 7px;
+  margin-top: 7px;
+  margin-bottom: 7px;
+  float: left;
+}
+
+@media only screen and (max-width: 300px) { 
+  .mini { 
+    display: block; 
+  } 
+}
+
+@media only screen and (max-width: 300px) { 
+  .hide-topbar { 
+    display: none !important; 
+  } 
 }

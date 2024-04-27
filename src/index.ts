@@ -86,7 +86,6 @@ const createWindow = (): void => {
 
   // Set the store CID
   TrackAudioAfv.SetCid(currentConfiguration.cid || "");
-  console.log("Current configuration gain", currentConfiguration.radioGain);
   TrackAudioAfv.SetRadioGain(currentConfiguration.radioGain || 0.5);
 
   version = TrackAudioAfv.GetVersion();
@@ -95,8 +94,8 @@ const createWindow = (): void => {
   mainWindow = new BrowserWindow({
     height: 660,
     width: 800,
-    minWidth: 265,
-    minHeight: 230,
+    minWidth: 200,
+    minHeight: 120,
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
     },
@@ -299,7 +298,6 @@ ipcMain.handle("setup-ptt", () => {
 });
 
 ipcMain.handle("set-radio-gain", (_, gain: number) => {
-  console.log("Setting gain to", gain)
   TrackAudioAfv.SetRadioGain(gain);
   currentConfiguration.radioGain = gain;
   saveConfig();
