@@ -36,6 +36,7 @@ let currentConfiguration: Configuration = {
   callsign: "",
   pttKey: 0,
   hardwareType: 0,
+  radioGain: 0,
 };
 const store = new Store();
 
@@ -297,6 +298,8 @@ ipcMain.handle("setup-ptt", () => {
 
 ipcMain.handle("set-radio-gain", (_, gain: number) => {
   TrackAudioAfv.SetRadioGain(gain);
+  currentConfiguration.radioGain = gain;
+  saveConfig();
 });
 
 ipcMain.handle("set-hardware-type", (_, type: number) => {

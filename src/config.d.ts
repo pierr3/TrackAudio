@@ -10,4 +10,5 @@ export interface Configuration {
 
     pttKey: number;
     hardwareType: number;
+    radioGain: number;
 }

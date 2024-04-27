@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../style/navbar.scss";
 import Clock from "./clock";
 import SettingsModal from "./settings-modal/settings-modal";
@@ -39,6 +39,16 @@ const Navbar: React.FC = () => {
     state.isAtc,
     state.setStationCallsign,
   ]);
+
+  useEffect(() => {
+    window.api.getConfig().then((config) => {
+      if (config) {
+        window.api.SetRadioGain((config.radioGain || 0.5)).then(() => {
+          setRadioGain(config.radioGain*100 || 50);
+        });
+      }
+    });
+  }, []);
 
   const doConnect = () => {
     setIsConnecting(true);
@@ -145,17 +155,16 @@ const Navbar: React.FC = () => {
           max="100"
           step="1"
           onChange={handleRadioGainChange}
+          defaultValue={radioGain}
         ></input>
-        {
-          platform === "linux" && (
-            <button
-              className="btn btn-danger m-2 hide-gain-value"
-              onClick={() => window.api.CloseMe()}
-            >
-              X
-            </button>
-          )
-        }
+        {platform === "linux" && (
+          <button
+            className="btn btn-danger m-2 hide-gain-value"
+            onClick={() => window.api.CloseMe()}
+          >
+            X
+          </button>
+        )}
       </div>
       {showModal && <SettingsModal closeModal={() => setShowModal(false)} />}
     </>
