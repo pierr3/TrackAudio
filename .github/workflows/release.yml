@@ -79,6 +79,15 @@ jobs:
       - name: Package app
         if: matrix.os == 'macos-latest'
         run: npm run make -- --arch arm64
+    
+      - name: Codesign on macos
+        if: matrix.os == 'macos-latest'
+        run: |
+          dmg_files=$(find "out/make/" -type f -name "*.dmg")
+          for dmg_file in $dmg_files; do
+              echo "Codesigning $dmg_file"
+              codesign --deep --force --verbose --sign "Developer ID Application" "$dmg_file"
+          done
 
       - id: relinfo
         uses: pozetroninc/github-action-get-latest-release@master

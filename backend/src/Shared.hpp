@@ -9,7 +9,7 @@
 #include <vector>
 
 constexpr semver::version VERSION =
-    semver::version{1, 0, 2, semver::prerelease::beta, 1};
+    semver::version{1, 0, 2, semver::prerelease::beta, 2};
 
 static const std::string CLIENT_NAME =
     std::string("TrackAudio-") + VERSION.to_string();
