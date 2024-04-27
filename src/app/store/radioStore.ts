@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import useSessionStore from "./sessionStore";
 
 export type RadioType = {
   frequency: number;
@@ -12,6 +13,8 @@ export type RadioType = {
   onSpeaker: boolean;
   selected: boolean;
   transceiverCount: number;
+  lastReceivedCallsign?: string;
+  lastReceivedCallsignHistory?: Array<string>;
 };
 
 type RadioState = {
@@ -29,6 +32,7 @@ type RadioState = {
   getSelectedRadio: () => RadioType | undefined;
   isRadioUnique: (frequency: number) => boolean;
   isInactive: (frequency: number) => boolean;
+  setLastReceivedCallsign(frequency: number, callsign: string): void;
   setTransceiverCountForStationCallsign: (
     callsign: string,
     count: number
@@ -165,6 +169,28 @@ const useRadioState = create<RadioState>((set) => ({
       frequency
     );
   },
+  setLastReceivedCallsign: (frequency, callsign) => {
+    if (callsign === useSessionStore.getState().stationCallsign) {
+      return; // Ignore our transmissions
+    }
+    console.log(callsign);
+    set((state) => ({
+      radios: state.radios.map((radio) =>
+        radio.frequency === frequency
+          ? {
+              ...radio,
+              lastReceivedCallsign: callsign,
+              lastReceivedCallsignHistory: radio.lastReceivedCallsign
+                ? [
+                    ...(radio.lastReceivedCallsignHistory || []),
+                    radio.lastReceivedCallsign,
+                  ].slice(-5) // Ensure maximum of 5 values in the array
+                : radio.lastReceivedCallsignHistory,
+            }
+          : radio
+      ),
+    }));
+  },
   reset: () => {
     set(() => ({
       radios: [],
@@ -195,7 +221,9 @@ const useRadioState = create<RadioState>((set) => ({
   setCrossCoupleAcross: (frequency, value) => {
     set((state) => ({
       radios: state.radios.map((radio) =>
-        radio.frequency === frequency ? { ...radio, crossCoupleAcross: value } : radio
+        radio.frequency === frequency
+          ? { ...radio, crossCoupleAcross: value }
+          : radio
       ),
     }));
   },

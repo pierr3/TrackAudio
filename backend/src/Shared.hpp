@@ -43,6 +43,7 @@ static double lat = 0.0;
 static double lon = 0.0;
 static bool isATC = false;
 static bool isConnectedToTheNetwork = false;
+static float currentRadioGain = 0.5;
 } // namespace UserSession
 
 namespace RemoteDataStatus {

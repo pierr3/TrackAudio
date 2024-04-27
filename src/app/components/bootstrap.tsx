@@ -28,11 +28,17 @@ const Bootsrap: React.FC = () => {
           return;
         }
         useRadioState.getState().addRadio(freq, station);
+        console.log("gain from callback")
+        window.api.SetRadioGain(useSessionStore.getState().radioGain / 100);
       });
     });
 
     window.api.on("FrequencyRxBegin", (frequency) => {
       useRadioState.getState().setCurrentlyRx(parseInt(frequency), true);
+    });
+
+    window.api.on("StationRxBegin", (frequency, callsign) => {
+      useRadioState.getState().setLastReceivedCallsign(parseInt(frequency), callsign);
     });
 
     window.api.on("FrequencyRxEnd", (frequency) => {
@@ -57,7 +63,6 @@ const Bootsrap: React.FC = () => {
     });
 
     window.api.on("VoiceDisconnected", () => {
-      useSessionStore.getState().setRadioGain(50);
       useSessionStore.getState().setIsConnecting(false);
       useSessionStore.getState().setIsConnected(false);
       useRadioState.getState().reset();

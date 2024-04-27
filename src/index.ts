@@ -86,6 +86,8 @@ const createWindow = (): void => {
 
   // Set the store CID
   TrackAudioAfv.SetCid(currentConfiguration.cid || "");
+  console.log("Current configuration gain", currentConfiguration.radioGain);
+  TrackAudioAfv.SetRadioGain(currentConfiguration.radioGain || 0.5);
 
   version = TrackAudioAfv.GetVersion();
 
@@ -297,6 +299,7 @@ ipcMain.handle("setup-ptt", () => {
 });
 
 ipcMain.handle("set-radio-gain", (_, gain: number) => {
+  console.log("Setting gain to", gain)
   TrackAudioAfv.SetRadioGain(gain);
   currentConfiguration.radioGain = gain;
   saveConfig();
@@ -366,6 +369,10 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
 
   if (arg == AFVEventTypes.FrequencyRxEnd) {
     mainWindow.webContents.send("FrequencyRxEnd", arg2);
+  }
+
+  if (arg == "StationRxBegin") { // Idk why it does not work with the defined type??
+    mainWindow.webContents.send("StationRxBegin", arg2, arg3);
   }
 
   if (arg == AFVEventTypes.StationTransceiversUpdated) {

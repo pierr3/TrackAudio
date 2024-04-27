@@ -7,12 +7,13 @@
 #include <httplib.h>
 #include <memory>
 #include <napi.h>
-#include <thread>
+#include <quill/LogLevel.h>
 #include <quill/Quill.h>
 #include <quill/detail/LogMacros.h>
 #include <sago/platform_folders.h>
 #include <semver.hpp>
 #include <string>
+#include <thread>
 
 #include "Helpers.hpp"
 #include "RemoteData.hpp"
@@ -138,6 +139,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo &info) {
     return Napi::Boolean::New(info.Env(), false);
   }
   mClient->SetRx(frequency, false);
+  mClient->SetRadioGainAll(UserSession::currentRadioGain);
 
   mApiServer->handleAFVEventForWebsocket(
       sdk::types::Event::kFrequencyStateUpdate, {}, {});
@@ -181,6 +183,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo &info) {
   }
 
   mClient->SetRx(frequency, rx);
+  mClient->SetRadioGainAll(UserSession::currentRadioGain);
   if (UserSession::isATC) {
     mClient->SetTx(frequency, tx);
     mClient->SetXc(frequency, xc);
@@ -280,11 +283,9 @@ void SetPtt(const Napi::CallbackInfo &info) {
 }
 
 void SetRadioGain(const Napi::CallbackInfo &info) {
-  if (!mClient->IsVoiceConnected()) {
-    return;
-  }
-
   float gain = info[0].As<Napi::Number>().FloatValue();
+  UserSession::currentRadioGain = gain;
+
   mClient->SetRadioGainAll(gain);
 }
 
@@ -300,7 +301,8 @@ Napi::Boolean IsConnected(const Napi::CallbackInfo &info) {
 void StartMicTest(const Napi::CallbackInfo &info) {
   if (!mClient || !callbackAvailable || vuMeterThread != nullptr) {
     LOG_WARNING(logger, "Attempted to start mic test without callback or "
-                        "uninitiated client, or already running mic test, this will be useless");
+                        "uninitiated client, or already running mic test, this "
+                        "will be useless");
     return;
   }
 
@@ -495,9 +497,18 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void *data,
 
     int frequency = *reinterpret_cast<int *>(data);
     std::string callsign = *reinterpret_cast<std::string *>(data2);
+    callbackRef.NonBlockingCall(
+        [frequency, callsign](Napi::Env env, Napi::Function jsCallback) {
+          LOG_TRACE_L1(logger, "StationRxBegin to node: {} {}", frequency, callsign);
+          jsCallback.Call({Napi::String::New(env, "StationRxBegin"),
+                           Napi::String::New(env, std::to_string(frequency)),
+                           Napi::String::New(env, callsign)});
+        });
 
     mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxBegin,
                                            callsign, frequency);
+
+    return;
   }
 
   if (eventType == afv_native::ClientEventType::StationRxEnd) {
@@ -610,6 +621,8 @@ void CreateLoggers() {
 
   logger =
       quill::create_logger("trackaudio_logger", std::move(trackaudio_logger));
+  
+  logger->set_log_level(quill::LogLevel::Info);
 
   std::shared_ptr<quill::Handler> afv_logger = quill::rotating_file_handler(
       GetStateFolderPath() / "trackaudio-afv.log", []() {

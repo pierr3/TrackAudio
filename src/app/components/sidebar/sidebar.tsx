@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import AddFrequency from "./add-frequency";
 import RadioStatus from "./radio-status";
 import useSessionStore from "../../store/sessionStore";
+import useRadioState from "../../store/radioStore";
 
 const Sidebar: React.FC = () => {
   const [readyToAdd, setReadyToAdd] = useState(false);
@@ -9,6 +10,7 @@ const Sidebar: React.FC = () => {
     state.version,
     state.isNetworkConnected,
   ]);
+  const [radios] = useRadioState((state) => [state.radios]);
 
   const addStation = () => {
     if (!readyToAdd) {
@@ -24,6 +26,11 @@ const Sidebar: React.FC = () => {
     stationInput.value = "";
     setReadyToAdd(false);
   };
+
+  const lastReceivedCallsigns = radios
+    .filter((radio) => radio.rx && radio.lastReceivedCallsign)
+    .map((radio) => radio.lastReceivedCallsign)
+    .join(",");
 
   return (
     <>
@@ -59,7 +66,7 @@ const Sidebar: React.FC = () => {
           Source: Slurper
         </span> */}
 
-        <div className="box-container mt-3 w-100">Last RX: [TO BE ADDED]</div>
+        <div className="box-container mt-3 w-100">Last RX: {lastReceivedCallsigns}</div>
 
         <RadioStatus />
 

@@ -18,6 +18,7 @@ export enum AFVEventTypes {
   StationDataReceived = "StationDataReceived",
   FrequencyRxBegin = "FrequencyRxBegin",
   FrequencyRxEnd = "FrequencyRxEnd",
+  StationRxBegin = "StationRxBegin",
   PttState = "PttState",
   NetworkConnected = "network-connected",
   NetworkDisconnected = "network-disconnected",
