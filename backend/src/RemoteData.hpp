@@ -159,6 +159,7 @@ protected:
     } else {
       if (mClient->IsVoiceConnected()) {
         mClient->Disconnect();
+        Helpers::CallbackWithError("Disconnected from the network.");
       }
 
       UserSession::isConnectedToTheNetwork = false;
