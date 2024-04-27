@@ -15,9 +15,9 @@ const IElectronAPI = {
   setAlwaysOnTop: (state: boolean) =>
     ipcRenderer.send("set-always-on-top", state),
   getAudioApis: () => ipcRenderer.invoke("audio-get-apis"),
-  getAudioInputDevices: (apiId: string) =>
+  getAudioInputDevices: (apiId: number) =>
     ipcRenderer.invoke("audio-get-input-devices", apiId),
-  getAudioOutputDevices: (apiId: string) =>
+  getAudioOutputDevices: (apiId: number) =>
     ipcRenderer.invoke("audio-get-output-devices", apiId),
 
   getConfig: () => ipcRenderer.invoke("get-configuration"),

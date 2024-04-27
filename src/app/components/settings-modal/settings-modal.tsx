@@ -52,7 +52,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       setAudioApis(apis);
     });
 
-    window.api.getAudioOutputDevices(config.audioApi || -1).then((devices) => {
+    window.api.getAudioOutputDevices(config.audioApi|| -1).then((devices) => {
       setAudioOutputDevices(devices);
     });
 
