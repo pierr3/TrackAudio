@@ -66,9 +66,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         radio.frequency,
         radio.rx,
         newState,
-        radio.xc,
+        !newState ? false : radio.xc,
         radio.onSpeaker,
-        radio.crossCoupleAcross
+        !newState ? false : radio.crossCoupleAcross
       )
       .then((ret) => {
         if (!ret) {
