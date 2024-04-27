@@ -1,16 +1,18 @@
 #pragma once
 #include "afv-native/afv_native.h"
+#include <memory>
+#include <mutex>
 #include <napi.h>
 #include <quill/Logger.h>
-#include <vector>
-#include <string>
-#include <mutex>
-#include <memory>
 #include <semver.hpp>
+#include <string>
+#include <vector>
 
-constexpr semver::version VERSION = semver::version{1, 0, 2, semver::prerelease::beta, 1};
+constexpr semver::version VERSION =
+    semver::version{1, 0, 2, semver::prerelease::beta, 1};
 
-static const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
+static const std::string CLIENT_NAME =
+    std::string("TrackAudio-") + VERSION.to_string();
 
 static Napi::ThreadSafeFunction callbackRef;
 static bool callbackAvailable = false;
@@ -30,8 +32,8 @@ static std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 #define API_SERVER_PORT 49080
 
 const std::vector<std::string> allowedYx = {"_CTR", "_APP", "_TWR", "_GND",
-                                            "_DEL", "_FSS", "_SUP", "_RDO",
-                                            "_RMP", "_TMU", "_FMP"};
+                                            "_DEP", "_DEL", "_FSS", "_SUP",
+                                            "_RDO", "_RMP", "_TMU", "_FMP"};
 
 namespace UserSession {
 static std::string cid;
