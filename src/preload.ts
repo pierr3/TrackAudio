@@ -3,7 +3,7 @@
 
 import { ipcRenderer, contextBridge, IpcRendererEvent } from "electron";
 
-contextBridge.exposeInMainWorld("api", {
+const IElectronAPI = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on: (channel: string, listener: (...args: any[]) => void) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,7 +52,7 @@ contextBridge.exposeInMainWorld("api", {
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean,
+    crossCoupleAcross: boolean
   ) =>
     ipcRenderer.invoke(
       "audio-set-frequency-state",
@@ -78,10 +78,18 @@ contextBridge.exposeInMainWorld("api", {
   StartMicTest: () => ipcRenderer.invoke("start-mic-test"),
   StopMicTest: () => ipcRenderer.invoke("stop-mic-test"),
 
+  UpdatePlatform: () => ipcRenderer.invoke("update-platform"),
+
+  CloseMe: () => ipcRenderer.invoke("close-me"),
+
   dialog: (
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
     message: string,
     buttons: string[]
   ) => ipcRenderer.invoke("dialog", type, title, message, buttons),
-});
+};
+
+contextBridge.exposeInMainWorld("api", IElectronAPI);
+
+export type IElectronAPIType = typeof IElectronAPI;

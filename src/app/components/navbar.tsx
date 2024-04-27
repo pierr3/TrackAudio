@@ -3,20 +3,18 @@ import "../style/navbar.scss";
 import Clock from "./clock";
 import SettingsModal from "./settings-modal/settings-modal";
 import useErrorStore from "../store/errorStore";
-import useRadioState from "../store/radioStore";
 import useSessionStore from "../store/sessionStore";
 import clsx from "clsx";
 import {
   checkIfCallsignIsRelief,
   getCleanCallsign,
 } from "../helpers/CallsignHelper";
+import useUtilStore from "../store/utilStore";
 
 const Navbar: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
-  const [radios, removeRadio] = useRadioState((state) => [
-    state.radios,
-    state.removeRadio,
-  ]);
+  const [platform] = useUtilStore((state) => [state.platform]);
+
   const postError = useErrorStore((state) => state.postError);
   const [
     isConnected,
@@ -148,6 +146,16 @@ const Navbar: React.FC = () => {
           step="1"
           onChange={handleRadioGainChange}
         ></input>
+        {
+          platform === "linux" && (
+            <button
+              className="btn btn-danger m-2 hide-gain-value"
+              onClick={() => window.api.CloseMe()}
+            >
+              X
+            </button>
+          )
+        }
       </div>
       {showModal && <SettingsModal closeModal={() => setShowModal(false)} />}
     </>

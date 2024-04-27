@@ -9,11 +9,9 @@ const Bootsrap: React.FC = () => {
     window.api.on("MicTest", (vu, peakVu) => {
       const vuFloat = Math.abs(parseFloat(vu));
       const peakVuFloat = Math.abs(parseFloat(peakVu));
-      
+
       // Convert to a scale of 0 - 100
-      useUtilStore
-        .getState()
-        .updateVu(vuFloat*100, peakVuFloat*100);
+      useUtilStore.getState().updateVu(vuFloat * 100, peakVuFloat * 100);
     });
 
     window.api.on("station-transceivers-updated", (station, count) => {
@@ -84,6 +82,10 @@ const Bootsrap: React.FC = () => {
 
     window.api.on("ptt-key-set", (key) => {
       useSessionStore.getState().setPttKeyName(key);
+    });
+
+    window.api.UpdatePlatform().then((platform) => {
+      useUtilStore.getState().updatePlatform(platform);
     });
 
     window.api.getVersion().then((version) => {

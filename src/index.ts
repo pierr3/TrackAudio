@@ -315,6 +315,14 @@ ipcMain.handle("stop-mic-test", () => {
   TrackAudioAfv.StopMicTest();
 });
 
+ipcMain.handle("update-platform", () => {
+  return process.platform;
+});
+
+ipcMain.handle('close-me', () => {
+  app.quit()
+})
+
 ipcMain.handle(
   "dialog",
   (
