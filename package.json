@@ -22,7 +22,7 @@
     "@electron-forge/plugin-fuses": "^7.3.1",
     "@electron-forge/plugin-webpack": "^7.3.1",
     "@electron/fuses": "^1.8.0",
-    "@felixrieseberg/electron-forge-maker-nsis": "^6.0.6",
+    "@psiservices-ccounterman/electron-forge-maker-nsis": "github:psiservices-ccounterman/electron-forge-maker-nsis",
     "@types/react": "^18.2.74",
     "@types/react-dom": "^18.2.24",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
