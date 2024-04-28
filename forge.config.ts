@@ -26,11 +26,11 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     {
-      name: "@electron-forge/maker-squirrel",
+      name: "@felixrieseberg/electron-forge-maker-nsis",
       config: {
-        iconUrl:
-          "https://raw.githubusercontent.com/pierr3/TrackAudio/main/resources/AppIcon/AppIcon.ico",
-        setupIcon: "resources/AppIcon/AppIcon.ico",
+        installerIcon: "resources/AppIcon/AppIcon.ico",
+        uninstallerIcon: "resources/AppIcon/AppIcon.ico",
+        license: "LICENSE",
       },
     },
     {
