@@ -34,12 +34,6 @@ const config: ForgeConfig = {
       },
     },
     {
-      name: "@electron-forge/maker-zip",
-      config: {
-        platforms: ["win64"],
-      },
-    },
-    {
       name: "@electron-forge/maker-dmg",
       config: {
         icon: "resources/AppIcon/AppIcon.icns",
