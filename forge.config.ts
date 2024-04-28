@@ -26,7 +26,7 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     {
-      name: "@felixrieseberg/electron-forge-maker-nsis",
+      name: "@psiservices-ccounterman/electron-forge-maker-nsis",
       config: {
         installerIcon: "resources/AppIcon/AppIcon.ico",
         uninstallerIcon: "resources/AppIcon/AppIcon.ico",
