@@ -10,7 +10,9 @@ const AddFrequency: React.FC = () => {
     state.setRx,
   ]);
 
-  const isNetworkConnected = useSessionStore((state) => state.isNetworkConnected);
+  const isNetworkConnected = useSessionStore(
+    (state) => state.isNetworkConnected
+  );
 
   const addFrequency = () => {
     if (!readyToAdd) {
@@ -29,7 +31,11 @@ const AddFrequency: React.FC = () => {
       if (!ret) {
         return; // This will check if the frequency exists and send an error message already
       }
-      addRadio(frequencyInHz, "MANUAL");
+      addRadio(
+        frequencyInHz,
+        "MANUAL",
+        useSessionStore.getState().getStationCallsign()
+      );
       setRx(frequencyInHz, true);
     });
 

@@ -27,7 +27,13 @@ const Bootsrap: React.FC = () => {
           console.error("Failed to add frequency", freq, station);
           return;
         }
-        useRadioState.getState().addRadio(freq, station);
+        useRadioState
+          .getState()
+          .addRadio(
+            freq,
+            station,
+            useSessionStore.getState().getStationCallsign()
+          );
         window.api.SetRadioGain(useSessionStore.getState().radioGain / 100);
       });
     });
@@ -37,7 +43,9 @@ const Bootsrap: React.FC = () => {
     });
 
     window.api.on("StationRxBegin", (frequency, callsign) => {
-      useRadioState.getState().setLastReceivedCallsign(parseInt(frequency), callsign);
+      useRadioState
+        .getState()
+        .setLastReceivedCallsign(parseInt(frequency), callsign);
     });
 
     window.api.on("FrequencyRxEnd", (frequency) => {
