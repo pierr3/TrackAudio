@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import useSessionStore from "./sessionStore";
+import { radioCompare } from "../helpers/RadioHelper";
+import { getCallsignParts } from "../helpers/CallsignHelper";
 
 export type RadioType = {
   frequency: number;
@@ -15,11 +17,18 @@ export type RadioType = {
   transceiverCount: number;
   lastReceivedCallsign?: string;
   lastReceivedCallsignHistory?: Array<string>;
+  station: string;
+  position: string;
+  subPosition: string;
 };
 
 type RadioState = {
   radios: RadioType[];
-  addRadio: (frequency: number, callsign: string) => void;
+  addRadio: (
+    frequency: number,
+    callsign: string,
+    stationCallsign: string
+  ) => void;
   removeRadio: (frequency: number) => void;
   setRx: (frequency: number, value: boolean) => void;
   setTx: (frequency: number, value: boolean) => void;
@@ -64,7 +73,7 @@ export class RadioHelper {
 
 const useRadioState = create<RadioState>((set) => ({
   radios: [],
-  addRadio: (frequency, callsign) => {
+  addRadio: (frequency, callsign, stationCallsign) => {
     if (
       RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)
     ) {
@@ -73,12 +82,18 @@ const useRadioState = create<RadioState>((set) => ({
       );
       return;
     }
+
+    const [station, position, subPosition] = getCallsignParts(callsign);
+
     set((state) => ({
       radios: [
         ...state.radios,
         {
           frequency,
           callsign,
+          station,
+          position,
+          subPosition,
           rx: false,
           tx: false,
           xc: false,
@@ -89,7 +104,7 @@ const useRadioState = create<RadioState>((set) => ({
           selected: false,
           transceiverCount: 0,
         },
-      ],
+      ].sort((a, b) => radioCompare(a, b, stationCallsign)),
     }));
   },
   removeRadio: (frequency) => {
