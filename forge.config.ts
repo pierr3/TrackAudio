@@ -14,12 +14,6 @@ const config: ForgeConfig = {
   packagerConfig: {
     name: "TrackAudio",
     asar: true,
-    osxSign: {},
-    osxNotarize: {
-      appleId: process.env.APPLE_ID ?? "",
-      appleIdPassword: process.env.APPLE_NOTARIZATION_PASSWORD ?? "",
-      teamId: process.env.APPLE_TEAM_ID ?? "",
-    },
     icon: "resources/AppIcon/AppIcon",
     extraResource: [
       "resources/AC_Bus_f32.wav",
@@ -45,6 +39,14 @@ const config: ForgeConfig = {
         additionalDMGOptions: {
           "code-sign": {
             "signing-identity": "Developer ID Application",
+          },
+        },
+        packagerOptions: {
+          osxSign: {},
+          osxNotarize: {
+            appleId: process.env.APPLE_ID ?? "",
+            appleIdPassword: process.env.APPLE_NOTARIZATION_PASSWORD ?? "",
+            teamId: process.env.APPLE_TEAM_ID ?? "",
           },
         },
       },
