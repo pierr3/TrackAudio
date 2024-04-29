@@ -113,13 +113,17 @@ On Windows, Visual Studio is required (Community Edition is fine) with the `Desk
 If `cmake-js` isn't already installed run `npm install -g cmake-js`. For the first build run the following:
 
 ```sh
-npm run build-backend
 git submodule update --init --recursive
+npm run build-backend
 npm install
 npm run start
 ```
 
-Subsequent builds only require the `npm run start` command.
+Subsequent builds only require the `npm run start` command if you only wish to modify the frontend. Building the C++ backend will require running `npm run build-backend`.
+
+## Packaging
+
+TrackAudio will be automatically packaged as a .dmg on macOs, .deb on Linux and .exe installer on windows, run `npm run make` to package.
 
 ## Contributing
 
