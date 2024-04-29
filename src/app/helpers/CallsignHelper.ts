@@ -7,10 +7,10 @@ export const getCleanCallsign = (callsign: string): string => {
 };
 
 /**
- * Takes a callsign like ZOA-ZSE, SEA_GND, or SEA_W_TWR and returns the three separate parts:
- * Station: SEA (or original callsign if no parts found)
+ * Takes a callsign like ZOA-ZSE, SEA_GND, or LFPG_N_TWR and returns the three separate parts:
+ * Station: LFPG (or original callsign if no parts found)
  * Position: TWR (or empty string if no position found)
- * Subposition: W (or empty string if no sub-position found)
+ * Subposition: N (or empty string if no sub-position found)
  * @param callsign The callsign to split apart
  * @returns An array of the three parts: [station, position, subPosition]
  */
@@ -29,6 +29,6 @@ export const getCallsignParts = (
     return [parts[0], "", parts[1]];
   }
 
-  // Handles cases like "SEA_W_TWR"
+  // Handles cases like "LFPG_N_TWR"
   return [parts[0], parts[2], parts[1]];
 };

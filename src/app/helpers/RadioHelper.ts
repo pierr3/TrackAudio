@@ -3,8 +3,8 @@ import { RadioType } from "../store/radioStore";
 /**
  * Compares two radios to determine sort order. The currently connected station
  * will always sort to the front of the list. The remaining stations will sort
- * by station name (e.g. "SEA"), then by position (e.g. "TWR"), then by
- * sub-position (e.g. "E")
+ * by station name (e.g. "LFPG"), then by position (e.g. "TWR"), then by
+ * sub-position (e.g. "N")
  * @param a The first radio to compare
  * @param b The second radio to compare
  * @param connectedStationCallsign The callsign for the connected station
