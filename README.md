@@ -100,19 +100,26 @@ Download the latest release on the [release page](https://github.com/pierr3/Trac
 
 TrackAudio depends on afv-native and libuiohook.
 
-`cmake` is required to build the project. Dependencies will be downloaded through vcpkg at build time. See vcpkg.json for further details
+`cmake` is required to build the project. Dependencies will be downloaded through vcpkg at build time. See vcpkg.json for further details.
 
 On linux, the following packages are required: `build-essentials libxt-dev libxrandr-dev libxtst-dev libx11-dev`, you may also need further packages to enable the different audio backends, such as Alsa, JACK or PulseAudio.
+
 On macOS, XCode Command Line tools, CMake and Homebrew are required and the following homebrew package is required: `pkg-config`
+
+On Windows, Visual Studio is required (Community Edition is fine) with the `Desktop development with C++` component installed.
 
 ## Build process
 
+If `cmake-js` isn't already installed run `npm install -g cmake-js`. For the first build run the following:
+
 ```sh
-npm install
-git submodule update --init --recursive
 npm run build-backend
+git submodule update --init --recursive
+npm install
 npm run start
 ```
+
+Subsequent builds only require the `npm run start` command.
 
 ## Contributing
 
