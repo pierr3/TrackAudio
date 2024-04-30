@@ -19,7 +19,7 @@ const Mini: React.FC = () => {
                 </span>
                 :{" "}
                 <span
-                  style={{ color: radio.currentlyRx ? "orange" : "inherit" }}
+                  style={{ color: radio.currentlyRx ? "green" : "inherit" }}
                 >
                   {radio.lastReceivedCallsign ? radio.lastReceivedCallsign : ""}
                 </span>
