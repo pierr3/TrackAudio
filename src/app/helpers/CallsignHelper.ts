@@ -26,7 +26,7 @@ export const getCallsignParts = (
 
   // Handles cases like "SEA_GND"
   if (parts.length === 2) {
-    return [parts[0], "", parts[1]];
+    return [parts[0], parts[1], ""];
   }
 
   // Handles cases like "LFPG_N_TWR"
