@@ -26,6 +26,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [audioInputDevices, setAudioInputDevices] = useState([]);
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
+  const [alwaysOnTop, setAlwaysOnTop] = useState(0);
 
   const [isSettingPtt, setIsSettingPtt] = useState(false);
   const [pttKeyName, setPttKeyName] = useSessionStore((state) => [
@@ -46,6 +47,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       setPassword(config.password || "");
       setHardwareType(config.hardwareType || 0);
       setPttKeyName(getKeyFromNumber(config.pttKey) || "None");
+      setAlwaysOnTop(config.alwaysOnTop ? 1 : 0);
     });
 
     window.api.getAudioApis().then((apis) => {
@@ -114,6 +116,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const handleAlwaysOnTop = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setChangesSaved(SaveStatus.Saving);
     window.api.setAlwaysOnTop(e.target.value === "1");
+    setAlwaysOnTop(parseInt(e.target.value));
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -208,7 +211,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     id=""
                     className="form-control mt-1"
                     onChange={handleAlwaysOnTop}
-                    defaultValue={0}
+                    value={alwaysOnTop}
                   >
                     <option value="1">Yes</option>
                     <option value="0">No</option>

@@ -37,6 +37,7 @@ let currentConfiguration: Configuration = {
   pttKey: 0,
   hardwareType: 0,
   radioGain: 0,
+  alwaysOnTop: false,
 };
 const store = new Store();
 
@@ -100,6 +101,8 @@ const createWindow = (): void => {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
     },
   });
+
+  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop || false);
 
   if (process.platform !== "darwin") {
     mainWindow.setMenu(null);
@@ -171,6 +174,8 @@ app.on("window-all-closed", () => {
 // code. You can also put them in separate files and import them here.
 ipcMain.on("set-always-on-top", (_, state: boolean) => {
   mainWindow.setAlwaysOnTop(state);
+  currentConfiguration.alwaysOnTop = state;
+  saveConfig();
 });
 
 ipcMain.handle("audio-get-apis", () => {
