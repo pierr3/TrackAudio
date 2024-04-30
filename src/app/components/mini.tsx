@@ -7,8 +7,7 @@ const Mini: React.FC = () => {
   return (
     <div className="box-container mini">
       <div className="container">
-        {radios.map((radio) => {
-          if (radio.rx) {
+        {radios.filter((r) => r.rx).map((radio) => {
             return (
               <div
                 key={radio.frequency}
@@ -18,8 +17,6 @@ const Mini: React.FC = () => {
                 {radio.lastReceivedCallsign ? radio.lastReceivedCallsign : ""}
               </div>
             );
-          }
-          return null;
         })}
       </div>
     </div>
