@@ -8,6 +8,11 @@
 #include <string>
 #include <vector>
 
+#define TRACK_LOG_INFO(fmt, ...) LOG_INFO(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+#define TRACK_LOG_WARNING(fmt, ...) LOG_WARNING(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+#define TRACK_LOG_ERROR(fmt, ...) LOG_ERROR(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+#define TRACK_LOG_CRITICAL(fmt, ...) LOG_CRITICAL(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+
 constexpr semver::version VERSION = semver::version { 1, 0, 2, semver::prerelease::beta, 2 };
 
 const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
@@ -49,5 +54,3 @@ static bool isSlurperAvailable = false;
 }
 
 static std::mutex errorCallbackMutex;
-
-static quill::Logger* logger = nullptr;

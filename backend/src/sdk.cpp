@@ -1,6 +1,7 @@
 #include "sdk.hpp"
 #include "Helpers.hpp"
 #include "Shared.hpp"
+#include <quill/Quill.h>
 
 SDK::SDK() { this->buildServer(); }
 
@@ -13,22 +14,19 @@ SDK::~SDK()
     this->pWsRegistry.clear();
     this->pSDKServer->stop();
     this->pSDKServer.reset();
-    this->pRouter.reset();
 }
 
 void SDK::buildServer()
 {
-    this->buildRouter();
-
     try {
         pSDKServer = restinio::run_async<>(restinio::own_io_context(),
             restinio::server_settings_t<serverTraits> {}
                 .port(API_SERVER_PORT)
                 .address("0.0.0.0")
-                .request_handler(std::move(this->pRouter)),
+                .request_handler(std::move(this->buildRouter())),
             16U);
     } catch (const std::exception& ex) {
-        LOG_ERROR(logger, "Error while starting SDK server: {}", ex.what());
+        TRACK_LOG_ERROR("Error while starting SDK server: {}", ex.what());
     }
 }
 
@@ -106,44 +104,44 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     }
 };
 
-void SDK::buildRouter()
+std::unique_ptr<restinio::router::express_router_t<>> SDK::buildRouter()
 {
-    try {
-        auto routeMap = getSDKCallUrlMap();
-        this->pRouter = std::make_unique<restinio::router::express_router_t<>>();
-        this->pRouter->http_get(routeMap[sdkCall::kTransmitting],
-            [&](auto req, auto /*params*/) {
-                return SDK::handleTransmittingSDKCall(req);
-            });
 
-        this->pRouter->http_get(
-            routeMap[sdkCall::kRx],
-            [&](auto req, auto /*params*/) { return this->handleRxSDKCall(req); });
-
-        this->pRouter->http_get(
-            routeMap[sdkCall::kTx],
-            [&](auto req, auto /*params*/) { return this->handleTxSDKCall(req); });
-
-        this->pRouter->http_get(
-            routeMap[sdkCall::kWebSocket],
-            [&](auto req, auto /*params*/) { return handleWebSocketSDKCall(req); });
-
-        this->pRouter->non_matched_request_handler([](auto req) {
-            return req->create_response().set_body(CLIENT_NAME).done();
+    auto routeMap = getSDKCallUrlMap();
+    std::unique_ptr<restinio::router::express_router_t<>> router;
+    router = std::make_unique<restinio::router::express_router_t<>>();
+    router->http_get(routeMap[sdkCall::kTransmitting],
+        [&](auto req, auto /*params*/) {
+            return SDK::handleTransmittingSDKCall(req);
         });
 
-        auto methodNotAllowed = [](const auto& req, auto) {
-            return req->create_response(restinio::status_method_not_allowed())
-                .connection_close()
-                .done();
-        };
+    router->http_get(
+        routeMap[sdkCall::kRx],
+        [&](auto req, auto /*params*/) { return this->handleRxSDKCall(req); });
 
-        this->pRouter->add_handler(
-            restinio::router::none_of_methods(restinio::http_method_get()), "/",
-            methodNotAllowed);
-    } catch (const std::exception& ex) {
-        LOG_ERROR(logger, "Error while creating router: {}", ex.what());
-    }
+    router->http_get(
+        routeMap[sdkCall::kTx],
+        [&](auto req, auto /*params*/) { return this->handleTxSDKCall(req); });
+
+    router->http_get(
+        routeMap[sdkCall::kWebSocket],
+        [&](auto req, auto /*params*/) { return handleWebSocketSDKCall(req); });
+
+    router->non_matched_request_handler([](auto req) {
+        return req->create_response().set_body(CLIENT_NAME).done();
+    });
+
+    auto methodNotAllowed = [](const auto& req, auto) {
+        return req->create_response(restinio::status_method_not_allowed())
+            .connection_close()
+            .done();
+    };
+
+    router->add_handler(
+        restinio::router::none_of_methods(restinio::http_method_get()), "/",
+        methodNotAllowed);
+
+    return std::move(router);
 }
 
 restinio::request_handling_status_t
@@ -236,7 +234,7 @@ void SDK::broadcastOnWebsocket(const std::string& data)
         try {
             ws->send_message(outgoingMessage);
         } catch (const std::exception& ex) {
-            LOG_ERROR(logger, "Error while sending message to websocket: {}",
+            TRACK_LOG_ERROR("Error while sending message to websocket: {}",
                 ex.what());
         }
     }

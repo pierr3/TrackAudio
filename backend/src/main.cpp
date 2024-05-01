@@ -69,7 +69,7 @@ Napi::Array GetAudioOutputDevices(const Napi::CallbackInfo& info)
     int apiId = info[0].As<Napi::Number>().Int32Value();
     Napi::Array arr = Napi::Array::New(env);
 
-    for (const auto [deviceId, deviceName, isDefault] :
+    for (const auto& [deviceId, deviceName, isDefault] :
         mClient->GetAudioOutputDevices(apiId)) {
         Napi::Object obj = Napi::Object::New(env);
         obj.Set("id", deviceId);
@@ -143,7 +143,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
     if (!hasBeenAddded) {
         Helpers::CallbackWithError("Could not add frequency: it already exists");
-        LOG_WARNING(logger, "Could not add frequency, it already exists: {} {}",
+        TRACK_LOG_WARNING("Could not add frequency, it already exists: {} {}",
             frequency, callsign);
         return Napi::Boolean::New(info.Env(), false);
     }
@@ -321,9 +321,9 @@ Napi::Boolean IsConnected(const Napi::CallbackInfo& info)
 void StartMicTest(const Napi::CallbackInfo& /*info*/)
 {
     if (!mClient || !callbackAvailable || mainStaticData::vuMeterThread != nullptr) {
-        LOG_WARNING(logger, "Attempted to start mic test without callback or "
-                            "uninitiated client, or already running mic test, this "
-                            "will be useless");
+        TRACK_LOG_WARNING("Attempted to start mic test without callback or "
+                          "uninitiated client, or already running mic test, this "
+                          "will be useless");
         return;
     }
 
@@ -378,7 +378,7 @@ void StopMicTest(const Napi::CallbackInfo& /*info*/)
 void StartAudio(const Napi::CallbackInfo& /*info*/)
 {
     if (!mClient || mClient->IsAudioRunning()) {
-        LOG_WARNING(logger, "Attempted to start audio when audio already running");
+        TRACK_LOG_WARNING("Attempted to start audio when audio already running");
         return;
     }
 
@@ -388,7 +388,7 @@ void StartAudio(const Napi::CallbackInfo& /*info*/)
 void StopAudio(const Napi::CallbackInfo& /*info*/)
 {
     if (!mClient || !mClient->IsAudioRunning()) {
-        LOG_WARNING(logger, "Attempted to stop audio when audio not running");
+        TRACK_LOG_WARNING("Attempted to stop audio when audio not running");
         return;
     }
 
@@ -530,7 +530,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
         std::string callsign = *reinterpret_cast<std::string*>(data2);
         callbackRef.NonBlockingCall(
             [frequency, callsign](Napi::Env env, Napi::Function jsCallback) {
-                LOG_TRACE_L1(logger, "StationRxBegin to node: {} {}", frequency, callsign);
+                LOG_TRACE_L1(quill::get_logger("trackaudio_logger"), "StationRxBegin to node: {} {}", frequency, callsign);
                 jsCallback.Call({ Napi::String::New(env, "StationRxBegin"),
                     Napi::String::New(env, std::to_string(frequency)),
                     Napi::String::New(env, callsign) });
@@ -629,7 +629,7 @@ void CreateLogFolders()
     if (!std::filesystem::exists(GetStateFolderPath())) {
         std::error_code err;
         if (!std::filesystem::create_directory(GetStateFolderPath(), err)) {
-            LOG_ERROR(logger, "Could not create state directory at {}: {}",
+            TRACK_LOG_ERROR("Could not create state directory at {}: {}",
                 GetStateFolderPath().string(), err.message());
         }
     }
@@ -654,7 +654,7 @@ void CreateLoggers()
             return cfg;
         }());
 
-    logger = quill::create_logger("trackaudio_logger", std::move(trackaudio_logger));
+    auto* logger = quill::create_logger("trackaudio_logger", std::move(trackaudio_logger));
 
     logger->set_log_level(quill::LogLevel::Info);
 
@@ -671,11 +671,13 @@ void CreateLoggers()
     // Create a file logger
     auto* _ = quill::create_logger("afv_logger", std::move(afv_logger));
 
+    // NOLINTNEXTLINE this cannot be solved here but in afv
     afv_native::api::setLogger([](std::string subsystem, std::string file,
                                    int line, std::string lineOut) {
-        auto* logger = quill::get_logger("afv_logger");
         auto strippedFiledName = file.substr(file.find_last_of('/') + 1);
-        LOG_INFO(logger, "[{}] [{}@{}] {}", subsystem, strippedFiledName, line,
+        LOG_INFO(quill::get_logger("afv_logger"),
+            "[{}] [{}@{}] {}",
+            subsystem, strippedFiledName, line,
             lineOut);
     });
 }
@@ -689,7 +691,7 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
     auto res = client.Get(VERSION_CHECK_ENDPOINT);
     if (!res || res->status != httplib::StatusCode::OK_200) {
         mainStaticData::ShouldRun = false;
-        LOG_CRITICAL(logger, "Error fetching version: {}", res->status);
+        TRACK_LOG_CRITICAL("Error fetching version: {}", res->status);
         return false;
     }
 
@@ -699,13 +701,13 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         auto mandatoryVersion = semver::version(cleanBody);
         if (VERSION < mandatoryVersion) {
             mainStaticData::ShouldRun = false;
-            LOG_ERROR(logger, "Mandatory update required: {} -> {}",
+            TRACK_LOG_ERROR("Mandatory update required: {} -> {}",
                 VERSION.to_string(), mandatoryVersion.to_string());
             return false;
         }
     } catch (const std::exception& e) {
         mainStaticData::ShouldRun = false;
-        LOG_CRITICAL(logger, "Error parsing version: {}", e.what());
+        TRACK_LOG_CRITICAL("Error parsing version: {}", e.what());
         return false;
     }
 
@@ -738,7 +740,7 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo& info)
 
 void Exit(const Napi::CallbackInfo& /*info*/)
 {
-    LOG_INFO(logger, "Exiting TrackAudio");
+    TRACK_LOG_INFO("Exiting TrackAudio");
     if (mClient->IsVoiceConnected()) {
         mClient->Disconnect();
     }

@@ -104,12 +104,10 @@ private:
      */
     void buildServer();
 
-    std::unique_ptr<restinio::router::express_router_t<>> pRouter;
-
     /**
      * @brief Builds the router.
      */
-    void buildRouter();
+    std::unique_ptr<restinio::router::express_router_t<>> buildRouter();
 
     /**
      * Handles the SDK call for transmitting data.
