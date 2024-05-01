@@ -20,125 +20,125 @@
 #include "sdkWebsocketMessage.hpp"
 #include <absl/strings/str_cat.h>
 #include <absl/strings/str_join.h>
-#include <set>
 #include <mutex>
 #include <nlohmann/json_fwd.hpp>
 #include <quill/Quill.h>
+#include <set>
 
 using sdk::types::WebsocketMessage;
 using sdk::types::WebsocketMessageType;
 
 namespace sdk::types {
 enum Event {
-  kRxBegin,
-  kRxEnd,
-  kFrequencyStateUpdate,
-  kDisconnectFrequencyStateUpdate
+    kRxBegin,
+    kRxEnd,
+    kFrequencyStateUpdate,
+    kDisconnectFrequencyStateUpdate
 };
 }
 
 class SDK {
 
 public:
-  explicit SDK();
-  ~SDK();
-  /**
-   * Handles an AFV event for the websocket.
-   *
-   * @param event The AFV event to handle.
-   * @param data Optional data associated with the event.
-   */
-  void handleAFVEventForWebsocket(sdk::types::Event event,
-                                  const std::optional<std::string> &callsign,
-                                  const std::optional<int> &frequencyHz);
+    explicit SDK();
+    ~SDK();
+    /**
+     * Handles an AFV event for the websocket.
+     *
+     * @param event The AFV event to handle.
+     * @param data Optional data associated with the event.
+     */
+    void handleAFVEventForWebsocket(sdk::types::Event event,
+        const std::optional<std::string>& callsign,
+        const std::optional<int>& frequencyHz);
 
 private:
-  using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t,
-                                          restinio::null_logger_t,
-                                          restinio::router::express_router_t<>>;
+    using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t,
+        restinio::null_logger_t,
+        restinio::router::express_router_t<>>;
 
-  restinio::running_server_handle_t<serverTraits> pSDKServer;
+    restinio::running_server_handle_t<serverTraits> pSDKServer;
 
-  using ws_registry_t =
-      std::map<std::uint64_t, restinio::websocket::basic::ws_handle_t>;
+    using ws_registry_t = std::map<std::uint64_t, restinio::websocket::basic::ws_handle_t>;
 
-  ws_registry_t pWsRegistry;
+    ws_registry_t pWsRegistry;
 
-  enum sdkCall {
-    kTransmitting,
-    kRx,
-    kTx,
-    kWebSocket,
-  };
+    enum sdkCall {
+        kTransmitting,
+        kRx,
+        kTx,
+        kWebSocket,
+    };
 
-  static inline std::mutex TransmittingMutex;
-  static inline std::set<std::string> CurrentlyTransmittingData;
+    static inline std::mutex TransmittingMutex;
+    static inline std::set<std::string> CurrentlyTransmittingData;
 
-  static inline std::mutex BroadcastMutex;
+    static inline std::mutex BroadcastMutex;
 
-  static inline std::map<sdkCall, std::string> mSDKCallUrl = {
-      {kTransmitting, "/transmitting"},
-      {kRx, "/rx"},
-      {kTx, "/tx"},
-      {kWebSocket, "/ws"}};
+    static inline std::map<sdkCall, std::string> mSDKCallUrl = {
+        { kTransmitting, "/transmitting" },
+        { kRx, "/rx" },
+        { kTx, "/tx" },
+        { kWebSocket, "/ws" }
+    };
 
-  /**
-   * @brief Broadcasts data on the websocket.
-   *
-   * This function sends the provided data on the websocket connection.
-   *
-   * @param data The data to be broadcasted in JSON format.
-   */
-  void broadcastOnWebsocket(const std::string &data);
+    /**
+     * @brief Broadcasts data on the websocket.
+     *
+     * This function sends the provided data on the websocket connection.
+     *
+     * @param data The data to be broadcasted in JSON format.
+     */
+    void broadcastOnWebsocket(const std::string& data);
 
-  /**
-   * @brief Builds the server.
-   *
-   * This function is responsible for building the server.
-   * It performs the necessary initialization and setup tasks
-   * to create a functioning server.
-   */
-  void buildServer();
+    /**
+     * @brief Builds the server.
+     *
+     * This function is responsible for building the server.
+     * It performs the necessary initialization and setup tasks
+     * to create a functioning server.
+     */
+    void buildServer();
 
-  std::unique_ptr<restinio::router::express_router_t<>> pRouter;
+    std::unique_ptr<restinio::router::express_router_t<>> pRouter;
 
-  /**
-   * @brief Builds the router.
-   */
-  void buildRouter();
+    /**
+     * @brief Builds the router.
+     */
+    void buildRouter();
 
-  /**
-   * Handles the SDK call for transmitting data.
-   *
-   * @param req The request handle.
-   * @return The status of request handling.
-   */
-  static restinio::request_handling_status_t
-  handleTransmittingSDKCall(const restinio::request_handle_t &req);
+    /**
+     * Handles the SDK call for transmitting data.
+     *
+     * @param req The request handle.
+     * @return The status of request handling.
+     */
+    static restinio::request_handling_status_t
+    handleTransmittingSDKCall(const restinio::request_handle_t& req);
 
-  /**
-   * Handles the SDK call received in the request.
-   *
-   * @param req The request handle.
-   * @return The status of the request handling.
-   */
-  restinio::request_handling_status_t
-  handleRxSDKCall(const restinio::request_handle_t &req);
-  /**
-   * Handles the SDK call.
-   *
-   * @param req The request handle.
-   * @return The request handling status.
-   */
-  restinio::request_handling_status_t
-  handleTxSDKCall(const restinio::request_handle_t &req);
+    /**
+     * Handles the SDK call received in the request.
+     *
+     * @param req The request handle.
+     * @return The status of the request handling.
+     */
+    restinio::request_handling_status_t
+    handleRxSDKCall(const restinio::request_handle_t& req);
+    /**
+     * Handles the SDK call.
+     *
+     * @param req The request handle.
+     * @return The request handling status.
+     */
+    restinio::request_handling_status_t
+    handleTxSDKCall(const restinio::request_handle_t& req);
 
-  /**
-   * Handles a WebSocket SDK call.
-   *
-   * @param req The request handle.
-   * @return The status of the request handling.
-   */
-  restinio::request_handling_status_t
-  handleWebSocketSDKCall(const restinio::request_handle_t &req);
+    /**
+     * Handles a WebSocket SDK call.
+     *
+     * @param req The request handle.
+     * @return The status of the request handling.
+     */
+    restinio::request_handling_status_t
+    handleWebSocketSDKCall(const restinio::request_handle_t& req);
 };

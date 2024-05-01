@@ -38,9 +38,12 @@ if(MSVC)
     add_definitions(-D_WIN32_WINNT=0x0A00)
 endif()
 
-add_library(trackaudio-afv SHARED 
+set(SOURCE 
   src/main.cpp
-  src/sdk.cpp
+  src/sdk.cpp)
+
+add_library(trackaudio-afv SHARED 
+  ${SOURCE}
   ${CMAKE_JS_SRC})
 
 # Find the required packages
