@@ -10,7 +10,7 @@
 
 constexpr semver::version VERSION = semver::version { 1, 0, 2, semver::prerelease::beta, 2 };
 
-static const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
+const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
 
 static Napi::ThreadSafeFunction callbackRef;
 static bool callbackAvailable = false;

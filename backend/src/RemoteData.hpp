@@ -1,6 +1,7 @@
 #include <Poco/Timer.h>
 #include <absl/strings/match.h>
 #include <absl/strings/str_split.h>
+#include <cstddef>
 #include <httplib.h>
 #include <quill/Quill.h>
 #include <quill/detail/LogMacros.h>
@@ -13,23 +14,30 @@ class RemoteData {
 
 public:
     RemoteData()
-        : timer(3 * 1000, TIMER_CALLBACK_INTERVAL_SEC * 1000)
+        : timer(static_cast<long>(3 * 1000), static_cast<long>(TIMER_CALLBACK_INTERVAL_SEC * 1000))
         , slurperCli(SLURPER_BASE_URL)
     {
         timer.start(Poco::TimerCallback<RemoteData>(*this, &RemoteData::onTimer));
     }
 
+    RemoteData(const RemoteData&) = delete;
+    RemoteData(RemoteData&&) = delete;
+    RemoteData& operator=(const RemoteData&) = delete;
+    RemoteData& operator=(RemoteData&&) = delete;
     ~RemoteData() { timer.stop(); }
 
 protected:
-    void onTimer(Poco::Timer& timer)
+    void onTimer(Poco::Timer& /*timer*/)
     {
         auto slurperData = getSlurperData();
 
         auto previousCallsign = UserSession::callsign;
-
-        auto isConnected = parseSlurper(slurperData);
-        updateSessionStatus(previousCallsign, isConnected);
+        try {
+            auto isConnected = parseSlurper(slurperData);
+            updateSessionStatus(previousCallsign, isConnected);
+        } catch (const std::exception& ex) {
+            LOG_ERROR(logger, "Error while parsing slurper data: {}", ex.what());
+        }
     }
 
     std::string getSlurperData()
@@ -40,7 +48,7 @@ protected:
 
         auto res = slurperCli.Get(SLURPER_DATA_ENDPOINT + std::string("?cid=") + UserSession::cid);
 
-        if (!res || res->status != 200) {
+        if (!res || res->status != httplib::StatusCode::OK_200) {
             // Notify the client the slurper is offline
             RemoteDataStatus::isSlurperAvailable = false;
             LOG_ERROR(logger, "Slurper is offline {}", res->status);
@@ -55,6 +63,7 @@ protected:
         return res->body;
     }
 
+    // NOLINTNEXTLINE
     bool parseSlurper(const std::string& sluper_data)
     {
         if (sluper_data.empty()) {
@@ -111,6 +120,7 @@ protected:
         }
 
         res3.erase(std::remove(res3.begin(), res3.end(), '.'), res3.end());
+        // NOLINTNEXTLINE Handled above in the try catch block
         int u334 = std::atoi(res3.c_str()) * 1000;
         int k422 = std::stoi(res2, nullptr, 16) == 10 && pYx ? 1 : 0;
 
@@ -131,7 +141,7 @@ protected:
         return true;
     }
 
-    void updateSessionStatus(std::string previousCallsign, bool isConnected)
+    static void updateSessionStatus(std::string previousCallsign, bool isConnected)
     {
         if (UserSession::isConnectedToTheNetwork && UserSession::callsign != previousCallsign && !previousCallsign.empty() && isConnected && mClient->IsVoiceConnected()) {
             LOG_INFO(logger,

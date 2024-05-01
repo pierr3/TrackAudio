@@ -18,7 +18,7 @@ public:
         return RadioSimulation::round8_33kHzChannel(frequency);
     }
 
-    static void CallbackWithError(std::string message)
+    static void CallbackWithError(const std::string& message)
     {
         std::lock_guard<std::mutex> lock(errorCallbackMutex);
         if (!callbackAvailable) {

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "afv-native/afv_native.h"
 #include "sdkWebsocketMessage.hpp"
 #include <map>
 #include <memory>
@@ -15,9 +14,6 @@
 #include <restinio/websocket/websocket.hpp>
 #include <string>
 
-#include "Helpers.hpp"
-#include "Shared.hpp"
-#include "sdkWebsocketMessage.hpp"
 #include <absl/strings/str_cat.h>
 #include <absl/strings/str_join.h>
 #include <mutex>
@@ -41,6 +37,10 @@ class SDK {
 
 public:
     explicit SDK();
+    SDK(const SDK&) = delete;
+    SDK(SDK&&) = delete;
+    SDK& operator=(const SDK&) = delete;
+    SDK& operator=(SDK&&) = delete;
     ~SDK();
     /**
      * Handles an AFV event for the websocket.
@@ -75,12 +75,16 @@ private:
 
     static inline std::mutex BroadcastMutex;
 
-    static inline std::map<sdkCall, std::string> mSDKCallUrl = {
-        { kTransmitting, "/transmitting" },
-        { kRx, "/rx" },
-        { kTx, "/tx" },
-        { kWebSocket, "/ws" }
-    };
+    inline static std::map<sdkCall, std::string>& getSDKCallUrlMap()
+    {
+        static std::map<sdkCall, std::string> mSDKCallUrl = {
+            { kTransmitting, "/transmitting" },
+            { kRx, "/rx" },
+            { kTx, "/tx" },
+            { kWebSocket, "/ws" }
+        };
+        return mSDKCallUrl;
+    }
 
     /**
      * @brief Broadcasts data on the websocket.

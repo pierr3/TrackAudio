@@ -1,4 +1,6 @@
 #include "sdk.hpp"
+#include "Helpers.hpp"
+#include "Shared.hpp"
 
 SDK::SDK() { this->buildServer(); }
 
@@ -81,6 +83,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         std::vector<ns::Station> xcBar;
         auto allRadios = mClient->getRadioState();
         for (const auto& [frequency, state] : allRadios) {
+            // NOLINTNEXTLINE
             ns::Station stationObject = ns::Station::build(state.stationName, frequency);
             if (state.rx) {
                 rxBar.push_back(stationObject);
@@ -106,22 +109,23 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
 void SDK::buildRouter()
 {
     try {
+        auto routeMap = getSDKCallUrlMap();
         this->pRouter = std::make_unique<restinio::router::express_router_t<>>();
-        this->pRouter->http_get(mSDKCallUrl[sdkCall::kTransmitting],
+        this->pRouter->http_get(routeMap[sdkCall::kTransmitting],
             [&](auto req, auto /*params*/) {
                 return SDK::handleTransmittingSDKCall(req);
             });
 
         this->pRouter->http_get(
-            mSDKCallUrl[sdkCall::kRx],
+            routeMap[sdkCall::kRx],
             [&](auto req, auto /*params*/) { return this->handleRxSDKCall(req); });
 
         this->pRouter->http_get(
-            mSDKCallUrl[sdkCall::kTx],
+            routeMap[sdkCall::kTx],
             [&](auto req, auto /*params*/) { return this->handleTxSDKCall(req); });
 
         this->pRouter->http_get(
-            mSDKCallUrl[sdkCall::kWebSocket],
+            routeMap[sdkCall::kWebSocket],
             [&](auto req, auto /*params*/) { return handleWebSocketSDKCall(req); });
 
         this->pRouter->non_matched_request_handler([](auto req) {

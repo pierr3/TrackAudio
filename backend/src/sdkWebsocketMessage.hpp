@@ -10,11 +10,15 @@ enum class WebsocketMessageType { kRxBegin,
     kRxEnd,
     kFrequencyStateUpdate };
 
-const std::map<WebsocketMessageType, std::string> kWebsocketMessageTypeMap {
-    { WebsocketMessageType::kRxBegin, "kRxBegin" },
-    { WebsocketMessageType::kRxEnd, "kRxEnd" },
-    { WebsocketMessageType::kFrequencyStateUpdate, "kFrequenciesUpdate" }
-};
+inline const std::map<WebsocketMessageType, std::string>& getWebsocketMessageTypeMap()
+{
+    static const std::map<WebsocketMessageType, std::string> kWebsocketMessageTypeMap {
+        { WebsocketMessageType::kRxBegin, "kRxBegin" },
+        { WebsocketMessageType::kRxEnd, "kRxEnd" },
+        { WebsocketMessageType::kFrequencyStateUpdate, "kFrequenciesUpdate" }
+    };
+    return kWebsocketMessageTypeMap;
+}
 
 class WebsocketMessage {
 public:
@@ -29,7 +33,7 @@ public:
 
     static WebsocketMessage buildMessage(WebsocketMessageType messageType)
     {
-        const std::string& typeString = kWebsocketMessageTypeMap.at(messageType);
+        const std::string& typeString = getWebsocketMessageTypeMap().at(messageType);
         return WebsocketMessage(typeString);
     }
 
@@ -63,20 +67,20 @@ public:
 
     inline static Station build(const std::string& callsign, int freqHz)
     {
-        Station s;
-        s.pCallsign = std::move(callsign);
-        s.pFrequencyHz = freqHz;
+        Station station;
+        station.pCallsign = callsign;
+        station.pFrequencyHz = freqHz;
 
         std::string temp = std::to_string(freqHz / 1000);
-        s.pHumanFreq = temp.substr(0, 3) + "." + temp.substr(3, 7);
+        station.pHumanFreq = temp.substr(0, 3) + "." + temp.substr(3, 7);
 
-        return s;
+        return station;
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Station, pCallsign, pFrequencyHz);
 
 protected:
-    int pFrequencyHz;
+    int pFrequencyHz = 0;
     std::string pCallsign;
     std::string pHumanFreq;
 
