@@ -42,7 +42,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [cid, setCid] = useState("");
   const [password, setPassword] = useState("");
 
-  const [vu, vuPeak] = useUtilStore((state) => [state.vu, state.peakVu]);
+  const [vu, vuPeak, updateVu] = useUtilStore((state) => [state.vu, state.peakVu, state.updateVu]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
   useEffect(() => {
@@ -172,6 +172,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     if (isMicTesting) {
       void window.api.StopMicTest();
       setIsMicTesting(false);
+      updateVu(0, 0);
       return;
     }
     setIsMicTesting(true);
