@@ -18,6 +18,9 @@ import { getKeyFromNumber } from "./helper";
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
+// The increment for window zoom with each mouse wheel movement
+const ZOOM_DELTA = 0.2;
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) app.quit();
 
@@ -100,9 +103,18 @@ const createWindow = (): void => {
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
     },
+    // Required to handle resetting the zoom level to 1.0 on app launch
+    show: false,
   });
 
   mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop || false);
+
+  // Reset the zoom level to 1.0 on app launch. This is to work around a long-standing
+  // bug in Electron that was opened in 2017 and closed without fixing. See
+  // https://github.com/electron/electron/issues/10572 for more details.
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.webContents.zoomFactor = 1.0;
+  });
 
   if (process.platform !== "darwin") {
     mainWindow.setMenu(null);
@@ -130,6 +142,24 @@ const createWindow = (): void => {
       }
     }
   });
+
+  // Support setting window zoom via ctrl + mouse wheel
+  mainWindow.webContents.on("zoom-changed", (_, zoomDirection) => {
+    const currentZoom = mainWindow.webContents.getZoomFactor();
+    const newZoom =
+      zoomDirection === "in"
+        ? currentZoom + ZOOM_DELTA
+        : currentZoom - ZOOM_DELTA;
+
+    // Cap the zoom level between 100% and 300%. There's a setVisualZoomLevelLimits() in electron
+    // but it's async, and also appears to only limit the pinch-to-zoom level, not the zoom level
+    // set via setZoomFactor().
+    if (newZoom > 1 && newZoom < 3) {
+      mainWindow.webContents.setZoomFactor(newZoom);
+    }
+  });
+
+  mainWindow.show();
 };
 
 // This method will be called when Electron has finished
