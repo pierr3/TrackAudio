@@ -6,7 +6,7 @@ import useUtilStore from "../store/utilStore";
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
-    window.api.on("MicTest", (vu: string, peakVu: string) => {
+    window.api.on("VuMeter", (vu: string, peakVu: string) => {
       const vuFloat = Math.abs(parseFloat(vu));
       const peakVuFloat = Math.abs(parseFloat(peakVu));
 

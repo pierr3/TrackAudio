@@ -21,6 +21,7 @@ export declare const AfvEventTypes: {
   PttState: string;
   NetworkConnected: string;
   NetworkDisconnected: string;
+  VuMeter: string;
 };
 
 declare namespace TrackAudioAfv {
@@ -50,8 +51,8 @@ declare namespace TrackAudioAfv {
   export function RemoveFrequency(frequency: number): void;
   export function IsFrequencyActive(frequency: number): boolean;
 
-  export function GetStation(callsign: string): Promise<void>;
-  export function RefreshStation(callsign: string): Promise<void>;
+  export function GetStation(callsign: string): void;
+  export function RefreshStation(callsign: string): void;
 
   export function SetFrequencyState(
     frequency: number,
@@ -84,6 +85,6 @@ declare namespace TrackAudioAfv {
   ): void;
 
   export function IsConnected(): boolean;
-  export function Bootstrap(resourcePath: string): Promise<boolean>;
+  export function Bootstrap(resourcePath: string): boolean;
   export function Exit(): void;
 }

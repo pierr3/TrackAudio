@@ -50,7 +50,7 @@ const setAudioSettings = () => {
     currentConfiguration.audioApi || -1,
     currentConfiguration.audioInputDeviceId || "",
     currentConfiguration.headsetOutputDeviceId || "",
-    currentConfiguration.speakerOutputDeviceId || "",
+    currentConfiguration.speakerOutputDeviceId || ""
   );
   TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
 };
@@ -82,7 +82,7 @@ const setupUiHook = () => {
 const createWindow = (): void => {
   // load the configuration
   currentConfiguration = JSON.parse(
-    store.get("configuration", "{}") as string,
+    store.get("configuration", "{}") as string
   ) as Configuration;
 
   // Set the store CID
@@ -136,39 +136,31 @@ const createWindow = (): void => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-  TrackAudioAfv.Bootstrap(process.resourcesPath)
-    .then((res) => {
-      if (!res) {
-        dialog.showMessageBoxSync({
-          type: "error",
-          message:
-            "A new mandatory version is available, please update in order to continue.",
-          buttons: ["OK"],
-        });
-        app.quit();
-      }
+  const requiresUpdate = TrackAudioAfv.Bootstrap(process.resourcesPath);
 
-      if (
-        process.platform === "darwin" &&
-        !systemPreferences.isTrustedAccessibilityClient(true)
-      ) {
-        dialog.showMessageBoxSync({
-          type: "info",
-          message:
-            "This application requires accessibility permissions (for push to talk to work). Please grant these in System Preferences.",
-          buttons: ["OK"],
-        });
-      }
-
-      createWindow();
-    })
-    .catch(() => {
-      dialog.showMessageBoxSync({
-        type: "error",
-        message: "An error occurred while bootstrapping the application.",
-        buttons: ["OK"],
-      });
+  if (!requiresUpdate) {
+    dialog.showMessageBoxSync({
+      type: "error",
+      message:
+        "A new mandatory version is available, please update in order to continue.",
+      buttons: ["OK"],
     });
+    app.quit();
+  }
+
+  if (
+    process.platform === "darwin" &&
+    !systemPreferences.isTrustedAccessibilityClient(true)
+  ) {
+    dialog.showMessageBoxSync({
+      type: "info",
+      message:
+        "This application requires accessibility permissions (for push to talk to work). Please grant these in System Preferences.",
+      buttons: ["OK"],
+    });
+  }
+
+  createWindow();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -262,7 +254,7 @@ ipcMain.handle(
   "audio-add-frequency",
   (_, frequency: number, callsign: string) => {
     return TrackAudioAfv.AddFrequency(frequency, callsign);
-  },
+  }
 );
 
 ipcMain.handle("audio-remove-frequency", (_, frequency: number) => {
@@ -278,7 +270,7 @@ ipcMain.handle(
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean,
+    crossCoupleAcross: boolean
   ) => {
     return TrackAudioAfv.SetFrequencyState(
       frequency,
@@ -286,9 +278,9 @@ ipcMain.handle(
       tx,
       xc,
       onSpeaker,
-      crossCoupleAcross,
+      crossCoupleAcross
     );
-  },
+  }
 );
 
 ipcMain.handle("audio-get-frequency-state", (_, frequency: number) => {
@@ -300,11 +292,11 @@ ipcMain.handle("audio-is-frequency-active", (_, frequency: number) => {
 });
 
 ipcMain.handle("get-station", (_, callsign: string) => {
-  void TrackAudioAfv.GetStation(callsign);
+  TrackAudioAfv.GetStation(callsign);
 });
 
 ipcMain.handle("refresh-station", (_, callsign: string) => {
-  void TrackAudioAfv.RefreshStation(callsign);
+  TrackAudioAfv.RefreshStation(callsign);
 });
 
 ipcMain.handle("setup-ptt", () => {
@@ -348,7 +340,7 @@ ipcMain.handle(
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
     message: string,
-    buttons: string[],
+    buttons: string[]
   ) => {
     return dialog.showMessageBox(mainWindow, {
       type,
@@ -356,7 +348,7 @@ ipcMain.handle(
       buttons,
       message,
     });
-  },
+  }
 );
 
 ipcMain.handle("get-version", () => {
@@ -369,6 +361,10 @@ ipcMain.handle("get-version", () => {
 TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   if (!arg) {
     return;
+  }
+
+  if (arg === AfvEventTypes.VuMeter) {
+    mainWindow.webContents.send("VuMeter", arg2, arg3);
   }
 
   if (arg === AfvEventTypes.FrequencyRxBegin) {

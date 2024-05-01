@@ -176,7 +176,7 @@ const Navbar: React.FC = () => {
           className="btn text-box-container m-2 hide-gain-value"
           style={{ width: "88px" }}
         >
-          Gain: {radioGain.toString().padStart(3, "0")}%
+          Gain: {radioGain.toFixed(0).padStart(3, "0")}%
         </span>
         <input
           type="range"

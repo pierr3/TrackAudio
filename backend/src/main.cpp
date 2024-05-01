@@ -331,7 +331,7 @@ void StartMicTest(const Napi::CallbackInfo &info) {
       callbackRef.NonBlockingCall(
           [vuMeter, vuMeterPeak](Napi::Env env, Napi::Function jsCallback) {
             jsCallback.Call(
-                {Napi::String::New(env, "MicTest"),
+                {Napi::String::New(env, "VuMeter"),
                  Napi::String::New(env, std::to_string(vuMeter)),
                  Napi::String::New(env, std::to_string(vuMeterPeak))});
           });

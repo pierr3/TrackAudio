@@ -9,6 +9,7 @@ exports.AfvEventTypes = {
   FrequencyRxEnd: "FrequencyRxEnd",
   StationRxBegin: "StationRxBegin",
   PttState: "PttState",
+  VuMeter: "VuMeter",
   NetworkConnected: "network-connected",
   NetworkDisconnected: "network-disconnected",
 };
