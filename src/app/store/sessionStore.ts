@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type sessionStore = {
+interface sessionStore {
   callsign: string;
   isAtc: boolean;
   isNetworkConnected: boolean;
@@ -23,7 +23,7 @@ type sessionStore = {
   setStationCallsign: (stationCallsign: string) => void;
   getStationCallsign: () => string;
   getIsAtc: () => boolean;
-};
+}
 
 const useSessionStore = create<sessionStore>((set) => ({
   callsign: "",
@@ -36,17 +36,36 @@ const useSessionStore = create<sessionStore>((set) => ({
   pttKeyName: "",
   radioGain: 50,
   stationCallsign: "",
-  setCallsign: (callsign) => set({ callsign }),
-  setIsAtc: (isAtc) => set({ isAtc }),
-  setIsConnected: (isConnected) => set({ isConnected }),
-  setIsConnecting: (isConnecting) => set({ isConnecting }),
-  setVersion: (version) => set({ version }),
-  setNetworkConnected: (isConnected) =>
-    set({ isNetworkConnected: isConnected }),
-  setFrequency: (frequency) => set({ frequency }),
-  setPttKeyName: (pttKeyName) => set({ pttKeyName }),
-  setRadioGain: (radioGain) => set({ radioGain }),
-  setStationCallsign: (stationCallsign) => set({ stationCallsign }),
+  setCallsign: (callsign) => {
+    set({ callsign });
+  },
+  setIsAtc: (isAtc) => {
+    set({ isAtc });
+  },
+  setIsConnected: (isConnected) => {
+    set({ isConnected });
+  },
+  setIsConnecting: (isConnecting) => {
+    set({ isConnecting });
+  },
+  setVersion: (version) => {
+    set({ version });
+  },
+  setNetworkConnected: (isConnected) => {
+    set({ isNetworkConnected: isConnected });
+  },
+  setFrequency: (frequency) => {
+    set({ frequency });
+  },
+  setPttKeyName: (pttKeyName) => {
+    set({ pttKeyName });
+  },
+  setRadioGain: (radioGain) => {
+    set({ radioGain });
+  },
+  setStationCallsign: (stationCallsign) => {
+    set({ stationCallsign });
+  },
   getStationCallsign: (): string => {
     return useSessionStore.getState().stationCallsign;
   },

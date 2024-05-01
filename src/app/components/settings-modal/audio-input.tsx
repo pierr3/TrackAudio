@@ -1,11 +1,11 @@
 import { AudioDevice } from "trackaudio-afv";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-export type AudioInputProps = {
-  devices: Array<AudioDevice>;
+export interface AudioInputProps {
+  devices: AudioDevice[];
   selectedDeviceId: string;
   setDevice: (device: AudioDevice) => void;
-};
+}
 
 const AudioInput: React.FC<AudioInputProps> = ({
   devices,

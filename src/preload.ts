@@ -4,16 +4,15 @@
 import { ipcRenderer, contextBridge, IpcRendererEvent } from "electron";
 
 const IElectronAPI = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  on: (channel: string, listener: (...args: any[]) => void) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ipcRenderer.on(channel, (event: IpcRendererEvent, ...args: any[]) =>
-      listener(...args)
-    );
+  on: (channel: string, listener: (...args: unknown[]) => void) => {
+    ipcRenderer.on(channel, (event: IpcRendererEvent, ...args: unknown[]) => {
+      listener(...args);
+    });
   },
 
-  setAlwaysOnTop: (state: boolean) =>
-    ipcRenderer.send("set-always-on-top", state),
+  setAlwaysOnTop: (state: boolean) => {
+    ipcRenderer.send("set-always-on-top", state);
+  },
   getAudioApis: () => ipcRenderer.invoke("audio-get-apis"),
   getAudioInputDevices: (apiId: number) =>
     ipcRenderer.invoke("audio-get-input-devices", apiId),
@@ -52,7 +51,7 @@ const IElectronAPI = {
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean
+    crossCoupleAcross: boolean,
   ) =>
     ipcRenderer.invoke(
       "audio-set-frequency-state",
@@ -61,7 +60,7 @@ const IElectronAPI = {
       tx,
       xc,
       onSpeaker,
-      crossCoupleAcross
+      crossCoupleAcross,
     ),
   getFrequencyState: (frequency: number) =>
     ipcRenderer.invoke("audio-get-frequency-state", frequency),
@@ -86,7 +85,7 @@ const IElectronAPI = {
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
     message: string,
-    buttons: string[]
+    buttons: string[],
   ) => ipcRenderer.invoke("dialog", type, title, message, buttons),
 };
 

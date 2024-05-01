@@ -10,7 +10,8 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx .",
+    "lint": "eslint .",
+    "format": "prettier ./src --write",
     "compile-licenses": "node scripts/compile_licenses.mjs"
   },
   "devDependencies": {
@@ -22,27 +23,34 @@
     "@electron-forge/plugin-fuses": "^7.3.1",
     "@electron-forge/plugin-webpack": "^7.3.1",
     "@electron/fuses": "^1.8.0",
+    "@eslint/js": "^9.1.1",
     "@psiservices-ccounterman/electron-forge-maker-nsis": "github:psiservices-ccounterman/electron-forge-maker-nsis",
     "@types/react": "^18.2.74",
     "@types/react-dom": "^18.2.24",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.0.0",
     "@vercel/webpack-asset-relocator-loader": "^1.7.3",
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^6.11.0",
     "electron": "29.2.0",
     "electron-rebuild": "^3.2.9",
     "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-react": "^7.34.1",
     "file-loader": "^6.2.0",
     "fork-ts-checker-webpack-plugin": "^7.3.0",
+    "globals": "^15.1.0",
     "node-loader": "^2.0.0",
+    "prettier": "^3.2.5",
+    "prettier-eslint": "^16.3.0",
     "ref-loader": "^1.0.3",
     "sass-loader": "^14.1.1",
     "style-loader": "^3.3.4",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typescript": "~4.5.4"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.8.0"
   },
   "keywords": [],
   "author": "Pierre Ferran",
@@ -69,6 +77,6 @@
     "runtime": "electron"
   },
   "engines": {
-    "node": ">=18.0.0 <19.0.0"
+    "node": ">=20.0.0 <=21.0.0"
   }
 }

@@ -26,7 +26,7 @@
  * ```
  */
 
-import './index.scss';
+import "./index.scss";
 
 // Add this to the end of the existing file
-import './app/app';
+import "./app/app";

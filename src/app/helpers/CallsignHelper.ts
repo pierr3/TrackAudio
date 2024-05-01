@@ -15,7 +15,7 @@ export const getCleanCallsign = (callsign: string): string => {
  * @returns An array of the three parts: [station, position, subPosition]
  */
 export const getCallsignParts = (
-  callsign: string
+  callsign: string,
 ): [string, string, string] => {
   const parts = callsign.split("_");
 

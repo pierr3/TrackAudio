@@ -18,11 +18,11 @@ const Sidebar: React.FC = () => {
     }
 
     const stationInput = document.getElementById(
-      "stationInput"
+      "stationInput",
     ) as HTMLInputElement;
     const callsign = stationInput.value.toUpperCase();
 
-    window.api.GetStation(callsign);
+    void window.api.GetStation(callsign);
     stationInput.value = "";
     setReadyToAdd(false);
   };
@@ -66,7 +66,9 @@ const Sidebar: React.FC = () => {
           Source: Slurper
         </span> */}
 
-        <div className="box-container mt-3 w-100">Last RX: {lastReceivedCallsigns}</div>
+        <div className="box-container mt-3 w-100">
+          Last RX: {lastReceivedCallsigns}
+        </div>
 
         <RadioStatus />
 
@@ -75,6 +77,7 @@ const Sidebar: React.FC = () => {
           <a
             href="https://github.com/pierr3/TrackAudio/blob/main/LICENSES_COMPILED.md"
             target="_blank"
+            rel="noreferrer"
           >
             Licenses
           </a>

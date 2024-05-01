@@ -6,7 +6,7 @@ import {
   systemPreferences,
 } from "electron";
 
-import { TrackAudioAfv, AFVEventTypes } from "trackaudio-afv";
+import { TrackAudioAfv, AfvEventTypes } from "trackaudio-afv";
 import { Configuration } from "./config.d";
 import Store from "electron-store";
 import { uIOhook } from "uiohook-napi";
@@ -19,10 +19,10 @@ declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if(require('electron-squirrel-startup')) app.quit();
+if (require("electron-squirrel-startup")) app.quit();
 
 let version = "";
-let mainWindow: BrowserWindow = null;
+let mainWindow: BrowserWindow;
 
 let isSettingPtt = false;
 
@@ -50,7 +50,7 @@ const setAudioSettings = () => {
     currentConfiguration.audioApi || -1,
     currentConfiguration.audioInputDeviceId || "",
     currentConfiguration.headsetOutputDeviceId || "",
-    currentConfiguration.speakerOutputDeviceId || ""
+    currentConfiguration.speakerOutputDeviceId || "",
   );
   TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
 };
@@ -82,7 +82,7 @@ const setupUiHook = () => {
 const createWindow = (): void => {
   // load the configuration
   currentConfiguration = JSON.parse(
-    store.get("configuration", "{}") as string
+    store.get("configuration", "{}") as string,
   ) as Configuration;
 
   // Set the store CID
@@ -108,7 +108,7 @@ const createWindow = (): void => {
     mainWindow.setMenu(null);
   }
   // and load the index.html of the app.
-  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+  void mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   setupUiHook();
   // Open the DevTools only in development mode.
@@ -136,30 +136,39 @@ const createWindow = (): void => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-  const continueWithoutUpdate = TrackAudioAfv.Bootstrap(process.resourcesPath);
-  if (!continueWithoutUpdate) {
-    dialog.showMessageBoxSync({
-      type: "error",
-      message:
-        "A new mandatory version is available, please update in order to continue.",
-      buttons: ["OK"],
-    });
-    app.quit();
-  }
+  TrackAudioAfv.Bootstrap(process.resourcesPath)
+    .then((res) => {
+      if (!res) {
+        dialog.showMessageBoxSync({
+          type: "error",
+          message:
+            "A new mandatory version is available, please update in order to continue.",
+          buttons: ["OK"],
+        });
+        app.quit();
+      }
 
-  if (
-    process.platform === "darwin" &&
-    !systemPreferences.isTrustedAccessibilityClient(true)
-  ) {
-    dialog.showMessageBoxSync({
-      type: "info",
-      message:
-        "This application requires accessibility permissions (for push to talk to work). Please grant these in System Preferences.",
-      buttons: ["OK"],
-    });
-  }
+      if (
+        process.platform === "darwin" &&
+        !systemPreferences.isTrustedAccessibilityClient(true)
+      ) {
+        dialog.showMessageBoxSync({
+          type: "info",
+          message:
+            "This application requires accessibility permissions (for push to talk to work). Please grant these in System Preferences.",
+          buttons: ["OK"],
+        });
+      }
 
-  createWindow();
+      createWindow();
+    })
+    .catch(() => {
+      dialog.showMessageBoxSync({
+        type: "error",
+        message: "An error occurred while bootstrapping the application.",
+        buttons: ["OK"],
+      });
+    });
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -253,7 +262,7 @@ ipcMain.handle(
   "audio-add-frequency",
   (_, frequency: number, callsign: string) => {
     return TrackAudioAfv.AddFrequency(frequency, callsign);
-  }
+  },
 );
 
 ipcMain.handle("audio-remove-frequency", (_, frequency: number) => {
@@ -269,7 +278,7 @@ ipcMain.handle(
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean
+    crossCoupleAcross: boolean,
   ) => {
     return TrackAudioAfv.SetFrequencyState(
       frequency,
@@ -277,9 +286,9 @@ ipcMain.handle(
       tx,
       xc,
       onSpeaker,
-      crossCoupleAcross
+      crossCoupleAcross,
     );
-  }
+  },
 );
 
 ipcMain.handle("audio-get-frequency-state", (_, frequency: number) => {
@@ -291,11 +300,11 @@ ipcMain.handle("audio-is-frequency-active", (_, frequency: number) => {
 });
 
 ipcMain.handle("get-station", (_, callsign: string) => {
-  TrackAudioAfv.GetStation(callsign);
+  void TrackAudioAfv.GetStation(callsign);
 });
 
 ipcMain.handle("refresh-station", (_, callsign: string) => {
-  TrackAudioAfv.RefreshStation(callsign);
+  void TrackAudioAfv.RefreshStation(callsign);
 });
 
 ipcMain.handle("setup-ptt", () => {
@@ -328,9 +337,9 @@ ipcMain.handle("update-platform", () => {
   return process.platform;
 });
 
-ipcMain.handle('close-me', () => {
-  app.quit()
-})
+ipcMain.handle("close-me", () => {
+  app.quit();
+});
 
 ipcMain.handle(
   "dialog",
@@ -339,7 +348,7 @@ ipcMain.handle(
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
     message: string,
-    buttons: string[]
+    buttons: string[],
   ) => {
     return dialog.showMessageBox(mainWindow, {
       type,
@@ -347,7 +356,7 @@ ipcMain.handle(
       buttons,
       message,
     });
-  }
+  },
 );
 
 ipcMain.handle("get-version", () => {
@@ -358,55 +367,51 @@ ipcMain.handle("get-version", () => {
 // Callbacks
 //
 TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
-  if (arg == undefined) {
+  if (!arg) {
     return;
   }
 
-  if (arg == "MicTest") {
-    mainWindow.webContents.send("MicTest", arg2, arg3);
-  }
-
-  if (arg == AFVEventTypes.FrequencyRxBegin) {
+  if (arg === AfvEventTypes.FrequencyRxBegin) {
     mainWindow.webContents.send("FrequencyRxBegin", arg2);
   }
 
-  if (arg == AFVEventTypes.FrequencyRxEnd) {
+  if (arg === AfvEventTypes.FrequencyRxEnd) {
     mainWindow.webContents.send("FrequencyRxEnd", arg2);
   }
 
-  if (arg == "StationRxBegin") { // Idk why it does not work with the defined type??
+  if (arg == AfvEventTypes.StationRxBegin) {
     mainWindow.webContents.send("StationRxBegin", arg2, arg3);
   }
 
-  if (arg == AFVEventTypes.StationTransceiversUpdated) {
+  if (arg == AfvEventTypes.StationTransceiversUpdated) {
     mainWindow.webContents.send("station-transceivers-updated", arg2, arg3);
   }
 
-  if (arg == AFVEventTypes.StationDataReceived) {
+  if (arg == AfvEventTypes.StationDataReceived) {
     mainWindow.webContents.send("station-data-received", arg2, arg3);
   }
 
-  if (arg == AFVEventTypes.PttState) {
+  if (arg == AfvEventTypes.PttState) {
     mainWindow.webContents.send("PttState", arg2);
   }
 
-  if (arg == AFVEventTypes.Error) {
+  if (arg == AfvEventTypes.Error) {
     mainWindow.webContents.send("error", arg2);
   }
 
-  if (arg == AFVEventTypes.VoiceConnected) {
+  if (arg == AfvEventTypes.VoiceConnected) {
     mainWindow.webContents.send("VoiceConnected");
   }
 
-  if (arg == AFVEventTypes.VoiceDisconnected) {
+  if (arg == AfvEventTypes.VoiceDisconnected) {
     mainWindow.webContents.send("VoiceDisconnected");
   }
 
-  if (arg == AFVEventTypes.NetworkConnected) {
+  if (arg == AfvEventTypes.NetworkConnected) {
     mainWindow.webContents.send("network-connected", arg2, arg3);
   }
 
-  if (arg == AFVEventTypes.NetworkDisconnected) {
+  if (arg == AfvEventTypes.NetworkDisconnected) {
     mainWindow.webContents.send("network-disconnected");
   }
 });

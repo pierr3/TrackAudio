@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
-type ErrorStore = {
+interface ErrorStore {
   messages: { timestamp: string; message: string }[];
   code?: number;
   pending: boolean;
   postError: (message: string, code?: number) => void;
   acknowledge: () => void;
-};
+}
 
 const useErrorStore = create<ErrorStore>((set) => ({
   messages: [],
@@ -15,8 +15,8 @@ const useErrorStore = create<ErrorStore>((set) => ({
   postError: (message, code = 0) => {
     const d = new Date();
     const stamp =
-      (d.getUTCHours() + "").padStart(2, "0") +
-      (d.getUTCMinutes() + "").padStart(2, "0") +
+      d.getUTCHours().toString().padStart(2, "0") +
+      d.getUTCMinutes().toString().padStart(2, "0") +
       "Z";
     set((state) => ({
       messages: [...state.messages, { timestamp: stamp, message }],

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React from "react";
 import useErrorStore from "../store/errorStore";
 
@@ -24,7 +25,9 @@ const ErrorDialog: React.FC = () => {
       <button
         className="btn btn-danger"
         style={{ float: "right" }}
-        onClick={() => errorStore.acknowledge()}
+        onClick={() => {
+          errorStore.acknowledge();
+        }}
       >
         X
       </button>

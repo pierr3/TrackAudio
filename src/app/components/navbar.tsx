@@ -10,6 +10,7 @@ import {
   getCleanCallsign,
 } from "../helpers/CallsignHelper";
 import useUtilStore from "../store/utilStore";
+import { Configuration } from "../../config";
 
 const Navbar: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -41,31 +42,47 @@ const Navbar: React.FC = () => {
   ]);
 
   useEffect(() => {
-    window.api.getConfig().then((config) => {
-      if (config) {
-        window.api.SetRadioGain((config.radioGain || 0.5)).then(() => {
-          setRadioGain(config.radioGain*100 || 50);
-        });
-      }
-    });
+    window.api
+      .getConfig()
+      .then((config: Configuration) => {
+        const gain = config.radioGain || 0.5;
+        const UiGain = gain * 100 || 50;
+
+        window.api
+          .SetRadioGain(gain)
+          .then(() => {
+            setRadioGain(UiGain);
+          })
+          .catch((err: unknown) => {
+            console.error(err);
+          });
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
   }, []);
 
   const doConnect = () => {
     setIsConnecting(true);
-    window.api.connect().then((ret) => {
-      if (!ret) {
-        postError(
-          "Error connecting to AFV, check your configuration and credentials."
-        );
-        setIsConnecting(false);
-        setIsConnected(false);
-      }
-    });
+    window.api
+      .connect()
+      .then((ret) => {
+        if (!ret) {
+          postError(
+            "Error connecting to AFV, check your configuration and credentials.",
+          );
+          setIsConnecting(false);
+          setIsConnected(false);
+        }
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
   };
 
   const handleConnectDisconnect = () => {
     if (isConnected) {
-      window.api.disconnect();
+      void window.api.disconnect();
       return;
     }
 
@@ -80,9 +97,10 @@ const Navbar: React.FC = () => {
           "question",
           "Relief callsign detected",
           "You might be using a relief callsign, please select which callsign you want to use.",
-          [callsign, reliefCallsign]
+          [callsign, reliefCallsign],
         )
         .then((ret) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           if (ret.response === 0) {
             setStationCallsign(callsign);
           } else {
@@ -91,6 +109,9 @@ const Navbar: React.FC = () => {
         })
         .then(() => {
           doConnect();
+        })
+        .catch((err: unknown) => {
+          console.error(err);
         });
     } else {
       setStationCallsign(callsign);
@@ -99,11 +120,16 @@ const Navbar: React.FC = () => {
   };
 
   const handleRadioGainChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    window.api.SetRadioGain(event.target.valueAsNumber / 100).then(() => {
-      setRadioGain(event.target.valueAsNumber);
-    });
+    window.api
+      .SetRadioGain(event.target.valueAsNumber / 100)
+      .then(() => {
+        setRadioGain(event.target.valueAsNumber);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
   };
 
   return (
@@ -113,7 +139,7 @@ const Navbar: React.FC = () => {
         <span
           className={clsx(
             "btn text-box-container m-2",
-            isNetworkConnected && !isAtc && "color-warning"
+            isNetworkConnected && !isAtc && "color-warning",
           )}
         >
           {isNetworkConnected ? callsign : "Not Connected"}
@@ -123,21 +149,25 @@ const Navbar: React.FC = () => {
             "btn m-2 hide-connect-flex",
             !isConnected && "btn-info",
             isConnecting && "loading-button",
-            isConnected && "btn-danger"
+            isConnected && "btn-danger",
           )}
-          onClick={() => handleConnectDisconnect()}
+          onClick={() => {
+            handleConnectDisconnect();
+          }}
           disabled={isConnecting || !isNetworkConnected}
         >
           {isConnected
             ? "Disconnect"
             : isConnecting
-            ? "Connecting..."
-            : "Connect"}
+              ? "Connecting..."
+              : "Connect"}
         </button>
         <button
           className="btn btn-info m-2 hide-settings-flex"
           disabled={isConnected || isConnecting}
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setShowModal(true);
+          }}
         >
           Settings
         </button>
@@ -146,7 +176,7 @@ const Navbar: React.FC = () => {
           className="btn text-box-container m-2 hide-gain-value"
           style={{ width: "88px" }}
         >
-          Gain: {(radioGain + "").padStart(3, "0")}%
+          Gain: {radioGain.toString().padStart(3, "0")}%
         </span>
         <input
           type="range"
@@ -160,13 +190,19 @@ const Navbar: React.FC = () => {
         {platform === "linux" && (
           <button
             className="btn btn-danger m-2 hide-gain-value"
-            onClick={() => window.api.CloseMe()}
+            onClick={() => void window.api.CloseMe()}
           >
             X
           </button>
         )}
       </div>
-      {showModal && <SettingsModal closeModal={() => setShowModal(false)} />}
+      {showModal && (
+        <SettingsModal
+          closeModal={() => {
+            setShowModal(false);
+          }}
+        />
+      )}
     </>
   );
 };

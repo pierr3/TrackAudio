@@ -7,9 +7,9 @@ const Clock: React.FC = () => {
     setInterval(() => {
       const dateObject = new Date();
 
-      const hour = dateObject.getUTCHours() + "";
-      const minute = dateObject.getUTCMinutes() + "";
-      const second = dateObject.getUTCSeconds() + "";
+      const hour = dateObject.getUTCHours().toString();
+      const minute = dateObject.getUTCMinutes().toString();
+      const second = dateObject.getUTCSeconds().toString();
 
       const currentTime =
         hour.padStart(2, "0") +

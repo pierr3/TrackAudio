@@ -1,75 +1,132 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>TrackAudio</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' 'unsafe-inline'"
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>TrackAudio</title>
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'" />
-</head>
-
-<body>
-  <div id="root">
-    <div class="loader"></div>
-    <style>
-      .loader {
-        width: 50px;
-        aspect-ratio: 1;
-        border-radius: 50%;
-        border: 8px solid #514b82;
-        animation:
-          l20-1 0.8s infinite linear alternate,
-          l20-2 1.6s infinite linear;
-      }
-
-      @keyframes l20-1 {
-        0% {
-          clip-path: polygon(50% 50%, 0 0, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%)
+  <body>
+    <div id="root">
+      <div class="loader"></div>
+      <style>
+        .loader {
+          width: 50px;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          border: 8px solid #514b82;
+          animation:
+            l20-1 0.8s infinite linear alternate,
+            l20-2 1.6s infinite linear;
         }
 
-        12.5% {
-          clip-path: polygon(50% 50%, 0 0, 50% 0%, 100% 0%, 100% 0%, 100% 0%, 100% 0%)
+        @keyframes l20-1 {
+          0% {
+            clip-path: polygon(
+              50% 50%,
+              0 0,
+              50% 0%,
+              50% 0%,
+              50% 0%,
+              50% 0%,
+              50% 0%
+            );
+          }
+
+          12.5% {
+            clip-path: polygon(
+              50% 50%,
+              0 0,
+              50% 0%,
+              100% 0%,
+              100% 0%,
+              100% 0%,
+              100% 0%
+            );
+          }
+
+          25% {
+            clip-path: polygon(
+              50% 50%,
+              0 0,
+              50% 0%,
+              100% 0%,
+              100% 100%,
+              100% 100%,
+              100% 100%
+            );
+          }
+
+          50% {
+            clip-path: polygon(
+              50% 50%,
+              0 0,
+              50% 0%,
+              100% 0%,
+              100% 100%,
+              50% 100%,
+              0% 100%
+            );
+          }
+
+          62.5% {
+            clip-path: polygon(
+              50% 50%,
+              100% 0,
+              100% 0%,
+              100% 0%,
+              100% 100%,
+              50% 100%,
+              0% 100%
+            );
+          }
+
+          75% {
+            clip-path: polygon(
+              50% 50%,
+              100% 100%,
+              100% 100%,
+              100% 100%,
+              100% 100%,
+              50% 100%,
+              0% 100%
+            );
+          }
+
+          100% {
+            clip-path: polygon(
+              50% 50%,
+              50% 100%,
+              50% 100%,
+              50% 100%,
+              50% 100%,
+              50% 100%,
+              0% 100%
+            );
+          }
         }
 
-        25% {
-          clip-path: polygon(50% 50%, 0 0, 50% 0%, 100% 0%, 100% 100%, 100% 100%, 100% 100%)
-        }
+        @keyframes l20-2 {
+          0% {
+            transform: scaleY(1) rotate(0deg);
+          }
 
-        50% {
-          clip-path: polygon(50% 50%, 0 0, 50% 0%, 100% 0%, 100% 100%, 50% 100%, 0% 100%)
-        }
+          49.99% {
+            transform: scaleY(1) rotate(135deg);
+          }
 
-        62.5% {
-          clip-path: polygon(50% 50%, 100% 0, 100% 0%, 100% 0%, 100% 100%, 50% 100%, 0% 100%)
-        }
+          50% {
+            transform: scaleY(-1) rotate(0deg);
+          }
 
-        75% {
-          clip-path: polygon(50% 50%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 50% 100%, 0% 100%)
+          100% {
+            transform: scaleY(-1) rotate(-135deg);
+          }
         }
-
-        100% {
-          clip-path: polygon(50% 50%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 0% 100%)
-        }
-      }
-
-      @keyframes l20-2 {
-        0% {
-          transform: scaleY(1) rotate(0deg)
-        }
-
-        49.99% {
-          transform: scaleY(1) rotate(135deg)
-        }
-
-        50% {
-          transform: scaleY(-1) rotate(0deg)
-        }
-
-        100% {
-          transform: scaleY(-1) rotate(-135deg)
-        }
-      }
-    </style>
-  </div>
-</body>
-
+      </style>
+    </div>
+  </body>
 </html>

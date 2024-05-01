@@ -13,7 +13,6 @@
   background-color: $body-color;
 }
 
-
 .toolbar-item {
   position: relative;
   // margin-right: 20px;
@@ -21,7 +20,6 @@
   font-family: $font-medium;
   height: $toolbar-item-height;
   font-weight: 500;
-
 }
 
 .toolbar-btn {
@@ -123,10 +121,10 @@ $global-select-height: 30px;
 //
 
 @mixin setBgColorAndHover($baseColor) {
-    background-color: $baseColor;
-    &:hover {
-        background-color: lighten($baseColor, 5%)
-    }
+  background-color: $baseColor;
+  &:hover {
+    background-color: lighten($baseColor, 5%);
+  }
 }
 
 button {
@@ -209,7 +207,8 @@ button:disabled {
   height: calc(100vh - $navbar-height - $focusbar-height);
 }
 
-.text-box-container, .text-box-container:hover {
+.text-box-container,
+.text-box-container:hover {
   height: 25px;
   line-height: 13px;
   color: $btn-text-color;
@@ -239,17 +238,17 @@ button:disabled {
   padding-right: 0;
 }
 
-@media only screen and (max-width: 300px) { 
-  .freq-box { 
-    display: none; 
-  } 
+@media only screen and (max-width: 300px) {
+  .freq-box {
+    display: none;
+  }
 }
 
-@media only screen and (max-width: 670px) { 
-  .freq-box { 
+@media only screen and (max-width: 670px) {
+  .freq-box {
     width: calc(100% - 50px);
     margin-right: 25px;
-  } 
+  }
 }
 
 .right-box {
@@ -261,10 +260,10 @@ button:disabled {
   overflow-x: hidden;
 }
 
-@media only screen and (max-width: 670px) { 
-  .hide-right-box { 
-    display: none; 
-  } 
+@media only screen and (max-width: 670px) {
+  .hide-right-box {
+    display: none;
+  }
 }
 
 .radio {
@@ -296,28 +295,28 @@ select:disabled {
   border-color: darken($disabled, 10%);
 }
 
-@media only screen and (max-width: 450px) { 
-  .hide-settings-flex { 
-    display: none; 
-  } 
+@media only screen and (max-width: 450px) {
+  .hide-settings-flex {
+    display: none;
+  }
 }
 
-@media only screen and (max-width: 350px) { 
-  .hide-connect-flex { 
-    display: none; 
-  } 
+@media only screen and (max-width: 350px) {
+  .hide-connect-flex {
+    display: none;
+  }
 }
 
-@media only screen and (max-width: 670px) { 
-  .gain-slider { 
-    display: none; 
-  } 
+@media only screen and (max-width: 670px) {
+  .gain-slider {
+    display: none;
+  }
 }
 
-@media only screen and (max-width: 550px) { 
-  .hide-gain-value { 
-    display: none; 
-  } 
+@media only screen and (max-width: 550px) {
+  .hide-gain-value {
+    display: none;
+  }
 }
 
 #stationInput {
@@ -383,14 +382,14 @@ select:disabled {
   float: left;
 }
 
-@media only screen and (max-width: 300px) { 
-  .mini { 
-    display: block; 
-  } 
+@media only screen and (max-width: 300px) {
+  .mini {
+    display: block;
+  }
 }
 
-@media only screen and (max-width: 300px) { 
-  .hide-topbar { 
-    display: none !important; 
-  } 
+@media only screen and (max-width: 300px) {
+  .hide-topbar {
+    display: none !important;
+  }
 }

@@ -8,12 +8,18 @@ const RadioStatus: React.FC = () => {
   ]);
 
   const handleDeleteRadio = () => {
-    window.api.removeFrequency(selectedRadio.frequency);
+    if (!selectedRadio) {
+      return;
+    }
+    void window.api.removeFrequency(selectedRadio.frequency);
     removeRadio(selectedRadio.frequency);
   };
 
   const handleForceRefresh = () => {
-    window.api.RefreshStation(selectedRadio.callsign);
+    if (!selectedRadio) {
+      return;
+    }
+    void window.api.RefreshStation(selectedRadio.callsign);
   };
 
   return (
@@ -30,11 +36,15 @@ const RadioStatus: React.FC = () => {
           : ""}
       </span>
       <br />
-      <span>Transceivers: {selectedRadio ? selectedRadio.transceiverCount : ''}</span>
+      <span>
+        Transceivers: {selectedRadio ? selectedRadio.transceiverCount : ""}
+      </span>
       <br />
       <button
         className="btn btn-info w-100 mt-2 btn-sm"
-        onClick={() => handleForceRefresh()}
+        onClick={() => {
+          handleForceRefresh();
+        }}
         disabled={!selectedRadio}
       >
         Force Refresh
@@ -42,7 +52,9 @@ const RadioStatus: React.FC = () => {
       <button
         className="btn btn-danger w-100 mt-2 btn-sm"
         disabled={!selectedRadio}
-        onClick={() => handleDeleteRadio()}
+        onClick={() => {
+          handleDeleteRadio();
+        }}
       >
         Delete
       </button>

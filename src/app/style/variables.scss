@@ -21,11 +21,11 @@ $theme-colors: (
   "light": $light,
   "dark": $dark,
 );
-$alias: var(--alias-color, #5EB1BF);
+$alias: var(--alias-color, #5eb1bf);
 
 $disabled: darken($dark, 3);
 
-$font-fam: 'Ubuntu Mono', monospace;
+$font-fam: "Ubuntu Mono", monospace;
 $font-size-base: 18px;
 $body-bg: $bg-color;
 $body-color: #dddddd;
@@ -62,9 +62,8 @@ $dropdown-border-color: transparent;
 $dropdown-divider-bg: rgba(255, 255, 255, 0.163);
 $dropdown-divider-margin-y: 0px;
 $caret-width: 0;
-$caret-vertical-align:0;
-$caret-spacing:0;
-
+$caret-vertical-align: 0;
+$caret-spacing: 0;
 
 /* Card */
 $card-bg: $dark;
@@ -101,10 +100,9 @@ $accordion-button-active-icon: none;
 $modal-header-padding: 5px 15px;
 $modal-header-border-color: $dark;
 $modal-lg: 400px;
-$modal-inner-padding:  15px;
+$modal-inner-padding: 15px;
 $modal-footer-margin-between: 0px;
 $modal-footer-bg: $dark;
-
 
 /* forms */
 $input-bg: $dark;
@@ -129,5 +127,5 @@ $btn-text-color: white;
 $toolbar-border-radius: 4px;
 $toolbar-item-height: 26px;
 
-$progress-bar-animation-timing:     0.1s linear infinite;
-$progress-bar-transition:           width .1s ease;
+$progress-bar-animation-timing: 0.1s linear infinite;
+$progress-bar-transition: width 0.1s ease;

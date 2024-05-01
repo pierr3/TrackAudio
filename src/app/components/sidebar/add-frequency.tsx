@@ -11,7 +11,7 @@ const AddFrequency: React.FC = () => {
   ]);
 
   const isNetworkConnected = useSessionStore(
-    (state) => state.isNetworkConnected
+    (state) => state.isNetworkConnected,
   );
 
   const addFrequency = () => {
@@ -20,24 +20,29 @@ const AddFrequency: React.FC = () => {
     }
 
     const frequency = document.getElementById(
-      "frequencyInput"
+      "frequencyInput",
     ) as HTMLInputElement;
 
     const frequencyInHz = RadioHelper.convertMHzToHz(
-      parseFloat(frequency.value)
+      parseFloat(frequency.value),
     );
 
-    window.api.addFrequency(frequencyInHz, "").then((ret) => {
-      if (!ret) {
-        return; // This will check if the frequency exists and send an error message already
-      }
-      addRadio(
-        frequencyInHz,
-        "MANUAL",
-        useSessionStore.getState().getStationCallsign()
-      );
-      setRx(frequencyInHz, true);
-    });
+    window.api
+      .addFrequency(frequencyInHz, "")
+      .then((ret) => {
+        if (!ret) {
+          return; // This will check if the frequency exists and send an error message already
+        }
+        addRadio(
+          frequencyInHz,
+          "MANUAL",
+          useSessionStore.getState().getStationCallsign(),
+        );
+        setRx(frequencyInHz, true);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
 
     frequency.value = "";
     setPreviousValue("");
@@ -60,7 +65,7 @@ const AddFrequency: React.FC = () => {
     }
 
     const frequencyRegex = new RegExp(
-      "^([0-9]{3})([.]{1})([0-9]{1,2})(([0,5]{0,1}))$"
+      "^([0-9]{3})([.]{1})([0-9]{1,2})(([0,5]{0,1}))$",
     );
 
     if (frequencyRegex.test(frequency)) {

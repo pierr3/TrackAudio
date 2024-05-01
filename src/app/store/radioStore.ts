@@ -3,7 +3,7 @@ import useSessionStore from "./sessionStore";
 import { radioCompare } from "../helpers/RadioHelper";
 import { getCallsignParts } from "../helpers/CallsignHelper";
 
-export type RadioType = {
+export interface RadioType {
   frequency: number;
   callsign: string;
   rx: boolean;
@@ -16,18 +16,18 @@ export type RadioType = {
   selected: boolean;
   transceiverCount: number;
   lastReceivedCallsign?: string;
-  lastReceivedCallsignHistory?: Array<string>;
+  lastReceivedCallsignHistory?: string[];
   station: string;
   position: string;
   subPosition: string;
-};
+}
 
-type RadioState = {
+interface RadioState {
   radios: RadioType[];
   addRadio: (
     frequency: number,
     callsign: string,
-    stationCallsign: string
+    stationCallsign: string,
   ) => void;
   removeRadio: (frequency: number) => void;
   setRx: (frequency: number, value: boolean) => void;
@@ -44,11 +44,12 @@ type RadioState = {
   setLastReceivedCallsign(frequency: number, callsign: string): void;
   setTransceiverCountForStationCallsign: (
     callsign: string,
-    count: number
+    count: number,
   ) => void;
   reset: () => void;
-};
+}
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class RadioHelper {
   static getRadioIndex(radios: RadioType[], frequency: number): number {
     return radios.findIndex((radio) => radio.frequency === frequency);
@@ -67,7 +68,7 @@ export class RadioHelper {
   }
 
   static convertHzToMhzString(hz: number): string {
-    return `${this.convertHzToMHz(hz).toFixed(3)}`;
+    return this.convertHzToMHz(hz).toFixed(3);
   }
 }
 
@@ -78,7 +79,7 @@ const useRadioState = create<RadioState>((set) => ({
       RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)
     ) {
       postMessage(
-        "Frequency already exists in local client, but maybe not in AFV, delete it and try again"
+        "Frequency already exists in local client, but maybe not in AFV, delete it and try again",
       );
       return;
     }
@@ -124,7 +125,7 @@ const useRadioState = create<RadioState>((set) => ({
               currentlyRx: value ? radio.currentlyRx : false,
               currentlyTx: value ? radio.currentlyTx : false,
             }
-          : radio
+          : radio,
       ),
     }));
   },
@@ -138,28 +139,30 @@ const useRadioState = create<RadioState>((set) => ({
               rx: value && !radio.rx ? true : radio.rx,
               currentlyTx: value ? radio.currentlyTx : false,
             }
-          : radio
+          : radio,
       ),
     }));
   },
   setXc: (frequency, value) => {
     set((state) => ({
       radios: state.radios.map((radio) =>
-        radio.frequency === frequency ? { ...radio, xc: value } : radio
+        radio.frequency === frequency ? { ...radio, xc: value } : radio,
       ),
     }));
   },
   setCurrentlyRx: (frequency, value) => {
     set((state) => ({
       radios: state.radios.map((radio) =>
-        radio.frequency === frequency ? { ...radio, currentlyRx: value } : radio
+        radio.frequency === frequency
+          ? { ...radio, currentlyRx: value }
+          : radio,
       ),
     }));
   },
   setOnSpeaker: (frequency, value) => {
     set((state) => ({
       radios: state.radios.map((radio) =>
-        radio.frequency === frequency ? { ...radio, onSpeaker: value } : radio
+        radio.frequency === frequency ? { ...radio, onSpeaker: value } : radio,
       ),
     }));
   },
@@ -168,7 +171,7 @@ const useRadioState = create<RadioState>((set) => ({
       radios: state.radios.map((radio) =>
         radio.frequency === frequency
           ? { ...radio, selected: true }
-          : { ...radio, selected: false }
+          : { ...radio, selected: false },
       ),
     }));
   },
@@ -181,7 +184,7 @@ const useRadioState = create<RadioState>((set) => ({
   isRadioUnique: (frequency): boolean => {
     return !RadioHelper.doesRadioExist(
       useRadioState.getState().radios,
-      frequency
+      frequency,
     );
   },
   setLastReceivedCallsign: (frequency, callsign) => {
@@ -201,7 +204,7 @@ const useRadioState = create<RadioState>((set) => ({
                   ].slice(-5) // Ensure maximum of 5 values in the array
                 : radio.lastReceivedCallsignHistory,
             }
-          : radio
+          : radio,
       ),
     }));
   },
@@ -215,14 +218,14 @@ const useRadioState = create<RadioState>((set) => ({
       radios: state.radios.map((radio) =>
         radio.callsign === callsign
           ? { ...radio, transceiverCount: count }
-          : radio
+          : radio,
       ),
     }));
   },
   setCurrentlyTx: (value) => {
     set((state) => ({
       radios: state.radios.map((radio) =>
-        radio.tx ? { ...radio, currentlyTx: value } : radio
+        radio.tx ? { ...radio, currentlyTx: value } : radio,
       ),
     }));
   },
@@ -230,14 +233,14 @@ const useRadioState = create<RadioState>((set) => ({
     const radio = useRadioState
       .getState()
       .radios.find((radio) => radio.frequency === frequency);
-    return !radio.rx && !radio.tx;
+    return radio ? !radio.rx && !radio.tx : true;
   },
   setCrossCoupleAcross: (frequency, value) => {
     set((state) => ({
       radios: state.radios.map((radio) =>
         radio.frequency === frequency
           ? { ...radio, crossCoupleAcross: value }
-          : radio
+          : radio,
       ),
     }));
   },

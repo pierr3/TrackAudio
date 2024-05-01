@@ -13,7 +13,7 @@ import { RadioType } from "../store/radioStore";
 export const radioCompare = (
   a: RadioType,
   b: RadioType,
-  connectedStationCallsign: string
+  connectedStationCallsign: string,
 ): number => {
   // The connected station always get sorted to the front of the list.
   if (a.callsign === connectedStationCallsign) return -1;

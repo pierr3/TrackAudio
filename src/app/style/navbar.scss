@@ -17,10 +17,11 @@ $transition-speed: 0.1s;
   line-height: $navbar-height;
   padding: 0;
   font-weight: normal;
-  
-  ul,li {
+
+  ul,
+  li {
     display: inline-block;
-   }
+  }
 
   .clock {
     // font-size: 16px;
@@ -39,10 +40,5 @@ $transition-speed: 0.1s;
     // min-width: 150px !important;
     align-items: center;
     justify-content: center;
-
   }
 }
-
-
-
-

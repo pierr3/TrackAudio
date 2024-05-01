@@ -1,16 +1,16 @@
 export interface Configuration {
-    audioApi: number;
-    audioInputDeviceId: string;
-    headsetOutputDeviceId: string;
-    speakerOutputDeviceId: string;
+  audioApi: number;
+  audioInputDeviceId: string;
+  headsetOutputDeviceId: string;
+  speakerOutputDeviceId: string;
 
-    cid: string;
-    password: string;
-    callsign: string;
+  cid: string;
+  password: string;
+  callsign: string;
 
-    pttKey: number;
-    hardwareType: number;
-    radioGain: number;
+  pttKey: number;
+  hardwareType: number;
+  radioGain: number;
 
-    alwaysOnTop: boolean;
+  alwaysOnTop: boolean;
 }

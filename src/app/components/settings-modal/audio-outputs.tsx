@@ -1,11 +1,11 @@
 import { AudioDevice } from "trackaudio-afv";
 import React from "react";
 
-export type AudioOutputsProps = {
-  devices: Array<AudioDevice>;
+export interface AudioOutputsProps {
+  devices: AudioDevice[];
   selectedDeviceId: string;
   setDevice: (device: AudioDevice) => void;
-};
+}
 
 const AudioOutputs: React.FC<AudioOutputsProps> = ({
   devices,
@@ -26,7 +26,10 @@ const AudioOutputs: React.FC<AudioOutputsProps> = ({
           : ""
       }
     >
-      <option disabled value=""> -- select an option -- </option>
+      <option disabled value="">
+        {" "}
+        -- select an option --{" "}
+      </option>
       {devices.map(({ id, name, isDefault }) => (
         <option key={id} value={id}>
           {isDefault ? "* " : ""}

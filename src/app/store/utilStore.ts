@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
-type UtilStore = {
+interface UtilStore {
   vu: number;
   peakVu: number;
   platform: string;
   updateVu: (vu: number, peakVu: number) => void;
   updatePlatform: (platform: string) => void;
-};
+}
 
 const useUtilStore = create<UtilStore>((set) => ({
   vu: 0,

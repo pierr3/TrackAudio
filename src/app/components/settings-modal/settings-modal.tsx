@@ -8,10 +8,11 @@ import useSessionStore from "../../store/sessionStore";
 import { getKeyFromNumber } from "../../../helper";
 import useUtilStore from "../../store/utilStore";
 import clsx from "clsx";
+import { AudioApi, AudioDevice } from "trackaudio-afv";
 
-export type SettingsModalProps = {
+export interface SettingsModalProps {
   closeModal: () => void;
-};
+}
 
 export enum SaveStatus {
   NoChanges,
@@ -21,9 +22,13 @@ export enum SaveStatus {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [changesSaved, setChangesSaved] = useState(SaveStatus.NoChanges);
-  const [audioApis, setAudioApis] = useState([]);
-  const [audioOutputDevices, setAudioOutputDevices] = useState([]);
-  const [audioInputDevices, setAudioInputDevices] = useState([]);
+  const [audioApis, setAudioApis] = useState(Array<AudioApi>);
+  const [audioOutputDevices, setAudioOutputDevices] = useState(
+    Array<AudioDevice>,
+  );
+  const [audioInputDevices, setAudioInputDevices] = useState(
+    Array<AudioDevice>,
+  );
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState(0);
@@ -41,74 +46,104 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [isMicTesting, setIsMicTesting] = useState(false);
 
   useEffect(() => {
-    window.api.getConfig().then((config) => {
-      setConfig(config);
-      setCid(config.cid || "");
-      setPassword(config.password || "");
-      setHardwareType(config.hardwareType || 0);
-      setPttKeyName(getKeyFromNumber(config.pttKey) || "None");
-      setAlwaysOnTop(config.alwaysOnTop ? 1 : 0);
-    });
+    window.api
+      .getConfig()
+      .then((config: Configuration) => {
+        setConfig(config);
+        setCid(config.cid || "");
+        setPassword(config.password || "");
+        setHardwareType(config.hardwareType || 0);
+        setPttKeyName(getKeyFromNumber(config.pttKey) || "None");
+        setAlwaysOnTop(config.alwaysOnTop ? 1 : 0);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
 
-    window.api.getAudioApis().then((apis) => {
-      setAudioApis(apis);
-    });
+    window.api
+      .getAudioApis()
+      .then((apis: Array<AudioApi>) => {
+        setAudioApis(apis);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
 
-    window.api.getAudioOutputDevices(config.audioApi|| -1).then((devices) => {
-      setAudioOutputDevices(devices);
-    });
+    window.api
+      .getAudioOutputDevices(config.audioApi || -1)
+      .then((devices: Array<AudioDevice>) => {
+        setAudioOutputDevices(devices);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
 
-    window.api.getAudioInputDevices(config.audioApi || -1).then((devices) => {
-      setAudioInputDevices(devices);
-    });
+    window.api
+      .getAudioInputDevices(config.audioApi || -1)
+      .then((devices: Array<AudioDevice>) => {
+        setAudioInputDevices(devices);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
   }, []);
 
-  const debouncedCid = useDebouncedCallback((cid) => {
+  const debouncedCid = useDebouncedCallback((cid: string) => {
     setChangesSaved(SaveStatus.Saving);
     setCid(cid);
     setConfig({ ...config, cid: cid });
-    window.api.setCid(cid);
+    void window.api.setCid(cid);
     setChangesSaved(SaveStatus.Saved);
   }, 500);
 
-  const debouncedPassword = useDebouncedCallback((password) => {
+  const debouncedPassword = useDebouncedCallback((password: string) => {
     setChangesSaved(SaveStatus.Saving);
     setPassword(password);
     setConfig({ ...config, password: password });
-    window.api.setPassword(password);
+    void window.api.setPassword(password);
     setChangesSaved(SaveStatus.Saved);
   }, 1000);
 
   const changeAudioApi = (api: number) => {
     setChangesSaved(SaveStatus.Saving);
-    window.api.setAudioApi(api);
+    void window.api.setAudioApi(api);
     setConfig({ ...config, audioApi: api });
-    window.api.getAudioOutputDevices(api).then((devices) => {
-      setAudioOutputDevices(devices);
-    });
-    window.api.getAudioInputDevices(api).then((devices) => {
-      setAudioInputDevices(devices);
-    });
+    window.api
+      .getAudioOutputDevices(api)
+      .then((devices: Array<AudioDevice>) => {
+        setAudioOutputDevices(devices);
+      })
+      .catch(() => {
+        setAudioOutputDevices([]);
+      });
+    window.api
+      .getAudioInputDevices(api)
+      .then((devices: Array<AudioDevice>) => {
+        setAudioInputDevices(devices);
+      })
+      .catch(() => {
+        setAudioInputDevices([]);
+      });
     setChangesSaved(SaveStatus.Saved);
   };
 
   const setInputDevice = (deviceId: string) => {
     setChangesSaved(SaveStatus.Saving);
-    window.api.setAudioInputDevice(deviceId);
+    void window.api.setAudioInputDevice(deviceId);
     setConfig({ ...config, audioInputDeviceId: deviceId });
     setChangesSaved(SaveStatus.Saved);
   };
 
   const setHeadsetDevice = (deviceId: string) => {
     setChangesSaved(SaveStatus.Saving);
-    window.api.setHeadsetOutputDevice(deviceId);
+    void window.api.setHeadsetOutputDevice(deviceId);
     setConfig({ ...config, headsetOutputDeviceId: deviceId });
     setChangesSaved(SaveStatus.Saved);
   };
 
   const setSpeakerDevice = (deviceId: string) => {
     setChangesSaved(SaveStatus.Saving);
-    window.api.setSpeakerOutputDevice(deviceId);
+    void window.api.setSpeakerOutputDevice(deviceId);
     setConfig({ ...config, speakerOutputDeviceId: deviceId });
     setChangesSaved(SaveStatus.Saved);
   };
@@ -122,35 +157,40 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
   const handleSetPtt = () => {
     setIsSettingPtt(true);
-    window.api.SetupPtt().then(() => {
-      setIsSettingPtt(false);
-      setChangesSaved(SaveStatus.Saved);
-    });
+    window.api
+      .SetupPtt()
+      .then(() => {
+        setIsSettingPtt(false);
+        setChangesSaved(SaveStatus.Saved);
+      })
+      .catch(() => {
+        setIsSettingPtt(false);
+      });
   };
 
   const handleMicTest = () => {
     if (isMicTesting) {
-      window.api.StopMicTest();
+      void window.api.StopMicTest();
       setIsMicTesting(false);
       return;
     }
     setIsMicTesting(true);
-    window.api.StartMicTest();
+    void window.api.StartMicTest();
   };
 
   const handleHardwareTypeChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setChangesSaved(SaveStatus.Saving);
     const hardwareType = parseInt(e.target.value);
-    window.api.SetHardwareType(hardwareType);
+    void window.api.SetHardwareType(hardwareType);
     setHardwareType(hardwareType);
     setConfig({ ...config, hardwareType: hardwareType });
     setChangesSaved(SaveStatus.Saved);
   };
 
   const closeHander = () => {
-    window.api.StopMicTest();
+    void window.api.StopMicTest();
     setIsMicTesting(false);
     closeModal();
   };
@@ -258,7 +298,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     className={clsx(
                       "btn mt-3 w-100",
                       !isMicTesting && "btn-info",
-                      isMicTesting && "btn-warning"
+                      isMicTesting && "btn-warning",
                     )}
                     onClick={handleMicTest}
                     disabled={
@@ -274,12 +314,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     <div
                       className="progress-bar bg-success no-amination"
                       role="progressbar"
-                      style={{ width: vu + "%" }}
+                      style={{ width: vu.toString() + "%" }}
                     ></div>
                     <div
                       className="progress-bar bg-danger no-amination"
                       role="progressbar"
-                      style={{ width: vuPeak - vu + "%" }}
+                      style={{ width: (vuPeak - vu).toString() + "%" }}
                     ></div>
                   </div>
                   <button className="btn text-box-container mt-3 w-100">
@@ -299,10 +339,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                 {changesSaved === SaveStatus.NoChanges
                   ? "No changes"
                   : changesSaved === SaveStatus.Saving
-                  ? "Saving changes..."
-                  : changesSaved === SaveStatus.Saved
-                  ? "Changes saved"
-                  : ""}
+                    ? "Saving changes..."
+                    : "Changes saved"}
               </span>
               <button
                 type="button"
