@@ -53,7 +53,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setCid(config.cid || "");
         setPassword(config.password || "");
         setHardwareType(config.hardwareType || 0);
-        setPttKeyName(getKeyFromNumber(config.pttKey) || "None");
+        setPttKeyName(getKeyFromNumber(config.pttKey) ?? "None");
         setAlwaysOnTop(config.alwaysOnTop ? 1 : 0);
       })
       .catch((err: unknown) => {
@@ -62,7 +62,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
     window.api
       .getAudioApis()
-      .then((apis: Array<AudioApi>) => {
+      .then((apis: AudioApi[]) => {
         setAudioApis(apis);
       })
       .catch((err: unknown) => {
@@ -71,7 +71,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
     window.api
       .getAudioOutputDevices(config.audioApi || -1)
-      .then((devices: Array<AudioDevice>) => {
+      .then((devices: AudioDevice[]) => {
         setAudioOutputDevices(devices);
       })
       .catch((err: unknown) => {
@@ -80,13 +80,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
     window.api
       .getAudioInputDevices(config.audioApi || -1)
-      .then((devices: Array<AudioDevice>) => {
+      .then((devices: AudioDevice[]) => {
         setAudioInputDevices(devices);
       })
       .catch((err: unknown) => {
         console.error(err);
       });
-  }, []);
+  }, [config.audioApi, setPttKeyName]);
 
   const debouncedCid = useDebouncedCallback((cid: string) => {
     setChangesSaved(SaveStatus.Saving);
@@ -110,7 +110,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setConfig({ ...config, audioApi: api });
     window.api
       .getAudioOutputDevices(api)
-      .then((devices: Array<AudioDevice>) => {
+      .then((devices: AudioDevice[]) => {
         setAudioOutputDevices(devices);
       })
       .catch(() => {
@@ -118,7 +118,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       });
     window.api
       .getAudioInputDevices(api)
-      .then((devices: Array<AudioDevice>) => {
+      .then((devices: AudioDevice[]) => {
         setAudioInputDevices(devices);
       })
       .catch(() => {

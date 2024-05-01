@@ -60,7 +60,7 @@ const Navbar: React.FC = () => {
       .catch((err: unknown) => {
         console.error(err);
       });
-  }, []);
+  }, [setRadioGain]);
 
   const doConnect = () => {
     setIsConnecting(true);
