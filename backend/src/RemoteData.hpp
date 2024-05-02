@@ -2,14 +2,18 @@
 #include <absl/strings/match.h>
 #include <absl/strings/str_split.h>
 #include <cstddef>
-#include <httplib.h>
 #include <mutex>
 #include <quill/Quill.h>
 #include <quill/detail/LogMacros.h>
 #include <string>
-
 #include "Helpers.hpp"
 #include "Shared.hpp"
+
+#define WIN32_LEAN_AND_MEAN
+#include <httplib.h>
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 class RemoteData {
 
@@ -49,6 +53,7 @@ protected:
         }
 
         httplib::Client slurperCli(SLURPER_BASE_URL);
+        slurperCli.set_follow_location(true);
         auto res = slurperCli.Get(SLURPER_DATA_ENDPOINT + std::string("?cid=") + UserSession::cid);
 
         if (!res) {
