@@ -31,13 +31,12 @@ void SDK::buildServer()
 }
 
 void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
-    const std::optional<std::string>& callsign,
-    const std::optional<int>& frequencyHz)
+    const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz)
 {
 
     if (event == sdk::types::Event::kDisconnectFrequencyStateUpdate) {
-        nlohmann::json jsonMessage = WebsocketMessage::buildMessage(
-            WebsocketMessageType::kFrequencyStateUpdate);
+        nlohmann::json jsonMessage
+            = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyStateUpdate);
 
         jsonMessage["value"]["rx"] = nlohmann::json::array();
         jsonMessage["value"]["tx"] = nlohmann::json::array();
@@ -73,8 +72,8 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     }
 
     if (event == sdk::types::Event::kFrequencyStateUpdate) {
-        nlohmann::json jsonMessage = WebsocketMessage::buildMessage(
-            WebsocketMessageType::kFrequencyStateUpdate);
+        nlohmann::json jsonMessage
+            = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyStateUpdate);
 
         std::vector<ns::Station> rxBar;
         std::vector<ns::Station> txBar;
@@ -111,25 +110,19 @@ std::unique_ptr<restinio::router::express_router_t<>> SDK::buildRouter()
     std::unique_ptr<restinio::router::express_router_t<>> router;
     router = std::make_unique<restinio::router::express_router_t<>>();
     router->http_get(routeMap[sdkCall::kTransmitting],
-        [&](auto req, auto /*params*/) {
-            return SDK::handleTransmittingSDKCall(req);
-        });
+        [&](auto req, auto /*params*/) { return SDK::handleTransmittingSDKCall(req); });
 
-    router->http_get(
-        routeMap[sdkCall::kRx],
+    router->http_get(routeMap[sdkCall::kRx],
         [&](auto req, auto /*params*/) { return this->handleRxSDKCall(req); });
 
-    router->http_get(
-        routeMap[sdkCall::kTx],
+    router->http_get(routeMap[sdkCall::kTx],
         [&](auto req, auto /*params*/) { return this->handleTxSDKCall(req); });
 
-    router->http_get(
-        routeMap[sdkCall::kWebSocket],
+    router->http_get(routeMap[sdkCall::kWebSocket],
         [&](auto req, auto /*params*/) { return handleWebSocketSDKCall(req); });
 
-    router->non_matched_request_handler([](auto req) {
-        return req->create_response().set_body(CLIENT_NAME).done();
-    });
+    router->non_matched_request_handler(
+        [](auto req) { return req->create_response().set_body(CLIENT_NAME).done(); });
 
     auto methodNotAllowed = [](const auto& req, auto) {
         return req->create_response(restinio::status_method_not_allowed())
@@ -138,22 +131,21 @@ std::unique_ptr<restinio::router::express_router_t<>> SDK::buildRouter()
     };
 
     router->add_handler(
-        restinio::router::none_of_methods(restinio::http_method_get()), "/",
-        methodNotAllowed);
+        restinio::router::none_of_methods(restinio::http_method_get()), "/", methodNotAllowed);
 
     return std::move(router);
 }
 
-restinio::request_handling_status_t
-SDK::handleTransmittingSDKCall(const restinio::request_handle_t& req)
+restinio::request_handling_status_t SDK::handleTransmittingSDKCall(
+    const restinio::request_handle_t& req)
 {
     const std::lock_guard<std::mutex> lock(TransmittingMutex);
     std::string out = absl::StrJoin(CurrentlyTransmittingData, ",");
     return req->create_response().set_body(out).done();
 };
 
-restinio::request_handling_status_t
-SDK::handleRxSDKCall(const restinio::request_handle_t& req)
+// NOLINTNEXTLINE
+restinio::request_handling_status_t SDK::handleRxSDKCall(const restinio::request_handle_t& req)
 {
     if (!mClient->IsVoiceConnected()) {
         return req->create_response().set_body("").done();
@@ -170,8 +162,8 @@ SDK::handleRxSDKCall(const restinio::request_handle_t& req)
     return req->create_response().set_body(absl::StrJoin(outData, ",")).done();
 };
 
-restinio::request_handling_status_t
-SDK::handleTxSDKCall(const restinio::request_handle_t& req)
+// NOLINTNEXTLINE
+restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request_handle_t& req)
 {
     if (!mClient->IsVoiceConnected()) {
         return req->create_response().set_body("").done();
@@ -188,24 +180,22 @@ SDK::handleTxSDKCall(const restinio::request_handle_t& req)
     return req->create_response().set_body(absl::StrJoin(outData, ",")).done();
 }
 
-restinio::request_handling_status_t
-SDK::handleWebSocketSDKCall(const restinio::request_handle_t& req)
+restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
+    const restinio::request_handle_t& req)
 {
     if (restinio::http_connection_header_t::upgrade != req->header().connection()) {
         return restinio::request_rejected();
     }
 
     auto wsh = restinio::websocket::basic::upgrade<serverTraits>(
-        *req, restinio::websocket::basic::activation_t::immediate,
-        [&](auto wsh, auto m) {
-            if (restinio::websocket::basic::opcode_t::ping_frame == m->opcode()) {
+        *req, restinio::websocket::basic::activation_t::immediate, [&](auto wsh, auto message) {
+            if (restinio::websocket::basic::opcode_t::ping_frame == message->opcode()) {
                 // Ping-Pong
-                auto resp = *m;
+                auto resp = *message;
                 resp.set_opcode(restinio::websocket::basic::opcode_t::pong_frame);
                 wsh->send_message(resp);
-            } else if (restinio::websocket::basic::opcode_t::
-                           connection_close_frame
-                == m->opcode()) {
+            } else if (restinio::websocket::basic::opcode_t::connection_close_frame
+                == message->opcode()) {
                 // Close connection
                 this->pWsRegistry.erase(wsh->connection_id());
             }
@@ -216,8 +206,8 @@ SDK::handleWebSocketSDKCall(const restinio::request_handle_t& req)
 
     // Upon connection, send the status of frequencies straight away
     {
-        this->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate,
-            std::nullopt, std::nullopt);
+        this->handleAFVEventForWebsocket(
+            sdk::types::Event::kFrequencyStateUpdate, std::nullopt, std::nullopt);
     }
 
     return restinio::request_accepted();
@@ -234,8 +224,7 @@ void SDK::broadcastOnWebsocket(const std::string& data)
         try {
             ws->send_message(outgoingMessage);
         } catch (const std::exception& ex) {
-            TRACK_LOG_ERROR("Error while sending message to websocket: {}",
-                ex.what());
+            TRACK_LOG_ERROR("Error while sending message to websocket: {}", ex.what());
         }
     }
 };

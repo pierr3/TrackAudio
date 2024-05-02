@@ -6,15 +6,12 @@
 #include <utility>
 
 namespace sdk::types {
-enum class WebsocketMessageType { kRxBegin,
-    kRxEnd,
-    kFrequencyStateUpdate };
+enum class WebsocketMessageType { kRxBegin, kRxEnd, kFrequencyStateUpdate };
 
 inline const std::map<WebsocketMessageType, std::string>& getWebsocketMessageTypeMap()
 {
     static const std::map<WebsocketMessageType, std::string> kWebsocketMessageTypeMap {
-        { WebsocketMessageType::kRxBegin, "kRxBegin" },
-        { WebsocketMessageType::kRxEnd, "kRxEnd" },
+        { WebsocketMessageType::kRxBegin, "kRxBegin" }, { WebsocketMessageType::kRxEnd, "kRxEnd" },
         { WebsocketMessageType::kFrequencyStateUpdate, "kFrequenciesUpdate" }
     };
     return kWebsocketMessageTypeMap;
@@ -46,23 +43,11 @@ namespace ns {
 class Station {
 public:
     [[nodiscard]] inline int getFrequencyHz() const { return pFrequencyHz; }
-    [[nodiscard]] inline const std::string& getCallsign() const
-    {
-        return pCallsign;
-    }
-    [[nodiscard]] inline const std::string& getHumanFrequency() const
-    {
-        return pHumanFreq;
-    }
+    [[nodiscard]] inline const std::string& getCallsign() const { return pCallsign; }
+    [[nodiscard]] inline const std::string& getHumanFrequency() const { return pHumanFreq; }
 
-    [[nodiscard]] inline int getTransceiverCount() const
-    {
-        return pTransceiverCount;
-    }
-    [[nodiscard]] inline bool hasTransceiver() const
-    {
-        return pTransceiverCount > 0;
-    }
+    [[nodiscard]] inline int getTransceiverCount() const { return pTransceiverCount; }
+    [[nodiscard]] inline bool hasTransceiver() const { return pTransceiverCount > 0; }
     inline void setTransceiverCount(int count) { pTransceiverCount = count; }
 
     inline static Station build(const std::string& callsign, int freqHz)

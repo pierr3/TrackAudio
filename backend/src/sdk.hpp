@@ -25,12 +25,7 @@ using sdk::types::WebsocketMessage;
 using sdk::types::WebsocketMessageType;
 
 namespace sdk::types {
-enum Event {
-    kRxBegin,
-    kRxEnd,
-    kFrequencyStateUpdate,
-    kDisconnectFrequencyStateUpdate
-};
+enum Event { kRxBegin, kRxEnd, kFrequencyStateUpdate, kDisconnectFrequencyStateUpdate };
 }
 
 class SDK {
@@ -49,12 +44,10 @@ public:
      * @param data Optional data associated with the event.
      */
     void handleAFVEventForWebsocket(sdk::types::Event event,
-        const std::optional<std::string>& callsign,
-        const std::optional<int>& frequencyHz);
+        const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz);
 
 private:
-    using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t,
-        restinio::null_logger_t,
+    using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t, restinio::null_logger_t,
         restinio::router::express_router_t<>>;
 
     restinio::running_server_handle_t<serverTraits> pSDKServer;
@@ -77,12 +70,8 @@ private:
 
     inline static std::map<sdkCall, std::string>& getSDKCallUrlMap()
     {
-        static std::map<sdkCall, std::string> mSDKCallUrl = {
-            { kTransmitting, "/transmitting" },
-            { kRx, "/rx" },
-            { kTx, "/tx" },
-            { kWebSocket, "/ws" }
-        };
+        static std::map<sdkCall, std::string> mSDKCallUrl = { { kTransmitting, "/transmitting" },
+            { kRx, "/rx" }, { kTx, "/tx" }, { kWebSocket, "/ws" } };
         return mSDKCallUrl;
     }
 
@@ -115,8 +104,8 @@ private:
      * @param req The request handle.
      * @return The status of request handling.
      */
-    static restinio::request_handling_status_t
-    handleTransmittingSDKCall(const restinio::request_handle_t& req);
+    static restinio::request_handling_status_t handleTransmittingSDKCall(
+        const restinio::request_handle_t& req);
 
     /**
      * Handles the SDK call received in the request.
@@ -124,16 +113,14 @@ private:
      * @param req The request handle.
      * @return The status of the request handling.
      */
-    restinio::request_handling_status_t
-    handleRxSDKCall(const restinio::request_handle_t& req);
+    restinio::request_handling_status_t handleRxSDKCall(const restinio::request_handle_t& req);
     /**
      * Handles the SDK call.
      *
      * @param req The request handle.
      * @return The request handling status.
      */
-    restinio::request_handling_status_t
-    handleTxSDKCall(const restinio::request_handle_t& req);
+    restinio::request_handling_status_t handleTxSDKCall(const restinio::request_handle_t& req);
 
     /**
      * Handles a WebSocket SDK call.
@@ -141,6 +128,6 @@ private:
      * @param req The request handle.
      * @return The status of the request handling.
      */
-    restinio::request_handling_status_t
-    handleWebSocketSDKCall(const restinio::request_handle_t& req);
+    restinio::request_handling_status_t handleWebSocketSDKCall(
+        const restinio::request_handle_t& req);
 };
