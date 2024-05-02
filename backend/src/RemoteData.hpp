@@ -16,7 +16,6 @@ class RemoteData {
 public:
     RemoteData()
         : timer(static_cast<long>(3 * 1000), static_cast<long>(TIMER_CALLBACK_INTERVAL_SEC * 1000))
-        , slurperCli(SLURPER_BASE_URL)
     {
         timer.start(Poco::TimerCallback<RemoteData>(*this, &RemoteData::onTimer));
     }
@@ -49,6 +48,7 @@ protected:
             return "";
         }
 
+        httplib::Client slurperCli(SLURPER_BASE_URL);
         auto res = slurperCli.Get(SLURPER_DATA_ENDPOINT + std::string("?cid=") + UserSession::cid);
 
         if (!res) {
@@ -215,7 +215,6 @@ protected:
 
 private:
     Poco::Timer timer;
-    httplib::Client slurperCli;
 
     bool pYx = false;
     bool userHasBeenNotifiedOfSlurperUnavailability = false;
