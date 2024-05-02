@@ -19,6 +19,9 @@ const RadioStatus: React.FC = () => {
     if (!selectedRadio) {
       return;
     }
+    if (selectedRadio.callsign === "MANUAL") {
+      return;
+    }
     void window.api.RefreshStation(selectedRadio.callsign);
   };
 

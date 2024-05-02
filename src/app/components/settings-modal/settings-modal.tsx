@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import AudioApis from "./audio-apis";
 import AudioInput from "./audio-input";
 import AudioOutputs from "./audio-outputs";
-import { useDebouncedCallback } from "use-debounce";
-import { Configuration } from "../../../config.d";
-import useSessionStore from "../../store/sessionStore";
-import { getKeyFromNumber } from "../../../helper";
 import useUtilStore from "../../store/utilStore";
 import clsx from "clsx";
+import useSessionStore from "../../store/sessionStore";
+import { useDebouncedCallback } from "use-debounce";
+import { Configuration } from "../../../config.d";
+import { getKeyFromNumber } from "../../../helper";
 import { AudioApi, AudioDevice } from "trackaudio-afv";
 
 export interface SettingsModalProps {
@@ -24,10 +24,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [changesSaved, setChangesSaved] = useState(SaveStatus.NoChanges);
   const [audioApis, setAudioApis] = useState(Array<AudioApi>);
   const [audioOutputDevices, setAudioOutputDevices] = useState(
-    Array<AudioDevice>,
+    Array<AudioDevice>
   );
   const [audioInputDevices, setAudioInputDevices] = useState(
-    Array<AudioDevice>,
+    Array<AudioDevice>
   );
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
@@ -42,7 +42,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [cid, setCid] = useState("");
   const [password, setPassword] = useState("");
 
-  const [vu, vuPeak, updateVu] = useUtilStore((state) => [state.vu, state.peakVu, state.updateVu]);
+  const [vu, vuPeak, updateVu] = useUtilStore((state) => [
+    state.vu,
+    state.peakVu,
+    state.updateVu,
+  ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
   useEffect(() => {
@@ -180,7 +184,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   };
 
   const handleHardwareTypeChange = (
-    e: React.ChangeEvent<HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     setChangesSaved(SaveStatus.Saving);
     const hardwareType = parseInt(e.target.value);
@@ -299,7 +303,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     className={clsx(
                       "btn mt-3 w-100",
                       !isMicTesting && "btn-info",
-                      isMicTesting && "btn-warning",
+                      isMicTesting && "btn-warning"
                     )}
                     onClick={handleMicTest}
                     disabled={

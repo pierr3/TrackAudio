@@ -30,6 +30,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
 
   const isATC = useSessionStore((state) => state.isAtc);
 
+  const clickRadioHeader = () => {
+    selectRadio(radio.frequency);
+    if (radio.transceiverCount === 0 && radio.callsign !== "MANUAL") {
+      void window.api.RefreshStation(radio.callsign);
+    }
+  }
+
   const clickRx = () => {
     const newState = !radio.rx;
 
@@ -40,7 +47,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? radio.tx : false,
         newState ? radio.xc : false,
         radio.onSpeaker,
-        newState ? radio.crossCoupleAcross : false,
+        newState ? radio.crossCoupleAcross : false
       )
       .then((ret) => {
         if (!ret) {
@@ -53,7 +60,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         setXc(radio.frequency, newState ? radio.xc : false);
         setCrossCoupleAcross(
           radio.frequency,
-          newState ? radio.crossCoupleAcross : false,
+          newState ? radio.crossCoupleAcross : false
         );
       })
       .catch((err: unknown) => {
@@ -67,11 +74,11 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     window.api
       .setFrequencyState(
         radio.frequency,
-        radio.rx,
+        newState ? true : radio.rx, // If tx is true, rx must be true
         newState,
-        !newState ? false : radio.xc,
+        !newState ? false : radio.xc, // If tx is false, xc must be false
         radio.onSpeaker,
-        !newState ? false : radio.crossCoupleAcross,
+        !newState ? false : radio.crossCoupleAcross // If tx is false, crossCoupleAcross must be false
       )
       .then((ret) => {
         if (!ret) {
@@ -79,6 +86,12 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           return;
         }
         setTx(radio.frequency, newState);
+        setRx(radio.frequency, newState ? true : radio.rx);
+        setXc(radio.frequency, !newState ? false : radio.xc);
+        setCrossCoupleAcross(
+          radio.frequency,
+          !newState ? false : radio.crossCoupleAcross
+        );
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -90,17 +103,19 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     window.api
       .setFrequencyState(
         radio.frequency,
-        radio.rx,
-        radio.tx,
+        newState ? true : radio.rx, // If xc is true, rx must be true
+        newState ? true : radio.tx, // If xc is true, tx must be true
         newState,
         radio.onSpeaker,
-        false,
+        false // If xc is true, crossCoupleAcross must be false
       )
       .then((ret) => {
         if (!ret) {
           postError("Invalid action on invalid radio: XC.");
           return;
         }
+        setRx(radio.frequency, newState ? true : radio.rx);
+        setTx(radio.frequency, newState ? true : radio.tx);
         setXc(radio.frequency, newState);
         setCrossCoupleAcross(radio.frequency, false);
       })
@@ -114,17 +129,19 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     window.api
       .setFrequencyState(
         radio.frequency,
-        radio.rx,
-        radio.tx,
-        false,
+        newState ? true : radio.rx, // If crossCoupleAcross is true, rx must be true
+        newState ? true : radio.tx, // If crossCoupleAcross is true, tx must be true
+        false, // If crossCoupleAcross is true, xc must be false
         radio.onSpeaker,
-        newState,
+        newState
       )
       .then((ret) => {
         if (!ret) {
           postError("Invalid action on invalid radio: XC across.");
           return;
         }
+        setRx(radio.frequency, newState ? true : radio.rx);
+        setTx(radio.frequency, newState ? true : radio.tx);
         setXc(radio.frequency, false);
         setCrossCoupleAcross(radio.frequency, newState);
       })
@@ -142,7 +159,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         radio.tx,
         radio.xc,
         newState,
-        radio.crossCoupleAcross,
+        radio.crossCoupleAcross
       )
       .then((ret) => {
         if (!ret) {
@@ -164,9 +181,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           <button
             className="btn btn-no-interact"
             style={{ height: "100%", marginBottom: "4%" }}
-            onClick={() => {
-              selectRadio(radio.frequency);
-            }}
+            onClick={clickRadioHeader}
           >
             {RadioHelper.convertHzToMhzString(radio.frequency)}
             <br />
@@ -177,12 +192,12 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               "btn",
               !radio.xc && !radio.crossCoupleAcross && "btn-primary",
               radio.xc && "btn-success",
-              radio.crossCoupleAcross && "btn-warning",
+              radio.crossCoupleAcross && "btn-warning"
             )}
             style={{ width: "45%", height: "100%", marginTop: "4%" }}
             onClick={clickXc}
             onContextMenu={clickCrossCoupleAcross}
-            disabled={!isATC || !radio.rx}
+            disabled={!isATC}
           >
             {radio.crossCoupleAcross ? "XCA" : "XC"}
           </button>
@@ -190,7 +205,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             className={clsx(
               "btn",
               !radio.onSpeaker && "btn-primary",
-              radio.onSpeaker && "btn-success",
+              radio.onSpeaker && "btn-success"
             )}
             style={{
               width: "45%",
@@ -216,7 +231,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               "btn",
               !radio.rx && "btn-primary",
               radio.rx && radio.currentlyRx && "btn-warning",
-              radio.rx && !radio.currentlyRx && "btn-success",
+              radio.rx && !radio.currentlyRx && "btn-success"
             )}
             style={{ width: "100%", height: "100%" }}
             onClick={clickRx}
@@ -228,11 +243,11 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               "btn",
               !radio.tx && "btn-primary",
               radio.tx && radio.currentlyTx && "btn-warning",
-              radio.tx && !radio.currentlyTx && "btn-success",
+              radio.tx && !radio.currentlyTx && "btn-success"
             )}
             style={{ width: "100%", height: "100%", marginTop: "8%" }}
             onClick={clickTx}
-            disabled={!isATC || !radio.rx}
+            disabled={!isATC}
           >
             TX
           </button>
