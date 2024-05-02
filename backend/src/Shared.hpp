@@ -8,6 +8,15 @@
 #include <string>
 #include <vector>
 
+#define TRACK_LOG_INFO(fmt, ...)                                                                   \
+    LOG_INFO(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+#define TRACK_LOG_WARNING(fmt, ...)                                                                \
+    LOG_WARNING(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+#define TRACK_LOG_ERROR(fmt, ...)                                                                  \
+    LOG_ERROR(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+#define TRACK_LOG_CRITICAL(fmt, ...)                                                               \
+    LOG_CRITICAL(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+
 constexpr semver::version VERSION = semver::version { 1, 0, 2, semver::prerelease::beta, 2 };
 
 const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
@@ -29,9 +38,8 @@ static std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 
 #define API_SERVER_PORT 49080
 
-const std::vector<std::string> allowedYx = { "_CTR", "_APP", "_TWR", "_GND",
-    "_DEP", "_DEL", "_FSS", "_SUP",
-    "_RDO", "_RMP", "_TMU", "_FMP" };
+const std::vector<std::string> allowedYx = { "_CTR", "_APP", "_TWR", "_GND", "_DEP", "_DEL", "_FSS",
+    "_SUP", "_RDO", "_RMP", "_TMU", "_FMP" };
 
 namespace UserSession {
 static std::string cid;
@@ -49,5 +57,3 @@ static bool isSlurperAvailable = false;
 }
 
 static std::mutex errorCallbackMutex;
-
-static quill::Logger* logger = nullptr;

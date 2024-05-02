@@ -38,6 +38,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "file-loader": "^6.2.0",
     "fork-ts-checker-webpack-plugin": "^7.3.0",
     "globals": "^15.1.0",

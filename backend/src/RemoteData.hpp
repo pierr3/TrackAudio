@@ -3,6 +3,7 @@
 #include <absl/strings/str_split.h>
 #include <cstddef>
 #include <httplib.h>
+#include <mutex>
 #include <quill/Quill.h>
 #include <quill/detail/LogMacros.h>
 #include <string>
@@ -29,14 +30,16 @@ public:
 protected:
     void onTimer(Poco::Timer& /*timer*/)
     {
-        auto slurperData = getSlurperData();
-
+        std::lock_guard<std::mutex> lock(m); // Prevent double updates in case of a slow network
         auto previousCallsign = UserSession::callsign;
         try {
+            auto slurperData = getSlurperData();
             auto isConnected = parseSlurper(slurperData);
             updateSessionStatus(previousCallsign, isConnected);
         } catch (const std::exception& ex) {
-            LOG_ERROR(logger, "Error while parsing slurper data: {}", ex.what());
+            RemoteDataStatus::isSlurperAvailable = false;
+            TRACK_LOG_ERROR("Error while parsing slurper data: {}", ex.what());
+            notifyUserOfSlurperUnavalability();
         }
     }
 
@@ -48,16 +51,27 @@ protected:
 
         auto res = slurperCli.Get(SLURPER_DATA_ENDPOINT + std::string("?cid=") + UserSession::cid);
 
-        if (!res || res->status != httplib::StatusCode::OK_200) {
+        if (!res) {
             // Notify the client the slurper is offline
             RemoteDataStatus::isSlurperAvailable = false;
-            LOG_ERROR(logger, "Slurper is offline {}", res->status);
+            TRACK_LOG_ERROR("Cannot get data from the slurper. Object is null.");
+            notifyUserOfSlurperUnavalability();
+            return "";
+        }
+
+        if (res->status != httplib::StatusCode::OK_200) {
+            RemoteDataStatus::isSlurperAvailable = false;
+            TRACK_LOG_ERROR("Slurper returned an HTTP error {}", res->status);
+            notifyUserOfSlurperUnavalability();
             return "";
         }
 
         if (!RemoteDataStatus::isSlurperAvailable) {
             // Notify the client the slurper is back online
             RemoteDataStatus::isSlurperAvailable = true;
+            notifyUserOfSlurperAvailability();
+            userHasBeenNotifiedOfSlurperUnavailability = false;
+            TRACK_LOG_INFO("Slurper is back online.");
         }
 
         return res->body;
@@ -114,8 +128,8 @@ protected:
         }
 
         if (!foundNotAtisConnection) {
-            LOG_WARNING(logger, "No active connection found in the slurper data, but "
-                                "ATIS connections are present.");
+            TRACK_LOG_WARNING("No active connection found in the slurper data, but "
+                              "ATIS connections are present.");
             return false;
         }
 
@@ -124,29 +138,35 @@ protected:
         int u334 = std::atoi(res3.c_str()) * 1000;
         int k422 = std::stoi(res2, nullptr, 16) == 10 && pYx ? 1 : 0;
 
-        k422 = (u334 != OBS_FREQUENCY || absl::StrContains("_M_", callsign)) && k422 == 1
-            ? 1
-            : k422 == 1 && absl::EndsWith(callsign, "_SUP") ? 1
-                                                            : 0;
+        k422 = (u334 != OBS_FREQUENCY || absl::StrContains("_M_", callsign)) && k422 == 1 ? 1
+            : k422 == 1 && absl::EndsWith(callsign, "_SUP")                               ? 1
+                                                                                          : 0;
+
+        auto cleanedFrequency = Helpers::CleanUpFrequency(u334);
+        if (UserSession::callsign == callsign && UserSession::frequency == cleanedFrequency
+            && UserSession::isATC == (k422 == 1) && UserSession::lat == std::stod(lat)
+            && UserSession::lon == std::stod(lon)) {
+            return true; // No changes
+        }
 
         // Update the session info
         UserSession::callsign = callsign;
-        UserSession::frequency = Helpers::CleanUpFrequency(u334);
+        UserSession::frequency = cleanedFrequency;
         UserSession::isATC = k422 == 1;
         UserSession::lat = std::stod(lat);
         UserSession::lon = std::stod(lon);
-        LOG_INFO(logger,
-            "Updating session data - Callsign: {}, Frequency: {}, ATC: {}",
-            callsign, UserSession::frequency, k422);
+        TRACK_LOG_INFO("Updating session data - Callsign: {}, Frequency: {}, ATC: {}, Latitude: "
+                       "{}, Longitude: {}",
+            callsign, UserSession::frequency, k422, UserSession::lat, UserSession::lon);
         return true;
     }
 
     static void updateSessionStatus(std::string previousCallsign, bool isConnected)
     {
-        if (UserSession::isConnectedToTheNetwork && UserSession::callsign != previousCallsign && !previousCallsign.empty() && isConnected && mClient->IsVoiceConnected()) {
-            LOG_INFO(logger,
-                "Callsign changed during an active session, "
-                "disconnecting ({} -> {})",
+        if (UserSession::isConnectedToTheNetwork && UserSession::callsign != previousCallsign
+            && !previousCallsign.empty() && isConnected && mClient->IsVoiceConnected()) {
+            TRACK_LOG_INFO("Callsign changed during an active session, "
+                           "disconnecting ({} -> {})",
                 previousCallsign, UserSession::callsign);
             mClient->Disconnect();
             Helpers::CallbackWithError("Callsign changed during an active session, "
@@ -174,8 +194,8 @@ protected:
         } else {
             if (mClient->IsVoiceConnected()) {
                 mClient->Disconnect();
-                LOG_INFO(logger, "Disconnected from the network because no active "
-                                 "connection was found in the slurper data.");
+                TRACK_LOG_INFO("Disconnected from the network because no active "
+                               "connection was found in the slurper data.");
                 Helpers::CallbackWithError("Network disconnection detected, you have "
                                            "been disconnected.");
             }
@@ -185,12 +205,10 @@ protected:
             UserSession::callsign = "";
 
             if (callbackAvailable) {
-                callbackRef.NonBlockingCall(
-                    [&](Napi::Env env, Napi::Function jsCallback) {
-                        jsCallback.Call({ Napi::String::New(env, "network-disconnected"),
-                            Napi::String::New(env, ""),
-                            Napi::String::New(env, "") });
-                    });
+                callbackRef.NonBlockingCall([&](Napi::Env env, Napi::Function jsCallback) {
+                    jsCallback.Call({ Napi::String::New(env, "network-disconnected"),
+                        Napi::String::New(env, ""), Napi::String::New(env, "") });
+                });
             }
         }
     }
@@ -200,4 +218,54 @@ private:
     httplib::Client slurperCli;
 
     bool pYx = false;
+    bool userHasBeenNotifiedOfSlurperUnavailability = false;
+    std::mutex m;
+
+    void notifyUserOfSlurperAvailability() const
+    {
+        if (!RemoteDataStatus::isSlurperAvailable) {
+            return;
+        }
+
+        if (!callbackAvailable) {
+            return;
+        }
+
+        if (!userHasBeenNotifiedOfSlurperUnavailability) {
+            return;
+        }
+
+        callbackRef.NonBlockingCall([&](Napi::Env env, Napi::Function jsCallback) {
+            jsCallback.Call({ Napi::String::New(env, "error"),
+                Napi::String::New(
+                    env, "Slurper is back online. You can now connect to the network."),
+                Napi::String::New(env, "") });
+        });
+    }
+
+    void notifyUserOfSlurperUnavalability()
+    {
+        if (!callbackAvailable) {
+            return;
+        }
+
+        if (userHasBeenNotifiedOfSlurperUnavailability) {
+            return; // We only want to notify the user once
+        }
+
+        if (!userHasBeenNotifiedOfSlurperUnavailability) {
+            userHasBeenNotifiedOfSlurperUnavailability = true;
+        }
+
+        callbackRef.NonBlockingCall([&](Napi::Env env, Napi::Function jsCallback) {
+            jsCallback.Call({ Napi::String::New(env, "error"),
+                Napi::String::New(env,
+                    "Error while parsing slurper data, check the log file. This means your "
+                    "internet may be down or the VATSIM servers may "
+                    "experience an outage. You will not be able to connect until this is resolved. "
+                    "TrackAudio will keep retrying in the "
+                    "background."),
+                Napi::String::New(env, "") });
+        });
+    };
 };

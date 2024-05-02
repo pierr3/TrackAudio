@@ -199,7 +199,7 @@ const useRadioState = create<RadioState>((set) => ({
               lastReceivedCallsign: callsign,
               lastReceivedCallsignHistory: radio.lastReceivedCallsign
                 ? [
-                    ...(radio.lastReceivedCallsignHistory || []),
+                    ...(radio.lastReceivedCallsignHistory ?? []),
                     radio.lastReceivedCallsign,
                   ].slice(-5) // Ensure maximum of 5 values in the array
                 : radio.lastReceivedCallsignHistory,

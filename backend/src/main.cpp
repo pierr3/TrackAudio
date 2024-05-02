@@ -51,8 +51,7 @@ Napi::Array GetAudioInputDevices(const Napi::CallbackInfo& info)
     int apiId = info[0].As<Napi::Number>().Int32Value();
     Napi::Array arr = Napi::Array::New(env);
 
-    for (const auto& [deviceId, deviceName, isDefault] :
-        mClient->GetAudioInputDevices(apiId)) {
+    for (const auto& [deviceId, deviceName, isDefault] : mClient->GetAudioInputDevices(apiId)) {
         Napi::Object obj = Napi::Object::New(env);
         obj.Set("id", deviceId);
         obj.Set("name", deviceName);
@@ -69,8 +68,7 @@ Napi::Array GetAudioOutputDevices(const Napi::CallbackInfo& info)
     int apiId = info[0].As<Napi::Number>().Int32Value();
     Napi::Array arr = Napi::Array::New(env);
 
-    for (const auto [deviceId, deviceName, isDefault] :
-        mClient->GetAudioOutputDevices(apiId)) {
+    for (const auto& [deviceId, deviceName, isDefault] : mClient->GetAudioOutputDevices(apiId)) {
         Napi::Object obj = Napi::Object::New(env);
         obj.Set("id", deviceId);
         obj.Set("name", deviceName);
@@ -143,8 +141,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
     if (!hasBeenAddded) {
         Helpers::CallbackWithError("Could not add frequency: it already exists");
-        LOG_WARNING(logger, "Could not add frequency, it already exists: {} {}",
-            frequency, callsign);
+        TRACK_LOG_WARNING("Could not add frequency, it already exists: {} {}", frequency, callsign);
         return Napi::Boolean::New(info.Env(), false);
     }
     mClient->SetRx(frequency, false);
@@ -321,9 +318,9 @@ Napi::Boolean IsConnected(const Napi::CallbackInfo& info)
 void StartMicTest(const Napi::CallbackInfo& /*info*/)
 {
     if (!mClient || !callbackAvailable || mainStaticData::vuMeterThread != nullptr) {
-        LOG_WARNING(logger, "Attempted to start mic test without callback or "
-                            "uninitiated client, or already running mic test, this "
-                            "will be useless");
+        TRACK_LOG_WARNING("Attempted to start mic test without callback or "
+                          "uninitiated client, or already running mic test, this "
+                          "will be useless");
         return;
     }
 
@@ -331,8 +328,7 @@ void StartMicTest(const Napi::CallbackInfo& /*info*/)
     mainStaticData::runVuMeterCallback = true;
 
     mainStaticData::vuMeterThread = std::make_unique<std::thread>([] {
-        for (int i = 0; i < 2400;
-             i++) { // Max of 2 minutes, don't allow infinite test
+        for (int i = 0; i < 2400; i++) { // Max of 2 minutes, don't allow infinite test
 #ifndef WIN32
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
 #else
@@ -351,10 +347,9 @@ void StartMicTest(const Napi::CallbackInfo& /*info*/)
 
             callbackRef.NonBlockingCall(
                 [vuMeter, vuMeterPeak](Napi::Env env, Napi::Function jsCallback) {
-                    jsCallback.Call(
-                        { Napi::String::New(env, "VuMeter"),
-                            Napi::String::New(env, std::to_string(vuMeter)),
-                            Napi::String::New(env, std::to_string(vuMeterPeak)) });
+                    jsCallback.Call({ Napi::String::New(env, "VuMeter"),
+                        Napi::String::New(env, std::to_string(vuMeter)),
+                        Napi::String::New(env, std::to_string(vuMeterPeak)) });
                 });
         }
     });
@@ -378,7 +373,7 @@ void StopMicTest(const Napi::CallbackInfo& /*info*/)
 void StartAudio(const Napi::CallbackInfo& /*info*/)
 {
     if (!mClient || mClient->IsAudioRunning()) {
-        LOG_WARNING(logger, "Attempted to start audio when audio already running");
+        TRACK_LOG_WARNING("Attempted to start audio when audio already running");
         return;
     }
 
@@ -388,15 +383,14 @@ void StartAudio(const Napi::CallbackInfo& /*info*/)
 void StopAudio(const Napi::CallbackInfo& /*info*/)
 {
     if (!mClient || !mClient->IsAudioRunning()) {
-        LOG_WARNING(logger, "Attempted to stop audio when audio not running");
+        TRACK_LOG_WARNING("Attempted to stop audio when audio not running");
         return;
     }
 
     mClient->StopAudio();
 }
 
-static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
-    void* data2)
+static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
 {
     if (!callbackAvailable) {
         return;
@@ -404,8 +398,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
 
     if (eventType == afv_native::ClientEventType::VoiceServerConnected) {
         callbackRef.NonBlockingCall([](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "VoiceConnected"),
-                Napi::String::New(env, ""), Napi::String::New(env, "") });
+            jsCallback.Call({ Napi::String::New(env, "VoiceConnected"), Napi::String::New(env, ""),
+                Napi::String::New(env, "") });
         });
     }
 
@@ -426,10 +420,9 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
         auto transceiverCount = mClient->GetTransceiverCountForStation(station);
         callbackRef.NonBlockingCall(
             [transceiverCount, station](Napi::Env env, Napi::Function jsCallback) {
-                jsCallback.Call(
-                    { Napi::String::New(env, "StationTransceiversUpdated"),
-                        Napi::String::New(env, station),
-                        Napi::String::New(env, std::to_string(transceiverCount)) });
+                jsCallback.Call({ Napi::String::New(env, "StationTransceiversUpdated"),
+                    Napi::String::New(env, station),
+                    Napi::String::New(env, std::to_string(transceiverCount)) });
             });
     }
 
@@ -466,7 +459,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
             return;
         }
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::map<std::string, unsigned int> stations = *reinterpret_cast<std::map<std::string, unsigned int>*>(data2);
+        std::map<std::string, unsigned int> stations
+            = *reinterpret_cast<std::map<std::string, unsigned int>*>(data2);
 
         for (const auto& station : stations) {
             const std::string& callsign = station.first;
@@ -478,10 +472,9 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
 
             callbackRef.NonBlockingCall(
                 [callsign, frequency](Napi::Env env, Napi::Function jsCallback) {
-                    jsCallback.Call(
-                        { Napi::String::New(env, "StationDataReceived"),
-                            Napi::String::New(env, callsign),
-                            Napi::String::New(env, std::to_string(frequency)) });
+                    jsCallback.Call({ Napi::String::New(env, "StationDataReceived"),
+                        Napi::String::New(env, callsign),
+                        Napi::String::New(env, std::to_string(frequency)) });
                 });
         }
     }
@@ -493,12 +486,10 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
-        callbackRef.NonBlockingCall(
-            [frequency](Napi::Env env, Napi::Function jsCallback) {
-                jsCallback.Call({ Napi::String::New(env, "FrequencyRxBegin"),
-                    Napi::String::New(env, std::to_string(frequency)),
-                    Napi::String::New(env, "") });
-            });
+        callbackRef.NonBlockingCall([frequency](Napi::Env env, Napi::Function jsCallback) {
+            jsCallback.Call({ Napi::String::New(env, "FrequencyRxBegin"),
+                Napi::String::New(env, std::to_string(frequency)), Napi::String::New(env, "") });
+        });
 
         return;
     }
@@ -510,12 +501,10 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
-        callbackRef.NonBlockingCall(
-            [frequency](Napi::Env env, Napi::Function jsCallback) {
-                jsCallback.Call({ Napi::String::New(env, "FrequencyRxEnd"),
-                    Napi::String::New(env, std::to_string(frequency)),
-                    Napi::String::New(env, "") });
-            });
+        callbackRef.NonBlockingCall([frequency](Napi::Env env, Napi::Function jsCallback) {
+            jsCallback.Call({ Napi::String::New(env, "FrequencyRxEnd"),
+                Napi::String::New(env, std::to_string(frequency)), Napi::String::New(env, "") });
+        });
         return;
     }
 
@@ -530,14 +519,15 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
         std::string callsign = *reinterpret_cast<std::string*>(data2);
         callbackRef.NonBlockingCall(
             [frequency, callsign](Napi::Env env, Napi::Function jsCallback) {
-                LOG_TRACE_L1(logger, "StationRxBegin to node: {} {}", frequency, callsign);
+                LOG_TRACE_L1(quill::get_logger("trackaudio_logger"),
+                    "StationRxBegin to node: {} {}", frequency, callsign);
                 jsCallback.Call({ Napi::String::New(env, "StationRxBegin"),
                     Napi::String::New(env, std::to_string(frequency)),
                     Napi::String::New(env, callsign) });
             });
 
-        mainStaticData::mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxBegin,
-            callsign, frequency);
+        mainStaticData::mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kRxBegin, callsign, frequency);
 
         return;
     }
@@ -552,30 +542,27 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         std::string callsign = *reinterpret_cast<std::string*>(data2);
 
-        mainStaticData::mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxEnd, callsign,
-            frequency);
+        mainStaticData::mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kRxEnd, callsign, frequency);
     }
 
     if (eventType == afv_native::ClientEventType::PttOpen) {
 
         callbackRef.NonBlockingCall([](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "PttState"),
-                Napi::String::New(env, "1"),
+            jsCallback.Call({ Napi::String::New(env, "PttState"), Napi::String::New(env, "1"),
                 Napi::String::New(env, "") });
         });
     }
 
     if (eventType == afv_native::ClientEventType::PttClosed) {
         callbackRef.NonBlockingCall([](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "PttState"),
-                Napi::String::New(env, "0"),
+            jsCallback.Call({ Napi::String::New(env, "PttState"), Napi::String::New(env, "0"),
                 Napi::String::New(env, "") });
         });
     }
 
     if (eventType == afv_native::ClientEventType::AudioError) {
-        Helpers::CallbackWithError(
-            "Error stating audio devices, check your configuration.");
+        Helpers::CallbackWithError("Error stating audio devices, check your configuration.");
     }
 
     if (eventType == afv_native::ClientEventType::APIServerError) {
@@ -586,13 +573,13 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data,
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         auto err = *reinterpret_cast<afv_native::afv::APISessionError*>(data);
 
-        if (err == afv_native::afv::APISessionError::BadPassword || err == afv_native::afv::APISessionError::RejectedCredentials) {
+        if (err == afv_native::afv::APISessionError::BadPassword
+            || err == afv_native::afv::APISessionError::RejectedCredentials) {
             Helpers::CallbackWithError("Invalid Credentials");
         }
 
         if (err == afv_native::afv::APISessionError::ConnectionError) {
-            Helpers::CallbackWithError(
-                "API Connection Error, check your internet connection.");
+            Helpers::CallbackWithError("API Connection Error, check your internet connection.");
         }
 
         if (err == afv_native::afv::APISessionError::BadRequestOrClientIncompatible) {
@@ -629,7 +616,7 @@ void CreateLogFolders()
     if (!std::filesystem::exists(GetStateFolderPath())) {
         std::error_code err;
         if (!std::filesystem::create_directory(GetStateFolderPath(), err)) {
-            LOG_ERROR(logger, "Could not create state directory at {}: {}",
+            TRACK_LOG_ERROR("Could not create state directory at {}: {}",
                 GetStateFolderPath().string(), err.message());
         }
     }
@@ -645,39 +632,39 @@ void CreateLoggers()
     // Starts the logging backend thread
     quill::start();
 
-    std::shared_ptr<quill::Handler> trackaudio_logger = quill::rotating_file_handler(
-        GetStateFolderPath() / "trackaudio.log", []() {
-            quill::RotatingFileHandlerConfig cfg;
-            cfg.set_rotation_max_file_size(5e+6); // 5MB files
-            cfg.set_max_backup_files(2);
-            cfg.set_overwrite_rolled_files(true);
-            return cfg;
-        }());
+    std::shared_ptr<quill::Handler> trackaudio_logger
+        = quill::rotating_file_handler(GetStateFolderPath() / "trackaudio.log", []() {
+              quill::RotatingFileHandlerConfig cfg;
+              cfg.set_rotation_max_file_size(5e+6); // 5MB files
+              cfg.set_max_backup_files(2);
+              cfg.set_overwrite_rolled_files(true);
+              return cfg;
+          }());
 
-    logger = quill::create_logger("trackaudio_logger", std::move(trackaudio_logger));
+    auto* logger = quill::create_logger("trackaudio_logger", std::move(trackaudio_logger));
 
     logger->set_log_level(quill::LogLevel::Info);
 
-    std::shared_ptr<quill::Handler> afv_logger = quill::rotating_file_handler(
-        GetStateFolderPath() / "trackaudio-afv.log", []() {
-            quill::RotatingFileHandlerConfig cfg;
-            cfg.set_rotation_max_file_size(5e+6); // 5MB files
-            cfg.set_max_backup_files(2);
-            cfg.set_overwrite_rolled_files(true);
-            cfg.set_pattern("%(ascii_time) [%(thread)] %(message)");
-            return cfg;
-        }());
+    std::shared_ptr<quill::Handler> afv_logger
+        = quill::rotating_file_handler(GetStateFolderPath() / "trackaudio-afv.log", []() {
+              quill::RotatingFileHandlerConfig cfg;
+              cfg.set_rotation_max_file_size(5e+6); // 5MB files
+              cfg.set_max_backup_files(2);
+              cfg.set_overwrite_rolled_files(true);
+              cfg.set_pattern("%(ascii_time) [%(thread)] %(message)");
+              return cfg;
+          }());
 
     // Create a file logger
     auto* _ = quill::create_logger("afv_logger", std::move(afv_logger));
 
-    afv_native::api::setLogger([](std::string subsystem, std::string file,
-                                   int line, std::string lineOut) {
-        auto* logger = quill::get_logger("afv_logger");
-        auto strippedFiledName = file.substr(file.find_last_of('/') + 1);
-        LOG_INFO(logger, "[{}] [{}@{}] {}", subsystem, strippedFiledName, line,
-            lineOut);
-    });
+    // NOLINTNEXTLINE this cannot be solved here but in afv
+    afv_native::api::setLogger(
+        [](std::string subsystem, std::string file, int line, std::string lineOut) {
+            auto strippedFiledName = file.substr(file.find_last_of('/') + 1);
+            LOG_INFO(quill::get_logger("afv_logger"), "[{}] [{}@{}] {}", subsystem,
+                strippedFiledName, line, lineOut);
+        });
 }
 
 bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
@@ -689,7 +676,7 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
     auto res = client.Get(VERSION_CHECK_ENDPOINT);
     if (!res || res->status != httplib::StatusCode::OK_200) {
         mainStaticData::ShouldRun = false;
-        LOG_CRITICAL(logger, "Error fetching version: {}", res->status);
+        TRACK_LOG_CRITICAL("Error fetching version: {}", res->status);
         return false;
     }
 
@@ -699,13 +686,13 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         auto mandatoryVersion = semver::version(cleanBody);
         if (VERSION < mandatoryVersion) {
             mainStaticData::ShouldRun = false;
-            LOG_ERROR(logger, "Mandatory update required: {} -> {}",
-                VERSION.to_string(), mandatoryVersion.to_string());
+            TRACK_LOG_ERROR("Mandatory update required: {} -> {}", VERSION.to_string(),
+                mandatoryVersion.to_string());
             return false;
         }
     } catch (const std::exception& e) {
         mainStaticData::ShouldRun = false;
-        LOG_CRITICAL(logger, "Error parsing version: {}", e.what());
+        TRACK_LOG_CRITICAL("Error parsing version: {}", e.what());
         return false;
     }
 
@@ -726,10 +713,9 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo& info)
     mainStaticData::mRemoteDataHandler = std::make_unique<RemoteData>();
 
     // Setup afv
-    mClient->RaiseClientEvent(
-        [](afv_native::ClientEventType eventType, void* data1, void* data2) {
-            HandleAfvEvents(eventType, data1, data2);
-        });
+    mClient->RaiseClientEvent([](afv_native::ClientEventType eventType, void* data1, void* data2) {
+        HandleAfvEvents(eventType, data1, data2);
+    });
 
     mainStaticData::mApiServer = std::make_unique<SDK>();
 
@@ -738,7 +724,7 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo& info)
 
 void Exit(const Napi::CallbackInfo& /*info*/)
 {
-    LOG_INFO(logger, "Exiting TrackAudio");
+    TRACK_LOG_INFO("Exiting TrackAudio");
     if (mClient->IsVoiceConnected()) {
         mClient->Disconnect();
     }
@@ -751,11 +737,9 @@ void Exit(const Napi::CallbackInfo& /*info*/)
 Napi::Object Init(Napi::Env env, Napi::Object exports)
 {
 
-    exports.Set(Napi::String::New(env, "GetVersion"),
-        Napi::Function::New(env, Version));
+    exports.Set(Napi::String::New(env, "GetVersion"), Napi::Function::New(env, Version));
 
-    exports.Set(Napi::String::New(env, "GetAudioApis"),
-        Napi::Function::New(env, GetAudioApis));
+    exports.Set(Napi::String::New(env, "GetAudioApis"), Napi::Function::New(env, GetAudioApis));
 
     exports.Set(Napi::String::New(env, "GetAudioInputDevices"),
         Napi::Function::New(env, GetAudioInputDevices));
@@ -763,73 +747,59 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "GetAudioOutputDevices"),
         Napi::Function::New(env, GetAudioOutputDevices));
 
-    exports.Set(Napi::String::New(env, "Connect"),
-        Napi::Function::New(env, Connect));
+    exports.Set(Napi::String::New(env, "Connect"), Napi::Function::New(env, Connect));
 
-    exports.Set(Napi::String::New(env, "Disconnect"),
-        Napi::Function::New(env, Disconnect));
+    exports.Set(Napi::String::New(env, "Disconnect"), Napi::Function::New(env, Disconnect));
 
-    exports.Set(Napi::String::New(env, "SetAudioSettings"),
-        Napi::Function::New(env, SetAudioSettings));
+    exports.Set(
+        Napi::String::New(env, "SetAudioSettings"), Napi::Function::New(env, SetAudioSettings));
 
-    exports.Set(Napi::String::New(env, "AddFrequency"),
-        Napi::Function::New(env, AddFrequency));
+    exports.Set(Napi::String::New(env, "AddFrequency"), Napi::Function::New(env, AddFrequency));
 
-    exports.Set(Napi::String::New(env, "RemoveFrequency"),
-        Napi::Function::New(env, RemoveFrequency));
+    exports.Set(
+        Napi::String::New(env, "RemoveFrequency"), Napi::Function::New(env, RemoveFrequency));
 
-    exports.Set(Napi::String::New(env, "SetFrequencyState"),
-        Napi::Function::New(env, SetFrequencyState));
+    exports.Set(
+        Napi::String::New(env, "SetFrequencyState"), Napi::Function::New(env, SetFrequencyState));
 
-    exports.Set(Napi::String::New(env, "GetFrequencyState"),
-        Napi::Function::New(env, GetFrequencyState));
+    exports.Set(
+        Napi::String::New(env, "GetFrequencyState"), Napi::Function::New(env, GetFrequencyState));
 
-    exports.Set(Napi::String::New(env, "RegisterCallback"),
-        Napi::Function::New(env, RegisterCallback));
+    exports.Set(
+        Napi::String::New(env, "RegisterCallback"), Napi::Function::New(env, RegisterCallback));
 
-    exports.Set(Napi::String::New(env, "GetStation"),
-        Napi::Function::New(env, GetStation));
+    exports.Set(Napi::String::New(env, "GetStation"), Napi::Function::New(env, GetStation));
 
-    exports.Set(Napi::String::New(env, "RefreshStation"),
-        Napi::Function::New(env, RefreshStation));
+    exports.Set(Napi::String::New(env, "RefreshStation"), Napi::Function::New(env, RefreshStation));
 
-    exports.Set(Napi::String::New(env, "IsFrequencyActive"),
-        Napi::Function::New(env, IsFrequencyActive));
+    exports.Set(
+        Napi::String::New(env, "IsFrequencyActive"), Napi::Function::New(env, IsFrequencyActive));
 
     exports.Set(Napi::String::New(env, "Reset"), Napi::Function::New(env, Reset));
 
-    exports.Set(Napi::String::New(env, "SetCid"),
-        Napi::Function::New(env, SetCid));
+    exports.Set(Napi::String::New(env, "SetCid"), Napi::Function::New(env, SetCid));
 
-    exports.Set(Napi::String::New(env, "SetPtt"),
-        Napi::Function::New(env, SetPtt));
+    exports.Set(Napi::String::New(env, "SetPtt"), Napi::Function::New(env, SetPtt));
 
-    exports.Set(Napi::String::New(env, "SetRadioGain"),
-        Napi::Function::New(env, SetRadioGain));
+    exports.Set(Napi::String::New(env, "SetRadioGain"), Napi::Function::New(env, SetRadioGain));
 
-    exports.Set(Napi::String::New(env, "SetHardwareType"),
-        Napi::Function::New(env, SetHardwareType));
+    exports.Set(
+        Napi::String::New(env, "SetHardwareType"), Napi::Function::New(env, SetHardwareType));
 
-    exports.Set(Napi::String::New(env, "Bootstrap"),
-        Napi::Function::New(env, Bootstrap));
+    exports.Set(Napi::String::New(env, "Bootstrap"), Napi::Function::New(env, Bootstrap));
 
-    exports.Set(Napi::String::New(env, "IsConnected"),
-        Napi::Function::New(env, IsConnected));
+    exports.Set(Napi::String::New(env, "IsConnected"), Napi::Function::New(env, IsConnected));
 
-    exports.Set(Napi::String::New(env, "GetStateFolder"),
-        Napi::Function::New(env, GetStateFolderNapi));
+    exports.Set(
+        Napi::String::New(env, "GetStateFolder"), Napi::Function::New(env, GetStateFolderNapi));
 
-    exports.Set(Napi::String::New(env, "StartMicTest"),
-        Napi::Function::New(env, StartMicTest));
+    exports.Set(Napi::String::New(env, "StartMicTest"), Napi::Function::New(env, StartMicTest));
 
-    exports.Set(Napi::String::New(env, "StopMicTest"),
-        Napi::Function::New(env, StopMicTest));
+    exports.Set(Napi::String::New(env, "StopMicTest"), Napi::Function::New(env, StopMicTest));
 
-    exports.Set(Napi::String::New(env, "StartAudio"),
-        Napi::Function::New(env, StartAudio));
+    exports.Set(Napi::String::New(env, "StartAudio"), Napi::Function::New(env, StartAudio));
 
-    exports.Set(Napi::String::New(env, "StopAudio"),
-        Napi::Function::New(env, StopAudio));
+    exports.Set(Napi::String::New(env, "StopAudio"), Napi::Function::New(env, StopAudio));
 
     exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 
