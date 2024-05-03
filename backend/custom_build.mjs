@@ -12,26 +12,6 @@ function changeRpath(binaryPath) {
     }
 }
 
-// Function to copy DLL files
-function copyDLLs() {
-    const dllSourceDir = 'extern/afv-native/windows/Release';
-    const dllDestinationDir = 'build/Release';
-
-    // Get the list of DLL files in the source directory
-    const dllFiles = fs.readdirSync(dllSourceDir).filter(file => path.extname(file).toLowerCase() === '.dll');
-
-    // Copy DLL files that do not exist in the destination directory
-    dllFiles.forEach(file => {
-        const sourcePath = path.join(dllSourceDir, file);
-        const destinationPath = path.join(dllDestinationDir, file);
-
-        if (!fs.existsSync(destinationPath)) {
-            fs.copyFileSync(sourcePath, destinationPath);
-            console.log(`Copied ${file} to ${dllDestinationDir}`);
-        }
-    });
-}
-
 // Function to codesign the binary on macOS
 function codesignBinary(binaryPath, certificate) {
     try {
@@ -59,11 +39,6 @@ if (process.platform === 'linux') {
 if (process.platform === 'darwin') {
     codesignBinary(binaryPath, certificate);
     codesignBinary(libraryPath, certificate);
-}
-
-// Call the function to copy DLL files
-if (process.platform === 'win32') {
-    copyDLLs();
 }
 
 
