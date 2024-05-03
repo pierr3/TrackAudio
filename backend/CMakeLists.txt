@@ -46,6 +46,43 @@ add_library(trackaudio-afv SHARED
   ${SOURCE}
   ${CMAKE_JS_SRC})
 
+include(FetchContent)
+include(ExternalProject)
+
+set(afv_native_VERSION 1.28.0.12)
+set(afv_native_ARCHITECTURE "universal")
+
+if (WIN32)
+  set(afv_native_ARCHITECTURE "x86_64")
+endif()
+
+if (UNIX AND NOT APPLE)
+  if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+    set(afv_native_ARCHITECTURE "arm64")
+  else()
+    set(afv_native_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+  endif()
+endif()
+
+# Declare the content to be downloaded
+FetchContent_Declare(
+  afv_native
+  URL https://github.com/pierr3/afv-native/releases/download/v${afv_native_VERSION}/libafv-v${afv_native_VERSION}-${CMAKE_SYSTEM_NAME}-${afv_native_ARCHITECTURE}.zip
+)
+
+# Get the download directory
+FetchContent_GetProperties(afv-native)
+if(NOT afv_native_POPULATED)
+  FetchContent_Populate(afv_native)
+  set(afv_native_SOURCE_DIR ${afv_native_SOURCE_DIR})
+endif()
+
+message(STATUS "afv_native_SOURCE_DIR: ${afv_native_SOURCE_DIR}")
+list(APPEND CMAKE_MODULE_PATH "${afv_native_SOURCE_DIR}")
+
+# Now that the content has been downloaded, we can use find_package
+find_package(afv_native REQUIRED)
+
 # Find the required packages
 find_package(Threads REQUIRED)
 find_package(httplib CONFIG REQUIRED)
@@ -59,34 +96,34 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(quill CONFIG REQUIRED)
 find_package(platform_folders CONFIG REQUIRED)
 
-if (WIN32)
-  if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/Release/ NO_DEFAULT_PATH)
-  else()
-    find_library(LIB_AFV afv_natived PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/Debug/ NO_DEFAULT_PATH)
-  endif()
-  if(NOT LIB_AFV)
-      message(FATAL_ERROR "libafv library not found")
-  endif()
-  message(STATUS "libafv: ${LIB_AFV}")
-endif()
+# if (WIN32)
+#   if(CMAKE_BUILD_TYPE STREQUAL "Release")
+#     find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/Release/ NO_DEFAULT_PATH)
+#   else()
+#     find_library(LIB_AFV afv_natived PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/Debug/ NO_DEFAULT_PATH)
+#   endif()
+#   if(NOT LIB_AFV)
+#       message(FATAL_ERROR "libafv library not found")
+#   endif()
+#   message(STATUS "libafv: ${LIB_AFV}")
+# endif()
 
-if (APPLE)
-  find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/macos/ NO_DEFAULT_PATH)
-  if(NOT LIB_AFV)
-      message(FATAL_ERROR "libafv library not found")
-  endif()
-  message(STATUS "libafv: ${LIB_AFV}")
-endif()
+# if (APPLE)
+#   find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/macos/ NO_DEFAULT_PATH)
+#   if(NOT LIB_AFV)
+#       message(FATAL_ERROR "libafv library not found")
+#   endif()
+#   message(STATUS "libafv: ${LIB_AFV}")
+# endif()
 
-if (UNIX AND NOT APPLE)
-    #afv
-    find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/linux/ NO_DEFAULT_PATH)
-    if(NOT LIB_AFV)
-        message(FATAL_ERROR "libafv library not found")
-    endif()
-    message(STATUS "libafv: ${LIB_AFV}")
-endif()
+# if (UNIX AND NOT APPLE)
+#     #afv
+#     find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/linux/ NO_DEFAULT_PATH)
+#     if(NOT LIB_AFV)
+#         message(FATAL_ERROR "libafv library not found")
+#     endif()
+#     message(STATUS "libafv: ${LIB_AFV}")
+# endif()
 
 if(MSVC AND CMAKE_JS_NODELIB_DEF AND CMAKE_JS_NODELIB_TARGET)
   # Generate node.lib
@@ -98,7 +135,7 @@ set_target_properties(trackaudio-afv PROPERTIES PREFIX "" SUFFIX ".node")
 target_include_directories(trackaudio-afv PRIVATE ${CMAKE_JS_INC})
 
 target_link_libraries(trackaudio-afv PRIVATE 
-    ${LIB_AFV}
+    afv_native
     httplib::httplib
     Threads::Threads
     unofficial::node-addon-api::node-addon-api
@@ -121,13 +158,13 @@ set_target_properties(trackaudio-afv
 if (UNIX)
   add_custom_command(TARGET trackaudio-afv POST_BUILD  
     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        ${LIB_AFV}
+        $<TARGET_FILE:afv_native>
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)   
 endif()
 
-# if (WIN32)
-#   add_custom_command(TARGET trackaudio-afv POST_BUILD
-#   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#       ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/$<CONFIGURATION>
-#       ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)
-# endif()
+if (WIN32)
+  add_custom_command(TARGET trackaudio-afv POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:trackaudio-afv> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>
+    COMMAND_EXPAND_LISTS
+    )
+endif()

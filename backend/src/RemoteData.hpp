@@ -2,21 +2,24 @@
 #include <absl/strings/match.h>
 #include <absl/strings/str_split.h>
 #include <cstddef>
-#include <httplib.h>
 #include <mutex>
 #include <quill/Quill.h>
 #include <quill/detail/LogMacros.h>
 #include <string>
-
 #include "Helpers.hpp"
 #include "Shared.hpp"
+
+#define WIN32_LEAN_AND_MEAN
+#include <httplib.h>
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 class RemoteData {
 
 public:
     RemoteData()
         : timer(static_cast<long>(3 * 1000), static_cast<long>(TIMER_CALLBACK_INTERVAL_SEC * 1000))
-        , slurperCli(SLURPER_BASE_URL)
     {
         timer.start(Poco::TimerCallback<RemoteData>(*this, &RemoteData::onTimer));
     }
@@ -49,6 +52,8 @@ protected:
             return "";
         }
 
+        httplib::Client slurperCli(SLURPER_BASE_URL);
+        slurperCli.set_follow_location(true);
         auto res = slurperCli.Get(SLURPER_DATA_ENDPOINT + std::string("?cid=") + UserSession::cid);
 
         if (!res) {
@@ -215,7 +220,6 @@ protected:
 
 private:
     Poco::Timer timer;
-    httplib::Client slurperCli;
 
     bool pYx = false;
     bool userHasBeenNotifiedOfSlurperUnavailability = false;

@@ -360,6 +360,7 @@ ipcMain.handle("update-platform", () => {
 });
 
 ipcMain.handle("close-me", () => {
+  TrackAudioAfv.Exit();
   app.quit();
 });
 
