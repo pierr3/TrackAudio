@@ -57,7 +57,11 @@ if (WIN32)
 endif()
 
 if (UNIX AND NOT APPLE)
-  set(afv_native_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+  if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+    set(afv_native_ARCHITECTURE "arm64")
+  else()
+    set(afv_native_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+  endif()
 endif()
 
 # Declare the content to be downloaded
