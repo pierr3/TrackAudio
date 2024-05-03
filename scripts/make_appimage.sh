@@ -2,7 +2,8 @@
 
 arch=$1
 
-cp -R ./scripts/AppImage/TrackAudio.AppDir/ ./build/
+mkdir -p build/
+cp -R ./scripts/AppImage/TrackAudio.AppDir/ ./build/TrackAudio.AppDir/
 cp ./resources/*.wav ./build/TrackAudio.AppDir/usr/share/trackaudio/
 cp ./LICENSE ./build/TrackAudio.AppDir/usr/share/trackaudio/
 cp ./resources/AppIcon/AppIcon.png ./build/TrackAudio.AppDir/trackaudio.png
@@ -25,12 +26,11 @@ if [ "$arch" = "arm64" ]; then
     rm ./build/TrackAudio.AppDir/AppRun-x86_64
 else
     mv ./build/TrackAudio.AppDir/AppRun-x86_64 ./build/TrackAudio.AppDir/AppRun
-    rm ./build/TrackAudio.AppDir/AppRun-aarch64
+    rm ./build/TrackAudio.AppDir/AppRun-aarch64   
 fi
 
 chmod +x ./build/TrackAudio.AppDir/AppRun
 
 wget -O appimagetool-x86_64.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
 chmod +x appimagetool-x86_64.AppImage
-
 ./appimagetool-x86_64.AppImage ./build/TrackAudio.AppDir -u "gh-releases-zsync|pierr3|TrackAudio|latest|TrackAudio-*$arch.AppImage.zsync"
