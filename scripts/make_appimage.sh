@@ -2,9 +2,9 @@
 
 arch=$1
 
-cp -R ./scrips/AppImage/TrackAudio.AppDir/ ./build/
+cp -R ./scripts/AppImage/TrackAudio.AppDir/ ./build/
 cp ./resources/*.wav ./build/TrackAudio.AppDir/usr/share/trackaudio/
-cp ./resources/LICENSE.txt ./build/TrackAudio.AppDir/usr/share/trackaudio/
+cp ./LICENSE ./build/TrackAudio.AppDir/usr/share/trackaudio/
 cp ./resources/AppIcon/AppIcon.png ./build/TrackAudio.AppDir/trackaudio.png
 cp ./resources/AppIcon/AppIcon.png ./build/TrackAudio.AppDir/.DirIcon
 cp ./resources/AppIcon/AppIcon.png ./build/TrackAudio.AppDir/usr/share/trackaudio/
@@ -12,10 +12,11 @@ cp ./resources/AppIcon/AppIcon.png ./build/TrackAudio.AppDir/usr/share/trackaudi
 cp ./backend/build/Release/libafv_native.so ./build/TrackAudio.AppDir/usr/lib/
 chmod +x ./build/TrackAudio.AppDir/usr/lib/libafv_native.so
 
-cp -R ./out/TrackAudio-linux-$arch/** ./build/TrackAudio.AppDir/usr/share/
-chmod +x ./build/TrackAudio.AppDir/usr/share/trackaudio
-chmod 755 ./build/TrackAudio.AppDir/usr/share/trackaudio
-ln -s ./build/TrackAudio.AppDir/usr/share/trackaudio ./build/TrackAudio.AppDir/usr/bin/trackaudio 
+cp -R ./out/TrackAudio-linux-$arch/** ./build/TrackAudio.AppDir/usr/share/trackaudio/
+chmod +x ./build/TrackAudio.AppDir/usr/share/trackaudio/trackaudio
+chmod 755 ./build/TrackAudio.AppDir/usr/share/trackaudio/trackaudio
+ln -s ./build/TrackAudio.AppDir/usr/share/trackaudio/trackaudio ./build/TrackAudio.AppDir/usr/bin/trackaudio 
+chmod +x ./build/TrackAudio.AppDir/usr/bin/trackaudio
 
 chmod +x ./build/TrackAudio.AppDir/trackaudio.desktop
 
