@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>trackaudio</id>
+	<metadata_license>GPL-3.0</metadata_license>
+	<project_license>GPL-3.0</project_license>
+	<name>TrackAudio</name>
+	<summary>Audio-For-VATSIM ATC Client</summary>
+	<description>
+		<p>A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows.</p>
+	</description>
+	<launchable type="desktop-id">trackaudio.desktop</launchable>
+	<url type="homepage">https://github.com/pierr3/TrackAudio/</url>
+	<screenshots>
+		<screenshot type="default">
+			<image>https://raw.githubusercontent.com/pierr3/TrackAudio/main/docs/app_screenshot_apr2024.png</image>
+		</screenshot>
+	</screenshots>
+	<provides>
+		<id>trackaudio.desktop</id>
+	</provides>
+</component>

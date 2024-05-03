@@ -4,7 +4,6 @@ arch=$1
 
 mkdir -p build/
 cp -R ./scripts/AppImage/TrackAudio.AppDir/ ./build/TrackAudio.AppDir/
-cp ./resources/*.wav ./build/TrackAudio.AppDir/usr/share/trackaudio/
 cp ./LICENSE ./build/TrackAudio.AppDir/usr/share/trackaudio/
 cp ./resources/AppIcon/AppIcon.png ./build/TrackAudio.AppDir/trackaudio.png
 cp ./resources/AppIcon/AppIcon.png ./build/TrackAudio.AppDir/.DirIcon
@@ -13,11 +12,9 @@ cp ./resources/AppIcon/AppIcon.png ./build/TrackAudio.AppDir/usr/share/trackaudi
 cp ./backend/build/Release/libafv_native.so ./build/TrackAudio.AppDir/usr/lib/
 chmod +x ./build/TrackAudio.AppDir/usr/lib/libafv_native.so
 
-cp -R ./out/TrackAudio-linux-$arch/** ./build/TrackAudio.AppDir/usr/share/trackaudio/
-chmod +x ./build/TrackAudio.AppDir/usr/share/trackaudio/trackaudio
-chmod 755 ./build/TrackAudio.AppDir/usr/share/trackaudio/trackaudio
-ln -s ./build/TrackAudio.AppDir/usr/share/trackaudio/trackaudio ./build/TrackAudio.AppDir/usr/bin/trackaudio 
+cp -R ./out/TrackAudio-linux-$arch/** ./build/TrackAudio.AppDir/usr/bin/
 chmod +x ./build/TrackAudio.AppDir/usr/bin/trackaudio
+chmod 755 ./build/TrackAudio.AppDir/usr/bin/trackaudio
 
 chmod +x ./build/TrackAudio.AppDir/trackaudio.desktop
 
@@ -33,4 +30,4 @@ chmod +x ./build/TrackAudio.AppDir/AppRun
 
 wget -O appimagetool-x86_64.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
 chmod +x appimagetool-x86_64.AppImage
-./appimagetool-x86_64.AppImage ./build/TrackAudio.AppDir -u "gh-releases-zsync|pierr3|TrackAudio|latest|TrackAudio-*$arch.AppImage.zsync"
+./appimagetool-aarch64.AppImage ./build/TrackAudio.AppDir -u "gh-releases-zsync|pierr3|TrackAudio|latest|TrackAudio-*$arch.AppImage.zsync"
