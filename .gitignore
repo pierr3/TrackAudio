@@ -98,3 +98,11 @@ dist/
 backend/prebuilds
 
 build/
+# Sentry Config File
+.sentryclirc
+
+# Sentry Config File
+.sentryclirc
+
+# Sentry Config File
+.sentryclirc

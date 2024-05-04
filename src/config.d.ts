@@ -13,4 +13,6 @@ export interface Configuration {
   radioGain: number;
 
   alwaysOnTop: boolean;
+
+  consentedToTelemetry: boolean | undefined;
 }
