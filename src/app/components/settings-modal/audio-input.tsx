@@ -13,7 +13,9 @@ const AudioInput: React.FC<AudioInputProps> = ({
   setDevice,
 }) => {
   const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedDevice = devices.find((device) => device.id === e.target.value);
+    const selectedDevice = devices.find(
+      (device) => device.id === e.target.value,
+    );
     if (selectedDevice) {
       setDevice(selectedDevice);
     }

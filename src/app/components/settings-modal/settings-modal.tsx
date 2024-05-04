@@ -194,6 +194,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saved);
   };
 
+  const toggleTelemetry = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    const consent = parseInt(e.target.value) == 1 ? true : false;
+    void window.api.SetTelemetryConsent(consent);
+    config.consentedToTelemetry = consent;
+    setChangesSaved(SaveStatus.Saved);
+  };
+
   const closeHander = () => {
     void window.api.StopMicTest();
     setIsMicTesting(false);
@@ -260,6 +268,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                   >
                     <option value="1">Yes</option>
                     <option value="0">No</option>
+                  </select>
+
+                  <label className="mt-2" style={{fontSize: "10px"}}>Telemetry</label>
+                  <select
+                    id=""
+                    style={{fontSize: "10px"}}
+                    className="form-control mt-1"
+                    onChange={toggleTelemetry}
+                    value={config.consentedToTelemetry ? 1 : 0}
+                  >
+                    <option value="1">Opt in to bug reports</option>
+                    <option value="0">Opt out of bug reports</option>
                   </select>
                 </div>
               </div>

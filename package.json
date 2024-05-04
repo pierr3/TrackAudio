@@ -12,7 +12,8 @@
     "publish": "electron-forge publish",
     "lint": "eslint .",
     "format": "prettier ./src --write",
-    "compile-licenses": "node scripts/compile_licenses.mjs"
+    "compile-licenses": "node scripts/compile_licenses.mjs",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org pierr3-5h --project trackaudio-electron ./.webpack && sentry-cli sourcemaps upload --org pierr3-5h --project trackaudio-electron ./.webpack"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.3.1",
@@ -58,10 +59,12 @@
   "license": "MIT",
   "dependencies": {
     "@electron-forge/plugin-auto-unpack-natives": "^7.4.0",
+    "@sentry/cli": "^2.31.2",
+    "@sentry/electron": "^4.24.0",
+    "@sentry/react": "7.113.0",
     "bootstrap": "^5.3.3",
     "bootstrap-scss": "^5.3.3",
     "clsx": "^2.1.0",
-    "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.2.0",
     "i": "^0.3.7",
     "npm": "^10.5.1",

@@ -672,15 +672,15 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
     // We force do a mandatory version check, if an update is needed, the
     // programme won't run
 
-    httplib::Client client(VERSION_CHECK_BASE_URL);
-    auto res = client.Get(VERSION_CHECK_ENDPOINT);
-    if (!res || res->status != httplib::StatusCode::OK_200) {
-        mainStaticData::ShouldRun = false;
-        TRACK_LOG_CRITICAL("Error fetching version: {}", res->status);
-        return false;
-    }
-
     try {
+        httplib::Client client(VERSION_CHECK_BASE_URL);
+        auto res = client.Get(VERSION_CHECK_ENDPOINT);
+        if (!res || res->status != httplib::StatusCode::OK_200) {
+            mainStaticData::ShouldRun = false;
+            TRACK_LOG_CRITICAL("Error fetching version: {}", res->status);
+            return false;
+        }
+
         std::string cleanBody = res->body;
         absl::StripAsciiWhitespace(&cleanBody);
         auto mandatoryVersion = semver::version(cleanBody);
