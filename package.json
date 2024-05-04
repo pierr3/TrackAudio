@@ -65,7 +65,6 @@
     "bootstrap": "^5.3.3",
     "bootstrap-scss": "^5.3.3",
     "clsx": "^2.1.0",
-    "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.2.0",
     "i": "^0.3.7",
     "npm": "^10.5.1",

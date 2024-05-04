@@ -25,9 +25,6 @@ Sentry.init({
   sendDefaultPii: false,
 });
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require("electron-squirrel-startup")) app.quit();
-
 let version = "";
 let mainWindow: BrowserWindow;
 
@@ -169,7 +166,7 @@ app.on("ready", () => {
     const sclient = Sentry.getClient();
     if (sclient) {
       // Disable sentry in debug always
-      sclient.getOptions().enabled = app.isPackaged
+      sclient.getOptions().enabled = !app.isPackaged
         ? false
         : currentConfiguration.consentedToTelemetry;
     } else {
@@ -384,7 +381,7 @@ ipcMain.handle("change-telemetry", (_, enabled: boolean) => {
 });
 
 ipcMain.handle("should-enable-renderer-telemetry", () => {
-  return app.isPackaged ? false : currentConfiguration.consentedToTelemetry;
+  return !app.isPackaged ? false : currentConfiguration.consentedToTelemetry;
 });
 
 ipcMain.handle(

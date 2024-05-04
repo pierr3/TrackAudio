@@ -29,6 +29,7 @@ const config: ForgeConfig = {
       config: {
         installerIcon: "resources/AppIcon/AppIcon.ico",
         uninstallerIcon: "resources/AppIcon/AppIcon.ico",
+        icon: "resources/AppIcon/AppIcon.ico",
         license: "LICENSE",
       },
     },
