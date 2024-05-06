@@ -7,7 +7,6 @@ import clsx from "clsx";
 import useSessionStore from "../../store/sessionStore";
 import { useDebouncedCallback } from "use-debounce";
 import { Configuration } from "../../../config.d";
-import { getKeyFromNumber } from "../../../helper";
 import { AudioApi, AudioDevice } from "trackaudio-afv";
 
 export interface SettingsModalProps {
@@ -24,10 +23,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [changesSaved, setChangesSaved] = useState(SaveStatus.NoChanges);
   const [audioApis, setAudioApis] = useState(Array<AudioApi>);
   const [audioOutputDevices, setAudioOutputDevices] = useState(
-    Array<AudioDevice>
+    Array<AudioDevice>,
   );
   const [audioInputDevices, setAudioInputDevices] = useState(
-    Array<AudioDevice>
+    Array<AudioDevice>,
   );
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
@@ -57,7 +56,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setCid(config.cid || "");
         setPassword(config.password || "");
         setHardwareType(config.hardwareType || 0);
-        setPttKeyName(getKeyFromNumber(config.pttKey) ?? "None");
+        setPttKeyName(config.pttKeyName || "None");
         setAlwaysOnTop(config.alwaysOnTop ? 1 : 0);
       })
       .catch((err: unknown) => {
@@ -184,7 +183,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   };
 
   const handleHardwareTypeChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setChangesSaved(SaveStatus.Saving);
     const hardwareType = parseInt(e.target.value);
@@ -270,10 +269,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     <option value="0">No</option>
                   </select>
 
-                  <label className="mt-2" style={{fontSize: "10px"}}>Telemetry</label>
+                  <label className="mt-2" style={{ fontSize: "10px" }}>
+                    Telemetry
+                  </label>
                   <select
                     id=""
-                    style={{fontSize: "10px"}}
+                    style={{ fontSize: "10px" }}
                     className="form-control mt-1"
                     onChange={toggleTelemetry}
                     value={config.consentedToTelemetry ? 1 : 0}
@@ -323,7 +324,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     className={clsx(
                       "btn mt-3 w-100",
                       !isMicTesting && "btn-info",
-                      isMicTesting && "btn-warning"
+                      isMicTesting && "btn-warning",
                     )}
                     onClick={handleMicTest}
                     disabled={
