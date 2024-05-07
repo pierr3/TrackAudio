@@ -17,8 +17,8 @@ public:
     static inline bool isValid8_33kHzChannel(int fKHz)
     {
         const int lastDigits = static_cast<int>(fKHz) % 100;
-        return fKHz % 5 == 0 && lastDigits != 20 && lastDigits != 45
-            && lastDigits != 70 && lastDigits != 95;
+        return fKHz % 5 == 0 && lastDigits != 20 && lastDigits != 45 && lastDigits != 70
+            && lastDigits != 95;
     }
 
     /*

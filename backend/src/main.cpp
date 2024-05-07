@@ -16,6 +16,7 @@
 #include <thread>
 
 #include "Helpers.hpp"
+#include "InputHandler.hpp"
 #include "RemoteData.hpp"
 #include "Shared.hpp"
 #include "sdk.hpp"
@@ -28,6 +29,8 @@ static bool ShouldRun = true;
 
 static std::unique_ptr<std::thread> vuMeterThread = nullptr;
 static std::atomic_bool runVuMeterCallback = false;
+
+static std::unique_ptr<InputHandler> inputHandler = nullptr;
 }
 
 Napi::Array GetAudioApis(const Napi::CallbackInfo& info)
@@ -667,6 +670,33 @@ void CreateLoggers()
         });
 }
 
+void InitialiseConfig()
+{
+    std::string settingsFilePath = (GetStateFolderPath() / "settings.ini").string();
+    UserSettings::ini.SetUnicode();
+    auto err = UserSettings::ini.LoadFile(settingsFilePath.c_str());
+
+    if (err != SI_OK) {
+        if (err == SI_FILE) {
+            TRACK_LOG_WARNING("Settings.ini file not found, creating it");
+            UserSettings::ini.SetLongValue("Settings", "PttKey", 0);
+            UserSettings::ini.SetLongValue("Settings", "JoystickId", 0);
+            UserSettings::ini.SetBoolValue("Settings", "isJoystickButton", false);
+            err = UserSettings::ini.SaveFile(settingsFilePath.c_str());
+            if (err != SI_OK) {
+                TRACK_LOG_ERROR("Error creating settings.ini: {}", err);
+            }
+        } else {
+            TRACK_LOG_ERROR("Error loading settings.ini: {}", err);
+        }
+    }
+
+    UserSettings::PttKey = UserSettings::ini.GetLongValue("Settings", "PttKey", 0);
+    UserSettings::JoystickId = UserSettings::ini.GetLongValue("Settings", "JoystickId", 0);
+    UserSettings::isJoystickButton
+        = UserSettings::ini.GetBoolValue("Settings", "isJoystickButton", false);
+}
+
 bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
 {
     // We force do a mandatory version check, if an update is needed, the
@@ -699,13 +729,25 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
     return true;
 }
 
-Napi::Boolean Bootstrap(const Napi::CallbackInfo& info)
+Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 {
-
+    auto outObject = Napi::Object::New(info.Env());
     CreateLoggers();
 
+    outObject["version"] = Napi::String::New(info.Env(), VERSION.to_string());
+    outObject["canRun"] = Napi::Boolean::New(info.Env(), true);
+    outObject["needUpdate"] = Napi::Boolean::New(info.Env(), false);
+
     if (!CheckVersionSync(info)) {
-        return Napi::Boolean::New(info.Env(), false);
+        outObject["needUpdate"] = Napi::Boolean::New(info.Env(), true);
+        outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
+        return outObject;
+    }
+
+    try {
+        InitialiseConfig();
+    } catch (const std::exception& e) {
+        TRACK_LOG_ERROR("Error initialising config: {}", e.what());
     }
 
     std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
@@ -719,7 +761,16 @@ Napi::Boolean Bootstrap(const Napi::CallbackInfo& info)
 
     mainStaticData::mApiServer = std::make_unique<SDK>();
 
-    return Napi::Boolean::New(info.Env(), true);
+    try {
+        mainStaticData::inputHandler = std::make_unique<InputHandler>();
+    } catch (const std::exception& e) {
+        outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
+        TRACK_LOG_CRITICAL("Error creating input handler: {}", e.what());
+    }
+
+    InputHandler::forwardPttKeyName();
+
+    return outObject;
 }
 
 void Exit(const Napi::CallbackInfo& /*info*/)
@@ -730,6 +781,7 @@ void Exit(const Napi::CallbackInfo& /*info*/)
     }
     mainStaticData::mApiServer.reset();
     mainStaticData::mRemoteDataHandler.reset();
+    mainStaticData::inputHandler.reset();
 
     mClient.reset();
 }

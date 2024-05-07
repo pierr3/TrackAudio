@@ -11,8 +11,8 @@ public:
     /**
      * Cleans up the given frequency value.
      *
-     * This function takes an integer frequency value as input and rounds it up to a valid 8.33 kHz channel.
-     * The cleaned up frequency value is then returned.
+     * This function takes an integer frequency value as input and rounds it up to a valid 8.33 kHz
+     * channel. The cleaned up frequency value is then returned.
      *
      * @param frequency The frequency value to be cleaned up.
      * @return The cleaned up frequency value.
@@ -49,7 +49,8 @@ public:
      * Converts a frequency in Hertz to a human-readable string representation.
      *
      * @param frequencyHz The frequency in Hertz to convert.
-     * @return A string representation of the frequency in a human-readable format (e.g. "122.800" for 122800000 Hz)
+     * @return A string representation of the frequency in a human-readable format (e.g. "122.800"
+     * for 122800000 Hz)
      */
     static std::string ConvertHzToHumanString(unsigned int frequencyHz)
     {

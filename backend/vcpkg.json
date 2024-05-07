@@ -11,6 +11,8 @@
         "restinio",
         "nlohmann-json",
         "quill",
-        "platform-folders"
+        "platform-folders",
+        "sfml",
+        "simpleini"
     ]
 }

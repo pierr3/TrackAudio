@@ -1,5 +1,6 @@
 #pragma once
 #include "afv-native/afv_native.h"
+#include <SimpleIni.h>
 #include <memory>
 #include <mutex>
 #include <napi.h>
@@ -54,6 +55,13 @@ static float currentRadioGain = 0.5;
 
 namespace RemoteDataStatus {
 static bool isSlurperAvailable = false;
+}
+
+namespace UserSettings {
+static int PttKey = 0;
+static int JoystickId = 0;
+static bool isJoystickButton = false;
+static inline CSimpleIniA ini;
 }
 
 static std::mutex errorCallbackMutex;

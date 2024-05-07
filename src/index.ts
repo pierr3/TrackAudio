@@ -24,7 +24,7 @@ Sentry.init({
   sendDefaultPii: false,
 });
 
-let version = "";
+let version: string;
 let mainWindow: BrowserWindow;
 
 let isSettingPtt = false;
@@ -57,7 +57,7 @@ const setAudioSettings = () => {
     currentConfiguration.audioApi || -1,
     currentConfiguration.audioInputDeviceId || "",
     currentConfiguration.headsetOutputDeviceId || "",
-    currentConfiguration.speakerOutputDeviceId || "",
+    currentConfiguration.speakerOutputDeviceId || ""
   );
   TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
 };
@@ -91,8 +91,6 @@ const createWindow = (): void => {
   // Set the store CID
   TrackAudioAfv.SetCid(currentConfiguration.cid || "");
   TrackAudioAfv.SetRadioGain(currentConfiguration.radioGain || 0.5);
-
-  version = TrackAudioAfv.GetVersion();
 
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -141,7 +139,7 @@ const createWindow = (): void => {
 app.on("ready", () => {
   // load the configuration
   currentConfiguration = JSON.parse(
-    store.get("configuration", "{}") as string,
+    store.get("configuration", "{}") as string
   ) as Configuration;
 
   if (currentConfiguration.consentedToTelemetry === undefined) {
@@ -189,9 +187,9 @@ app.on("ready", () => {
     });
   }
 
-  const requiresUpdate = TrackAudioAfv.Bootstrap(process.resourcesPath);
+  const bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
 
-  if (!requiresUpdate) {
+  if (bootstrapOutput.needUpdate) {
     dialog.showMessageBoxSync({
       type: "error",
       message:
@@ -200,6 +198,18 @@ app.on("ready", () => {
     });
     app.quit();
   }
+
+  if (!bootstrapOutput.canRun) {
+    dialog.showMessageBoxSync({
+      type: "error",
+      message:
+        "This application has experienced an error and cannot run, please check the logs for more information.",
+      buttons: ["OK"],
+    });
+    app.quit();
+  }
+
+  version = bootstrapOutput.version as string;
 
   createWindow();
 });
@@ -296,7 +306,7 @@ ipcMain.handle(
   "audio-add-frequency",
   (_, frequency: number, callsign: string) => {
     return TrackAudioAfv.AddFrequency(frequency, callsign);
-  },
+  }
 );
 
 ipcMain.handle("audio-remove-frequency", (_, frequency: number) => {
@@ -312,7 +322,7 @@ ipcMain.handle(
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean,
+    crossCoupleAcross: boolean
   ) => {
     return TrackAudioAfv.SetFrequencyState(
       frequency,
@@ -320,9 +330,9 @@ ipcMain.handle(
       tx,
       xc,
       onSpeaker,
-      crossCoupleAcross,
+      crossCoupleAcross
     );
-  },
+  }
 );
 
 ipcMain.handle("audio-get-frequency-state", (_, frequency: number) => {
@@ -395,7 +405,7 @@ ipcMain.handle(
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
     message: string,
-    buttons: string[],
+    buttons: string[]
   ) => {
     return dialog.showMessageBox(mainWindow, {
       type,
@@ -403,7 +413,7 @@ ipcMain.handle(
       buttons,
       message,
     });
-  },
+  }
 );
 
 ipcMain.handle("get-version", () => {

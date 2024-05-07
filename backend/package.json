@@ -12,7 +12,8 @@
     },
     "types": "types/index.d.ts",
     "scripts": {
-        "build": "cmake-js compile -B Release && node custom_build.mjs && npm pack"
+        "build": "cmake-js compile -B Release && node custom_build.mjs && npm pack",
+        "format": "clang-format -i include/**.hpp && clang-format -i include/**.h && clang-format -i src/**.cpp"
     },
     "cmake-js": {
         "runtime": "electron"

@@ -85,6 +85,6 @@ declare namespace TrackAudioAfv {
   ): void;
 
   export function IsConnected(): boolean;
-  export function Bootstrap(resourcePath: string): boolean;
+  export function Bootstrap(resourcePath: string): {canRun: boolean, needUpdate: boolean, version: string};
   export function Exit(): void;
 }

@@ -40,7 +40,9 @@ endif()
 
 set(SOURCE 
   src/main.cpp
-  src/sdk.cpp)
+  src/sdk.cpp
+  src/RemoteData.cpp
+  src/InputHandler.cpp)
 
 add_library(trackaudio-afv SHARED 
   ${SOURCE}
@@ -95,35 +97,8 @@ find_package(restinio CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(quill CONFIG REQUIRED)
 find_package(platform_folders CONFIG REQUIRED)
-
-# if (WIN32)
-#   if(CMAKE_BUILD_TYPE STREQUAL "Release")
-#     find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/Release/ NO_DEFAULT_PATH)
-#   else()
-#     find_library(LIB_AFV afv_natived PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/windows/Debug/ NO_DEFAULT_PATH)
-#   endif()
-#   if(NOT LIB_AFV)
-#       message(FATAL_ERROR "libafv library not found")
-#   endif()
-#   message(STATUS "libafv: ${LIB_AFV}")
-# endif()
-
-# if (APPLE)
-#   find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/macos/ NO_DEFAULT_PATH)
-#   if(NOT LIB_AFV)
-#       message(FATAL_ERROR "libafv library not found")
-#   endif()
-#   message(STATUS "libafv: ${LIB_AFV}")
-# endif()
-
-# if (UNIX AND NOT APPLE)
-#     #afv
-#     find_library(LIB_AFV afv_native PATHS ${CMAKE_SOURCE_DIR}/extern/afv-native/linux/ NO_DEFAULT_PATH)
-#     if(NOT LIB_AFV)
-#         message(FATAL_ERROR "libafv library not found")
-#     endif()
-#     message(STATUS "libafv: ${LIB_AFV}")
-# endif()
+find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
+find_path(SIMPLEINI_INCLUDE_DIRS "SimpleIni.h")
 
 if(MSVC AND CMAKE_JS_NODELIB_DEF AND CMAKE_JS_NODELIB_TARGET)
   # Generate node.lib
@@ -132,7 +107,7 @@ endif()
 
 set_target_properties(trackaudio-afv PROPERTIES PREFIX "" SUFFIX ".node")
 
-target_include_directories(trackaudio-afv PRIVATE ${CMAKE_JS_INC})
+target_include_directories(trackaudio-afv PRIVATE ${CMAKE_JS_INC} ${SIMPLEINI_INCLUDE_DIRS} include/)
 
 target_link_libraries(trackaudio-afv PRIVATE 
     afv_native
@@ -147,6 +122,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     nlohmann_json::nlohmann_json
     quill::quill
     sago::platform_folders
+    sfml-system sfml-graphics sfml-window
     ${CMAKE_JS_LIB})
 
 # Set the output directory for the built executable
