@@ -21,7 +21,7 @@ window.api
           sendDefaultPii: false,
         },
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        reactInit
+        reactInit,
       );
     }
   })

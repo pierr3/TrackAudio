@@ -9,6 +9,7 @@ export interface Configuration {
   callsign: string;
 
   pttKey: number;
+  pttKeyName: string;
   hardwareType: number;
   radioGain: number;
 

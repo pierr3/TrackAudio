@@ -51,7 +51,7 @@ const IElectronAPI = {
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean
+    crossCoupleAcross: boolean,
   ) =>
     ipcRenderer.invoke(
       "audio-set-frequency-state",
@@ -60,7 +60,7 @@ const IElectronAPI = {
       tx,
       xc,
       onSpeaker,
-      crossCoupleAcross
+      crossCoupleAcross,
     ),
   getFrequencyState: (frequency: number) =>
     ipcRenderer.invoke("audio-get-frequency-state", frequency),
@@ -91,7 +91,7 @@ const IElectronAPI = {
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
     message: string,
-    buttons: string[]
+    buttons: string[],
   ) => ipcRenderer.invoke("dialog", type, title, message, buttons),
 };
 
