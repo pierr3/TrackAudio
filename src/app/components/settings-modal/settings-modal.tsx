@@ -22,10 +22,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [changesSaved, setChangesSaved] = useState(SaveStatus.NoChanges);
   const [audioApis, setAudioApis] = useState(Array<AudioApi>);
   const [audioOutputDevices, setAudioOutputDevices] = useState(
-    Array<AudioDevice>
+    Array<AudioDevice>,
   );
   const [audioInputDevices, setAudioInputDevices] = useState(
-    Array<AudioDevice>
+    Array<AudioDevice>,
   );
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
@@ -178,7 +178,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   };
 
   const handleHardwareTypeChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setChangesSaved(SaveStatus.Saving);
     const hardwareType = parseInt(e.target.value);
@@ -319,7 +319,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     className={clsx(
                       "btn mt-3 w-100",
                       !isMicTesting && "btn-info",
-                      isMicTesting && "btn-warning"
+                      isMicTesting && "btn-warning",
                     )}
                     onClick={handleMicTest}
                     disabled={
