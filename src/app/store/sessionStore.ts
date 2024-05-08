@@ -8,7 +8,6 @@ interface sessionStore {
   isConnecting: boolean;
   version: string;
   frequency: number;
-  pttKeyName: string;
   radioGain: number;
   stationCallsign: string;
   setCallsign: (callsign: string) => void;
@@ -18,7 +17,6 @@ interface sessionStore {
   setVersion: (version: string) => void;
   setNetworkConnected: (isConnected: boolean) => void;
   setFrequency: (frequency: number) => void;
-  setPttKeyName: (pttKeyName: string) => void;
   setRadioGain: (radioGain: number) => void;
   setStationCallsign: (stationCallsign: string) => void;
   getStationCallsign: () => string;
@@ -56,9 +54,6 @@ const useSessionStore = create<sessionStore>((set) => ({
   },
   setFrequency: (frequency) => {
     set({ frequency });
-  },
-  setPttKeyName: (pttKeyName) => {
-    set({ pttKeyName });
   },
   setRadioGain: (radioGain) => {
     set({ radioGain });

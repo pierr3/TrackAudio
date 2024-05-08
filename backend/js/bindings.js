@@ -12,4 +12,5 @@ exports.AfvEventTypes = {
   VuMeter: "VuMeter",
   NetworkConnected: "network-connected",
   NetworkDisconnected: "network-disconnected",
+  PttKeySet: "UpdatePttKeyName",
 };

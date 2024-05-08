@@ -64,6 +64,7 @@
     "@sentry/react": "7.113.0",
     "bootstrap": "^5.3.3",
     "bootstrap-scss": "^5.3.3",
+    "build-backend": "^1.0.2",
     "clsx": "^2.1.0",
     "electron-store": "^8.2.0",
     "i": "^0.3.7",
@@ -73,7 +74,6 @@
     "sass": "^1.74.1",
     "styled-components": "^5.3.11",
     "trackaudio-afv": "file:backend/trackaudio-afv-1.0.0.tgz",
-    "uiohook-napi": "1.5.2",
     "use-debounce": "^10.0.0",
     "zustand": "^4.5.2"
   },

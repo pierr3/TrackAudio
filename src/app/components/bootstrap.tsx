@@ -20,7 +20,7 @@ const Bootsrap: React.FC = () => {
         useRadioState
           .getState()
           .setTransceiverCountForStationCallsign(station, parseInt(count));
-      },
+      }
     );
 
     window.api.on(
@@ -39,16 +39,16 @@ const Bootsrap: React.FC = () => {
               .addRadio(
                 freq,
                 station,
-                useSessionStore.getState().getStationCallsign(),
+                useSessionStore.getState().getStationCallsign()
               );
             void window.api.SetRadioGain(
-              useSessionStore.getState().radioGain / 100,
+              useSessionStore.getState().radioGain / 100
             );
           })
           .catch((err: unknown) => {
             console.error(err);
           });
-      },
+      }
     );
 
     window.api.on("FrequencyRxBegin", (frequency: string) => {
@@ -98,7 +98,7 @@ const Bootsrap: React.FC = () => {
         const frequency = parseInt(dataArr[1]);
         useSessionStore.getState().setIsAtc(isAtc);
         useSessionStore.getState().setFrequency(frequency);
-      },
+      }
     );
 
     window.api.on("network-disconnected", () => {
@@ -109,7 +109,8 @@ const Bootsrap: React.FC = () => {
     });
 
     window.api.on("ptt-key-set", (key: string) => {
-      useSessionStore.getState().setPttKeyName(key);
+      console.log("Ptt key set to", key);
+      useUtilStore.getState().setPttKeyName(key);
     });
 
     window.api

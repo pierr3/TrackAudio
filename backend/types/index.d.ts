@@ -22,6 +22,7 @@ export declare const AfvEventTypes: {
   NetworkConnected: string;
   NetworkDisconnected: string;
   VuMeter: string;
+  PttKeySet: string;
 };
 
 declare namespace TrackAudioAfv {
@@ -84,7 +85,14 @@ declare namespace TrackAudioAfv {
     func: (arg: string, arg2: string, arg3: string) => void
   ): void;
 
+  export function SetupPttBegin(): void;
+  export function SetupPttEnd(): void;
+
   export function IsConnected(): boolean;
-  export function Bootstrap(resourcePath: string): {canRun: boolean, needUpdate: boolean, version: string};
+  export function Bootstrap(resourcePath: string): {
+    canRun: boolean;
+    needUpdate: boolean;
+    version: string;
+  };
   export function Exit(): void;
 }

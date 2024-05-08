@@ -34,14 +34,14 @@ void InputHandler::updatePttKey(int key, bool isJoystickButton, int joystickId)
     UserSettings::isJoystickButton = isJoystickButton;
     UserSettings::JoystickId = joystickId;
 
-    forwardPttKeyName();
+    InputHandler::forwardPttKeyName();
 }
 
 // NOLINTNEXTLINE
 void InputHandler::onTimer(Poco::Timer& /*timer*/)
 {
     sf::Joystick::update();
-    
+
     std::lock_guard<std::mutex> lock(m);
     if (isPttSetupRunning) {
 
@@ -52,7 +52,7 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
                 updatePttKey(i, false);
 
                 isPttSetupRunning = false;
-                break;
+                return;
             }
         }
 
@@ -65,12 +65,8 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
                         updatePttKey(j, true, i);
 
                         isPttSetupRunning = false;
-                        break;
+                        return;
                     }
-                }
-
-                if (!isPttSetupRunning) {
-                    break;
                 }
             }
         }
@@ -108,13 +104,19 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
 
 void InputHandler::forwardPttKeyName()
 {
-    if (callbackAvailable) {
-        auto pttKeyName = getPttKeyName();
-        callbackRef.NonBlockingCall([pttKeyName](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "UpdatePttKeyName"),
-                Napi::String::New(env, pttKeyName), Napi::String::New(env, "") });
-        });
+    TRACK_LOG_INFO("Forwarding Ptt Key Nam 1e");
+
+    if (!callbackAvailable) {
+        return;
     }
+
+    TRACK_LOG_INFO("Forwarding Ptt Key Name {}", getPttKeyName());
+
+    auto pttKeyName = getPttKeyName();
+    callbackRef.NonBlockingCall([pttKeyName](Napi::Env env, Napi::Function jsCallback) {
+        jsCallback.Call({ Napi::String::New(env, "UpdatePttKeyName"),
+            Napi::String::New(env, pttKeyName), Napi::String::New(env, "") });
+    });
 }
 
 std::string InputHandler::getPttKeyName()

@@ -8,12 +8,9 @@ export interface Configuration {
   password: string;
   callsign: string;
 
-  pttKey: number;
-  pttKeyName: string;
   hardwareType: number;
   radioGain: number;
 
   alwaysOnTop: boolean;
-
   consentedToTelemetry: boolean | undefined;
 }

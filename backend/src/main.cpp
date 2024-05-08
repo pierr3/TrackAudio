@@ -393,6 +393,16 @@ void StopAudio(const Napi::CallbackInfo& /*info*/)
     mClient->StopAudio();
 }
 
+void SetupPttBegin(const Napi::CallbackInfo& /*info*/)
+{
+    mainStaticData::inputHandler->startPttSetup();
+}
+
+void SetupPttEnd(const Napi::CallbackInfo& /*info*/)
+{
+    mainStaticData::inputHandler->stopPttSetup();
+}
+
 static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
 {
     if (!callbackAvailable) {
@@ -852,6 +862,10 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "StartAudio"), Napi::Function::New(env, StartAudio));
 
     exports.Set(Napi::String::New(env, "StopAudio"), Napi::Function::New(env, StopAudio));
+
+    exports.Set(Napi::String::New(env, "SetupPttBegin"), Napi::Function::New(env, SetupPttBegin));
+
+    exports.Set(Napi::String::New(env, "SetupPttEnd"), Napi::Function::New(env, SetupPttEnd));
 
     exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 
