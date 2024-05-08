@@ -52,7 +52,13 @@ jobs:
           p12-file-base64: ${{ secrets.APPLE_CERT_DATA }}
           p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
 
-      - name: Install dependencies (x64)
+      - name: Install SFML native dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
+
+      - name: Install dependencies and building backend (x64)
         if: matrix.arch == 'x64'
         run: |
           npm -g i cmake-js
@@ -65,7 +71,7 @@ jobs:
           npm install ./backend/trackaudio-afv-1.0.0.tgz
           npm install
 
-      - name: Install dependencies (macOs arm64)
+      - name: Install dependencies and building backend (macOs arm64)
         if: matrix.arch == 'arm64' && matrix.os == 'macos-latest'
         run: |
           npm -g i cmake-js
@@ -78,7 +84,7 @@ jobs:
           npm install ./backend/trackaudio-afv-1.0.0.tgz
           npm install
 
-      - name: Install dependencies (linux arm64 cross compile)
+      - name: Install dependencies and building backend (linux arm64 cross compile)
         if: matrix.arch == 'arm64' && matrix.os == 'ubuntu-latest'
         run: |
           npm -g i cmake-js
@@ -131,7 +137,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
-          files: | 
+          files: |
             "out/make/**/*.deb"
             "*.AppImage"
             "*.zsync"
