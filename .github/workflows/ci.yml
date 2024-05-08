@@ -46,18 +46,18 @@ jobs:
           brew upgrade cmake
           cmake --version
 
+      - name: Install SFML native dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
+
       - name: Install dependencies
         run: |
           npm -g i cmake-js
           npm run build-backend
           npm install
 
-      - name: Install SFML native dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
-      
       - name: Run eslint
         run: npm run lint
 
