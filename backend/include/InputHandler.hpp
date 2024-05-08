@@ -39,8 +39,7 @@ private:
 
     bool isPttOpen = false;
 
-    static void updatePttKey(
-        int key, bool isJoystickButton, int joystickId = 0);
+    static void updatePttKey(int key, bool isJoystickButton, int joystickId = 0);
 
     // NOLINTNEXTLINE
     void onTimer(Poco::Timer& /*timer*/);

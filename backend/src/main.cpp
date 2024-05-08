@@ -21,24 +21,25 @@
 #include "Shared.hpp"
 #include "sdk.hpp"
 
-namespace mainStaticData {
-static std::unique_ptr<RemoteData> mRemoteDataHandler = nullptr;
-static std::unique_ptr<SDK> mApiServer = nullptr;
+struct MainThreadShared {
+public:
+    inline static std::unique_ptr<RemoteData> mRemoteDataHandler = nullptr;
+    inline static std::unique_ptr<SDK> mApiServer = nullptr;
 
-static bool ShouldRun = true;
+    inline static bool ShouldRun = true;
 
-static std::unique_ptr<std::thread> vuMeterThread = nullptr;
-static std::atomic_bool runVuMeterCallback = false;
+    inline static std::unique_ptr<std::thread> vuMeterThread = nullptr;
+    inline static std::atomic_bool runVuMeterCallback = false;
 
-static std::unique_ptr<InputHandler> inputHandler = nullptr;
-}
+    inline static std::unique_ptr<InputHandler> inputHandler = nullptr;
+};
 
 Napi::Array GetAudioApis(const Napi::CallbackInfo& info)
 {
     Napi::Env env = info.Env();
     Napi::Array arr = Napi::Array::New(env);
 
-    for (const auto [apiId, apiName] : mClient->GetAudioApis()) {
+    for (const auto& [apiId, apiName] : mClient->GetAudioApis()) {
         Napi::Object obj = Napi::Object::New(env);
         obj.Set("id", apiId);
         obj.Set("name", apiName);
@@ -84,7 +85,7 @@ Napi::Array GetAudioOutputDevices(const Napi::CallbackInfo& info)
 
 Napi::Boolean Connect(const Napi::CallbackInfo& info)
 {
-    if (!mainStaticData::ShouldRun) {
+    if (!MainThreadShared::ShouldRun) {
         return Napi::Boolean::New(info.Env(), false);
     }
 
@@ -112,7 +113,7 @@ void Disconnect(const Napi::CallbackInfo& /*info*/)
         return;
     }
     mClient->Disconnect();
-    mainStaticData::mApiServer->handleAFVEventForWebsocket(
+    MainThreadShared::mApiServer->handleAFVEventForWebsocket(
         sdk::types::Event::kDisconnectFrequencyStateUpdate, {}, {});
 }
 
@@ -143,14 +144,14 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
 
     auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
     if (!hasBeenAddded) {
-        Helpers::CallbackWithError("Could not add frequency: it already exists");
+        NapiHelpers::sendErrorToElectron("Could not add frequency: it already exists");
         TRACK_LOG_WARNING("Could not add frequency, it already exists: {} {}", frequency, callsign);
         return Napi::Boolean::New(info.Env(), false);
     }
     mClient->SetRx(frequency, false);
     mClient->SetRadioGainAll(UserSession::currentRadioGain);
 
-    mainStaticData::mApiServer->handleAFVEventForWebsocket(
+    MainThreadShared::mApiServer->handleAFVEventForWebsocket(
         sdk::types::Event::kFrequencyStateUpdate, {}, {});
 
     return Napi::Boolean::New(info.Env(), true);
@@ -160,7 +161,7 @@ void RemoveFrequency(const Napi::CallbackInfo& info)
 {
     int frequency = info[0].As<Napi::Number>().Int32Value();
     mClient->RemoveFrequency(frequency);
-    mainStaticData::mApiServer->handleAFVEventForWebsocket(
+    MainThreadShared::mApiServer->handleAFVEventForWebsocket(
         sdk::types::Event::kFrequencyStateUpdate, {}, {});
 }
 
@@ -205,7 +206,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 
     mClient->SetOnHeadset(frequency, !onSpeaker);
 
-    mainStaticData::mApiServer->handleAFVEventForWebsocket(
+    MainThreadShared::mApiServer->handleAFVEventForWebsocket(
         sdk::types::Event::kFrequencyStateUpdate, {}, {});
 
     return Napi::Boolean::New(info.Env(), true);
@@ -232,9 +233,8 @@ void RegisterCallback(const Napi::CallbackInfo& info)
     auto callbackFunction = info[0].As<Napi::Function>();
 
     // Create a ThreadSafeFunction
-    callbackRef = Napi::ThreadSafeFunction::New(
-        env, callbackFunction, "trackaudio-afv-res", 0, 1, [](Napi::Env) {});
-    callbackAvailable = true;
+    NapiHelpers::setCallbackRef(
+        Napi::ThreadSafeFunction::New(env, callbackFunction, "trackaudio-afv-res", 0, 3));
 }
 
 void GetStation(const Napi::CallbackInfo& info)
@@ -320,7 +320,7 @@ Napi::Boolean IsConnected(const Napi::CallbackInfo& info)
 
 void StartMicTest(const Napi::CallbackInfo& /*info*/)
 {
-    if (!mClient || !callbackAvailable || mainStaticData::vuMeterThread != nullptr) {
+    if (!mClient || !NapiHelpers::callbackAvailable || MainThreadShared::vuMeterThread != nullptr) {
         TRACK_LOG_WARNING("Attempted to start mic test without callback or "
                           "uninitiated client, or already running mic test, this "
                           "will be useless");
@@ -328,9 +328,9 @@ void StartMicTest(const Napi::CallbackInfo& /*info*/)
     }
 
     mClient->StartAudio();
-    mainStaticData::runVuMeterCallback = true;
+    MainThreadShared::runVuMeterCallback = true;
 
-    mainStaticData::vuMeterThread = std::make_unique<std::thread>([] {
+    MainThreadShared::vuMeterThread = std::make_unique<std::thread>([] {
         for (int i = 0; i < 2400; i++) { // Max of 2 minutes, don't allow infinite test
 #ifndef WIN32
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -341,19 +341,15 @@ void StartMicTest(const Napi::CallbackInfo& /*info*/)
                 break;
             }
 
-            if (!mainStaticData::runVuMeterCallback) {
+            if (!MainThreadShared::runVuMeterCallback) {
                 break;
             }
 
             auto vuMeter = mClient->GetInputVu();
             auto vuMeterPeak = mClient->GetInputPeak();
 
-            callbackRef.NonBlockingCall(
-                [vuMeter, vuMeterPeak](Napi::Env env, Napi::Function jsCallback) {
-                    jsCallback.Call({ Napi::String::New(env, "VuMeter"),
-                        Napi::String::New(env, std::to_string(vuMeter)),
-                        Napi::String::New(env, std::to_string(vuMeterPeak)) });
-                });
+            NapiHelpers::callElectron(
+                "VuMeter", std::to_string(vuMeter), std::to_string(vuMeterPeak));
         }
     });
 }
@@ -364,11 +360,11 @@ void StopMicTest(const Napi::CallbackInfo& /*info*/)
         return;
     }
 
-    mainStaticData::runVuMeterCallback = false;
-    if (mainStaticData::vuMeterThread && mainStaticData::vuMeterThread->joinable()) {
-        mainStaticData::vuMeterThread->join();
+    MainThreadShared::runVuMeterCallback = false;
+    if (MainThreadShared::vuMeterThread && MainThreadShared::vuMeterThread->joinable()) {
+        MainThreadShared::vuMeterThread->join();
     }
-    mainStaticData::vuMeterThread.reset(nullptr);
+    MainThreadShared::vuMeterThread.reset(nullptr);
 
     mClient->StopAudio();
 }
@@ -395,32 +391,27 @@ void StopAudio(const Napi::CallbackInfo& /*info*/)
 
 void SetupPttBegin(const Napi::CallbackInfo& /*info*/)
 {
-    mainStaticData::inputHandler->startPttSetup();
+    MainThreadShared::inputHandler->startPttSetup();
 }
 
 void SetupPttEnd(const Napi::CallbackInfo& /*info*/)
 {
-    mainStaticData::inputHandler->stopPttSetup();
+    MainThreadShared::inputHandler->stopPttSetup();
 }
 
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,readability-function-cognitive-complexity)
 static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
 {
-    if (!callbackAvailable) {
+    if (!NapiHelpers::callbackAvailable) {
         return;
     }
 
     if (eventType == afv_native::ClientEventType::VoiceServerConnected) {
-        callbackRef.NonBlockingCall([](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "VoiceConnected"), Napi::String::New(env, ""),
-                Napi::String::New(env, "") });
-        });
+        NapiHelpers::callElectron("VoiceConnected");
     }
 
     if (eventType == afv_native::ClientEventType::VoiceServerDisconnected) {
-        callbackRef.NonBlockingCall([](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "VoiceDisconnected"),
-                Napi::String::New(env, ""), Napi::String::New(env, "") });
-        });
+        NapiHelpers::callElectron("VoiceDisconnected");
     }
 
     if (eventType == afv_native::ClientEventType::StationTransceiversUpdated) {
@@ -431,12 +422,9 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         std::string station = *reinterpret_cast<std::string*>(data);
         auto transceiverCount = mClient->GetTransceiverCountForStation(station);
-        callbackRef.NonBlockingCall(
-            [transceiverCount, station](Napi::Env env, Napi::Function jsCallback) {
-                jsCallback.Call({ Napi::String::New(env, "StationTransceiversUpdated"),
-                    Napi::String::New(env, station),
-                    Napi::String::New(env, std::to_string(transceiverCount)) });
-            });
+
+        NapiHelpers::callElectron(
+            "StationTransceiversUpdated", station, std::to_string(transceiverCount));
     }
 
     if (eventType == afv_native::ClientEventType::StationDataReceived) {
@@ -447,7 +435,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         bool found = *reinterpret_cast<bool*>(data);
         if (!found) {
-            Helpers::CallbackWithError("Station not found");
+            NapiHelpers::sendErrorToElectron("Station not found");
             return;
         }
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -459,20 +447,16 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
             return;
         }
 
-        callbackRef.NonBlockingCall(
-            [callsign, frequency](Napi::Env env, Napi::Function jsCallback) {
-                jsCallback.Call({ Napi::String::New(env, "StationDataReceived"),
-                    Napi::String::New(env, callsign),
-                    Napi::String::New(env, std::to_string(frequency)) });
-            });
+        NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
     }
 
     if (eventType == afv_native::ClientEventType::VccsReceived) {
         if (data == nullptr || data2 == nullptr) {
             return;
         }
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+
         std::map<std::string, unsigned int> stations
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
             = *reinterpret_cast<std::map<std::string, unsigned int>*>(data2);
 
         for (const auto& station : stations) {
@@ -483,12 +467,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
                 continue;
             }
 
-            callbackRef.NonBlockingCall(
-                [callsign, frequency](Napi::Env env, Napi::Function jsCallback) {
-                    jsCallback.Call({ Napi::String::New(env, "StationDataReceived"),
-                        Napi::String::New(env, callsign),
-                        Napi::String::New(env, std::to_string(frequency)) });
-                });
+            NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
         }
     }
 
@@ -499,10 +478,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
-        callbackRef.NonBlockingCall([frequency](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "FrequencyRxBegin"),
-                Napi::String::New(env, std::to_string(frequency)), Napi::String::New(env, "") });
-        });
+        NapiHelpers::callElectron("FrequencyRxBegin", std::to_string(frequency));
 
         return;
     }
@@ -514,10 +490,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
-        callbackRef.NonBlockingCall([frequency](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "FrequencyRxEnd"),
-                Napi::String::New(env, std::to_string(frequency)), Napi::String::New(env, "") });
-        });
+        NapiHelpers::callElectron("FrequencyRxEnd", std::to_string(frequency));
         return;
     }
 
@@ -530,16 +503,9 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         int frequency = *reinterpret_cast<int*>(data);
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         std::string callsign = *reinterpret_cast<std::string*>(data2);
-        callbackRef.NonBlockingCall(
-            [frequency, callsign](Napi::Env env, Napi::Function jsCallback) {
-                LOG_TRACE_L1(quill::get_logger("trackaudio_logger"),
-                    "StationRxBegin to node: {} {}", frequency, callsign);
-                jsCallback.Call({ Napi::String::New(env, "StationRxBegin"),
-                    Napi::String::New(env, std::to_string(frequency)),
-                    Napi::String::New(env, callsign) });
-            });
+        NapiHelpers::callElectron("StationRxBegin", std::to_string(frequency), callsign);
 
-        mainStaticData::mApiServer->handleAFVEventForWebsocket(
+        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
             sdk::types::Event::kRxBegin, callsign, frequency);
 
         return;
@@ -555,27 +521,20 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         std::string callsign = *reinterpret_cast<std::string*>(data2);
 
-        mainStaticData::mApiServer->handleAFVEventForWebsocket(
+        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
             sdk::types::Event::kRxEnd, callsign, frequency);
     }
 
     if (eventType == afv_native::ClientEventType::PttOpen) {
-
-        callbackRef.NonBlockingCall([](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "PttState"), Napi::String::New(env, "1"),
-                Napi::String::New(env, "") });
-        });
+        NapiHelpers::callElectron("PttState", "1");
     }
 
     if (eventType == afv_native::ClientEventType::PttClosed) {
-        callbackRef.NonBlockingCall([](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "PttState"), Napi::String::New(env, "0"),
-                Napi::String::New(env, "") });
-        });
+        NapiHelpers::callElectron("PttState", "0");
     }
 
     if (eventType == afv_native::ClientEventType::AudioError) {
-        Helpers::CallbackWithError("Error stating audio devices, check your configuration.");
+        NapiHelpers::sendErrorToElectron("Error stating audio devices, check your configuration.");
     }
 
     if (eventType == afv_native::ClientEventType::APIServerError) {
@@ -588,28 +547,29 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
 
         if (err == afv_native::afv::APISessionError::BadPassword
             || err == afv_native::afv::APISessionError::RejectedCredentials) {
-            Helpers::CallbackWithError("Invalid Credentials");
+            NapiHelpers::sendErrorToElectron("Invalid Credentials");
         }
 
         if (err == afv_native::afv::APISessionError::ConnectionError) {
-            Helpers::CallbackWithError("API Connection Error, check your internet connection.");
+            NapiHelpers::sendErrorToElectron(
+                "API Connection Error, check your internet connection.");
         }
 
         if (err == afv_native::afv::APISessionError::BadRequestOrClientIncompatible) {
-            Helpers::CallbackWithError("Bad Request or Client Incompatible");
+            NapiHelpers::sendErrorToElectron("Bad Request or Client Incompatible");
         }
 
         if (err == afv_native::afv::APISessionError::InvalidAuthToken) {
-            Helpers::CallbackWithError("Invalid Auth Token.");
+            NapiHelpers::sendErrorToElectron("Invalid Auth Token.");
         }
 
         if (err == afv_native::afv::APISessionError::AuthTokenExpiryTimeInPast) {
-            Helpers::CallbackWithError(
+            NapiHelpers::sendErrorToElectron(
                 "Auth Token has expired, check if your system time is correct.");
         }
 
         if (err == afv_native::afv::APISessionError::OtherRequestError) {
-            Helpers::CallbackWithError("Unknown Error with AFV API");
+            NapiHelpers::sendErrorToElectron("Unknown Error with AFV API");
         }
     }
 }
@@ -669,10 +629,11 @@ void CreateLoggers()
           }());
 
     // Create a file logger
-    auto* _ = quill::create_logger("afv_logger", std::move(afv_logger));
+    auto* _afv_logger = quill::create_logger("afv_logger", std::move(afv_logger));
 
     // NOLINTNEXTLINE this cannot be solved here but in afv
     afv_native::api::setLogger(
+        // NOLINTNEXTLINE
         [](std::string subsystem, std::string file, int line, std::string lineOut) {
             auto strippedFiledName = file.substr(file.find_last_of('/') + 1);
             LOG_INFO(quill::get_logger("afv_logger"), "[{}] [{}@{}] {}", subsystem,
@@ -680,6 +641,7 @@ void CreateLoggers()
         });
 }
 
+// NOLINTNEXTLINE
 void InitialiseConfig()
 {
     std::string settingsFilePath = (GetStateFolderPath() / "settings.ini").string();
@@ -701,8 +663,10 @@ void InitialiseConfig()
         }
     }
 
-    UserSettings::PttKey = UserSettings::ini.GetLongValue("Settings", "PttKey", 0);
-    UserSettings::JoystickId = UserSettings::ini.GetLongValue("Settings", "JoystickId", 0);
+    UserSettings::PttKey
+        = static_cast<int>(UserSettings::ini.GetLongValue("Settings", "PttKey", 0));
+    UserSettings::JoystickId
+        = static_cast<int>(UserSettings::ini.GetLongValue("Settings", "JoystickId", 0));
     UserSettings::isJoystickButton
         = UserSettings::ini.GetBoolValue("Settings", "isJoystickButton", false);
 }
@@ -716,7 +680,7 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         httplib::Client client(VERSION_CHECK_BASE_URL);
         auto res = client.Get(VERSION_CHECK_ENDPOINT);
         if (!res || res->status != httplib::StatusCode::OK_200) {
-            mainStaticData::ShouldRun = false;
+            MainThreadShared::ShouldRun = false;
             TRACK_LOG_CRITICAL("Error fetching version: {}", res->status);
             return false;
         }
@@ -725,13 +689,13 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         absl::StripAsciiWhitespace(&cleanBody);
         auto mandatoryVersion = semver::version(cleanBody);
         if (VERSION < mandatoryVersion) {
-            mainStaticData::ShouldRun = false;
+            MainThreadShared::ShouldRun = false;
             TRACK_LOG_ERROR("Mandatory update required: {} -> {}", VERSION.to_string(),
                 mandatoryVersion.to_string());
             return false;
         }
     } catch (const std::exception& e) {
-        mainStaticData::ShouldRun = false;
+        MainThreadShared::ShouldRun = false;
         TRACK_LOG_CRITICAL("Error parsing version: {}", e.what());
         return false;
     }
@@ -762,17 +726,17 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 
     std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
     mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath);
-    mainStaticData::mRemoteDataHandler = std::make_unique<RemoteData>();
+    MainThreadShared::mRemoteDataHandler = std::make_unique<RemoteData>();
 
     // Setup afv
     mClient->RaiseClientEvent([](afv_native::ClientEventType eventType, void* data1, void* data2) {
         HandleAfvEvents(eventType, data1, data2);
     });
 
-    mainStaticData::mApiServer = std::make_unique<SDK>();
+    MainThreadShared::mApiServer = std::make_unique<SDK>();
 
     try {
-        mainStaticData::inputHandler = std::make_unique<InputHandler>();
+        MainThreadShared::inputHandler = std::make_unique<InputHandler>();
     } catch (const std::exception& e) {
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
         TRACK_LOG_CRITICAL("Error creating input handler: {}", e.what());
@@ -789,9 +753,9 @@ void Exit(const Napi::CallbackInfo& /*info*/)
     if (mClient->IsVoiceConnected()) {
         mClient->Disconnect();
     }
-    mainStaticData::mApiServer.reset();
-    mainStaticData::mRemoteDataHandler.reset();
-    mainStaticData::inputHandler.reset();
+    MainThreadShared::mApiServer.reset();
+    MainThreadShared::mRemoteDataHandler.reset();
+    MainThreadShared::inputHandler.reset();
 
     mClient.reset();
 }

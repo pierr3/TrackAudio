@@ -44,4 +44,7 @@ private:
     void notifyUserOfSlurperAvailability() const;
 
     void notifyUserOfSlurperUnavalability();
+
+    const std::vector<std::string> allowedYx = { "_CTR", "_APP", "_TWR", "_GND", "_DEP", "_DEL",
+        "_FSS", "_SUP", "_RDO", "_RMP", "_TMU", "_FMP" };
 };

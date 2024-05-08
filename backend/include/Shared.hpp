@@ -2,12 +2,10 @@
 #include "afv-native/afv_native.h"
 #include <SimpleIni.h>
 #include <memory>
-#include <mutex>
 #include <napi.h>
 #include <quill/Logger.h>
 #include <semver.hpp>
 #include <string>
-#include <vector>
 
 #define TRACK_LOG_INFO(fmt, ...)                                                                   \
     LOG_INFO(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
@@ -17,15 +15,6 @@
     LOG_ERROR(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
 #define TRACK_LOG_CRITICAL(fmt, ...)                                                               \
     LOG_CRITICAL(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
-
-constexpr semver::version VERSION = semver::version { 1, 0, 2, semver::prerelease::beta, 2 };
-
-const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
-
-static Napi::ThreadSafeFunction callbackRef;
-static bool callbackAvailable = false;
-
-static std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 
 #define TIMER_CALLBACK_INTERVAL_SEC 15
 #define SLURPER_BASE_URL "https://slurper.vatsim.net"
@@ -39,29 +28,35 @@ static std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 
 #define API_SERVER_PORT 49080
 
-const std::vector<std::string> allowedYx = { "_CTR", "_APP", "_TWR", "_GND", "_DEP", "_DEL", "_FSS",
-    "_SUP", "_RDO", "_RMP", "_TMU", "_FMP" };
+constexpr semver::version VERSION = semver::version { 1, 0, 2, semver::prerelease::beta, 2 };
+// NOLINTNEXTLINE
+const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
 
-namespace UserSession {
-static std::string cid;
-static std::string callsign;
-static int frequency = OBS_FREQUENCY;
-static double lat = 0.0;
-static double lon = 0.0;
-static bool isATC = false;
-static bool isConnectedToTheNetwork = false;
-static float currentRadioGain = 0.5;
-} // namespace UserSession
+// NOLINTNEXTLINE
+static std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 
-namespace RemoteDataStatus {
-static bool isSlurperAvailable = false;
-}
+struct UserSession {
+public:
+    inline static std::string cid;
+    inline static std::string callsign;
+    inline static int frequency = OBS_FREQUENCY;
+    inline static double lat = 0.0;
+    inline static double lon = 0.0;
+    inline static bool isATC = false;
+    inline static bool isConnectedToTheNetwork = false;
+    inline static float currentRadioGain = 0.5;
+};
 
-namespace UserSettings {
-static int PttKey = 0;
-static int JoystickId = 0;
-static bool isJoystickButton = false;
-static inline CSimpleIniA ini;
-}
+struct RemoteDataStatus {
+public:
+    inline static bool isSlurperAvailable = false;
+};
 
-static std::mutex errorCallbackMutex;
+struct UserSettings {
+public:
+    inline static int PttKey = 0;
+    inline static int JoystickId = 0;
+    inline static bool isJoystickButton = false;
+    // NOLINTNEXTLINE
+    inline static CSimpleIniA ini;
+};

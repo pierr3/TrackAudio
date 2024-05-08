@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <mutex>
+#include <quill/Quill.h>
 #include <string>
 
 class Helpers {
@@ -28,24 +29,6 @@ public:
     }
 
     /**
-     * Calls the NAPI frontend callback function with an error message.
-     *
-     * @param message The error message to pass to the callback.
-     */
-    static void CallbackWithError(const std::string& message)
-    {
-        std::lock_guard<std::mutex> lock(errorCallbackMutex);
-        if (!callbackAvailable) {
-            return;
-        }
-
-        callbackRef.NonBlockingCall([message](Napi::Env env, Napi::Function jsCallback) {
-            jsCallback.Call({ Napi::String::New(env, "error"), Napi::String::New(env, message),
-                Napi::String::New(env, "") });
-        });
-    }
-
-    /**
      * Converts a frequency in Hertz to a human-readable string representation.
      *
      * @param frequencyHz The frequency in Hertz to convert.
@@ -57,4 +40,43 @@ public:
         std::string temp = std::to_string(frequencyHz / 1000);
         return temp.substr(0, 3) + "." + temp.substr(3, 7);
     }
+};
+
+class NapiHelpers {
+public:
+    inline static std::unique_ptr<Napi::ThreadSafeFunction> callbackRef = nullptr;
+    inline static bool callbackAvailable = false;
+
+    static void setCallbackRef(Napi::ThreadSafeFunction callbackRef)
+    {
+        NapiHelpers::callbackRef
+            = std::make_unique<Napi::ThreadSafeFunction>(std::move(callbackRef));
+        NapiHelpers::callbackAvailable = true;
+    }
+
+    inline static void callElectron(
+        const std::string& eventName, const std::string& data = "", const std::string& data2 = "")
+    {
+        if (!NapiHelpers::callbackAvailable || NapiHelpers::callbackRef == nullptr) {
+            return;
+        }
+
+        std::lock_guard<std::mutex> lock(_mutex);
+
+        callbackRef->NonBlockingCall(
+            [eventName, data, data2](Napi::Env env, Napi::Function jsCallback) {
+                LOG_TRACE_L1(quill::get_logger("trackaudio_logger"),
+                    "Event name: {}, data: {}, data2: {}", eventName, data, data2);
+                jsCallback.Call({ Napi::String::New(env, eventName), Napi::String::New(env, data),
+                    Napi::String::New(env, data2) });
+            });
+    }
+
+    inline static void sendErrorToElectron(const std::string& message)
+    {
+        callElectron("error", message);
+    }
+
+protected:
+    inline static std::mutex _mutex;
 };

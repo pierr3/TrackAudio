@@ -150,8 +150,8 @@ void RemoteData::updateSessionStatus(std::string previousCallsign, bool isConnec
                        "disconnecting ({} -> {})",
             previousCallsign, UserSession::callsign);
         mClient->Disconnect();
-        Helpers::CallbackWithError("Callsign changed during an active session, "
-                                   "you have been disconnected.");
+        NapiHelpers::sendErrorToElectron("Callsign changed during an active session, "
+                                         "you have been disconnected.");
     }
 
     if (isConnected) {
@@ -159,16 +159,9 @@ void RemoteData::updateSessionStatus(std::string previousCallsign, bool isConnec
         // We update the session state
         std::string callsign = UserSession::callsign;
         std::string isatc = UserSession::isATC ? "1" : "0";
-        std::string datastring = isatc + "," + std::to_string(UserSession::frequency);
+        std::string combinedString = isatc + "," + std::to_string(UserSession::frequency);
 
-        if (callbackAvailable) {
-            callbackRef.NonBlockingCall(
-                [callsign, datastring](Napi::Env env, Napi::Function jsCallback) {
-                    jsCallback.Call({ Napi::String::New(env, "network-connected"),
-                        Napi::String::New(env, UserSession::callsign),
-                        Napi::String::New(env, datastring) });
-                });
-        }
+        NapiHelpers::callElectron("network-connected", callsign, combinedString);
 
         UserSession::isConnectedToTheNetwork = true;
         return;
@@ -177,20 +170,15 @@ void RemoteData::updateSessionStatus(std::string previousCallsign, bool isConnec
             mClient->Disconnect();
             TRACK_LOG_INFO("Disconnected from the network because no active "
                            "connection was found in the slurper data.");
-            Helpers::CallbackWithError("Network disconnection detected, you have "
-                                       "been disconnected.");
+            NapiHelpers::sendErrorToElectron("No active connection found in the slurper data, "
+                                             "you have been disconnected.");
         }
 
         UserSession::isConnectedToTheNetwork = false;
         UserSession::isATC = false;
         UserSession::callsign = "";
 
-        if (callbackAvailable) {
-            callbackRef.NonBlockingCall([&](Napi::Env env, Napi::Function jsCallback) {
-                jsCallback.Call({ Napi::String::New(env, "network-disconnected"),
-                    Napi::String::New(env, ""), Napi::String::New(env, "") });
-            });
-        }
+        NapiHelpers::callElectron("network-disconnected");
     }
 }
 
@@ -200,27 +188,15 @@ void RemoteData::notifyUserOfSlurperAvailability() const
         return;
     }
 
-    if (!callbackAvailable) {
-        return;
-    }
-
     if (!userHasBeenNotifiedOfSlurperUnavailability) {
         return;
     }
 
-    callbackRef.NonBlockingCall([&](Napi::Env env, Napi::Function jsCallback) {
-        jsCallback.Call({ Napi::String::New(env, "error"),
-            Napi::String::New(env, "Slurper is back online. You can now connect to the network."),
-            Napi::String::New(env, "") });
-    });
+    NapiHelpers::sendErrorToElectron("Slurper is back online. You can now connect to the network.");
 }
 
 void RemoteData::notifyUserOfSlurperUnavalability()
 {
-    if (!callbackAvailable) {
-        return;
-    }
-
     if (userHasBeenNotifiedOfSlurperUnavailability) {
         return; // We only want to notify the user once
     }
@@ -229,14 +205,9 @@ void RemoteData::notifyUserOfSlurperUnavalability()
         userHasBeenNotifiedOfSlurperUnavailability = true;
     }
 
-    callbackRef.NonBlockingCall([&](Napi::Env env, Napi::Function jsCallback) {
-        jsCallback.Call({ Napi::String::New(env, "error"),
-            Napi::String::New(env,
-                "Error while parsing slurper data, check the log file. This means your "
-                "internet may be down or the VATSIM servers may "
-                "experience an outage. You will not be able to connect until this is resolved. "
-                "TrackAudio will keep retrying in the "
-                "background."),
-            Napi::String::New(env, "") });
-    });
+    NapiHelpers::sendErrorToElectron("Error while parsing slurper data, check the log file. "
+                                     "This means your internet may be down or the VATSIM servers "
+                                     "may experience an outage. You will not be able to connect "
+                                     "until this is resolved. TrackAudio will keep retrying in the "
+                                     "background.");
 };

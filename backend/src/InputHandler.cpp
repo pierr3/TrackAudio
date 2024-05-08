@@ -1,4 +1,5 @@
 #include "InputHandler.hpp"
+#include "Helpers.hpp"
 #include "Shared.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <string>
@@ -26,10 +27,6 @@ void InputHandler::stopPttSetup()
 
 void InputHandler::updatePttKey(int key, bool isJoystickButton, int joystickId)
 {
-    if (!callbackAvailable) {
-        return;
-    }
-
     UserSettings::PttKey = key;
     UserSettings::isJoystickButton = isJoystickButton;
     UserSettings::JoystickId = joystickId;
@@ -104,19 +101,10 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
 
 void InputHandler::forwardPttKeyName()
 {
-    TRACK_LOG_INFO("Forwarding Ptt Key Nam 1e");
-
-    if (!callbackAvailable) {
-        return;
-    }
-
     TRACK_LOG_INFO("Forwarding Ptt Key Name {}", getPttKeyName());
 
     auto pttKeyName = getPttKeyName();
-    callbackRef.NonBlockingCall([pttKeyName](Napi::Env env, Napi::Function jsCallback) {
-        jsCallback.Call({ Napi::String::New(env, "UpdatePttKeyName"),
-            Napi::String::New(env, pttKeyName), Napi::String::New(env, "") });
-    });
+    NapiHelpers::callElectron("UpdatePttKeyName", pttKeyName);
 }
 
 std::string InputHandler::getPttKeyName()
