@@ -54,16 +54,28 @@ const Bootsrap: React.FC = () => {
     );
 
     window.api.on("FrequencyRxBegin", (frequency: string) => {
+      if (useRadioState.getState().isInactive(parseInt(frequency))) {
+        return;
+      }
+
       useRadioState.getState().setCurrentlyRx(parseInt(frequency), true);
     });
 
     window.api.on("StationRxBegin", (frequency: string, callsign: string) => {
+      if (useRadioState.getState().isInactive(parseInt(frequency))) {
+        return;
+      }
+
       useRadioState
         .getState()
         .setLastReceivedCallsign(parseInt(frequency), callsign);
     });
 
     window.api.on("FrequencyRxEnd", (frequency: string) => {
+      if (useRadioState.getState().isInactive(parseInt(frequency))) {
+        return;
+      }
+      
       useRadioState.getState().setCurrentlyRx(parseInt(frequency), false);
     });
 

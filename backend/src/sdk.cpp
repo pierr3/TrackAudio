@@ -153,7 +153,7 @@ restinio::request_handling_status_t SDK::handleRxSDKCall(const restinio::request
 
     std::vector<std::string> outData;
     for (const auto& [freq, state] : mClient->getRadioState()) {
-        if (!mClient->GetRxState(freq)) {
+        if (!state.rx) {
             continue;
         }
         outData.push_back(state.stationName + ":" + Helpers::ConvertHzToHumanString(freq));
@@ -171,7 +171,7 @@ restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request
 
     std::vector<std::string> outData;
     for (const auto& [freq, state] : mClient->getRadioState()) {
-        if (!mClient->GetTxState(freq)) {
+        if (!state.tx) {
             continue;
         }
         outData.push_back(state.stationName + ":" + Helpers::ConvertHzToHumanString(freq));

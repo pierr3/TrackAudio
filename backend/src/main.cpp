@@ -160,6 +160,10 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
 void RemoveFrequency(const Napi::CallbackInfo& info)
 {
     int frequency = info[0].As<Napi::Number>().Int32Value();
+    mClient->SetRx(frequency, false);
+    mClient->SetTx(frequency, false);
+    mClient->SetXc(frequency, false);
+    mClient->SetCrossCoupleAcross(frequency, false);
     mClient->RemoveFrequency(frequency);
     MainThreadShared::mApiServer->handleAFVEventForWebsocket(
         sdk::types::Event::kFrequencyStateUpdate, {}, {});
@@ -446,6 +450,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         unsigned int frequency = stationData.second;
 
         if (mClient->IsFrequencyActive(frequency)) {
+            TRACK_LOG_WARNING("StationDataReceived: Frequency {} already active, skipping", frequency);
             return;
         }
 
@@ -466,6 +471,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
             const unsigned int frequency = station.second;
 
             if (mClient->IsFrequencyActive(frequency)) {
+                TRACK_LOG_WARNING("VccsReceived: Frequency {} already active, skipping", frequency);
                 continue;
             }
 
@@ -480,6 +486,11 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
+        if (!mClient->IsFrequencyActive(frequency)) {
+            TRACK_LOG_WARNING("FrequencyRxBegin: Frequency {} not active, skipping", frequency);
+            return;
+        }
+
         NapiHelpers::callElectron("FrequencyRxBegin", std::to_string(frequency));
 
         return;
@@ -492,6 +503,11 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
+        if (!mClient->IsFrequencyActive(frequency)) {
+            TRACK_LOG_WARNING("FrequencyRxEnd: Frequency {} not active, skipping", frequency);
+            return;
+        }
+
         NapiHelpers::callElectron("FrequencyRxEnd", std::to_string(frequency));
         return;
     }
@@ -505,6 +521,11 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         int frequency = *reinterpret_cast<int*>(data);
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         std::string callsign = *reinterpret_cast<std::string*>(data2);
+        if (!mClient->IsFrequencyActive(frequency)) {
+            TRACK_LOG_WARNING("StationRxBegin: Frequency {} not active, skipping", frequency);
+            return;
+        }
+
         NapiHelpers::callElectron("StationRxBegin", std::to_string(frequency), callsign);
 
         MainThreadShared::mApiServer->handleAFVEventForWebsocket(
@@ -522,6 +543,11 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         int frequency = *reinterpret_cast<int*>(data);
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         std::string callsign = *reinterpret_cast<std::string*>(data2);
+
+        if (!mClient->IsFrequencyActive(frequency)) {
+            TRACK_LOG_WARNING("StationRxEnd: Frequency {} not active, skipping", frequency);
+            return;
+        }
 
         MainThreadShared::mApiServer->handleAFVEventForWebsocket(
             sdk::types::Event::kRxEnd, callsign, frequency);
