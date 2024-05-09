@@ -98,11 +98,11 @@ Download the latest release on the [release page](https://github.com/pierr3/Trac
 
 ### Dependencies
 
-TrackAudio depends on afv-native and libuiohook.
+TrackAudio depends on afv-native and SFML (for input handling).
 
 `cmake` is required to build the project. Dependencies will be downloaded through vcpkg at build time. See vcpkg.json for further details.
 
-On linux, the following packages are required: `build-essentials libxt-dev libxrandr-dev libxtst-dev libx11-dev`, you may also need further packages to enable the different audio backends, such as Alsa, JACK or PulseAudio.
+On linux, the following packages are required: `build-essentials libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config`, you may also need further packages to enable the different audio backends, such as Alsa, JACK or PulseAudio.
 
 On macOS, XCode Command Line tools, CMake and Homebrew are required and the following homebrew package is required: `pkg-config`
 

@@ -11,12 +11,4 @@ export const plugins = [
   new ForkTsCheckerWebpackPlugin({
     logger: 'webpack-infrastructure',
   }),
-  // new CopyPlugin({
-  //   patterns: [
-  //     {
-  //       from: path.resolve(__dirname, "./node_modules/uiohook-napi/prebuilds"),
-  //       to: "node_modules/uiohook-napi/prebuilds"
-  //     }
-  //   ]
-  // }),
 ];
