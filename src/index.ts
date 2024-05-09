@@ -3,7 +3,6 @@ import {
   BrowserWindow,
   dialog,
   ipcMain,
-  systemPreferences,
 } from "electron";
 
 import { TrackAudioAfv, AfvEventTypes } from "trackaudio-afv";
@@ -142,18 +141,6 @@ app.on("ready", () => {
     }
   }
 
-  if (
-    process.platform === "darwin" &&
-    !systemPreferences.isTrustedAccessibilityClient(true)
-  ) {
-    dialog.showMessageBoxSync({
-      type: "info",
-      message:
-        "This application requires accessibility permissions (for push to talk to work). Please grant these in System Preferences.",
-      buttons: ["OK"],
-    });
-  }
-
   const bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
 
   if (bootstrapOutput.needUpdate) {
@@ -214,7 +201,7 @@ ipcMain.handle("get-configuration", () => {
 });
 
 ipcMain.handle("request-ptt-key-name", () => {
-  void TrackAudioAfv.RequestPttKeyName();
+  TrackAudioAfv.RequestPttKeyName();
 });
 
 //

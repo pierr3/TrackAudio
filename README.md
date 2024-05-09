@@ -20,7 +20,7 @@ TrackAudio is simply the next iteration of VectorAudio, using a different set of
 
 ### My PTT does not work on macOS
 
-macOS has strict permissioning around background keyboard inputs. TrackAudio should prompt you on first launch to request accesibility permissions. Sometimes, upon updating the app, this setting will undo itself. In that case, please go to your Settings -> Privacy & Security -> Accessibility and add TrackAudio in the list (remove it if it was already there).
+macOS has strict permissioning around background keyboard inputs. TrackAudio should prompt you on first launch to request input monitoring permissions. Sometimes, upon updating the app, this setting will undo itself. In that case, please go to your Settings -> Privacy & Security -> Input Monitoring and add TrackAudio in the list (remove it if it was already there). This is required purely because otherwise, your Push to Talk would not work when the window is not in focus (if you use a keyboard push to talk, a Joystick push to talk does not require this permission)
 
 ### Where are the log files stored?
 
@@ -47,6 +47,14 @@ Yes, but only if you add a frequency by callsign (must be defined in database). 
 ### Can I add a frequency manually if it does not exist in the database?
 
 Yes, using the menu on the right, however, this will only create one transceiver (antenna) at your center of visibility set in your atc client. This means that you will not get the same radio coverage as stations defined in database.
+
+### What's this telemetry popup about?
+
+TrackAudio utilizes remote telemetry in the event of a bug, sending an error report to a tool called Sentry. Only essential information from the crash report is sent, and no data leaves your device unless an error occurs. We do not record your IP address or VATSIM password. Your data would be sent to a third-party service, Sentry, to their servers located in Germany.
+
+This is entirely optional, but greatly assists in tracking down errors.
+
+If you opt-in, you can opt-out at any time in the settings. You will need to restart TrackAudio for this to fully take effect.
 
 ### What is XC and XCA?
 

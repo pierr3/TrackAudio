@@ -5,7 +5,7 @@
 #include <string>
 
 InputHandler::InputHandler()
-    : isPttSetupRunning(true)
+    : isPttSetupRunning(false)
     , timer(0, 35)
 {
     timer.start(Poco::TimerCallback<InputHandler>(*this, &InputHandler::onTimer));
