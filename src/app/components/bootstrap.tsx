@@ -75,7 +75,7 @@ const Bootsrap: React.FC = () => {
       if (useRadioState.getState().isInactive(parseInt(frequency))) {
         return;
       }
-      
+
       useRadioState.getState().setCurrentlyRx(parseInt(frequency), false);
     });
 
