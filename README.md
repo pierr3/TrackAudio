@@ -28,10 +28,6 @@ On macOS: `~/Library/Application\ Support/trackaudio`
 On Linux: `~/.local/state/trackaudio`
 On Windows: `%LocalAppData%\trackaudio`
 
-### Does TrackAudio support joystick PTT?
-
-Not at the moment.
-
 ### The station I am trying to add is not found
 
 Ask your FE to define the station in the AFV database. Per the AFV FE manual, all stations should be defined in the database. TrackAudio does support ad-hoc station creation if you log-in as a DEL, GND or TWR that has no station definition. It will then place a transceiver at your center of visibility set in your controller client.
