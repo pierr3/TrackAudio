@@ -1,6 +1,7 @@
 #include "InputHandler.hpp"
 #include "Helpers.hpp"
 #include "Shared.hpp"
+#include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <string>
 
@@ -44,8 +45,8 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
     if (isPttSetupRunning) {
 
         // Check for Key presses
-        for (int i = 0; i < sf::Keyboard::Scan::ScancodeCount; i++) {
-            if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Scan::Scancode>(i))) {
+        for (int i = sf::Keyboard::Scancode::A; i < sf::Keyboard::Scancode::ScancodeCount; i++) {
+            if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Scancode>(i))) {
                 TRACK_LOG_INFO("Ptt Key set: {}", i);
                 updatePttKey(i, false);
 
@@ -56,15 +57,17 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
 
         // Check for Joystick presses
         for (int i = 0; i < sf::Joystick::Count; i++) {
-            if (sf::Joystick::isConnected(i)) {
-                for (int j = 0; j < sf::Joystick::getButtonCount(i); j++) {
-                    if (sf::Joystick::isButtonPressed(i, j)) {
-                        TRACK_LOG_INFO("Joystick Ptt Key set: {} on Joystick {}", j, i);
-                        updatePttKey(j, true, i);
+            if (!sf::Joystick::isConnected(i)) {
+                continue;
+            }
 
-                        isPttSetupRunning = false;
-                        return;
-                    }
+            for (int j = 0; j < sf::Joystick::getButtonCount(i); j++) {
+                if (sf::Joystick::isButtonPressed(i, j)) {
+                    TRACK_LOG_INFO("Joystick Ptt Key set: {} on Joystick {}", j, i);
+                    updatePttKey(j, true, i);
+
+                    isPttSetupRunning = false;
+                    return;
                 }
             }
         }
@@ -72,28 +75,31 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
         return;
     }
 
-    if (UserSettings::PttKey == 0) {
+    if (UserSettings::PttKey == -1) {
         return;
     }
 
     if (UserSettings::isJoystickButton) {
-        if (sf::Joystick::isButtonPressed(UserSettings::JoystickId, UserSettings::PttKey)
-            && !isPttOpen) {
+        if (!sf::Joystick::isConnected(UserSettings::JoystickId)) {
+            return;
+        }
+
+        auto isButtonPressed
+            = sf::Joystick::isButtonPressed(UserSettings::JoystickId, UserSettings::PttKey);
+        if (isButtonPressed && !isPttOpen) {
             mClient->SetPtt(true);
             isPttOpen = true;
-        } else if (!sf::Joystick::isButtonPressed(UserSettings::JoystickId, UserSettings::PttKey)
-            && isPttOpen) {
+        } else if (!isButtonPressed && isPttOpen) {
             mClient->SetPtt(false);
             isPttOpen = false;
         }
     } else {
-        if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Scancode>(UserSettings::PttKey))
-            && !isPttOpen) {
+        auto isKeyPressed
+            = sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Scancode>(UserSettings::PttKey));
+        if (isKeyPressed && !isPttOpen) {
             mClient->SetPtt(true);
             isPttOpen = true;
-        } else if (!sf::Keyboard::isKeyPressed(
-                       static_cast<sf::Keyboard::Scancode>(UserSettings::PttKey))
-            && isPttOpen) {
+        } else if (!isKeyPressed && isPttOpen) {
             mClient->SetPtt(false);
             isPttOpen = false;
         }
@@ -115,7 +121,8 @@ std::string InputHandler::getPttKeyName()
     }
 
     if (UserSettings::isJoystickButton) {
-        return "Joystick " + std::to_string(UserSettings::PttKey);
+        return sf::Joystick::getIdentification(UserSettings::JoystickId).name + " "
+            + std::to_string(UserSettings::PttKey);
     }
 
     return sf::Keyboard::getDescription(

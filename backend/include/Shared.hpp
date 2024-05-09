@@ -63,7 +63,7 @@ public:
 
 struct UserSettings {
 public:
-    inline static int PttKey = 0;
+    inline static int PttKey = -1;
     inline static int JoystickId = 0;
     inline static bool isJoystickButton = false;
     // NOLINTNEXTLINE

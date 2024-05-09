@@ -147,7 +147,7 @@ jobs:
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-2019' && always()
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
           files: "out/make/**/*.exe"
