@@ -31,3 +31,4 @@ chmod +x ./build/TrackAudio.AppDir/AppRun
 wget -O appimagetool-x86_64.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
 chmod +x appimagetool-x86_64.AppImage
 ./appimagetool-x86_64.AppImage ./build/TrackAudio.AppDir -u "gh-releases-zsync|pierr3|TrackAudio|latest|TrackAudio-*$arch.AppImage.zsync"
+rm ./appimagetool-x86_64.AppImage

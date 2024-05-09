@@ -26,6 +26,12 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     {
+      name: "@electron-forge/maker-zip",
+      config: {
+        platforms: ["windows"],
+      }
+    },
+    {
       name: "@psiservices-ccounterman/electron-forge-maker-nsis",
       config: {
         installerIcon: "resources/AppIcon/AppIcon.ico",
