@@ -58,7 +58,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
+          sudo apt-get install -y desktop-file-validate libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
 
       - name: Replace repositories with amd64 and arm64 repositories
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'
@@ -82,7 +82,7 @@ jobs:
           sudo apt-get remove libgpg-error-dev
           sudo dpkg --add-architecture arm64
           sudo apt-get update
-          sudo apt-get install -y ninja-build gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64 python3-jinja2:amd64 libgcrypt20:arm64 libgcrypt20-dev:arm64 libgpg-error-dev:arm64 libx11-dev:arm64 libxrandr-dev:arm64 libxcursor-dev:arm64 libxi-dev:arm64 libudev-dev:arm64 libgl1-mesa-dev:arm64
+          sudo apt-get install -y desktop-file-validate ninja-build gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64 python3-jinja2:amd64 libgcrypt20:arm64 libgcrypt20-dev:arm64 libgpg-error-dev:arm64 libx11-dev:arm64 libxrandr-dev:arm64 libxcursor-dev:arm64 libxi-dev:arm64 libudev-dev:arm64 libgl1-mesa-dev:arm64
 
       - name: Install dependencies and building backend (x64)
         if: matrix.arch == 'x64'
@@ -124,10 +124,10 @@ jobs:
           npm install
 
       - name: Package app
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        # env:
+        #   APPLE_ID: ${{ secrets.APPLE_ID }}
+        #   APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
+        #   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: npm run make -- --arch ${{ matrix.arch }}
 
       - name: Make AppImage
