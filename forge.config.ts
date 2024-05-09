@@ -43,12 +43,7 @@ const config: ForgeConfig = {
           },
         },
         packagerOptions: {
-          osxSign: {},
-          osxNotarize: {
-            appleId: process.env.APPLE_ID ?? "",
-            appleIdPassword: process.env.APPLE_NOTARIZATION_PASSWORD ?? "",
-            teamId: process.env.APPLE_TEAM_ID ?? "",
-          },
+          osxSign: {}
         },
       },
     },

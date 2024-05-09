@@ -124,6 +124,8 @@ jobs:
           npm install
 
       - name: Package app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # env:
         #   APPLE_ID: ${{ secrets.APPLE_ID }}
         #   APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
@@ -163,6 +165,6 @@ jobs:
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
           files: |
-            "out/make/**/*.deb"
-            "*.AppImage"
-            "*.zsync"
+            out/make/**/*.deb
+            *.AppImage
+            *.zsync
