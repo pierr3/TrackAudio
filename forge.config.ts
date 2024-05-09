@@ -14,6 +14,7 @@ const config: ForgeConfig = {
   packagerConfig: {
     name: "TrackAudio",
     asar: true,
+    osxSign: {},
     icon: "resources/AppIcon/AppIcon",
     extraResource: [
       "resources/AC_Bus_f32.wav",
@@ -37,14 +38,6 @@ const config: ForgeConfig = {
       name: "@electron-forge/maker-dmg",
       config: {
         icon: "resources/AppIcon/AppIcon.icns",
-        additionalDMGOptions: {
-          "code-sign": {
-            "signing-identity": "Developer ID Application",
-          },
-        },
-        packagerOptions: {
-          osxSign: {}
-        },
       },
     },
     {

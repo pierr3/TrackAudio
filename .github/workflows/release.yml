@@ -132,6 +132,13 @@ jobs:
         #   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: npm run make -- --arch ${{ matrix.arch }}
 
+      - name: Codesign dmg
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd out/make
+          dmg_file=$(find . -name "*.dmg" -type f)
+          codesign --timestamp --verbose --sign "Developer ID Application" $dmg_file
+
       - name: Make AppImage
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -147,7 +154,7 @@ jobs:
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
-        if: matrix.os == 'windows-2019' && always()
+        if: matrix.os == 'windows-2019'
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
           files: "out/make/**/*.exe"
