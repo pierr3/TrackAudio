@@ -41,13 +41,15 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
 {
     sf::Joystick::update();
 
+    // Strangely, if you don't call this every time, SFML will just crash?
+    sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Unknown);
+
     std::lock_guard<std::mutex> lock(m);
     if (isPttSetupRunning) {
 
         // Check for Key presses
         for (int i = sf::Keyboard::Scancode::A; i < sf::Keyboard::Scancode::ScancodeCount; i++) {
             if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Scancode>(i))) {
-                TRACK_LOG_INFO("Ptt Key set: {}", i);
                 updatePttKey(i, false);
 
                 isPttSetupRunning = false;
