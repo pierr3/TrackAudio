@@ -24,6 +24,7 @@ export interface RadioType {
 
 interface RadioState {
   radios: RadioType[];
+  pttIsOn: boolean;
   addRadio: (
     frequency: number,
     callsign: string,
@@ -74,6 +75,7 @@ export class RadioHelper {
 
 const useRadioState = create<RadioState>((set) => ({
   radios: [],
+  pttIsOn: false,
   addRadio: (frequency, callsign, stationCallsign) => {
     if (
       RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)
@@ -224,6 +226,7 @@ const useRadioState = create<RadioState>((set) => ({
   },
   setCurrentlyTx: (value) => {
     set((state) => ({
+      pttIsOn: value,
       radios: state.radios.map((radio) =>
         radio.tx ? { ...radio, currentlyTx: value } : radio,
       ),

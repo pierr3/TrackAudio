@@ -399,6 +399,8 @@ void SetupPttEnd(const Napi::CallbackInfo& /*info*/)
     MainThreadShared::inputHandler->stopPttSetup();
 }
 
+void RequestPttKeyName(const Napi::CallbackInfo& /*info*/) { InputHandler::forwardPttKeyName(); }
+
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,readability-function-cognitive-complexity)
 static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
 {
@@ -574,23 +576,18 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
     }
 }
 
-std::filesystem::path GetStateFolderPath()
-{
-    return std::filesystem::path(sago::getStateDir()) / "trackaudio";
-}
-
 Napi::String GetStateFolderNapi(const Napi::CallbackInfo& info)
 {
-    return Napi::String::New(info.Env(), GetStateFolderPath().string());
+    return Napi::String::New(info.Env(), FileSystem::GetStateFolderPath().string());
 }
 
 void CreateLogFolders()
 {
-    if (!std::filesystem::exists(GetStateFolderPath())) {
+    if (!std::filesystem::exists(FileSystem::GetStateFolderPath())) {
         std::error_code err;
-        if (!std::filesystem::create_directory(GetStateFolderPath(), err)) {
+        if (!std::filesystem::create_directory(FileSystem::GetStateFolderPath(), err)) {
             TRACK_LOG_ERROR("Could not create state directory at {}: {}",
-                GetStateFolderPath().string(), err.message());
+                FileSystem::GetStateFolderPath().string(), err.message());
         }
     }
 }
@@ -606,7 +603,7 @@ void CreateLoggers()
     quill::start();
 
     std::shared_ptr<quill::Handler> trackaudio_logger
-        = quill::rotating_file_handler(GetStateFolderPath() / "trackaudio.log", []() {
+        = quill::rotating_file_handler(FileSystem::GetStateFolderPath() / "trackaudio.log", []() {
               quill::RotatingFileHandlerConfig cfg;
               cfg.set_rotation_max_file_size(5e+6); // 5MB files
               cfg.set_max_backup_files(2);
@@ -618,15 +615,15 @@ void CreateLoggers()
 
     logger->set_log_level(quill::LogLevel::Info);
 
-    std::shared_ptr<quill::Handler> afv_logger
-        = quill::rotating_file_handler(GetStateFolderPath() / "trackaudio-afv.log", []() {
-              quill::RotatingFileHandlerConfig cfg;
-              cfg.set_rotation_max_file_size(5e+6); // 5MB files
-              cfg.set_max_backup_files(2);
-              cfg.set_overwrite_rolled_files(true);
-              cfg.set_pattern("%(ascii_time) [%(thread)] %(message)");
-              return cfg;
-          }());
+    std::shared_ptr<quill::Handler> afv_logger = quill::rotating_file_handler(
+        FileSystem::GetStateFolderPath() / "trackaudio-afv.log", []() {
+            quill::RotatingFileHandlerConfig cfg;
+            cfg.set_rotation_max_file_size(5e+6); // 5MB files
+            cfg.set_max_backup_files(2);
+            cfg.set_overwrite_rolled_files(true);
+            cfg.set_pattern("%(ascii_time) [%(thread)] %(message)");
+            return cfg;
+        }());
 
     // Create a file logger
     auto* _afv_logger = quill::create_logger("afv_logger", std::move(afv_logger));
@@ -639,36 +636,6 @@ void CreateLoggers()
             LOG_INFO(quill::get_logger("afv_logger"), "[{}] [{}@{}] {}", subsystem,
                 strippedFiledName, line, lineOut);
         });
-}
-
-// NOLINTNEXTLINE
-void InitialiseConfig()
-{
-    std::string settingsFilePath = (GetStateFolderPath() / "settings.ini").string();
-    UserSettings::ini.SetUnicode();
-    auto err = UserSettings::ini.LoadFile(settingsFilePath.c_str());
-
-    if (err != SI_OK) {
-        if (err == SI_FILE) {
-            TRACK_LOG_WARNING("Settings.ini file not found, creating it");
-            UserSettings::ini.SetLongValue("Settings", "PttKey", 0);
-            UserSettings::ini.SetLongValue("Settings", "JoystickId", 0);
-            UserSettings::ini.SetBoolValue("Settings", "isJoystickButton", false);
-            err = UserSettings::ini.SaveFile(settingsFilePath.c_str());
-            if (err != SI_OK) {
-                TRACK_LOG_ERROR("Error creating settings.ini: {}", err);
-            }
-        } else {
-            TRACK_LOG_ERROR("Error loading settings.ini: {}", err);
-        }
-    }
-
-    UserSettings::PttKey
-        = static_cast<int>(UserSettings::ini.GetLongValue("Settings", "PttKey", 0));
-    UserSettings::JoystickId
-        = static_cast<int>(UserSettings::ini.GetLongValue("Settings", "JoystickId", 0));
-    UserSettings::isJoystickButton
-        = UserSettings::ini.GetBoolValue("Settings", "isJoystickButton", false);
 }
 
 bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
@@ -718,12 +685,6 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
         return outObject;
     }
 
-    try {
-        InitialiseConfig();
-    } catch (const std::exception& e) {
-        TRACK_LOG_ERROR("Error initialising config: {}", e.what());
-    }
-
     std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
     mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath);
     MainThreadShared::mRemoteDataHandler = std::make_unique<RemoteData>();
@@ -742,7 +703,7 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
         TRACK_LOG_CRITICAL("Error creating input handler: {}", e.what());
     }
 
-    InputHandler::forwardPttKeyName();
+    UserSettings::load();
 
     return outObject;
 }
@@ -830,6 +791,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "SetupPttBegin"), Napi::Function::New(env, SetupPttBegin));
 
     exports.Set(Napi::String::New(env, "SetupPttEnd"), Napi::Function::New(env, SetupPttEnd));
+
+    exports.Set(
+        Napi::String::New(env, "RequestPttKeyName"), Napi::Function::New(env, RequestPttKeyName));
 
     exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 

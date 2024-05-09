@@ -6,6 +6,8 @@ import useUtilStore from "../store/utilStore";
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
+    void window.api.RequestPttKeyName();
+
     window.api.on("VuMeter", (vu: string, peakVu: string) => {
       const vuFloat = Math.abs(parseFloat(vu));
       const peakVuFloat = Math.abs(parseFloat(peakVu));
@@ -109,7 +111,7 @@ const Bootsrap: React.FC = () => {
     });
 
     window.api.on("ptt-key-set", (key: string) => {
-      console.log("Ptt key set to", key);
+      useUtilStore.getState().updatePttKeySet(true);
       useUtilStore.getState().setPttKeyName(key);
     });
 

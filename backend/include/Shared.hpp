@@ -4,6 +4,8 @@
 #include <memory>
 #include <napi.h>
 #include <quill/Logger.h>
+#include <quill/Quill.h>
+#include <sago/platform_folders.h>
 #include <semver.hpp>
 #include <string>
 
@@ -35,6 +37,13 @@ const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string()
 // NOLINTNEXTLINE
 static std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 
+struct FileSystem {
+    inline static std::filesystem::path GetStateFolderPath()
+    {
+        return std::filesystem::path(sago::getStateDir()) / "trackaudio";
+    }
+};
+
 struct UserSession {
 public:
     inline static std::string cid;
@@ -59,4 +68,48 @@ public:
     inline static bool isJoystickButton = false;
     // NOLINTNEXTLINE
     inline static CSimpleIniA ini;
+
+    inline static void load()
+    {
+        try {
+            _load();
+        } catch (const std::exception& e) {
+            TRACK_LOG_ERROR("Error initialising config: {}", e.what());
+        }
+    }
+
+    inline static void save()
+    {
+        std::string settingsFilePath = (FileSystem::GetStateFolderPath() / "settings.ini").string();
+        ini.SetLongValue("Ptt", "PttKey", UserSettings::PttKey);
+        ini.SetLongValue("Ptt", "JoystickId", UserSettings::JoystickId);
+        ini.SetBoolValue("Ptt", "isJoystickButton", UserSettings::isJoystickButton);
+        auto err = ini.SaveFile(settingsFilePath.c_str());
+        if (err != SI_OK) {
+            TRACK_LOG_ERROR("Error creating settings.ini: {}", err);
+        }
+    }
+
+protected:
+    inline static void _load()
+    {
+        std::string settingsFilePath = (FileSystem::GetStateFolderPath() / "settings.ini").string();
+        ini.SetUnicode();
+        auto err = ini.LoadFile(settingsFilePath.c_str());
+
+        if (err != SI_OK) {
+            if (err == SI_FILE) {
+                TRACK_LOG_WARNING("Settings.ini file not found, creating it");
+                save();
+            } else {
+                TRACK_LOG_ERROR("Error loading settings.ini: {}", err);
+            }
+        }
+
+        UserSettings::PttKey = static_cast<int>(UserSettings::ini.GetLongValue("Ptt", "PttKey", 0));
+        UserSettings::JoystickId
+            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt", "JoystickId", 0));
+        UserSettings::isJoystickButton
+            = UserSettings::ini.GetBoolValue("Ptt", "isJoystickButton", false);
+    }
 };

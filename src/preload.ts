@@ -87,6 +87,8 @@ const IElectronAPI = {
   ShouldEnableTelemetryInTheRenderer: () =>
     ipcRenderer.invoke("should-enable-renderer-telemetry"),
 
+  RequestPttKeyName: () => ipcRenderer.invoke("request-ptt-key-name"),
+
   dialog: (
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,

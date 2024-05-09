@@ -31,6 +31,7 @@ void InputHandler::updatePttKey(int key, bool isJoystickButton, int joystickId)
     UserSettings::isJoystickButton = isJoystickButton;
     UserSettings::JoystickId = joystickId;
 
+    UserSettings::save();
     InputHandler::forwardPttKeyName();
 }
 

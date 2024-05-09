@@ -5,6 +5,7 @@
 #include <cmath>
 #include <mutex>
 #include <quill/Quill.h>
+#include <sago/platform_folders.h>
 #include <string>
 
 class Helpers {
@@ -18,7 +19,7 @@ public:
      * @param frequency The frequency value to be cleaned up.
      * @return The cleaned up frequency value.
      */
-    static int CleanUpFrequency(int frequency)
+    inline static int CleanUpFrequency(int frequency)
     {
         // We don't clean up an unset frequency
         if (std::abs(frequency) == OBS_FREQUENCY) {
@@ -35,7 +36,7 @@ public:
      * @return A string representation of the frequency in a human-readable format (e.g. "122.800"
      * for 122800000 Hz)
      */
-    static std::string ConvertHzToHumanString(unsigned int frequencyHz)
+    inline static std::string ConvertHzToHumanString(unsigned int frequencyHz)
     {
         std::string temp = std::to_string(frequencyHz / 1000);
         return temp.substr(0, 3) + "." + temp.substr(3, 7);

@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { useDebouncedCallback } from "use-debounce";
 import { Configuration } from "../../../config.d";
 import { AudioApi, AudioDevice } from "trackaudio-afv";
+import useRadioState from "../../store/radioStore";
 
 export interface SettingsModalProps {
   closeModal: () => void;
@@ -22,25 +23,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [changesSaved, setChangesSaved] = useState(SaveStatus.NoChanges);
   const [audioApis, setAudioApis] = useState(Array<AudioApi>);
   const [audioOutputDevices, setAudioOutputDevices] = useState(
-    Array<AudioDevice>,
+    Array<AudioDevice>
   );
   const [audioInputDevices, setAudioInputDevices] = useState(
-    Array<AudioDevice>,
+    Array<AudioDevice>
   );
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState(0);
 
-  const [isSettingPtt, setIsSettingPtt] = useState(false);
-
   const [cid, setCid] = useState("");
   const [password, setPassword] = useState("");
 
-  const [vu, vuPeak, updateVu, pttKeyName] = useUtilStore((state) => [
+  const [pttIsOn] = useRadioState((state) => [state.pttIsOn]);
+
+  const [
+    vu,
+    vuPeak,
+    updateVu,
+    pttKeyName,
+    hasPttBeenSetDuringSetup,
+    updatePttKeySet,
+  ] = useUtilStore((state) => [
     state.vu,
     state.peakVu,
     state.updateVu,
     state.pttKeyName,
+    state.hasPttBeenSetDuringSetup,
+    state.updatePttKeySet,
   ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
@@ -154,16 +164,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   };
 
   const handleSetPtt = () => {
-    setIsSettingPtt(true);
-    window.api
-      .SetupPtt()
-      .then(() => {
-        setIsSettingPtt(false);
-        setChangesSaved(SaveStatus.Saved);
-      })
-      .catch(() => {
-        setIsSettingPtt(false);
-      });
+    updatePttKeySet(false);
+    setChangesSaved(SaveStatus.Saved);
+    void window.api.SetupPtt();
   };
 
   const handleMicTest = () => {
@@ -178,7 +181,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   };
 
   const handleHardwareTypeChange = (
-    e: React.ChangeEvent<HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     setChangesSaved(SaveStatus.Saving);
     const hardwareType = parseInt(e.target.value);
@@ -319,11 +322,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     className={clsx(
                       "btn mt-3 w-100",
                       !isMicTesting && "btn-info",
-                      isMicTesting && "btn-warning",
+                      isMicTesting && "btn-warning"
                     )}
                     onClick={handleMicTest}
                     disabled={
-                      isSettingPtt ||
+                      !hasPttBeenSetDuringSetup ||
                       config.headsetOutputDeviceId === "" ||
                       config.speakerOutputDeviceId === "" ||
                       config.audioInputDeviceId === ""
@@ -344,10 +347,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     ></div>
                   </div>
                   <button className="btn text-box-container mt-3 w-100">
-                    Ptt: {isSettingPtt ? "Press any key" : pttKeyName}
+                    Ptt:{" "}
+                    {!hasPttBeenSetDuringSetup
+                      ? "Press any key or button"
+                      : pttKeyName}
                   </button>
                   <button
-                    className="btn btn-info mt-2 w-100"
+                    className={clsx(
+                      "btn mt-2 w-100",
+                      !pttIsOn && "btn-info",
+                      pttIsOn && "btn-warning"
+                    )}
                     onClick={handleSetPtt}
                   >
                     Set new PTT
