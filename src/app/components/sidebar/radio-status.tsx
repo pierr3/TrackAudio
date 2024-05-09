@@ -11,21 +11,8 @@ const RadioStatus: React.FC = () => {
     if (!selectedRadio) {
       return;
     }
-    void window.api
-      .setFrequencyState(
-        selectedRadio.frequency,
-        false,
-        false,
-        false,
-        false,
-        false,
-      )
-      .then(() => {
-        setTimeout(() => {
-          void window.api.removeFrequency(selectedRadio.frequency);
-          removeRadio(selectedRadio.frequency);
-        }, 500);
-      });
+    void window.api.removeFrequency(selectedRadio.frequency);
+    removeRadio(selectedRadio.frequency);
   };
 
   const handleForceRefresh = () => {
