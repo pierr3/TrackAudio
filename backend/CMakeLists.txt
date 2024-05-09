@@ -143,4 +143,12 @@ if (WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:trackaudio-afv> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>
     COMMAND_EXPAND_LISTS
     )
+
+  file(GLOB DLL_FILES "${afv_native_SOURCE_DIR}/lib/*.dll")
+  foreach(DLL_FILE ${DLL_FILES})
+    add_custom_command(TARGET trackaudio-afv POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${DLL_FILE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>
+      COMMAND_EXPAND_LISTS
+    )
+  endforeach()
 endif()

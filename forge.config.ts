@@ -8,13 +8,27 @@ import path from "path";
 import { mainConfig } from "./webpack.main.config";
 import { rendererConfig } from "./webpack.renderer.config";
 import fs from "fs";
-import { spawn } from "child_process";
+
+const isMaking = process.env.npm_lifecycle_event === "make";
+const canNotarize =
+  process.platform === "darwin" &&
+  isMaking &&
+  process.env.APPLE_ID &&
+  process.env.APPLE_NOTARIZATION_PASSWORD &&
+  process.env.APPLE_TEAM_ID;
 
 const config: ForgeConfig = {
   packagerConfig: {
     name: "TrackAudio",
     asar: true,
-    osxSign: {},
+    osxSign: isMaking ? {} : undefined,
+    osxNotarize: canNotarize
+      ? {
+          appleId: process.env.APPLE_ID || "",
+          appleIdPassword: process.env.APPLE_NOTARIZATION_PASSWORD || "",
+          teamId: process.env.APPLE_TEAM_ID || "",
+        }
+      : undefined,
     icon: "resources/AppIcon/AppIcon",
     extraResource: [
       "resources/AC_Bus_f32.wav",
@@ -29,7 +43,7 @@ const config: ForgeConfig = {
       name: "@electron-forge/maker-zip",
       config: {
         platforms: ["windows"],
-      }
+      },
     },
     {
       name: "@psiservices-ccounterman/electron-forge-maker-nsis",
@@ -43,7 +57,7 @@ const config: ForgeConfig = {
     {
       name: "@electron-forge/maker-dmg",
       config: {
-        icon: "resources/AppIcon/AppIcon.icns",
+        icon: "resources/AppIcon/AppIcon.icns"
       },
     },
     {

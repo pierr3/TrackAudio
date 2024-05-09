@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 arch=$1
+version=$2
 
 mkdir -p build/
 cp -R ./scripts/AppImage/TrackAudio.AppDir/ ./build/TrackAudio.AppDir/
@@ -30,5 +31,5 @@ chmod +x ./build/TrackAudio.AppDir/AppRun
 
 wget -O appimagetool-x86_64.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
 chmod +x appimagetool-x86_64.AppImage
-./appimagetool-x86_64.AppImage ./build/TrackAudio.AppDir -u "gh-releases-zsync|pierr3|TrackAudio|latest|TrackAudio-*$arch.AppImage.zsync"
+ARCH=x86_64 ./appimagetool-x86_64.AppImage ./build/TrackAudio.AppDir -u "gh-releases-zsync|pierr3|TrackAudio|latest|TrackAudio-*-$arch.AppImage.zsync" "TrackAudio-$version-$arch.AppImage"
 rm ./appimagetool-x86_64.AppImage

@@ -126,10 +126,9 @@ jobs:
       - name: Package app
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # env:
-        #   APPLE_ID: ${{ secrets.APPLE_ID }}
-        #   APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
-        #   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: npm run make -- --arch ${{ matrix.arch }}
 
       - name: Rename installer to human friendly name
@@ -147,18 +146,18 @@ jobs:
           dmg_file=$(find . -name "*.dmg" -type f)
           codesign --timestamp --verbose --sign "Developer ID Application" $dmg_file
       
-      - name: Make AppImage
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          chmod +x ./scripts/make_appimage.sh
-          cp ./scripts/make_appimage.sh ./
-          ./make_appimage.sh ${{ matrix.arch }}
-
       - id: relinfo
         uses: pozetroninc/github-action-get-latest-release@master
         with:
           repository: pierr3/TrackAudio
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make AppImage
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          chmod +x ./scripts/make_appimage.sh
+          cp ./scripts/make_appimage.sh ./
+          ./make_appimage.sh ${{ matrix.arch }} ${{ steps.relinfo.outputs.release }}
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2

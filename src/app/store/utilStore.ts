@@ -29,7 +29,7 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   updatePttKeySet: (hasPttBeenSetDuringSetup: boolean) => {
     set({ hasPttBeenSetDuringSetup });
-  }
+  },
 }));
 
 export default useUtilStore;
