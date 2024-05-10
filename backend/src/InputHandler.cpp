@@ -118,7 +118,7 @@ void InputHandler::forwardPttKeyName()
 
 std::string InputHandler::getPttKeyName()
 {
-    if (UserSettings::PttKey == 0) {
+    if (UserSettings::PttKey == -1) {
         return "Not Set";
     }
 
