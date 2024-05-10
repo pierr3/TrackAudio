@@ -188,13 +188,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     bool onSpeaker = info[4].As<Napi::Boolean>().Value();
     bool crossCoupleAcrossFrequencies = info[5].As<Napi::Boolean>().Value(); // Not used
 
-    if (!mClient->GetRxState(frequency) && rx) {
-        // When turning on RX, we refresh the transceivers
-        auto states = mClient->getRadioState();
-        if (states.find(frequency) != states.end() && !states[frequency].stationName.empty()) {
-            mClient->FetchTransceiverInfo(states[frequency].stationName);
-        }
-    }
+    bool oldRxValue = mClient->GetRxState(frequency);
 
     mClient->SetRx(frequency, rx);
     mClient->SetRadioGainAll(UserSession::currentRadioGain);
@@ -212,6 +206,14 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 
     MainThreadShared::mApiServer->handleAFVEventForWebsocket(
         sdk::types::Event::kFrequencyStateUpdate, {}, {});
+
+    if (!oldRxValue && rx) {
+        // When turning on RX, we refresh the transceivers
+        auto states = mClient->getRadioState();
+        if (states.find(frequency) != states.end() && !states[frequency].stationName.empty()) {
+            mClient->FetchTransceiverInfo(states[frequency].stationName);
+        }
+    }
 
     return Napi::Boolean::New(info.Env(), true);
 }
@@ -428,7 +430,14 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         std::string station = *reinterpret_cast<std::string*>(data);
         auto transceiverCount = mClient->GetTransceiverCountForStation(station);
-
+        auto states = mClient->getRadioState();
+        for (const auto& state : states) {
+            if (state.second.stationName == station) {
+                mClient->UseTransceiversFromStation(station, state.first);
+                break;
+            }
+        }
+        
         NapiHelpers::callElectron(
             "StationTransceiversUpdated", station, std::to_string(transceiverCount));
     }
@@ -450,7 +459,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         unsigned int frequency = stationData.second;
 
         if (mClient->IsFrequencyActive(frequency)) {
-            TRACK_LOG_WARNING("StationDataReceived: Frequency {} already active, skipping", frequency);
+            TRACK_LOG_WARNING(
+                "StationDataReceived: Frequency {} already active, skipping", frequency);
             return;
         }
 

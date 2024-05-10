@@ -20,6 +20,7 @@ export interface RadioType {
   station: string;
   position: string;
   subPosition: string;
+  isPendingDeleting: boolean;
 }
 
 interface RadioState {
@@ -47,6 +48,7 @@ interface RadioState {
     callsign: string,
     count: number,
   ) => void;
+  setPendingDeletion: (frequency: number, value: boolean) => void;
   reset: () => void;
 }
 
@@ -106,6 +108,7 @@ const useRadioState = create<RadioState>((set) => ({
           onSpeaker: false,
           selected: false,
           transceiverCount: 0,
+          isPendingDeleting: false,
         },
       ].sort((a, b) => radioCompare(a, b, stationCallsign)),
     }));
@@ -244,6 +247,13 @@ const useRadioState = create<RadioState>((set) => ({
         radio.frequency === frequency
           ? { ...radio, crossCoupleAcross: value }
           : radio,
+      ),
+    }));
+  },
+  setPendingDeletion: (frequency, value) => {
+    set((state) => ({
+      radios: state.radios.map((radio) =>
+        radio.frequency === frequency ? { ...radio, isPendingDeleting: value } : radio,
       ),
     }));
   },

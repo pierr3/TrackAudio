@@ -2,17 +2,43 @@ import React from "react";
 import useRadioState, { RadioHelper } from "../../store/radioStore";
 
 const RadioStatus: React.FC = () => {
-  const [selectedRadio, removeRadio] = useRadioState((state) => [
+  const [selectedRadio, removeRadio, setPendingDeletion] = useRadioState((state) => [
     state.getSelectedRadio(),
     state.removeRadio,
+    state.setPendingDeletion,
   ]);
+
+  const awaitEndOfRxForDeletion = (frequency: number): void => {
+    const interval = setInterval(
+      (frequency: number) => {
+        const radio = useRadioState.getState().radios.find((r) => r.frequency === frequency);
+        if (!radio) {
+          clearInterval(interval);
+          return;
+        }
+
+        if (!radio.currentlyRx && !radio.currentlyTx) {
+          void window.api.removeFrequency(radio.frequency);
+          removeRadio(radio.frequency);
+          clearInterval(interval);
+        }
+      },
+      60,
+      frequency
+    );
+
+    // Clear the interval after 5 seconds
+    setTimeout(() => {
+      clearInterval(interval);
+    }, 10000);
+  };
 
   const handleDeleteRadio = () => {
     if (!selectedRadio) {
       return;
     }
-    void window.api.removeFrequency(selectedRadio.frequency);
-    removeRadio(selectedRadio.frequency);
+    setPendingDeletion(selectedRadio.frequency, true);
+    awaitEndOfRxForDeletion(selectedRadio.frequency);
   };
 
   const handleForceRefresh = () => {
@@ -59,7 +85,7 @@ const RadioStatus: React.FC = () => {
           handleDeleteRadio();
         }}
       >
-        Delete
+        { selectedRadio?.isPendingDeleting ? "Deleting..." : "Delete"}
       </button>
     </div>
   );

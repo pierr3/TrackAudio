@@ -38,6 +38,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   };
 
   const clickRx = () => {
+    clickRadioHeader();
     const newState = !radio.rx;
 
     window.api
