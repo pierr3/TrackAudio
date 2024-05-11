@@ -1,6 +1,7 @@
 #include "InputHandler.hpp"
 #include "Helpers.hpp"
 #include "Shared.hpp"
+#include "win32_key_util.h"
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <string>
@@ -127,7 +128,11 @@ std::string InputHandler::getPttKeyName()
             + std::to_string(UserSettings::PttKey);
     }
 
-    return sf::Keyboard::getDescription(
-        static_cast<sf::Keyboard::Scan::Scancode>(UserSettings::PttKey))
+#ifdef _WIN32
+    return vector_audio::native::win32::get_key_description(
+        static_cast<sf::Keyboard::Scancode>(UserSettings::PttKey));
+#endif
+
+    return sf::Keyboard::getDescription(static_cast<sf::Keyboard::Scancode>(UserSettings::PttKey))
         .toAnsiString();
 }

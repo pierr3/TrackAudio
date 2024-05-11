@@ -437,7 +437,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
                 break;
             }
         }
-        
+
         NapiHelpers::callElectron(
             "StationTransceiversUpdated", station, std::to_string(transceiverCount));
     }

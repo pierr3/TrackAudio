@@ -42,7 +42,8 @@ set(SOURCE
   src/main.cpp
   src/sdk.cpp
   src/RemoteData.cpp
-  src/InputHandler.cpp)
+  src/InputHandler.cpp
+  src/win32_key_util.cpp)
 
 add_library(trackaudio-afv SHARED 
   ${SOURCE}
