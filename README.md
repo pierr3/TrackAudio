@@ -101,7 +101,7 @@ Alternatively, TrackAudio can be installed using [Homebrew](https://brew.sh/inde
 brew tap flymia/homebrew-trackaudio
 
 # Install the cask
-brew install --cask vectoraudio
+brew install --cask trackaudio
 ```
 
 Depending on your system, the cask will install the ARM version or the x86_64 version.
