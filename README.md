@@ -94,6 +94,18 @@ Download the latest release on the [release page](https://github.com/pierr3/Trac
 
 TrackAudio is available in two versions, one for apple silicon (arm64) and one for intel macs (x64).
 
+Alternatively, TrackAudio can be installed using [Homebrew](https://brew.sh/index). Run the following commands to first install the Homebrew Tap and then the Homebrew Cask. This way the app gets upgraded when you run `brew upgrade`.
+
+```sh
+# Add the tap
+brew tap flymia/homebrew-trackaudio
+
+# Install the cask
+brew install --cask trackaudio
+```
+
+Depending on your system, the cask will install the ARM version or the x86_64 version.
+
 ### Windows
 
 Download the latest release on the [release page](https://github.com/pierr3/TrackAudio/releases) and run the executable. This should install TrackAudio.
