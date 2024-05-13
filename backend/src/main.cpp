@@ -7,6 +7,7 @@
 #include <httplib.h>
 #include <memory>
 #include <napi.h>
+#include <optional>
 #include <quill/LogLevel.h>
 #include <quill/Quill.h>
 #include <quill/detail/LogMacros.h>
@@ -433,7 +434,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         auto states = mClient->getRadioState();
         for (const auto& state : states) {
             if (state.second.stationName == station) {
-                mClient->UseTransceiversFromStation(station, state.first);
+                mClient->UseTransceiversFromStation(station, static_cast<int>(state.first));
                 break;
             }
         }
@@ -565,10 +566,14 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
 
     if (eventType == afv_native::ClientEventType::PttOpen) {
         NapiHelpers::callElectron("PttState", "1");
+        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kTxBegin, std::nullopt, std::nullopt);
     }
 
     if (eventType == afv_native::ClientEventType::PttClosed) {
         NapiHelpers::callElectron("PttState", "0");
+        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kTxEnd, std::nullopt, std::nullopt);
     }
 
     if (eventType == afv_native::ClientEventType::AudioError) {

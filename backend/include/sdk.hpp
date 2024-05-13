@@ -25,7 +25,14 @@ using sdk::types::WebsocketMessage;
 using sdk::types::WebsocketMessageType;
 
 namespace sdk::types {
-enum Event { kRxBegin, kRxEnd, kFrequencyStateUpdate, kDisconnectFrequencyStateUpdate };
+enum Event {
+    kRxBegin,
+    kRxEnd,
+    kTxBegin,
+    kTxEnd,
+    kFrequencyStateUpdate,
+    kDisconnectFrequencyStateUpdate
+};
 }
 
 class SDK {

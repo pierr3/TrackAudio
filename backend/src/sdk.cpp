@@ -30,6 +30,7 @@ void SDK::buildServer()
     }
 }
 
+// NOLINTNEXTLINE
 void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz)
 {
@@ -69,6 +70,34 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         std::lock_guard<std::mutex> lock(TransmittingMutex);
         CurrentlyTransmittingData.erase(*callsign);
         return;
+    }
+
+    if (event == sdk::types::Event::kTxBegin) {
+        auto allRadios = mClient->getRadioState();
+        std::vector<unsigned int> allTxRadioFreqs;
+        for (const auto& [freq, state] : allRadios) {
+            if (state.tx) {
+                allTxRadioFreqs.push_back(freq);
+            }
+        }
+
+        nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kTxBegin);
+        jsonMessage["value"]["frequenciesHz"] = allTxRadioFreqs;
+        this->broadcastOnWebsocket(jsonMessage.dump());
+    }
+
+    if (event == sdk::types::Event::kTxEnd) {
+        auto allRadios = mClient->getRadioState();
+        std::vector<unsigned int> allTxRadioFreqs;
+        for (const auto& [freq, state] : allRadios) {
+            if (state.tx) {
+                allTxRadioFreqs.push_back(freq);
+            }
+        }
+
+        nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kTxEnd);
+        jsonMessage["value"]["frequenciesHz"] = allTxRadioFreqs;
+        this->broadcastOnWebsocket(jsonMessage.dump());
     }
 
     if (event == sdk::types::Event::kFrequencyStateUpdate) {

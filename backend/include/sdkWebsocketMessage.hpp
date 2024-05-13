@@ -6,13 +6,14 @@
 #include <utility>
 
 namespace sdk::types {
-enum class WebsocketMessageType { kRxBegin, kRxEnd, kFrequencyStateUpdate };
+enum class WebsocketMessageType { kRxBegin, kRxEnd, kTxBegin, kTxEnd, kFrequencyStateUpdate };
 
 inline const std::map<WebsocketMessageType, std::string>& getWebsocketMessageTypeMap()
 {
     static const std::map<WebsocketMessageType, std::string> kWebsocketMessageTypeMap {
         { WebsocketMessageType::kRxBegin, "kRxBegin" }, { WebsocketMessageType::kRxEnd, "kRxEnd" },
-        { WebsocketMessageType::kFrequencyStateUpdate, "kFrequenciesUpdate" }
+        { WebsocketMessageType::kTxBegin, "kTxBegin" }, { WebsocketMessageType::kTxEnd, "kTxEnd" },
+        { WebsocketMessageType::kFrequencyStateUpdate, "kFrequencyStateUpdate" }
     };
     return kWebsocketMessageTypeMap;
 }
@@ -94,3 +95,13 @@ protected:
 // [{"pFrequencyHz": 118775000, "pCallsign": "EDDF_S_TWR"}], "tx":
 // [{"pFrequencyHz": 119775000, "pCallsign": "EDDF_S_TWR"}], "xc":
 // [{"pFrequencyHz": 121500000, "pCallsign": "EDDF_S_TWR"}]}}
+
+// Example of kTxBegin message:
+// @type the type of the message
+// @value the frequencies which are being transmitted on
+// JSON: {"type": "kTxBegin", "value": {"frequenciesHz": [123000000, 118000000]}}
+
+// Example of kTxEnd message:
+// @type the type of the message
+// @value the frequencies which were being transmitted on
+// JSON: {"type": "kTxEnd", "value": {"frequenciesHz": [123000000, 118000000]}}
