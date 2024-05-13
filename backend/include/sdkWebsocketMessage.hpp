@@ -99,9 +99,9 @@ protected:
 // Example of kTxBegin message:
 // @type the type of the message
 // @value the frequencies which are being transmitted on
-// JSON: {"type": "kTxBegin", "value": {"frequenciesHz": [123000000, 118000000]}}
+// JSON: {"type": "kTxBegin", "value": {"pFrequenciesHz": [123000000, 118000000]}}
 
 // Example of kTxEnd message:
 // @type the type of the message
 // @value the frequencies which were being transmitted on
-// JSON: {"type": "kTxEnd", "value": {"frequenciesHz": [123000000, 118000000]}}
+// JSON: {"type": "kTxEnd", "value": {"pFrequenciesHz": [123000000, 118000000]}}

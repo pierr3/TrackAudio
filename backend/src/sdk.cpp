@@ -82,7 +82,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         }
 
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kTxBegin);
-        jsonMessage["value"]["frequenciesHz"] = allTxRadioFreqs;
+        jsonMessage["value"]["pFrequenciesHz"] = allTxRadioFreqs;
         this->broadcastOnWebsocket(jsonMessage.dump());
     }
 
@@ -96,7 +96,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         }
 
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kTxEnd);
-        jsonMessage["value"]["frequenciesHz"] = allTxRadioFreqs;
+        jsonMessage["value"]["pFrequenciesHz"] = allTxRadioFreqs;
         this->broadcastOnWebsocket(jsonMessage.dump());
     }
 
