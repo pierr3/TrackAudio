@@ -107,6 +107,8 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         std::vector<ns::Station> rxBar;
         std::vector<ns::Station> txBar;
         std::vector<ns::Station> xcBar;
+        std::vector<ns::Station> allRadiosBar;
+
         auto allRadios = mClient->getRadioState();
         for (const auto& [frequency, state] : allRadios) {
             // NOLINTNEXTLINE
@@ -120,11 +122,16 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
             if (state.xc) {
                 xcBar.push_back(stationObject);
             }
+
+            // Add to a list of all the radios so clients can know the frequency of connected
+            // stations even if that station isn't set up for rx, tx, or xc.
+            allRadiosBar.push_back(stationObject);
         }
 
         jsonMessage["value"]["rx"] = std::move(rxBar);
         jsonMessage["value"]["tx"] = std::move(txBar);
         jsonMessage["value"]["xc"] = std::move(xcBar);
+        jsonMessage["value"]["allRadios"] = std::move(allRadiosBar);
 
         this->broadcastOnWebsocket(jsonMessage.dump());
 
@@ -227,12 +234,22 @@ void SDK::handleSetStationStatus(const nlohmann::json json)
 
     if (json["value"].contains("rx")) {
         bool oldRxValue = mClient->GetRxState(frequency);
-        auto rx = json["value"]["rx"].get<bool>();
+        bool newRxValue;
 
-        TRACK_LOG_INFO("Setting rx for {} to {}", frequency, rx);
-        mClient->SetRx(frequency, rx);
+        // rx is either a "toggle" string or a boolean value
+        if (json["value"]["rx"].is_string() && json["value"]["rx"] == "toggle") {
+            newRxValue = !oldRxValue;
 
-        if (!oldRxValue && rx) {
+            TRACK_LOG_INFO("Toggling rx for {}, new value {}", frequency, newRxValue);
+            mClient->SetRx(frequency, newRxValue);
+        } else {
+            newRxValue = json["value"]["rx"].get<bool>();
+
+            TRACK_LOG_INFO("Setting rx for {} to {}", frequency, newRxValue);
+            mClient->SetRx(frequency, newRxValue);
+        }
+
+        if (!oldRxValue && newRxValue) {
             // When turning on RX, we refresh the transceivers
             auto states = mClient->getRadioState();
             if (states.find(frequency) != states.end() && !states[frequency].stationName.empty()) {
@@ -241,25 +258,30 @@ void SDK::handleSetStationStatus(const nlohmann::json json)
         }
     }
 
-    if (json["value"].contains("spk")) {
-        auto spk = json["value"]["xc"].get<bool>();
-
-        TRACK_LOG_INFO("Setting spk for {} to {}", frequency, spk);
-        mClient->SetOnHeadset(frequency, !spk);
-    }
-
     if (json["value"].contains("tx") && UserSession::isATC) {
-        auto tx = json["value"]["tx"].get<bool>();
+        // tx is either a "toggle" string or a boolean value
+        if (json["value"]["tx"].is_string() && json["value"]["tx"] == "toggle") {
+            TRACK_LOG_INFO("Toggling tx for {}", frequency);
+            mClient->SetTx(frequency, !mClient->GetTxState(frequency));
+        } else {
+            auto tx = json["value"]["tx"].get<bool>();
 
-        TRACK_LOG_INFO("Setting tx for {} to {}", frequency, tx);
-        mClient->SetTx(frequency, tx);
+            TRACK_LOG_INFO("Setting tx for {} to {}", frequency, tx);
+            mClient->SetTx(frequency, tx);
+        }
     }
 
     if (json["value"].contains("xc") && UserSession::isATC) {
-        auto xc = json["value"]["xc"].get<bool>();
+        // xc is either a "toggle" string or a boolean value
+        if (json["value"]["xc"].is_string() && json["value"]["xc"] == "toggle") {
+            TRACK_LOG_INFO("Toggling xc for {}", frequency);
+            mClient->SetXc(frequency, !mClient->GetXcState(frequency));
+        } else {
+            auto xc = json["value"]["xc"].get<bool>();
 
-        TRACK_LOG_INFO("Setting xc for {} to {}", frequency, xc);
-        mClient->SetXc(frequency, xc);
+            TRACK_LOG_INFO("Setting xc for {} to {}", frequency, xc);
+            mClient->SetXc(frequency, xc);
+        }
     }
 
     // Send updated info to connected clients
