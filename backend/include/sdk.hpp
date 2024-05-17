@@ -121,6 +121,7 @@ private:
      * @return The status of the request handling.
      */
     restinio::request_handling_status_t handleRxSDKCall(const restinio::request_handle_t& req);
+
     /**
      * Handles the SDK call.
      *
@@ -128,6 +129,13 @@ private:
      * @return The request handling status.
      */
     restinio::request_handling_status_t handleTxSDKCall(const restinio::request_handle_t& req);
+
+    /**
+     * Handles the SDK call to set a station status.
+     *
+     * @param json The incoming JSON with the station status.
+     */
+    void handleSetStationStatus(const nlohmann::json json);
 
     /**
      * Handles a WebSocket SDK call.

@@ -209,6 +209,53 @@ restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request
     return req->create_response().set_body(absl::StrJoin(outData, ",")).done();
 }
 
+void SDK::handleSetStationStatus(const nlohmann::json json)
+{
+    if (!json["value"].contains("frequency")) {
+        TRACK_LOG_ERROR("kSetStationStatus requires a frequency");
+        return;
+    }
+
+    int frequency = json["value"]["frequency"];
+
+    if (json["value"].contains("rx")) {
+        bool oldRxValue = mClient->GetRxState(frequency);
+        auto rx = json["value"]["rx"].get<bool>();
+
+        TRACK_LOG_INFO("Setting Rx for {} to {}", frequency, rx);
+        mClient->SetRx(frequency, rx);
+
+        if (!oldRxValue && rx) {
+            // When turning on RX, we refresh the transceivers
+            auto states = mClient->getRadioState();
+            if (states.find(frequency) != states.end() && !states[frequency].stationName.empty()) {
+                mClient->FetchTransceiverInfo(states[frequency].stationName);
+            }
+        }
+    }
+
+    if (json["value"].contains("tx")) {
+        auto tx = json["value"]["tx"].get<bool>();
+
+        TRACK_LOG_INFO("Setting Tx for {} to {}", frequency, tx);
+        mClient->SetTx(frequency, tx);
+    }
+
+    if (json["value"].contains("xc")) {
+        auto xc = json["value"]["xc"].get<bool>();
+
+        TRACK_LOG_INFO("Setting Xc for {} to {}", frequency, xc);
+        mClient->SetXc(frequency, xc);
+    }
+
+    if (json["value"].contains("spk")) {
+        auto spk = json["value"]["xc"].get<bool>();
+
+        TRACK_LOG_INFO("Setting SPK for {} to {}", frequency, spk);
+        mClient->SetOnHeadset(frequency, !spk);
+    }
+}
+
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
     const restinio::request_handle_t& req)
 {
@@ -227,6 +274,19 @@ restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
                 == message->opcode()) {
                 // Close connection
                 this->pWsRegistry.erase(wsh->connection_id());
+            } else if (restinio::websocket::basic::opcode_t::text_frame == message->opcode()) {
+                std::string payload = message->payload();
+
+                try {
+                    auto json = nlohmann::json::parse(payload);
+                    std::string messageType = json["type"];
+                    if (messageType == "kSetStationStatus") {
+                        this->handleSetStationStatus(std::move(json));
+                    }
+                } catch (const std::exception& e) {
+                    // Handle JSON parsing error
+                    TRACK_LOG_ERROR("Error parsing incoming message JSON: ", e.what());
+                }
             }
         });
 
