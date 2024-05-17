@@ -23,6 +23,7 @@ export declare const AfvEventTypes: {
   NetworkDisconnected: string;
   VuMeter: string;
   PttKeySet: string;
+  FrequencyStateUpdate: string;
 };
 
 declare namespace TrackAudioAfv {

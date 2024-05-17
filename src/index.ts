@@ -44,7 +44,7 @@ const setAudioSettings = () => {
     currentConfiguration.audioApi || -1,
     currentConfiguration.audioInputDeviceId || "",
     currentConfiguration.headsetOutputDeviceId || "",
-    currentConfiguration.speakerOutputDeviceId || "",
+    currentConfiguration.speakerOutputDeviceId || ""
   );
   TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
 };
@@ -100,7 +100,7 @@ const createWindow = (): void => {
 app.on("ready", () => {
   // load the configuration
   currentConfiguration = JSON.parse(
-    store.get("configuration", "{}") as string,
+    store.get("configuration", "{}") as string
   ) as Configuration;
 
   if (currentConfiguration.consentedToTelemetry === undefined) {
@@ -258,7 +258,7 @@ ipcMain.handle(
   "audio-add-frequency",
   (_, frequency: number, callsign: string) => {
     return TrackAudioAfv.AddFrequency(frequency, callsign);
-  },
+  }
 );
 
 ipcMain.handle("audio-remove-frequency", (_, frequency: number) => {
@@ -274,7 +274,7 @@ ipcMain.handle(
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean,
+    crossCoupleAcross: boolean
   ) => {
     return TrackAudioAfv.SetFrequencyState(
       frequency,
@@ -282,9 +282,9 @@ ipcMain.handle(
       tx,
       xc,
       onSpeaker,
-      crossCoupleAcross,
+      crossCoupleAcross
     );
-  },
+  }
 );
 
 ipcMain.handle("audio-get-frequency-state", (_, frequency: number) => {
@@ -357,7 +357,7 @@ ipcMain.handle(
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
     message: string,
-    buttons: string[],
+    buttons: string[]
   ) => {
     return dialog.showMessageBox(mainWindow, {
       type,
@@ -365,7 +365,7 @@ ipcMain.handle(
       buttons,
       message,
     });
-  },
+  }
 );
 
 ipcMain.handle("get-version", () => {
@@ -379,6 +379,8 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   if (!arg) {
     return;
   }
+
+  console.log(arg);
 
   if (arg === AfvEventTypes.VuMeter) {
     mainWindow.webContents.send("VuMeter", arg2, arg3);
@@ -397,7 +399,13 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.StationTransceiversUpdated) {
+    console.log(`Received transceiver update: ${arg2} ${arg3}`);
     mainWindow.webContents.send("station-transceivers-updated", arg2, arg3);
+  }
+
+  if (arg == AfvEventTypes.FrequencyStateUpdate) {
+    console.log(`Received frequency state update: ${arg2} ${arg3}`);
+    mainWindow.webContents.send("frequency-state-update", arg2, arg3);
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {

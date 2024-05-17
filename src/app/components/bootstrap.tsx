@@ -22,8 +22,12 @@ const Bootsrap: React.FC = () => {
         useRadioState
           .getState()
           .setTransceiverCountForStationCallsign(station, parseInt(count));
-      },
+      }
     );
+
+    window.api.on("frequency-state-update", (data: unknown) => {
+      console.log(data);
+    });
 
     window.api.on(
       "station-data-received",
@@ -41,16 +45,16 @@ const Bootsrap: React.FC = () => {
               .addRadio(
                 freq,
                 station,
-                useSessionStore.getState().getStationCallsign(),
+                useSessionStore.getState().getStationCallsign()
               );
             void window.api.SetRadioGain(
-              useSessionStore.getState().radioGain / 100,
+              useSessionStore.getState().radioGain / 100
             );
           })
           .catch((err: unknown) => {
             console.error(err);
           });
-      },
+      }
     );
 
     window.api.on("FrequencyRxBegin", (frequency: string) => {
@@ -75,7 +79,7 @@ const Bootsrap: React.FC = () => {
       if (useRadioState.getState().isInactive(parseInt(frequency))) {
         return;
       }
-      
+
       useRadioState.getState().setCurrentlyRx(parseInt(frequency), false);
     });
 
@@ -112,7 +116,7 @@ const Bootsrap: React.FC = () => {
         const frequency = parseInt(dataArr[1]);
         useSessionStore.getState().setIsAtc(isAtc);
         useSessionStore.getState().setFrequency(frequency);
-      },
+      }
     );
 
     window.api.on("network-disconnected", () => {

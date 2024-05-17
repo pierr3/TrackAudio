@@ -145,4 +145,11 @@ private:
      */
     restinio::request_handling_status_t handleWebSocketSDKCall(
         const restinio::request_handle_t& req);
+
+    /**
+     * Constructs a JSON object with the radio state.
+     *
+     * @return nlohmann::json
+     */
+    nlohmann::json SDK::buildRadioStateJSON();
 };

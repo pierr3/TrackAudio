@@ -30,6 +30,43 @@ void SDK::buildServer()
     }
 }
 
+nlohmann::json SDK::buildRadioStateJSON()
+{
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyStateUpdate);
+
+    std::vector<ns::Station> rxBar;
+    std::vector<ns::Station> txBar;
+    std::vector<ns::Station> xcBar;
+    std::vector<ns::Station> allRadiosBar;
+
+    auto allRadios = mClient->getRadioState();
+    for (const auto& [frequency, state] : allRadios) {
+        // NOLINTNEXTLINE
+        ns::Station stationObject = ns::Station::build(state.stationName, frequency);
+        if (state.rx) {
+            rxBar.push_back(stationObject);
+        }
+        if (state.tx) {
+            txBar.push_back(stationObject);
+        }
+        if (state.xc) {
+            xcBar.push_back(stationObject);
+        }
+
+        // Add to a list of all the radios so clients can know the frequency of connected
+        // stations even if that station isn't set up for rx, tx, or xc.
+        allRadiosBar.push_back(stationObject);
+    }
+
+    jsonMessage["value"]["rx"] = std::move(rxBar);
+    jsonMessage["value"]["tx"] = std::move(txBar);
+    jsonMessage["value"]["xc"] = std::move(xcBar);
+    jsonMessage["value"]["allRadios"] = std::move(allRadiosBar);
+
+    return jsonMessage;
+}
+
 // NOLINTNEXTLINE
 void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz)
@@ -101,40 +138,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     }
 
     if (event == sdk::types::Event::kFrequencyStateUpdate) {
-        nlohmann::json jsonMessage
-            = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyStateUpdate);
-
-        std::vector<ns::Station> rxBar;
-        std::vector<ns::Station> txBar;
-        std::vector<ns::Station> xcBar;
-        std::vector<ns::Station> allRadiosBar;
-
-        auto allRadios = mClient->getRadioState();
-        for (const auto& [frequency, state] : allRadios) {
-            // NOLINTNEXTLINE
-            ns::Station stationObject = ns::Station::build(state.stationName, frequency);
-            if (state.rx) {
-                rxBar.push_back(stationObject);
-            }
-            if (state.tx) {
-                txBar.push_back(stationObject);
-            }
-            if (state.xc) {
-                xcBar.push_back(stationObject);
-            }
-
-            // Add to a list of all the radios so clients can know the frequency of connected
-            // stations even if that station isn't set up for rx, tx, or xc.
-            allRadiosBar.push_back(stationObject);
-        }
-
-        jsonMessage["value"]["rx"] = std::move(rxBar);
-        jsonMessage["value"]["tx"] = std::move(txBar);
-        jsonMessage["value"]["xc"] = std::move(xcBar);
-        jsonMessage["value"]["allRadios"] = std::move(allRadiosBar);
-
-        this->broadcastOnWebsocket(jsonMessage.dump());
-
+        this->broadcastOnWebsocket(buildRadioStateJSON().dump());
         return;
     }
 };
@@ -286,6 +290,7 @@ void SDK::handleSetStationStatus(const nlohmann::json json)
 
     // Send updated info to connected clients
     this->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
+    NapiHelpers::callElectron("frequency-state-update", buildRadioStateJSON().dump());
 }
 
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
