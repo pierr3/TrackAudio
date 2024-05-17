@@ -380,8 +380,6 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
     return;
   }
 
-  console.log(arg);
-
   if (arg === AfvEventTypes.VuMeter) {
     mainWindow.webContents.send("VuMeter", arg2, arg3);
   }

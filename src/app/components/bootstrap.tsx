@@ -3,6 +3,7 @@ import useRadioState from "../store/radioStore";
 import useErrorStore from "../store/errorStore";
 import useSessionStore from "../store/sessionStore";
 import useUtilStore from "../store/utilStore";
+import { FrequenciesUpdate } from "../types/FrequenciesUpdate";
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
@@ -24,10 +25,6 @@ const Bootsrap: React.FC = () => {
           .setTransceiverCountForStationCallsign(station, parseInt(count));
       }
     );
-
-    window.api.on("frequency-state-update", (data: string) => {
-      console.log(data);
-    });
 
     window.api.on(
       "station-data-received",
@@ -124,6 +121,36 @@ const Bootsrap: React.FC = () => {
       useSessionStore.getState().setCallsign("");
       useSessionStore.getState().setIsAtc(false);
       useSessionStore.getState().setFrequency(199998000);
+    });
+
+    window.api.on("frequency-state-update", (data: string) => {
+      const update = JSON.parse(data) as FrequenciesUpdate;
+
+      // Update all the radios
+      useRadioState.getState().radios.forEach((radio) => {
+        // Find the radio state by seeing if it is in the relevant arrays indicating
+        // that mode is active.
+        const isRx = update.value.rx.some(
+          (rx) => rx.pFrequencyHz === radio.frequency
+        );
+        const isTx = update.value.tx.some(
+          (tx) => tx.pFrequencyHz === radio.frequency
+        );
+        const isXc = update.value.xc.some(
+          (xc) => xc.pFrequencyHz === radio.frequency
+        );
+
+        // Only update if the state has changed
+        if (isRx != radio.rx) {
+          useRadioState.getState().setRx(radio.frequency, isRx);
+        }
+        if (isTx != radio.tx) {
+          useRadioState.getState().setTx(radio.frequency, isTx);
+        }
+        if (isXc != radio.xc) {
+          useRadioState.getState().setXc(radio.frequency, isXc);
+        }
+      });
     });
 
     window.api.on("ptt-key-set", (key: string) => {
