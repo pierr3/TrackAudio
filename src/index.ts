@@ -399,12 +399,10 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.StationTransceiversUpdated) {
-    console.log(`Received transceiver update: ${arg2} ${arg3}`);
     mainWindow.webContents.send("station-transceivers-updated", arg2, arg3);
   }
 
   if (arg == AfvEventTypes.FrequencyStateUpdate) {
-    console.log(`Received frequency state update: ${arg2} ${arg3}`);
     mainWindow.webContents.send("frequency-state-update", arg2, arg3);
   }
 

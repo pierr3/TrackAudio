@@ -25,7 +25,7 @@ const Bootsrap: React.FC = () => {
       }
     );
 
-    window.api.on("frequency-state-update", (data: unknown) => {
+    window.api.on("frequency-state-update", (data: string) => {
       console.log(data);
     });
 
