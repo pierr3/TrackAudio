@@ -266,6 +266,11 @@ void SDK::handleSetStationStatus(const nlohmann::json json)
         TRACK_LOG_INFO("Setting xc for {} to {}", frequency, xc);
         mClient->SetXc(frequency, xc);
     }
+
+    // Notify the UI of the current radio states so it can refresh
+    // the buttons to match the internal state.
+    auto states = mClient->getRadioState();
+    NapiHelpers::callElectron("radioStates", states.dump())
 }
 
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
