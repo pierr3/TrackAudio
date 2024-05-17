@@ -223,11 +223,6 @@ void SDK::handleSetStationStatus(const nlohmann::json json)
 
     int frequency = json["value"]["frequency"];
 
-    if (!mClient->IsFrequencyActive(frequency)) {
-        TRACK_LOG_ERROR("kSetStationStatus requires an active frequency");
-        return;
-    }
-
     mClient->SetRadioGainAll(UserSession::currentRadioGain);
 
     if (json["value"].contains("rx")) {
@@ -266,6 +261,9 @@ void SDK::handleSetStationStatus(const nlohmann::json json)
         TRACK_LOG_INFO("Setting xc for {} to {}", frequency, xc);
         mClient->SetXc(frequency, xc);
     }
+
+    // Send updated info to connected clients
+    this->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
 }
 
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
