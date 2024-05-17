@@ -211,6 +211,11 @@ restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request
 
 void SDK::handleSetStationStatus(const nlohmann::json json)
 {
+    if (!mClient->IsVoiceConnected()) {
+        TRACK_LOG_ERROR("kSetStationStatus requires a voice connection");
+        return;
+    }
+
     if (!json["value"].contains("frequency")) {
         TRACK_LOG_ERROR("kSetStationStatus requires a frequency");
         return;
@@ -218,11 +223,18 @@ void SDK::handleSetStationStatus(const nlohmann::json json)
 
     int frequency = json["value"]["frequency"];
 
+    if (!mClient->IsFrequencyActive(frequency)) {
+        TRACK_LOG_ERROR("kSetStationStatus requires an active frequency");
+        return;
+    }
+
+    mClient->SetRadioGainAll(UserSession::currentRadioGain);
+
     if (json["value"].contains("rx")) {
         bool oldRxValue = mClient->GetRxState(frequency);
         auto rx = json["value"]["rx"].get<bool>();
 
-        TRACK_LOG_INFO("Setting Rx for {} to {}", frequency, rx);
+        TRACK_LOG_INFO("Setting rx for {} to {}", frequency, rx);
         mClient->SetRx(frequency, rx);
 
         if (!oldRxValue && rx) {
@@ -234,25 +246,25 @@ void SDK::handleSetStationStatus(const nlohmann::json json)
         }
     }
 
-    if (json["value"].contains("tx")) {
-        auto tx = json["value"]["tx"].get<bool>();
-
-        TRACK_LOG_INFO("Setting Tx for {} to {}", frequency, tx);
-        mClient->SetTx(frequency, tx);
-    }
-
-    if (json["value"].contains("xc")) {
-        auto xc = json["value"]["xc"].get<bool>();
-
-        TRACK_LOG_INFO("Setting Xc for {} to {}", frequency, xc);
-        mClient->SetXc(frequency, xc);
-    }
-
     if (json["value"].contains("spk")) {
         auto spk = json["value"]["xc"].get<bool>();
 
-        TRACK_LOG_INFO("Setting SPK for {} to {}", frequency, spk);
+        TRACK_LOG_INFO("Setting spk for {} to {}", frequency, spk);
         mClient->SetOnHeadset(frequency, !spk);
+    }
+
+    if (json["value"].contains("tx") && UserSession::isATC) {
+        auto tx = json["value"]["tx"].get<bool>();
+
+        TRACK_LOG_INFO("Setting tx for {} to {}", frequency, tx);
+        mClient->SetTx(frequency, tx);
+    }
+
+    if (json["value"].contains("xc") && UserSession::isATC) {
+        auto xc = json["value"]["xc"].get<bool>();
+
+        TRACK_LOG_INFO("Setting xc for {} to {}", frequency, xc);
+        mClient->SetXc(frequency, xc);
     }
 }
 
