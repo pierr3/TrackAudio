@@ -310,11 +310,19 @@ void SDK::handleSetStationState(const nlohmann::json json)
 
 void SDK::handleGetStationStates()
 {
+    std::vector<nlohmann::json> stationStates;
+
+    // Collect the states for all the radios
     auto allRadios = mClient->getRadioState();
     for (const auto& [frequency, state] : allRadios) {
-        this->broadcastOnWebsocket(
-            this->buildStationStateJson(state.stationName, frequency).dump());
+        stationStates.push_back(this->buildStationStateJson(state.stationName, frequency));
     }
+
+    // Send the message
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kStationStates);
+    jsonMessage["value"]["stations"] = stationStates;
+    this->broadcastOnWebsocket(jsonMessage.dump());
 }
 
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
