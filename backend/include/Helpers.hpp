@@ -66,7 +66,7 @@ public:
 
         callbackRef->NonBlockingCall(
             [eventName, data, data2](Napi::Env env, Napi::Function jsCallback) {
-                LOG_INFO(quill::get_logger("trackaudio_logger"),
+                LOG_TRACE_L1(quill::get_logger("trackaudio_logger"),
                     "Event name: {}, data: {}, data2: {}", eventName, data, data2);
                 jsCallback.Call({ Napi::String::New(env, eventName), Napi::String::New(env, data),
                     Napi::String::New(env, data2) });
