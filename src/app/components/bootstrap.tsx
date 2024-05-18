@@ -3,10 +3,7 @@ import useRadioState from "../store/radioStore";
 import useErrorStore from "../store/errorStore";
 import useSessionStore from "../store/sessionStore";
 import useUtilStore from "../store/utilStore";
-import {
-  FrequenciesUpdate,
-  StationStateUpdate,
-} from "../types/FrequenciesUpdate";
+import { StationStateUpdate } from "../types/FrequenciesUpdate";
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
