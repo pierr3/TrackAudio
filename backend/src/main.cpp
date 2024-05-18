@@ -209,9 +209,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     MainThreadShared::mApiServer->handleAFVEventForWebsocket(
         sdk::types::Event::kFrequencyStateUpdate, {}, {});
 
-    // New event that only notifies of the change to this specific station. Sent as both a websocket
-    // for connected clients and an IPC message for the main process so TrackAudio UI can update
-    // appropriately.
+    // New event that only notifies of the change to this specific station.
     MainThreadShared::mApiServer->handleAFVEventForWebsocket(
         sdk::types::Event::kStationStateUpdated, std::nullopt, frequency);
 
