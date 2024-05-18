@@ -31,7 +31,8 @@ enum Event {
     kTxBegin,
     kTxEnd,
     kFrequencyStateUpdate,
-    kDisconnectFrequencyStateUpdate
+    kDisconnectFrequencyStateUpdate,
+    kStationStateUpdated
 };
 }
 
@@ -147,9 +148,13 @@ private:
         const restinio::request_handle_t& req);
 
     /**
-     * Constructs a JSON object with the radio state.
+     * @brief Builds a JSON object for the station state.
      *
-     * @return nlohmann::json
+     * @param callsign The callsign of the station. Optional.
+     * @param frequencyHz The frequency of the station.
+     *
+     * @return The JSON object for the station state.
      */
-    nlohmann::json SDK::buildRadioStateJSON();
+    nlohmann::json SDK::buildStationStateJson(
+        const std::optional<std::string>& callsign, const int& frequencyHz);
 };

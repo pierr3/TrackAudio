@@ -6,14 +6,22 @@
 #include <utility>
 
 namespace sdk::types {
-enum class WebsocketMessageType { kRxBegin, kRxEnd, kTxBegin, kTxEnd, kFrequencyStateUpdate };
+enum class WebsocketMessageType {
+    kRxBegin,
+    kRxEnd,
+    kTxBegin,
+    kTxEnd,
+    kFrequencyStateUpdate,
+    kStationStateUpdate
+};
 
 inline const std::map<WebsocketMessageType, std::string>& getWebsocketMessageTypeMap()
 {
     static const std::map<WebsocketMessageType, std::string> kWebsocketMessageTypeMap {
         { WebsocketMessageType::kRxBegin, "kRxBegin" }, { WebsocketMessageType::kRxEnd, "kRxEnd" },
         { WebsocketMessageType::kTxBegin, "kTxBegin" }, { WebsocketMessageType::kTxEnd, "kTxEnd" },
-        { WebsocketMessageType::kFrequencyStateUpdate, "kFrequencyStateUpdate" }
+        { WebsocketMessageType::kFrequencyStateUpdate, "kFrequencyStateUpdate" },
+        { WebsocketMessageType::kStationStateUpdate, "kStationStateUpdate" }
     };
     return kWebsocketMessageTypeMap;
 }

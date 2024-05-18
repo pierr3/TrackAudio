@@ -207,6 +207,8 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 
     MainThreadShared::mApiServer->handleAFVEventForWebsocket(
         sdk::types::Event::kFrequencyStateUpdate, {}, {});
+    MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+        sdk::types::Event::kStationStateUpdated, std::nullopt, frequency);
 
     if (!oldRxValue && rx) {
         // When turning on RX, we refresh the transceivers
@@ -466,6 +468,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         }
 
         NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
+        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kStationStateUpdated, callsign, frequency);
     }
 
     if (eventType == afv_native::ClientEventType::VccsReceived) {
@@ -487,6 +491,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
             }
 
             NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
+            MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+                sdk::types::Event::kStationStateUpdated, callsign, frequency);
         }
     }
 
@@ -538,9 +544,6 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         }
 
         NapiHelpers::callElectron("StationRxBegin", std::to_string(frequency), callsign);
-
-        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-            sdk::types::Event::kRxBegin, callsign, frequency);
 
         return;
     }
