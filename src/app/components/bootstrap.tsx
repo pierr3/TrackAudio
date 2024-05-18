@@ -127,6 +127,10 @@ const Bootsrap: React.FC = () => {
       console.log(data);
     });
 
+    // Received when a station's state is updated externally, typically
+    // by another client via a websocket message. When received go through
+    // and ensure the state of the button in TrackAudio matches the new
+    // state in AFV.
     window.api.on("station-state-update", (data: string) => {
       const update = JSON.parse(data) as StationStateUpdate;
 
@@ -143,6 +147,14 @@ const Bootsrap: React.FC = () => {
           }
           if (update.value.xc != radio.xc) {
             useRadioState.getState().setXc(radio.frequency, update.value.xc);
+          }
+          // The funky != ! is because onSpeaker represents the inverse
+          // of the headset state. Yes, it could be == but this makes it
+          // more explicit.
+          if (update.value.headset != !radio.onSpeaker) {
+            useRadioState
+              .getState()
+              .setOnSpeaker(radio.frequency, !update.value.headset);
           }
         });
     });
