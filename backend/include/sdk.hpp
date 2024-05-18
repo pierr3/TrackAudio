@@ -68,7 +68,7 @@ public:
 
     /**
      * @brief Publishes the station state JSON to the websocket clients.
-     * 
+     *
      * @param state A JSON object representing the station state.
      */
     void SDK::publishStationState(const nlohmann::json& state);
@@ -151,6 +151,15 @@ private:
     restinio::request_handling_status_t handleTxSDKCall(const restinio::request_handle_t& req);
 
     /**
+     * Handles a WebSocket SDK call.
+     *
+     * @param req The request handle.
+     * @return The status of the request handling.
+     */
+    restinio::request_handling_status_t handleWebSocketSDKCall(
+        const restinio::request_handle_t& req);
+
+    /**
      * Handles the SDK call to set a station status.
      *
      * @param json The incoming JSON with the station status.
@@ -168,13 +177,4 @@ private:
      *
      */
     void handleGetStationState(const std::string& callsign);
-
-    /**
-     * Handles a WebSocket SDK call.
-     *
-     * @param req The request handle.
-     * @return The status of the request handling.
-     */
-    restinio::request_handling_status_t handleWebSocketSDKCall(
-        const restinio::request_handle_t& req);
 };

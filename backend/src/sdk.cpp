@@ -43,6 +43,7 @@ nlohmann::json SDK::buildStationStateJson(
     jsonMessage["value"]["tx"] = mClient->GetTxState(frequencyHz);
     jsonMessage["value"]["rx"] = mClient->GetRxState(frequencyHz);
     jsonMessage["value"]["xc"] = mClient->GetXcState(frequencyHz);
+    jsonMessage["value"]["xca"] = mClient->GetCrossCoupleAcrossState(frequencyHz);
     jsonMessage["value"]["headset"] = mClient->GetOnHeadset(frequencyHz);
 
     return jsonMessage;
@@ -300,6 +301,20 @@ void SDK::handleSetStationState(const nlohmann::json json)
 
             TRACK_LOG_INFO("Setting xc for {} to {}", frequency, xc);
             mClient->SetXc(frequency, xc);
+        }
+    }
+
+    if (json["value"].contains("xca") && UserSession::isATC) {
+        // xca is either a "toggle" string or a boolean value
+        if (json["value"]["xca"].is_string() && json["value"]["xca"] == "toggle") {
+            TRACK_LOG_INFO("Toggling xca for {}", frequency);
+            mClient->SetCrossCoupleAcross(
+                frequency, !mClient->GetCrossCoupleAcrossState(frequency));
+        } else {
+            auto xca = json["value"]["xca"].get<bool>();
+
+            TRACK_LOG_INFO("Setting xca for {} to {}", frequency, xca);
+            mClient->SetCrossCoupleAcross(frequency, xca);
         }
     }
 

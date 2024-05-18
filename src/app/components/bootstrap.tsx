@@ -150,7 +150,7 @@ const Bootsrap: React.FC = () => {
           }
           // The funky != ! is because onSpeaker represents the inverse
           // of the headset state. Yes, it could be == but this makes it
-          // more explicit.
+          // follow the pattern of the previous tests.
           if (update.value.headset != !radio.onSpeaker) {
             useRadioState
               .getState()
