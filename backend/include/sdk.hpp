@@ -62,7 +62,7 @@ public:
      *
      * @return The JSON object for the station state.
      */
-    nlohmann::json SDK::buildStationStateJson(
+    nlohmann::json buildStationStateJson(
         const std::optional<std::string>& callsign, const int& frequencyHz);
 
     /**
@@ -70,7 +70,7 @@ public:
      *
      * @param state A JSON object representing the station state.
      */
-    void SDK::publishStationState(const nlohmann::json& state);
+    void publishStationState(const nlohmann::json& state);
 
 private:
     using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t, restinio::null_logger_t,
