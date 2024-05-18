@@ -235,15 +235,15 @@ restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request
     return req->create_response().set_body(absl::StrJoin(outData, ",")).done();
 }
 
-void SDK::handleSetStationStatus(const nlohmann::json json)
+void SDK::handleSetStationState(const nlohmann::json json)
 {
     if (!mClient->IsVoiceConnected()) {
-        TRACK_LOG_ERROR("kSetStationStatus requires a voice connection");
+        TRACK_LOG_ERROR("kSetStationState requires a voice connection");
         return;
     }
 
     if (!json["value"].contains("frequency")) {
-        TRACK_LOG_ERROR("kSetStationStatus requires a frequency");
+        TRACK_LOG_ERROR("kSetStationState requires a frequency");
         return;
     }
 
@@ -308,6 +308,15 @@ void SDK::handleSetStationStatus(const nlohmann::json json)
     // NapiHelpers::callElectron("frequency-state-update", buildRadioStateJSON().dump());
 }
 
+void SDK::handleGetStationStates()
+{
+    auto allRadios = mClient->getRadioState();
+    for (const auto& [frequency, state] : allRadios) {
+        this->broadcastOnWebsocket(
+            this->buildStationStateJson(state.stationName, frequency).dump());
+    }
+}
+
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
     const restinio::request_handle_t& req)
 {
@@ -332,8 +341,13 @@ restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
                 try {
                     auto json = nlohmann::json::parse(payload);
                     std::string messageType = json["type"];
-                    if (messageType == "kSetStationStatus") {
-                        this->handleSetStationStatus(std::move(json));
+                    if (messageType == "kSetStationState") {
+                        this->handleSetStationState(std::move(json));
+                        return;
+                    }
+                    if (messageType == "kGetStationStates") {
+                        this->handleGetStationStates();
+                        return;
                     }
                 } catch (const std::exception& e) {
                     // Handle JSON parsing error

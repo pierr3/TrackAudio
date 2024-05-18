@@ -32,7 +32,8 @@ enum Event {
     kTxEnd,
     kFrequencyStateUpdate,
     kDisconnectFrequencyStateUpdate,
-    kStationStateUpdated
+    kStationStateUpdated,
+    kGetStationStates
 };
 }
 
@@ -136,7 +137,13 @@ private:
      *
      * @param json The incoming JSON with the station status.
      */
-    void handleSetStationStatus(const nlohmann::json json);
+    void handleSetStationState(const nlohmann::json json);
+
+    /**
+     * Handles the SDK call to publish all the current station states.
+     *
+     */
+    void handleGetStationStates();
 
     /**
      * Handles a WebSocket SDK call.
