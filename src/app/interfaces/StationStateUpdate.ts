@@ -1,8 +1,3 @@
-export interface Radio {
-  pFrequencyHz: number;
-  pCallsign: string;
-}
-
 export interface StationStateUpdate {
   type: "kStationStateUpdate";
   value: {
