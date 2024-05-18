@@ -6,6 +6,7 @@ export interface StationStateUpdate {
     rx: boolean;
     tx: boolean;
     xc: boolean;
+    xca: boolean;
     headset: boolean;
   };
 }

@@ -148,6 +148,11 @@ const Bootsrap: React.FC = () => {
           if (update.value.xc != radio.xc) {
             useRadioState.getState().setXc(radio.frequency, update.value.xc);
           }
+          if (update.value.xca != radio.crossCoupleAcross) {
+            useRadioState
+              .getState()
+              .setCrossCoupleAcross(radio.frequency, update.value.xca);
+          }
           // The funky != ! is because onSpeaker represents the inverse
           // of the headset state. Yes, it could be == but this makes it
           // follow the pattern of the previous tests.
