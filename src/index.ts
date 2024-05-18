@@ -400,10 +400,6 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
     mainWindow.webContents.send("station-transceivers-updated", arg2, arg3);
   }
 
-  if (arg == AfvEventTypes.FrequencyStateUpdate) {
-    mainWindow.webContents.send("frequency-state-update", arg2, arg3);
-  }
-
   if (arg == AfvEventTypes.StationStateUpdate) {
     mainWindow.webContents.send("station-state-update", arg2, arg3);
   }

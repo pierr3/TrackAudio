@@ -123,10 +123,6 @@ const Bootsrap: React.FC = () => {
       useSessionStore.getState().setFrequency(199998000);
     });
 
-    window.api.on("station-state-update", (data: string) => {
-      console.log(data);
-    });
-
     // Received when a station's state is updated externally, typically
     // by another client via a websocket message. When received go through
     // and ensure the state of the button in TrackAudio matches the new

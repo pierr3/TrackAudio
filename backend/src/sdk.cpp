@@ -58,6 +58,10 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         nlohmann::json jsonMessage
             = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyStateUpdate);
 
+        jsonMessage["value"]["rx"] = nlohmann::json::array();
+        jsonMessage["value"]["tx"] = nlohmann::json::array();
+        jsonMessage["value"]["xc"] = nlohmann::json::array();
+
         this->broadcastOnWebsocket(jsonMessage.dump());
         return;
     }

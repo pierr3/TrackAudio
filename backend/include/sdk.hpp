@@ -33,7 +33,6 @@ enum Event {
     kFrequencyStateUpdate,
     kDisconnectFrequencyStateUpdate,
     kStationStateUpdated,
-    kGetStationStates
 };
 }
 

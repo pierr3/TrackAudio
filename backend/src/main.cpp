@@ -549,6 +549,9 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
 
         NapiHelpers::callElectron("StationRxBegin", std::to_string(frequency), callsign);
 
+        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kRxBegin, callsign, frequency);
+
         return;
     }
 
