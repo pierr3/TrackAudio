@@ -3,12 +3,14 @@ export interface Radio {
   pCallsign: string;
 }
 
-export interface FrequenciesUpdate {
-  type: "kFrequencyStateUpdate";
+export interface StationStateUpdate {
+  type: "kStationStateUpdate";
   value: {
-    rx: Radio[];
-    tx: Radio[];
-    xc: Radio[];
-    allRadios: Radio[];
+    callsign: string | undefined;
+    frequency: number;
+    rx: boolean;
+    tx: boolean;
+    xc: boolean;
+    headset: boolean;
   };
 }

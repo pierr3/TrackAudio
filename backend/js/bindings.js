@@ -14,4 +14,5 @@ exports.AfvEventTypes = {
   NetworkDisconnected: "network-disconnected",
   PttKeySet: "UpdatePttKeyName",
   FrequencyStateUpdate: "frequency-state-update",
+  StationStateUpdate: "station-state-update",
 };

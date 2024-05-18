@@ -24,6 +24,7 @@ export declare const AfvEventTypes: {
   VuMeter: string;
   PttKeySet: string;
   FrequencyStateUpdate: string;
+  StationStateUpdate: string;
 };
 
 declare namespace TrackAudioAfv {

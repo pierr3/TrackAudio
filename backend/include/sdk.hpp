@@ -55,6 +55,17 @@ public:
     void handleAFVEventForWebsocket(sdk::types::Event event,
         const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz);
 
+    /**
+     * @brief Builds a JSON object for the station state.
+     *
+     * @param callsign The callsign of the station. Optional.
+     * @param frequencyHz The frequency of the station.
+     *
+     * @return The JSON object for the station state.
+     */
+    nlohmann::json SDK::buildStationStateJson(
+        const std::optional<std::string>& callsign, const int& frequencyHz);
+
 private:
     using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t, restinio::null_logger_t,
         restinio::router::express_router_t<>>;
@@ -146,6 +157,12 @@ private:
     void handleGetStationStates();
 
     /**
+     * Handles the SDK call to publish the current station state for a single station.
+     *
+     */
+    void handleGetStationState(const std::string& callsign);
+
+    /**
      * Handles a WebSocket SDK call.
      *
      * @param req The request handle.
@@ -153,15 +170,4 @@ private:
      */
     restinio::request_handling_status_t handleWebSocketSDKCall(
         const restinio::request_handle_t& req);
-
-    /**
-     * @brief Builds a JSON object for the station state.
-     *
-     * @param callsign The callsign of the station. Optional.
-     * @param frequencyHz The frequency of the station.
-     *
-     * @return The JSON object for the station state.
-     */
-    nlohmann::json SDK::buildStationStateJson(
-        const std::optional<std::string>& callsign, const int& frequencyHz);
 };

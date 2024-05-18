@@ -306,7 +306,9 @@ void SDK::handleSetStationState(const nlohmann::json json)
     // Send updated info to connected clients
     this->handleAFVEventForWebsocket(
         sdk::types::Event::kStationStateUpdated, std::nullopt, frequency);
-    // NapiHelpers::callElectron("frequency-state-update", buildRadioStateJSON().dump());
+
+    auto stateJson = this->buildStationStateJson(std::nullopt, frequency);
+    NapiHelpers::callElectron("station-state-update", stateJson.dump());
 }
 
 void SDK::handleGetStationStates()
@@ -324,6 +326,24 @@ void SDK::handleGetStationStates()
         = WebsocketMessage::buildMessage(WebsocketMessageType::kStationStates);
     jsonMessage["value"]["stations"] = stationStates;
     this->broadcastOnWebsocket(jsonMessage.dump());
+}
+
+void SDK::handleGetStationState(const std::string& callsign)
+{
+    if (!mClient->IsVoiceConnected()) {
+        TRACK_LOG_ERROR("kGetStationState requires a voice connection");
+        return;
+    }
+
+    auto allRadios = mClient->getRadioState();
+    for (const auto& [frequency, state] : allRadios) {
+        if (state.stationName == callsign) {
+            this->broadcastOnWebsocket(this->buildStationStateJson(callsign, frequency).dump());
+            return;
+        }
+    }
+
+    TRACK_LOG_ERROR("Station {} not found", callsign);
 }
 
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
@@ -356,6 +376,10 @@ restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
                     }
                     if (messageType == "kGetStationStates") {
                         this->handleGetStationStates();
+                        return;
+                    }
+                    if (messageType == "kGetStationState") {
+                        this->handleGetStationState(json["value"]["callsign"]);
                         return;
                     }
                 } catch (const std::exception& e) {

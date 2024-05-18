@@ -3,7 +3,10 @@ import useRadioState from "../store/radioStore";
 import useErrorStore from "../store/errorStore";
 import useSessionStore from "../store/sessionStore";
 import useUtilStore from "../store/utilStore";
-import { FrequenciesUpdate } from "../types/FrequenciesUpdate";
+import {
+  FrequenciesUpdate,
+  StationStateUpdate,
+} from "../types/FrequenciesUpdate";
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
@@ -123,34 +126,28 @@ const Bootsrap: React.FC = () => {
       useSessionStore.getState().setFrequency(199998000);
     });
 
-    window.api.on("frequency-state-update", (data: string) => {
-      const update = JSON.parse(data) as FrequenciesUpdate;
+    window.api.on("station-state-update", (data: string) => {
+      console.log(data);
+    });
 
-      // Update all the radios
-      useRadioState.getState().radios.forEach((radio) => {
-        // Find the radio state by seeing if it is in the relevant arrays indicating
-        // that mode is active.
-        const isRx = update.value.rx.some(
-          (rx) => rx.pFrequencyHz === radio.frequency
-        );
-        const isTx = update.value.tx.some(
-          (tx) => tx.pFrequencyHz === radio.frequency
-        );
-        const isXc = update.value.xc.some(
-          (xc) => xc.pFrequencyHz === radio.frequency
-        );
+    window.api.on("station-state-update", (data: string) => {
+      const update = JSON.parse(data) as StationStateUpdate;
 
-        // Only update if the state has changed
-        if (isRx != radio.rx) {
-          useRadioState.getState().setRx(radio.frequency, isRx);
-        }
-        if (isTx != radio.tx) {
-          useRadioState.getState().setTx(radio.frequency, isTx);
-        }
-        if (isXc != radio.xc) {
-          useRadioState.getState().setXc(radio.frequency, isXc);
-        }
-      });
+      useRadioState
+        .getState()
+        .radios.filter((radio) => radio.frequency === update.value.frequency)
+        .forEach((radio) => {
+          // Only update if the state has changed
+          if (update.value.rx != radio.rx) {
+            useRadioState.getState().setRx(radio.frequency, update.value.rx);
+          }
+          if (update.value.tx != radio.tx) {
+            useRadioState.getState().setTx(radio.frequency, update.value.tx);
+          }
+          if (update.value.xc != radio.xc) {
+            useRadioState.getState().setXc(radio.frequency, update.value.xc);
+          }
+        });
     });
 
     window.api.on("ptt-key-set", (key: string) => {
