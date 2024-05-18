@@ -304,7 +304,8 @@ void SDK::handleSetStationState(const nlohmann::json json)
     }
 
     // Send updated info to connected clients
-    this->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
+    this->handleAFVEventForWebsocket(
+        sdk::types::Event::kStationStateUpdated, std::nullopt, frequency);
     // NapiHelpers::callElectron("frequency-state-update", buildRadioStateJSON().dump());
 }
 
