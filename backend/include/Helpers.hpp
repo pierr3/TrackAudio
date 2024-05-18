@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <mutex>
+#include <nlohmann/json.hpp>
 #include <quill/Quill.h>
 #include <sago/platform_folders.h>
 #include <string>
@@ -41,6 +42,30 @@ public:
         std::string temp = std::to_string(frequencyHz / 1000);
         return temp.substr(0, 3) + "." + temp.substr(3, 7);
     }
+
+    /**
+     * @brief Converts a JSON property that is either true, false, or "toggle" to a boolean value.
+     *
+     * @param incomingValue The JSON property to convert.
+     * @param currentValue The current value of the property.
+     * @return The converted boolean value, either the value specified in the JSON property, or the
+     *        opposite of the current value if the property is "toggle".
+     */
+    inline static bool ConvertBoolOrToggleToBool(
+        const nlohmann::json& incomingValue, bool currentValue)
+    {
+        if (incomingValue.is_boolean()) {
+            TRACK_LOG_TRACE_L1("Received a boolean, returning it: {}", incomingValue.dump());
+            return incomingValue.get<bool>();
+        } else if (incomingValue.is_string() && incomingValue.get<std::string>() == "toggle") {
+            TRACK_LOG_TRACE_L1("Received \"toggle\", returning {}, the inverse of {}",
+                !currentValue, currentValue);
+            return !currentValue;
+        } else {
+            TRACK_LOG_WARNING("Invalid value for boolean property: {}", incomingValue.dump());
+            return currentValue;
+        }
+    }
 };
 
 class NapiHelpers {
@@ -66,8 +91,7 @@ public:
 
         callbackRef->NonBlockingCall(
             [eventName, data, data2](Napi::Env env, Napi::Function jsCallback) {
-                LOG_TRACE_L1(quill::get_logger("trackaudio_logger"),
-                    "Event name: {}, data: {}, data2: {}", eventName, data, data2);
+                TRACK_LOG_TRACE_L1("Event name: {}, data: {}, data2: {}", eventName, data, data2);
                 jsCallback.Call({ Napi::String::New(env, eventName), Napi::String::New(env, data),
                     Napi::String::New(env, data2) });
             });

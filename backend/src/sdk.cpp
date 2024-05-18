@@ -257,23 +257,13 @@ void SDK::handleSetStationState(const nlohmann::json json)
     mClient->SetRadioGainAll(UserSession::currentRadioGain);
 
     if (json["value"].contains("rx")) {
-        bool oldRxValue = mClient->GetRxState(frequency);
-        bool newRxValue;
+        bool oldValue = mClient->GetRxState(frequency);
+        bool newValue = Helpers::ConvertBoolOrToggleToBool(json["value"]["rx"], oldValue);
 
-        // rx is either a "toggle" string or a boolean value
-        if (json["value"]["rx"].is_string() && json["value"]["rx"] == "toggle") {
-            newRxValue = !oldRxValue;
+        TRACK_LOG_TRACE_L1("Setting rx for {} to {}", frequency, newValue);
+        mClient->SetRx(frequency, newValue);
 
-            TRACK_LOG_INFO("Toggling rx for {}, new value {}", frequency, newRxValue);
-            mClient->SetRx(frequency, newRxValue);
-        } else {
-            newRxValue = json["value"]["rx"].get<bool>();
-
-            TRACK_LOG_INFO("Setting rx for {} to {}", frequency, newRxValue);
-            mClient->SetRx(frequency, newRxValue);
-        }
-
-        if (!oldRxValue && newRxValue) {
+        if (!oldValue && newValue) {
             // When turning on RX, we refresh the transceivers
             auto states = mClient->getRadioState();
             if (states.find(frequency) != states.end() && !states[frequency].stationName.empty()) {
@@ -283,56 +273,35 @@ void SDK::handleSetStationState(const nlohmann::json json)
     }
 
     if (json["value"].contains("tx") && UserSession::isATC) {
-        // tx is either a "toggle" string or a boolean value
-        if (json["value"]["tx"].is_string() && json["value"]["tx"] == "toggle") {
-            TRACK_LOG_INFO("Toggling tx for {}", frequency);
-            mClient->SetTx(frequency, !mClient->GetTxState(frequency));
-        } else {
-            auto tx = json["value"]["tx"].get<bool>();
+        bool newValue = Helpers::ConvertBoolOrToggleToBool(
+            json["value"]["tx"], mClient->GetTxState(frequency));
 
-            TRACK_LOG_INFO("Setting tx for {} to {}", frequency, tx);
-            mClient->SetTx(frequency, tx);
-        }
+        TRACK_LOG_TRACE_L1("Setting tx for {} to {}", frequency, newValue);
+        mClient->SetTx(frequency, newValue);
     }
 
     if (json["value"].contains("xc") && UserSession::isATC) {
-        // xc is either a "toggle" string or a boolean value
-        if (json["value"]["xc"].is_string() && json["value"]["xc"] == "toggle") {
-            TRACK_LOG_INFO("Toggling xc for {}", frequency);
-            mClient->SetXc(frequency, !mClient->GetXcState(frequency));
-        } else {
-            auto xc = json["value"]["xc"].get<bool>();
+        bool newValue = Helpers::ConvertBoolOrToggleToBool(
+            json["value"]["xc"], mClient->GetXcState(frequency));
 
-            TRACK_LOG_INFO("Setting xc for {} to {}", frequency, xc);
-            mClient->SetXc(frequency, xc);
-        }
+        TRACK_LOG_TRACE_L1("Setting xc for {} to {}", frequency, newValue);
+        mClient->SetXc(frequency, newValue);
     }
 
     if (json["value"].contains("xca") && UserSession::isATC) {
-        // xca is either a "toggle" string or a boolean value
-        if (json["value"]["xca"].is_string() && json["value"]["xca"] == "toggle") {
-            TRACK_LOG_INFO("Toggling xca for {}", frequency);
-            mClient->SetCrossCoupleAcross(
-                frequency, !mClient->GetCrossCoupleAcrossState(frequency));
-        } else {
-            auto xca = json["value"]["xca"].get<bool>();
+        bool newValue = Helpers::ConvertBoolOrToggleToBool(
+            json["value"]["xca"], mClient->GetCrossCoupleAcrossState(frequency));
 
-            TRACK_LOG_INFO("Setting xca for {} to {}", frequency, xca);
-            mClient->SetCrossCoupleAcross(frequency, xca);
-        }
+        TRACK_LOG_TRACE_L1("Setting xca for {} to {}", frequency, newValue);
+        mClient->SetCrossCoupleAcross(frequency, newValue);
     }
 
     if (json["value"].contains("headset")) {
-        // headset is either a "toggle" string or a boolean value
-        if (json["value"]["headset"].is_string() && json["value"]["headset"] == "toggle") {
-            TRACK_LOG_INFO("Toggling headset for {}", frequency);
-            mClient->SetOnHeadset(frequency, !mClient->GetOnHeadset(frequency));
-        } else {
-            auto headset = json["value"]["headset"].get<bool>();
+        bool newValue = Helpers::ConvertBoolOrToggleToBool(
+            json["value"]["headset"], mClient->GetOnHeadset(frequency));
 
-            TRACK_LOG_INFO("Setting headset for {} to {}", frequency, headset);
-            mClient->SetOnHeadset(frequency, headset);
-        }
+        TRACK_LOG_TRACE_L1("Setting headset for {} to {}", frequency, newValue);
+        mClient->SetOnHeadset(frequency, newValue);
     }
 
     // Send updated info to connected clients

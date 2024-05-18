@@ -17,6 +17,8 @@
     LOG_ERROR(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
 #define TRACK_LOG_CRITICAL(fmt, ...)                                                               \
     LOG_CRITICAL(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+#define TRACK_LOG_TRACE_L1(fmt, ...)                                                               \
+    LOG_TRACE_L1(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
 
 #define TIMER_CALLBACK_INTERVAL_SEC 15
 #define SLURPER_BASE_URL "https://slurper.vatsim.net"
