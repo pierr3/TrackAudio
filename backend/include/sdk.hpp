@@ -66,6 +66,13 @@ public:
     nlohmann::json SDK::buildStationStateJson(
         const std::optional<std::string>& callsign, const int& frequencyHz);
 
+    /**
+     * @brief Publishes the station state JSON to the websocket clients.
+     * 
+     * @param state A JSON object representing the station state.
+     */
+    void SDK::publishStationState(const nlohmann::json& state);
+
 private:
     using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t, restinio::null_logger_t,
         restinio::router::express_router_t<>>;

@@ -304,10 +304,8 @@ void SDK::handleSetStationState(const nlohmann::json json)
     }
 
     // Send updated info to connected clients
-    this->handleAFVEventForWebsocket(
-        sdk::types::Event::kStationStateUpdated, std::nullopt, frequency);
-
     auto stateJson = this->buildStationStateJson(std::nullopt, frequency);
+    this->publishStationState(stateJson);
     NapiHelpers::callElectron("station-state-update", stateJson.dump());
 }
 
@@ -338,12 +336,17 @@ void SDK::handleGetStationState(const std::string& callsign)
     auto allRadios = mClient->getRadioState();
     for (const auto& [frequency, state] : allRadios) {
         if (state.stationName == callsign) {
-            this->broadcastOnWebsocket(this->buildStationStateJson(callsign, frequency).dump());
+            this.publishStationState(this->buildStationStateJson(callsign, frequency));
             return;
         }
     }
 
     TRACK_LOG_ERROR("Station {} not found", callsign);
+}
+
+void SDK::publishStationState(const nlohmann::json& state)
+{
+    this->broadcastOnWebsocket(state.dump());
 }
 
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(

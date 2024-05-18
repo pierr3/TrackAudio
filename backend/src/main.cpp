@@ -210,8 +210,10 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
         sdk::types::Event::kFrequencyStateUpdate, {}, {});
 
     // New event that only notifies of the change to this specific station.
-    MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-        sdk::types::Event::kStationStateUpdated, std::nullopt, frequency);
+    auto stateJson
+        = MainThreadShared::mApiServer->buildStationStateJson(std::nullopt, frequencyHz.value());
+    MainThreadShared::mApiServer->publishStationState(stateJson);
+    NapiHelpers::callElectron("station-state-update", stateJson.dump());
 
     if (!oldRxValue && rx) {
         // When turning on RX, we refresh the transceivers
