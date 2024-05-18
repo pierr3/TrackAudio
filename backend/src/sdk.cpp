@@ -303,6 +303,19 @@ void SDK::handleSetStationState(const nlohmann::json json)
         }
     }
 
+    if (json["value"].contains("headset")) {
+        // headset is either a "toggle" string or a boolean value
+        if (json["value"]["headset"].is_string() && json["value"]["headset"] == "toggle") {
+            TRACK_LOG_INFO("Toggling headset for {}", frequency);
+            mClient->SetOnHeadset(frequency, !mClient->GetOnHeadset(frequency));
+        } else {
+            auto headset = json["value"]["headset"].get<bool>();
+
+            TRACK_LOG_INFO("Setting headset for {} to {}", frequency, headset);
+            mClient->SetOnHeadset(frequency, headset);
+        }
+    }
+
     // Send updated info to connected clients
     auto stateJson = this->buildStationStateJson(std::nullopt, frequency);
     this->publishStationState(stateJson);
@@ -336,7 +349,7 @@ void SDK::handleGetStationState(const std::string& callsign)
     auto allRadios = mClient->getRadioState();
     for (const auto& [frequency, state] : allRadios) {
         if (state.stationName == callsign) {
-            this.publishStationState(this->buildStationStateJson(callsign, frequency));
+            this->publishStationState(this->buildStationStateJson(callsign, frequency));
             return;
         }
     }

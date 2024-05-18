@@ -210,8 +210,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
         sdk::types::Event::kFrequencyStateUpdate, {}, {});
 
     // New event that only notifies of the change to this specific station.
-    auto stateJson
-        = MainThreadShared::mApiServer->buildStationStateJson(std::nullopt, frequencyHz.value());
+    auto stateJson = MainThreadShared::mApiServer->buildStationStateJson(std::nullopt, frequency);
     MainThreadShared::mApiServer->publishStationState(stateJson);
     NapiHelpers::callElectron("station-state-update", stateJson.dump());
 
