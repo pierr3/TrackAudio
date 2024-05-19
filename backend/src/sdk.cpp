@@ -1,5 +1,6 @@
 #include "sdk.hpp"
 #include "Helpers.hpp"
+#include "RadioHelper.hpp"
 #include "Shared.hpp"
 #include <quill/Quill.h>
 
@@ -242,72 +243,27 @@ restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request
 
 void SDK::handleSetStationState(const nlohmann::json json)
 {
-    if (!mClient->IsVoiceConnected()) {
-        TRACK_LOG_ERROR("kSetStationState requires a voice connection");
-        return;
-    }
-
     if (!json["value"].contains("frequency")) {
         TRACK_LOG_ERROR("kSetStationState requires a frequency");
         return;
     }
 
-    int frequency = json["value"]["frequency"];
+    RadioState radioState;
+    auto frequency = json["value"]["frequency"];
 
-    mClient->SetRadioGainAll(UserSession::currentRadioGain);
+    radioState.frequency = frequency;
+    radioState.rx = Helpers::ConvertBoolOrToggleToBool(
+        json["value"]["rx"], mClient->GetRxState(radioState.frequency));
+    radioState.tx = Helpers::ConvertBoolOrToggleToBool(
+        json["value"]["tx"], mClient->GetTxState(radioState.frequency));
+    radioState.xc
+        = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], mClient->GetXcState(frequency));
+    radioState.xca = Helpers::ConvertBoolOrToggleToBool(
+        json["value"]["xca"], mClient->GetCrossCoupleAcrossState(frequency));
+    radioState.headset = Helpers::ConvertBoolOrToggleToBool(
+        json["value"]["headset"], mClient->GetOnHeadset(frequency));
 
-    if (json["value"].contains("rx")) {
-        bool oldValue = mClient->GetRxState(frequency);
-        bool newValue = Helpers::ConvertBoolOrToggleToBool(json["value"]["rx"], oldValue);
-
-        TRACK_LOG_TRACE_L1("Setting rx for {} to {}", frequency, newValue);
-        mClient->SetRx(frequency, newValue);
-
-        if (!oldValue && newValue) {
-            // When turning on RX, we refresh the transceivers
-            auto states = mClient->getRadioState();
-            if (states.find(frequency) != states.end() && !states[frequency].stationName.empty()) {
-                mClient->FetchTransceiverInfo(states[frequency].stationName);
-            }
-        }
-    }
-
-    if (json["value"].contains("tx") && UserSession::isATC) {
-        bool newValue = Helpers::ConvertBoolOrToggleToBool(
-            json["value"]["tx"], mClient->GetTxState(frequency));
-
-        TRACK_LOG_TRACE_L1("Setting tx for {} to {}", frequency, newValue);
-        mClient->SetTx(frequency, newValue);
-    }
-
-    if (json["value"].contains("xc") && UserSession::isATC) {
-        bool newValue = Helpers::ConvertBoolOrToggleToBool(
-            json["value"]["xc"], mClient->GetXcState(frequency));
-
-        TRACK_LOG_TRACE_L1("Setting xc for {} to {}", frequency, newValue);
-        mClient->SetXc(frequency, newValue);
-    }
-
-    if (json["value"].contains("xca") && UserSession::isATC) {
-        bool newValue = Helpers::ConvertBoolOrToggleToBool(
-            json["value"]["xca"], mClient->GetCrossCoupleAcrossState(frequency));
-
-        TRACK_LOG_TRACE_L1("Setting xca for {} to {}", frequency, newValue);
-        mClient->SetCrossCoupleAcross(frequency, newValue);
-    }
-
-    if (json["value"].contains("headset")) {
-        bool newValue = Helpers::ConvertBoolOrToggleToBool(
-            json["value"]["headset"], mClient->GetOnHeadset(frequency));
-
-        TRACK_LOG_TRACE_L1("Setting headset for {} to {}", frequency, newValue);
-        mClient->SetOnHeadset(frequency, newValue);
-    }
-
-    // Send updated info to connected clients
-    auto stateJson = this->buildStationStateJson(std::nullopt, frequency);
-    this->publishStationState(stateJson);
-    NapiHelpers::callElectron("station-state-update", stateJson.dump());
+    RadioHelper::SetRadioState(this, radioState);
 }
 
 void SDK::handleGetStationStates()

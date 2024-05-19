@@ -49,7 +49,8 @@ public:
      * @param incomingValue The JSON property to convert.
      * @param currentValue The current value of the property.
      * @return The converted boolean value, either the value specified in the JSON property, or the
-     *        opposite of the current value if the property is "toggle".
+     *        opposite of currentValue if the property is "toggle", or the currentValue if
+     *        incoming value is undefined or invalid.
      */
     inline static bool ConvertBoolOrToggleToBool(
         const nlohmann::json& incomingValue, bool currentValue)
@@ -62,7 +63,8 @@ public:
                 !currentValue, currentValue);
             return !currentValue;
         } else {
-            TRACK_LOG_WARNING("Invalid value for boolean property: {}", incomingValue.dump());
+            TRACK_LOG_TRACE_L1("Invalid value for boolean property: {}, returning {}",
+                incomingValue.dump(), currentValue);
             return currentValue;
         }
     }
