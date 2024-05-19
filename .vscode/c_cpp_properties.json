@@ -3,7 +3,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/backend/build/_deps/afv_native-src/include/afv-native"
             ],
             "defines": [
                 "_DEBUG",
