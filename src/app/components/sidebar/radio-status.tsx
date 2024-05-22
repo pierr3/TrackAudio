@@ -2,16 +2,20 @@ import React from "react";
 import useRadioState, { RadioHelper } from "../../store/radioStore";
 
 const RadioStatus: React.FC = () => {
-  const [selectedRadio, removeRadio, setPendingDeletion] = useRadioState((state) => [
-    state.getSelectedRadio(),
-    state.removeRadio,
-    state.setPendingDeletion,
-  ]);
+  const [selectedRadio, removeRadio, setPendingDeletion] = useRadioState(
+    (state) => [
+      state.getSelectedRadio(),
+      state.removeRadio,
+      state.setPendingDeletion,
+    ]
+  );
 
   const awaitEndOfRxForDeletion = (frequency: number): void => {
     const interval = setInterval(
       (frequency: number) => {
-        const radio = useRadioState.getState().radios.find((r) => r.frequency === frequency);
+        const radio = useRadioState
+          .getState()
+          .radios.find((r) => r.frequency === frequency);
         if (!radio) {
           clearInterval(interval);
           return;
@@ -66,7 +70,12 @@ const RadioStatus: React.FC = () => {
       </span>
       <br />
       <span>
-        Transceivers: {selectedRadio ? selectedRadio.transceiverCount : ""}
+        Transceivers:{" "}
+        {selectedRadio
+          ? selectedRadio.callsign !== "MANUAL"
+            ? selectedRadio.transceiverCount
+            : "MAN"
+          : ""}
       </span>
       <br />
       <button
@@ -85,7 +94,7 @@ const RadioStatus: React.FC = () => {
           handleDeleteRadio();
         }}
       >
-        { selectedRadio?.isPendingDeleting ? "Deleting..." : "Delete"}
+        {selectedRadio?.isPendingDeleting ? "Deleting..." : "Delete"}
       </button>
     </div>
   );

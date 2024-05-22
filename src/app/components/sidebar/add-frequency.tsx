@@ -5,19 +5,14 @@ import useSessionStore from "../../store/sessionStore";
 const AddFrequency: React.FC = () => {
   const [readyToAdd, setReadyToAdd] = useState(false);
   const [previousValue, setPreviousValue] = useState("");
-  const [addRadio, setRx] = useRadioState((state) => [
-    state.addRadio,
-    state.setRx,
-  ]);
+  const [addRadio] = useRadioState((state) => [state.addRadio]);
 
-  const isNetworkConnected = useSessionStore(
-    (state) => state.isNetworkConnected
-  );
+  const isConnected = useSessionStore((state) => state.isConnected);
 
   const frequencyInputRef = useRef<HTMLInputElement>(null);
 
   const addFrequency = () => {
-    if (!readyToAdd || !isNetworkConnected) {
+    if (!readyToAdd || !isConnected) {
       return;
     }
 
@@ -39,7 +34,6 @@ const AddFrequency: React.FC = () => {
           "MANUAL",
           useSessionStore.getState().getStationCallsign()
         );
-        setRx(frequencyInHz, true);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -87,13 +81,16 @@ const AddFrequency: React.FC = () => {
         onChange={checkFrequency}
         ref={frequencyInputRef}
         onKeyDown={(e) => {
-          e.key === "Enter" && addFrequency();
+          if (e.key === "Enter") {
+            e.preventDefault();
+            addFrequency();
+          }
         }}
       ></input>
       <button
         className="btn btn-primary mt-2 w-100"
         onClick={addFrequency}
-        disabled={!readyToAdd || !isNetworkConnected}
+        disabled={!readyToAdd || !isConnected}
       >
         Add
       </button>

@@ -6,16 +6,16 @@ import useRadioState from "../../store/radioStore";
 
 const Sidebar: React.FC = () => {
   const [readyToAdd, setReadyToAdd] = useState(false);
-  const [version, isNetworkConnected] = useSessionStore((state) => [
+  const [version, isConnected] = useSessionStore((state) => [
     state.version,
-    state.isNetworkConnected,
+    state.isConnected,
   ]);
   const [radios] = useRadioState((state) => [state.radios]);
 
   const stationInputRef = useRef<HTMLInputElement>(null);
 
   const addStation = () => {
-    if (!readyToAdd || !isNetworkConnected) {
+    if (!readyToAdd || !isConnected) {
       return;
     }
 
@@ -56,7 +56,7 @@ const Sidebar: React.FC = () => {
           ></input>
           <button
             className="btn btn-primary mt-2 w-100"
-            disabled={!readyToAdd || !isNetworkConnected}
+            disabled={!readyToAdd || !isConnected}
             onClick={addStation}
           >
             Add
