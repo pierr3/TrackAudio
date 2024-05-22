@@ -1,4 +1,11 @@
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Rectangle,
+  screen,
+} from "electron";
 
 import { TrackAudioAfv, AfvEventTypes } from "trackaudio-afv";
 import { Configuration } from "./config.d";
@@ -19,6 +26,8 @@ Sentry.init({
 
 let version: string;
 let mainWindow: BrowserWindow;
+
+const defaultWindowSize = { width: 800, height: 660 };
 
 let currentConfiguration: Configuration = {
   audioApi: -1,
@@ -44,9 +53,33 @@ const setAudioSettings = () => {
     currentConfiguration.audioApi || -1,
     currentConfiguration.audioInputDeviceId || "",
     currentConfiguration.headsetOutputDeviceId || "",
-    currentConfiguration.speakerOutputDeviceId || "",
+    currentConfiguration.speakerOutputDeviceId || ""
   );
   TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
+};
+
+const restoreWindowBounds = (win: BrowserWindow) => {
+  const savedBounds = store.get("bounds");
+  const boundsRectangle = savedBounds as Rectangle;
+  if (savedBounds !== undefined && savedBounds !== null) {
+    const screenArea = screen.getDisplayMatching(boundsRectangle).workArea;
+    if (
+      boundsRectangle.x > screenArea.x + screenArea.width ||
+      boundsRectangle.x < screenArea.x ||
+      boundsRectangle.y < screenArea.y ||
+      boundsRectangle.y > screenArea.y + screenArea.height
+    ) {
+      // Reset window into existing screenarea
+      win.setBounds({
+        x: 0,
+        y: 0,
+        width: defaultWindowSize.width,
+        height: defaultWindowSize.height,
+      });
+    } else {
+      win.setBounds(boundsRectangle);
+    }
+  }
 };
 
 const createWindow = (): void => {
@@ -56,8 +89,8 @@ const createWindow = (): void => {
 
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    height: 660,
-    width: 800,
+    height: defaultWindowSize.height,
+    width: defaultWindowSize.width,
     minWidth: 210,
     minHeight: 120,
     webPreferences: {
@@ -70,6 +103,8 @@ const createWindow = (): void => {
   if (process.platform !== "darwin") {
     mainWindow.setMenu(null);
   }
+
+  restoreWindowBounds(mainWindow);
   // and load the index.html of the app.
   void mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
@@ -89,8 +124,11 @@ const createWindow = (): void => {
 
       if (response == 1) {
         e.preventDefault();
+        return;
       }
     }
+
+    store.set("bounds", mainWindow.getBounds());
   });
 };
 
@@ -100,7 +138,7 @@ const createWindow = (): void => {
 app.on("ready", () => {
   // load the configuration
   currentConfiguration = JSON.parse(
-    store.get("configuration", "{}") as string,
+    store.get("configuration", "{}") as string
   ) as Configuration;
 
   if (currentConfiguration.consentedToTelemetry === undefined) {
@@ -258,7 +296,7 @@ ipcMain.handle(
   "audio-add-frequency",
   (_, frequency: number, callsign: string) => {
     return TrackAudioAfv.AddFrequency(frequency, callsign);
-  },
+  }
 );
 
 ipcMain.handle("audio-remove-frequency", (_, frequency: number) => {
@@ -274,7 +312,7 @@ ipcMain.handle(
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean,
+    crossCoupleAcross: boolean
   ) => {
     return TrackAudioAfv.SetFrequencyState(
       frequency,
@@ -282,9 +320,9 @@ ipcMain.handle(
       tx,
       xc,
       onSpeaker,
-      crossCoupleAcross,
+      crossCoupleAcross
     );
-  },
+  }
 );
 
 ipcMain.handle("audio-get-frequency-state", (_, frequency: number) => {
@@ -357,7 +395,7 @@ ipcMain.handle(
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
     message: string,
-    buttons: string[],
+    buttons: string[]
   ) => {
     return dialog.showMessageBox(mainWindow, {
       type,
@@ -365,7 +403,7 @@ ipcMain.handle(
       buttons,
       message,
     });
-  },
+  }
 );
 
 ipcMain.handle("get-version", () => {
