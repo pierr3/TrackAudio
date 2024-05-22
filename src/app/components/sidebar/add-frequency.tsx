@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import useRadioState, { RadioHelper } from "../../store/radioStore";
 import useSessionStore from "../../store/sessionStore";
 
@@ -11,21 +11,22 @@ const AddFrequency: React.FC = () => {
   ]);
 
   const isNetworkConnected = useSessionStore(
-    (state) => state.isNetworkConnected,
+    (state) => state.isNetworkConnected
   );
 
+  const frequencyInputRef = useRef<HTMLInputElement>(null);
+
   const addFrequency = () => {
-    if (!readyToAdd) {
+    if (!readyToAdd || !isNetworkConnected) {
       return;
     }
 
-    const frequency = document.getElementById(
-      "frequencyInput",
-    ) as HTMLInputElement;
+    const frequency = frequencyInputRef.current?.value;
+    if (!frequency) {
+      return;
+    }
 
-    const frequencyInHz = RadioHelper.convertMHzToHz(
-      parseFloat(frequency.value),
-    );
+    const frequencyInHz = RadioHelper.convertMHzToHz(parseFloat(frequency));
 
     window.api
       .addFrequency(frequencyInHz, "")
@@ -36,7 +37,7 @@ const AddFrequency: React.FC = () => {
         addRadio(
           frequencyInHz,
           "MANUAL",
-          useSessionStore.getState().getStationCallsign(),
+          useSessionStore.getState().getStationCallsign()
         );
         setRx(frequencyInHz, true);
       })
@@ -44,7 +45,7 @@ const AddFrequency: React.FC = () => {
         console.error(err);
       });
 
-    frequency.value = "";
+    frequencyInputRef.current.value = "";
     setPreviousValue("");
     setReadyToAdd(false);
   };
@@ -65,7 +66,7 @@ const AddFrequency: React.FC = () => {
     }
 
     const frequencyRegex = new RegExp(
-      "^([0-9]{3})([.]{1})([0-9]{1,2})(([0,5]{0,1}))$",
+      "^([0-9]{3})([.]{1})([0-9]{1,2})(([0,5]{0,1}))$"
     );
 
     if (frequencyRegex.test(frequency)) {
@@ -84,6 +85,7 @@ const AddFrequency: React.FC = () => {
         id="frequencyInput"
         placeholder="---.---"
         onChange={checkFrequency}
+        ref={frequencyInputRef}
         onKeyDown={(e) => {
           e.key === "Enter" && addFrequency();
         }}
