@@ -69,7 +69,7 @@ const Navbar: React.FC = () => {
       .then((ret) => {
         if (!ret) {
           postError(
-            "Error connecting to AFV, check your configuration and credentials.",
+            "Error connecting to AFV, check your configuration and credentials."
           );
           setIsConnecting(false);
           setIsConnected(false);
@@ -97,7 +97,7 @@ const Navbar: React.FC = () => {
           "question",
           "Relief callsign detected",
           "You might be using a relief callsign, please select which callsign you want to use.",
-          [callsign, reliefCallsign],
+          [callsign, reliefCallsign]
         )
         .then((ret) => {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -119,17 +119,32 @@ const Navbar: React.FC = () => {
     }
   };
 
-  const handleRadioGainChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const updateRadioGainValue = (newGain: number) => {
     window.api
-      .SetRadioGain(event.target.valueAsNumber / 100)
+      .SetRadioGain(newGain / 100)
       .then(() => {
-        setRadioGain(event.target.valueAsNumber);
+        setRadioGain(newGain);
       })
       .catch((err: unknown) => {
         console.error(err);
       });
+  };
+
+  const handleRadioGainChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    updateRadioGainValue(event.target.valueAsNumber);
+  };
+
+  const handleRadioGainMouseWheel = (
+    event: React.WheelEvent<HTMLInputElement>
+  ) => {
+    const newValue = Math.min(
+      Math.max(radioGain + (event.deltaY > 0 ? -1 : 1), 0),
+      100
+    );
+
+    updateRadioGainValue(newValue);
   };
 
   return (
@@ -139,7 +154,7 @@ const Navbar: React.FC = () => {
         <span
           className={clsx(
             "btn text-box-container m-2",
-            isNetworkConnected && !isAtc && "color-warning",
+            isNetworkConnected && !isAtc && "color-warning"
           )}
         >
           {isNetworkConnected ? callsign : "Not Connected"}
@@ -149,7 +164,7 @@ const Navbar: React.FC = () => {
             "btn m-2 hide-connect-flex",
             !isConnected && "btn-info",
             isConnecting && "loading-button",
-            isConnected && "btn-danger",
+            isConnected && "btn-danger"
           )}
           onClick={() => {
             handleConnectDisconnect();
@@ -175,6 +190,7 @@ const Navbar: React.FC = () => {
         <span
           className="btn text-box-container m-2 hide-gain-value"
           style={{ width: "88px" }}
+          onWheel={handleRadioGainMouseWheel}
         >
           Gain: {radioGain.toFixed(0).padStart(3, "0")}%
         </span>
@@ -185,7 +201,8 @@ const Navbar: React.FC = () => {
           max="100"
           step="1"
           onChange={handleRadioGainChange}
-          defaultValue={radioGain}
+          onWheel={handleRadioGainMouseWheel}
+          value={radioGain}
         ></input>
         {platform === "linux" && (
           <button

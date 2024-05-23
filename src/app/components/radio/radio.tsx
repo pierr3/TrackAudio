@@ -1,5 +1,5 @@
 import React from "react";
-import useRadioState, { RadioType, RadioHelper } from "../../store/radioStore";
+import useRadioState, { RadioType } from "../../store/radioStore";
 import clsx from "clsx";
 import useErrorStore from "../../store/errorStore";
 import useSessionStore from "../../store/sessionStore";
@@ -184,7 +184,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             style={{ height: "100%", marginBottom: "4%" }}
             onClick={clickRadioHeader}
           >
-            {RadioHelper.convertHzToMhzString(radio.frequency)}
+            {radio.humanFrequency}
             <br />
             {radio.callsign}
           </button>

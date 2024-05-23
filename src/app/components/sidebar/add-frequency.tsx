@@ -1,31 +1,27 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import useRadioState, { RadioHelper } from "../../store/radioStore";
 import useSessionStore from "../../store/sessionStore";
 
 const AddFrequency: React.FC = () => {
   const [readyToAdd, setReadyToAdd] = useState(false);
   const [previousValue, setPreviousValue] = useState("");
-  const [addRadio, setRx] = useRadioState((state) => [
-    state.addRadio,
-    state.setRx,
-  ]);
+  const [addRadio] = useRadioState((state) => [state.addRadio]);
 
-  const isNetworkConnected = useSessionStore(
-    (state) => state.isNetworkConnected,
-  );
+  const isConnected = useSessionStore((state) => state.isConnected);
+
+  const frequencyInputRef = useRef<HTMLInputElement>(null);
 
   const addFrequency = () => {
-    if (!readyToAdd) {
+    if (!readyToAdd || !isConnected) {
       return;
     }
 
-    const frequency = document.getElementById(
-      "frequencyInput",
-    ) as HTMLInputElement;
+    const frequency = frequencyInputRef.current?.value;
+    if (!frequency) {
+      return;
+    }
 
-    const frequencyInHz = RadioHelper.convertMHzToHz(
-      parseFloat(frequency.value),
-    );
+    const frequencyInHz = RadioHelper.convertMHzToHz(parseFloat(frequency));
 
     window.api
       .addFrequency(frequencyInHz, "")
@@ -36,15 +32,14 @@ const AddFrequency: React.FC = () => {
         addRadio(
           frequencyInHz,
           "MANUAL",
-          useSessionStore.getState().getStationCallsign(),
+          useSessionStore.getState().getStationCallsign()
         );
-        setRx(frequencyInHz, true);
       })
       .catch((err: unknown) => {
         console.error(err);
       });
 
-    frequency.value = "";
+    frequencyInputRef.current.value = "";
     setPreviousValue("");
     setReadyToAdd(false);
   };
@@ -65,7 +60,7 @@ const AddFrequency: React.FC = () => {
     }
 
     const frequencyRegex = new RegExp(
-      "^([0-9]{3})([.]{1})([0-9]{1,2})(([0,5]{0,1}))$",
+      "^([0-9]{3})([.]{1})([0-9]{1,2})(([0,5]{0,1}))$"
     );
 
     if (frequencyRegex.test(frequency)) {
@@ -84,14 +79,18 @@ const AddFrequency: React.FC = () => {
         id="frequencyInput"
         placeholder="---.---"
         onChange={checkFrequency}
+        ref={frequencyInputRef}
         onKeyDown={(e) => {
-          e.key === "Enter" && addFrequency();
+          if (e.key === "Enter") {
+            e.preventDefault();
+            addFrequency();
+          }
         }}
       ></input>
       <button
         className="btn btn-primary mt-2 w-100"
         onClick={addFrequency}
-        disabled={!readyToAdd || !isNetworkConnected}
+        disabled={!readyToAdd || !isConnected}
       >
         Add
       </button>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import AddFrequency from "./add-frequency";
 import RadioStatus from "./radio-status";
 import useSessionStore from "../../store/sessionStore";
@@ -6,24 +6,26 @@ import useRadioState from "../../store/radioStore";
 
 const Sidebar: React.FC = () => {
   const [readyToAdd, setReadyToAdd] = useState(false);
-  const [version, isNetworkConnected] = useSessionStore((state) => [
+  const [version, isConnected] = useSessionStore((state) => [
     state.version,
-    state.isNetworkConnected,
+    state.isConnected,
   ]);
   const [radios] = useRadioState((state) => [state.radios]);
 
+  const stationInputRef = useRef<HTMLInputElement>(null);
+
   const addStation = () => {
-    if (!readyToAdd) {
+    if (!readyToAdd || !isConnected) {
       return;
     }
 
-    const stationInput = document.getElementById(
-      "stationInput",
-    ) as HTMLInputElement;
-    const callsign = stationInput.value.toUpperCase();
+    const callsign = stationInputRef.current?.value.toUpperCase();
+    if (!callsign?.match(/^[A-Z0-9_ ]+$/) || !stationInputRef.current) {
+      return;
+    }
 
     void window.api.GetStation(callsign);
-    stationInput.value = "";
+    stationInputRef.current.value = "";
     setReadyToAdd(false);
   };
 
@@ -42,6 +44,7 @@ const Sidebar: React.FC = () => {
             className="form-control mt-2"
             id="stationInput"
             placeholder="XXXX_XXX"
+            ref={stationInputRef}
             onChange={(e) => {
               e.target.value.length !== 0
                 ? setReadyToAdd(true)
@@ -53,7 +56,7 @@ const Sidebar: React.FC = () => {
           ></input>
           <button
             className="btn btn-primary mt-2 w-100"
-            disabled={!readyToAdd || !isNetworkConnected}
+            disabled={!readyToAdd || !isConnected}
             onClick={addStation}
           >
             Add

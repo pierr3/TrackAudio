@@ -5,6 +5,7 @@ import { getCallsignParts } from "../helpers/CallsignHelper";
 
 export interface RadioType {
   frequency: number;
+  humanFrequency: string;
   callsign: string;
   rx: boolean;
   tx: boolean;
@@ -95,6 +96,7 @@ const useRadioState = create<RadioState>((set) => ({
         ...state.radios,
         {
           frequency,
+          humanFrequency: RadioHelper.convertHzToMhzString(frequency),
           callsign,
           station,
           position,
