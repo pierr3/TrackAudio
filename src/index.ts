@@ -28,6 +28,7 @@ let version: string;
 let mainWindow: BrowserWindow;
 
 const defaultWindowSize = { width: 800, height: 660 };
+const savedLastWindowSize = { width: 800, height: 660 };
 
 let currentConfiguration: Configuration = {
   audioApi: -1,
@@ -56,6 +57,19 @@ const setAudioSettings = () => {
     currentConfiguration.speakerOutputDeviceId || ""
   );
   TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
+};
+
+const toggleMiniMode = () => {
+  if (
+    mainWindow.getSize()[0] == mainWindow.getMinimumSize()[0] &&
+    mainWindow.getSize()[1] == mainWindow.getMinimumSize()[1]
+  ) {
+    mainWindow.setSize(savedLastWindowSize.width, savedLastWindowSize.height);
+    return;
+  }
+  savedLastWindowSize.width = mainWindow.getSize()[0];
+  savedLastWindowSize.height = mainWindow.getSize()[1];
+  mainWindow.setSize(1, 1);
 };
 
 const restoreWindowBounds = (win: BrowserWindow) => {
@@ -129,6 +143,17 @@ const createWindow = (): void => {
     }
 
     store.set("bounds", mainWindow.getBounds());
+  });
+
+  mainWindow.webContents.on("before-input-event", (e, input) => {
+    if (
+      input.key.toLowerCase() === "m" &&
+      input.type === "keyDown" &&
+      (input.control || input.meta)
+    ) {
+      toggleMiniMode();
+      e.preventDefault();
+    }
   });
 };
 
@@ -259,6 +284,10 @@ ipcMain.handle("set-speaker-output-device", (_, deviceId: string) => {
 ipcMain.handle("set-audio-api", (_, apiId: number) => {
   currentConfiguration.audioApi = apiId;
   saveConfig();
+});
+
+ipcMain.handle("toggle-mini-mode", () => {
+  toggleMiniMode();
 });
 
 //
