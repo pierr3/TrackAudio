@@ -89,6 +89,8 @@ const IElectronAPI = {
 
   RequestPttKeyName: () => ipcRenderer.invoke("request-ptt-key-name"),
 
+  toggleMiniMode: () => ipcRenderer.invoke("toggle-mini-mode"),
+
   dialog: (
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
