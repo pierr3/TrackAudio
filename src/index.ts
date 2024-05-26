@@ -141,8 +141,11 @@ const createWindow = (): void => {
         return;
       }
     }
-
-    store.set("bounds", mainWindow.getBounds());
+    const bounds = mainWindow.getBounds();
+    const minSize = mainWindow.getMinimumSize();
+    if (bounds.width > minSize[0] && bounds.height > minSize[1]) {
+      store.set("bounds", bounds); // We only save the bounds if the window is not in mini mode
+    }
   });
 
   mainWindow.webContents.on("before-input-event", (e, input) => {
