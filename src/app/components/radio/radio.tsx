@@ -18,6 +18,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     setOnSpeaker,
     selectRadio,
     removeRadio,
+    setPendingDeletion,
   ] = useRadioState((state) => [
     state.setRx,
     state.setTx,
@@ -26,6 +27,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     state.setOnSpeaker,
     state.selectRadio,
     state.removeRadio,
+    state.setPendingDeletion,
   ]);
 
   const isATC = useSessionStore((state) => state.isAtc);
@@ -48,7 +50,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? radio.tx : false,
         newState ? radio.xc : false,
         radio.onSpeaker,
-        newState ? radio.crossCoupleAcross : false,
+        newState ? radio.crossCoupleAcross : false
       )
       .then((ret) => {
         if (!ret) {
@@ -61,7 +63,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         setXc(radio.frequency, newState ? radio.xc : false);
         setCrossCoupleAcross(
           radio.frequency,
-          newState ? radio.crossCoupleAcross : false,
+          newState ? radio.crossCoupleAcross : false
         );
       })
       .catch((err: unknown) => {
@@ -79,7 +81,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState,
         !newState ? false : radio.xc, // If tx is false, xc must be false
         radio.onSpeaker,
-        !newState ? false : radio.crossCoupleAcross, // If tx is false, crossCoupleAcross must be false
+        !newState ? false : radio.crossCoupleAcross // If tx is false, crossCoupleAcross must be false
       )
       .then((ret) => {
         if (!ret) {
@@ -91,7 +93,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         setXc(radio.frequency, !newState ? false : radio.xc);
         setCrossCoupleAcross(
           radio.frequency,
-          !newState ? false : radio.crossCoupleAcross,
+          !newState ? false : radio.crossCoupleAcross
         );
       })
       .catch((err: unknown) => {
@@ -108,7 +110,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? true : radio.tx, // If xc is true, tx must be true
         newState,
         radio.onSpeaker,
-        false, // If xc is true, crossCoupleAcross must be false
+        false // If xc is true, crossCoupleAcross must be false
       )
       .then((ret) => {
         if (!ret) {
@@ -134,7 +136,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? true : radio.tx, // If crossCoupleAcross is true, tx must be true
         false, // If crossCoupleAcross is true, xc must be false
         radio.onSpeaker,
-        newState,
+        newState
       )
       .then((ret) => {
         if (!ret) {
@@ -160,7 +162,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         radio.tx,
         radio.xc,
         newState,
-        radio.crossCoupleAcross,
+        radio.crossCoupleAcross
       )
       .then((ret) => {
         if (!ret) {
@@ -175,6 +177,33 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       });
   };
 
+  const awaitEndOfRxForDeletion = (frequency: number): void => {
+    const interval = setInterval(
+      (frequency: number) => {
+        const radio = useRadioState
+          .getState()
+          .radios.find((r) => r.frequency === frequency);
+        if (!radio) {
+          clearInterval(interval);
+          return;
+        }
+
+        if (!radio.currentlyRx && !radio.currentlyTx) {
+          void window.api.removeFrequency(radio.frequency);
+          removeRadio(radio.frequency);
+          clearInterval(interval);
+        }
+      },
+      60,
+      frequency
+    );
+
+    // Clear the interval after 5 seconds
+    setTimeout(() => {
+      clearInterval(interval);
+    }, 10000);
+  };
+
   return (
     <>
       <div className="col-4 radio">
@@ -183,6 +212,12 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             className="btn btn-no-interact"
             style={{ height: "100%", marginBottom: "4%" }}
             onClick={clickRadioHeader}
+            onKeyDown={(e) => {
+              if (e.key === "Delete" || e.key === "Backspace") {
+                awaitEndOfRxForDeletion(radio.frequency);
+                setPendingDeletion(radio.frequency, true);
+              }
+            }}
           >
             {radio.humanFrequency}
             <br />
@@ -193,7 +228,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               "btn",
               !radio.xc && !radio.crossCoupleAcross && "btn-primary",
               radio.xc && "btn-success",
-              radio.crossCoupleAcross && "btn-warning",
+              radio.crossCoupleAcross && "btn-warning"
             )}
             style={{ width: "45%", height: "100%", marginTop: "4%" }}
             onClick={clickXc}
@@ -206,7 +241,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             className={clsx(
               "btn",
               !radio.onSpeaker && "btn-primary",
-              radio.onSpeaker && "btn-success",
+              radio.onSpeaker && "btn-success"
             )}
             style={{
               width: "45%",
@@ -232,7 +267,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               "btn",
               !radio.rx && "btn-primary",
               radio.rx && radio.currentlyRx && "btn-warning",
-              radio.rx && !radio.currentlyRx && "btn-success",
+              radio.rx && !radio.currentlyRx && "btn-success"
             )}
             style={{ width: "100%", height: "100%" }}
             onClick={clickRx}
@@ -244,7 +279,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               "btn",
               !radio.tx && "btn-primary",
               radio.tx && radio.currentlyTx && "btn-warning",
-              radio.tx && !radio.currentlyTx && "btn-success",
+              radio.tx && !radio.currentlyTx && "btn-success"
             )}
             style={{ width: "100%", height: "100%", marginTop: "8%" }}
             onClick={clickTx}
