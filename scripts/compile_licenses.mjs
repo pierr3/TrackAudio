@@ -24,7 +24,7 @@ exec(`${command} > ${outputFile}`, (error, stdout, stderr) => {
     fs.appendFileSync(outputFile, licenseContent);
     console.log(`License content appended to ${outputFile}`);
 
-    const backendLicenseFile = './backend/extern/afv-native/LICENSE';
+    const backendLicenseFile = './backend/AFV_LICENSE';
     const backendLicenseContent = "# afv-native licenses\n" + fs.readFileSync(backendLicenseFile, 'utf8');
 
     fs.appendFileSync(outputFile, backendLicenseContent);
