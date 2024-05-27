@@ -52,7 +52,7 @@ add_library(trackaudio-afv SHARED
 include(FetchContent)
 include(ExternalProject)
 
-set(afv_native_VERSION 1.28.0.12)
+set(afv_native_VERSION 1.31.0)
 set(afv_native_ARCHITECTURE "universal")
 
 if (WIN32)
