@@ -231,11 +231,11 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               radio.crossCoupleAcross && "btn-warning"
             )}
             style={{ width: "45%", height: "100%", marginTop: "4%" }}
-            onClick={clickXc}
-            onContextMenu={clickCrossCoupleAcross}
+            onClick={clickCrossCoupleAcross}
+            onContextMenu={clickXc}
             disabled={!isATC}
           >
-            {radio.crossCoupleAcross ? "XCA" : "XC"}
+            {radio.xc ? "XC" : "XCA"}
           </button>
           <button
             className={clsx(
