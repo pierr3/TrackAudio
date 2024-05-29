@@ -20,7 +20,7 @@ const Sidebar: React.FC = () => {
     }
 
     const callsign = stationInputRef.current?.value.toUpperCase();
-    if (!callsign?.match(/^[A-Z0-9_ ]+$/) || !stationInputRef.current) {
+    if (!callsign?.match(/^[A-Z0-9_ -]+$/) || !stationInputRef.current) {
       return;
     }
 
