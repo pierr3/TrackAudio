@@ -138,13 +138,6 @@ jobs:
           dmg_file=$(find . -name "*.dmg" -type f)
           new_dmg_file=$(echo $dmg_file | sed 's/arm64/apple-silicon/')
           mv $dmg_file $new_dmg_file
-
-      - name: Codesign dmg
-        if: matrix.os == 'macos-latest'
-        run: |
-          cd out/make
-          dmg_file=$(find . -name "*.dmg" -type f)
-          codesign --timestamp --verbose --sign "Developer ID Application" $dmg_file
       
       - id: relinfo
         uses: pozetroninc/github-action-get-latest-release@master

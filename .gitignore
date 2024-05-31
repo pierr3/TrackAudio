@@ -106,3 +106,5 @@ build/
 
 # Sentry Config File
 .sentryclirc
+
+.sign-env.sh

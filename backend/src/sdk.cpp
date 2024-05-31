@@ -160,7 +160,7 @@ std::unique_ptr<restinio::router::express_router_t<>> SDK::buildRouter()
             .connection_close()
             .done();
     };
-    
+
     router->add_handler(
         restinio::router::none_of_methods(restinio::http_method_get()), "/", methodNotAllowed);
 
