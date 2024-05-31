@@ -60,16 +60,24 @@ const setAudioSettings = () => {
 };
 
 const toggleMiniMode = () => {
-  if (
-    mainWindow.getSize()[0] == mainWindow.getMinimumSize()[0] &&
-    mainWindow.getSize()[1] == mainWindow.getMinimumSize()[1]
-  ) {
+  const miniModeWidthBreakpoint = 300;
+
+  // Issue 79: Use the size of the content and the width breakpoint for mini-mode
+  // to determine whether to restore from mini-mode. This solves an issue where
+  // getSize() was returning a width value off by one from the getMinSize()
+  // call.
+  if (mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint) {
     mainWindow.setSize(savedLastWindowSize.width, savedLastWindowSize.height);
     return;
   }
   savedLastWindowSize.width = mainWindow.getSize()[0];
   savedLastWindowSize.height = mainWindow.getSize()[1];
-  mainWindow.setSize(1, 1);
+
+  // Issue 79: Use the width breakpoint for the width instead of setting to 1
+  // so the window doesn't go as small as possible when put in mini-mode. This
+  // makes toggling work properly when using 300 as the value for determining when
+  // to switch to big mode.
+  mainWindow.setSize(miniModeWidthBreakpoint, 1);
 };
 
 const restoreWindowBounds = (win: BrowserWindow) => {
