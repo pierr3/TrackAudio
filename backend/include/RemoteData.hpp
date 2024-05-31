@@ -1,3 +1,4 @@
+#pragma once
 #include <Poco/Timer.h>
 #include <absl/strings/match.h>
 #include <absl/strings/str_split.h>

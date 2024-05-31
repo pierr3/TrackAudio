@@ -73,31 +73,33 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     }
 
     if (event == sdk::types::Event::kTxBegin) {
-        auto allRadios = mClient->getRadioState();
-        std::vector<unsigned int> allTxRadioFreqs;
-        for (const auto& [freq, state] : allRadios) {
-            if (state.tx) {
-                allTxRadioFreqs.push_back(freq);
-            }
-        }
+        // auto allRadios = mClient->getRadioState();
+        // std::vector<unsigned int> allTxRadioFreqs;
+        // for (const auto& [freq, state] : allRadios) {
+        //     if (state.tx) {
+        //         allTxRadioFreqs.push_back(freq);
+        //     }
+        // }
 
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kTxBegin);
-        jsonMessage["value"]["pFrequenciesHz"] = allTxRadioFreqs;
+        // jsonMessage["value"]["pFrequenciesHz"] = allTxRadioFreqs;
         this->broadcastOnWebsocket(jsonMessage.dump());
+        return;
     }
 
     if (event == sdk::types::Event::kTxEnd) {
-        auto allRadios = mClient->getRadioState();
-        std::vector<unsigned int> allTxRadioFreqs;
-        for (const auto& [freq, state] : allRadios) {
-            if (state.tx) {
-                allTxRadioFreqs.push_back(freq);
-            }
-        }
+        // auto allRadios = mClient->getRadioState();
+        // std::vector<unsigned int> allTxRadioFreqs;
+        // for (const auto& [freq, state] : allRadios) {
+        //     if (state.tx) {
+        //         allTxRadioFreqs.push_back(freq);
+        //     }
+        // }
 
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kTxEnd);
-        jsonMessage["value"]["pFrequenciesHz"] = allTxRadioFreqs;
+        // jsonMessage["value"]["pFrequenciesHz"] = allTxRadioFreqs;
         this->broadcastOnWebsocket(jsonMessage.dump());
+        return;
     }
 
     if (event == sdk::types::Event::kFrequencyStateUpdate) {
@@ -158,7 +160,7 @@ std::unique_ptr<restinio::router::express_router_t<>> SDK::buildRouter()
             .connection_close()
             .done();
     };
-
+    
     router->add_handler(
         restinio::router::none_of_methods(restinio::http_method_get()), "/", methodNotAllowed);
 
