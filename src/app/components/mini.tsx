@@ -1,11 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import useRadioState from "../store/radioStore";
+import MiniModeToggleButton from "./MiniModeToggleButton";
 
 const Mini: React.FC = () => {
   const [radios] = useRadioState((state) => [state.radios]);
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className="box-container mini">
+    <div
+      className="box-container mini"
+      onMouseEnter={() => {
+        setIsHovered(true);
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false);
+      }}
+    >
       <div className="container">
         {radios
           .filter((r) => r.rx)
@@ -15,7 +25,9 @@ const Mini: React.FC = () => {
                 <span
                   style={{ color: radio.currentlyTx ? "orange" : "inherit" }}
                 >
-                  {radio.callsign !== "MANUAL" ? radio.callsign : radio.humanFrequency}
+                  {radio.callsign !== "MANUAL"
+                    ? radio.callsign
+                    : radio.humanFrequency}
                 </span>
                 :{" "}
                 <span
@@ -26,6 +38,11 @@ const Mini: React.FC = () => {
               </div>
             );
           })}
+      </div>
+      <div
+        className={`exit-mini-mode-container ${isHovered ? "visible" : "hidden"}`}
+      >
+        <MiniModeToggleButton showRestoreButton={true} />
       </div>
     </div>
   );

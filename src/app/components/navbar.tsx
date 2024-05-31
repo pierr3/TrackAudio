@@ -11,7 +11,7 @@ import {
 } from "../helpers/CallsignHelper";
 import useUtilStore from "../store/utilStore";
 import { Configuration } from "../../config";
-import { FullscreenExit } from "react-bootstrap-icons";
+import MiniModeToggleButton from "./MiniModeToggleButton";
 
 const Navbar: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -205,16 +205,7 @@ const Navbar: React.FC = () => {
           onWheel={handleRadioGainMouseWheel}
           value={radioGain}
         ></input>
-        <button
-          className="btn btn-primary m-2 hide-gain-value"
-          style={{ lineHeight: 0, fontSize: "14px" }}
-          onClick={() => void window.api.toggleMiniMode()}
-        >
-          <FullscreenExit
-            title={"Mini mode"}
-            style={{ strokeWidth: "0.5px", stroke: "white" }}
-          />
-        </button>
+        <MiniModeToggleButton showRestoreButton={false} />
         {platform === "linux" && (
           <button
             className="btn btn-danger m-2 hide-gain-value"
