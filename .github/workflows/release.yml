@@ -124,6 +124,7 @@ jobs:
           npm install
 
       - name: Package app
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
