@@ -6,6 +6,7 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    environment: Release
 
     strategy:
       matrix:
@@ -49,7 +50,7 @@ jobs:
 
       - name: Installing codesign certificates
         if: matrix.os == 'macos-latest'
-        uses: apple-actions/import-codesign-certs@v2
+        uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.APPLE_CERT_DATA }}
           p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
