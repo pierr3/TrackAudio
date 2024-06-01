@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
-import useRadioState from "../store/radioStore";
+import { StationStateUpdate } from "../interfaces/StationStateUpdate";
 import useErrorStore from "../store/errorStore";
+import useRadioState from "../store/radioStore";
 import useSessionStore from "../store/sessionStore";
 import useUtilStore from "../store/utilStore";
-import { StationStateUpdate } from "../interfaces/StationStateUpdate";
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
@@ -134,29 +134,13 @@ const Bootsrap: React.FC = () => {
         .getState()
         .radios.filter((radio) => radio.frequency === update.value.frequency)
         .forEach((radio) => {
-          // Only update if the state has changed
-          if (update.value.rx != radio.rx) {
-            useRadioState.getState().setRx(radio.frequency, update.value.rx);
-          }
-          if (update.value.tx != radio.tx) {
-            useRadioState.getState().setTx(radio.frequency, update.value.tx);
-          }
-          if (update.value.xc != radio.xc) {
-            useRadioState.getState().setXc(radio.frequency, update.value.xc);
-          }
-          if (update.value.xca != radio.crossCoupleAcross) {
-            useRadioState
-              .getState()
-              .setCrossCoupleAcross(radio.frequency, update.value.xca);
-          }
-          // The funky != ! is because onSpeaker represents the inverse
-          // of the headset state. Yes, it could be == but this makes it
-          // follow the pattern of the previous tests.
-          if (update.value.headset != !radio.onSpeaker) {
-            useRadioState
-              .getState()
-              .setOnSpeaker(radio.frequency, !update.value.headset);
-          }
+          useRadioState.getState().setRadioState(radio.frequency, {
+            rx: update.value.rx,
+            tx: update.value.tx,
+            xc: update.value.xc,
+            crossCoupleAcross: update.value.xca,
+            onSpeaker: !update.value.headset,
+          });
         });
     });
 
