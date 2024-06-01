@@ -17,11 +17,25 @@ const canNotarize =
   process.env.APPLE_NOTARIZATION_PASSWORD &&
   process.env.APPLE_TEAM_ID;
 
+console.log("isMaking", isMaking);
+console.log("canNotarize", canNotarize);
+
 const config: ForgeConfig = {
   packagerConfig: {
     name: "TrackAudio",
     asar: true,
-    osxSign: isMaking ? {} : undefined,
+    osxSign: isMaking
+      ? {
+          optionsForFile: (filePath) => {
+            // Here, we keep it simple and return a single entitlements.plist file.
+            // You can use this callback to map different sets of entitlements
+            // to specific files in your packaged app.
+            return {
+              entitlements: "scripts/entitlements.plist",
+            };
+          },
+        }
+      : undefined,
     osxNotarize: canNotarize
       ? {
           appleId: process.env.APPLE_ID || "",
@@ -57,7 +71,7 @@ const config: ForgeConfig = {
     {
       name: "@electron-forge/maker-dmg",
       config: {
-        icon: "resources/AppIcon/AppIcon.icns"
+        icon: "resources/AppIcon/AppIcon.icns",
       },
     },
     {

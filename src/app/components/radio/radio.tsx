@@ -11,20 +11,12 @@ export interface RadioProps {
 const Radio: React.FC<RadioProps> = ({ radio }) => {
   const postError = useErrorStore((state) => state.postError);
   const [
-    setRx,
-    setTx,
-    setXc,
-    setCrossCoupleAcross,
-    setOnSpeaker,
+    setRadioState,
     selectRadio,
     removeRadio,
     setPendingDeletion,
   ] = useRadioState((state) => [
-    state.setRx,
-    state.setTx,
-    state.setXc,
-    state.setCrossCoupleAcross,
-    state.setOnSpeaker,
+    state.setRadioState,
     state.selectRadio,
     state.removeRadio,
     state.setPendingDeletion,
@@ -58,13 +50,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           removeRadio(radio.frequency);
           return;
         }
-        setRx(radio.frequency, newState);
-        setTx(radio.frequency, newState ? radio.tx : false);
-        setXc(radio.frequency, newState ? radio.xc : false);
-        setCrossCoupleAcross(
-          radio.frequency,
-          newState ? radio.crossCoupleAcross : false
-        );
+        setRadioState(radio.frequency, {
+          rx: newState,
+          tx: !newState ? false : radio.tx,
+          xc: !newState ? false : radio.xc,
+          crossCoupleAcross: !newState ? false : radio.crossCoupleAcross,
+          onSpeaker: radio.onSpeaker,
+        });
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -88,13 +80,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           postError("Invalid action on invalid radio: TX.");
           return;
         }
-        setTx(radio.frequency, newState);
-        setRx(radio.frequency, newState ? true : radio.rx);
-        setXc(radio.frequency, !newState ? false : radio.xc);
-        setCrossCoupleAcross(
-          radio.frequency,
-          !newState ? false : radio.crossCoupleAcross
-        );
+        setRadioState(radio.frequency, {
+          rx: !radio.rx && newState ? true : radio.rx,
+          tx: newState,
+          xc: !newState ? false : radio.xc,
+          crossCoupleAcross: !newState ? false : radio.crossCoupleAcross,
+          onSpeaker: radio.onSpeaker,
+        });
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -117,10 +109,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           postError("Invalid action on invalid radio: XC.");
           return;
         }
-        setRx(radio.frequency, newState ? true : radio.rx);
-        setTx(radio.frequency, newState ? true : radio.tx);
-        setXc(radio.frequency, newState);
-        setCrossCoupleAcross(radio.frequency, false);
+        setRadioState(radio.frequency, {
+          rx: !radio.rx && newState ? true : radio.rx,
+          tx: !radio.tx && newState ? true : radio.tx,
+          xc: newState,
+          crossCoupleAcross: false,
+          onSpeaker: radio.onSpeaker,
+        });
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -143,10 +138,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           postError("Invalid action on invalid radio: XC across.");
           return;
         }
-        setRx(radio.frequency, newState ? true : radio.rx);
-        setTx(radio.frequency, newState ? true : radio.tx);
-        setXc(radio.frequency, false);
-        setCrossCoupleAcross(radio.frequency, newState);
+        setRadioState(radio.frequency, {
+          rx: !radio.rx && newState ? true : radio.rx,
+          tx: !radio.tx && newState ? true : radio.tx,
+          xc: false,
+          crossCoupleAcross: newState,
+          onSpeaker: radio.onSpeaker,
+        });
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -170,7 +168,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           removeRadio(radio.frequency);
           return;
         }
-        setOnSpeaker(radio.frequency, newState);
+        setRadioState(radio.frequency, {
+          rx: radio.rx,
+          tx: radio.tx,
+          xc: radio.xc,
+          crossCoupleAcross: radio.crossCoupleAcross,
+          onSpeaker: newState,
+        });
       })
       .catch((err: unknown) => {
         console.error(err);

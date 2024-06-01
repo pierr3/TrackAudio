@@ -238,6 +238,8 @@ button:disabled {
   padding-right: 0;
 }
 
+// When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
+// the toggleMiniMode method in index.ts as well.
 @media only screen and (max-width: 300px) {
   .freq-box {
     display: none;
@@ -383,14 +385,35 @@ select:disabled {
   font-size: $mini-font-size;
 }
 
+// When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
+// the toggleMiniMode method in index.ts as well.
 @media only screen and (max-width: 300px) {
   .mini {
     display: block;
   }
 }
 
+// When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
+// the toggleMiniMode method in index.ts as well.
 @media only screen and (max-width: 300px) {
   .hide-topbar {
     display: none !important;
   }
+}
+
+.exit-mini-mode-container
+{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-block;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.exit-mini-mode-container.visible {
+  opacity: 1;
+}
+
+.exit-mini-mode-container.hidden {
+  opacity: 0;
 }

@@ -281,6 +281,7 @@ void SetPtt(const Napi::CallbackInfo& info)
     }
 
     bool state = info[0].As<Napi::Boolean>().Value();
+
     mClient->SetPtt(state);
 }
 

@@ -6,6 +6,7 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    environment: Release
 
     strategy:
       matrix:
@@ -49,7 +50,7 @@ jobs:
 
       - name: Installing codesign certificates
         if: matrix.os == 'macos-latest'
-        uses: apple-actions/import-codesign-certs@v2
+        uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.APPLE_CERT_DATA }}
           p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
@@ -124,6 +125,7 @@ jobs:
           npm install
 
       - name: Package app
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -138,13 +140,6 @@ jobs:
           dmg_file=$(find . -name "*.dmg" -type f)
           new_dmg_file=$(echo $dmg_file | sed 's/arm64/apple-silicon/')
           mv $dmg_file $new_dmg_file
-
-      - name: Codesign dmg
-        if: matrix.os == 'macos-latest'
-        run: |
-          cd out/make
-          dmg_file=$(find . -name "*.dmg" -type f)
-          codesign --timestamp --verbose --sign "Developer ID Application" $dmg_file
       
       - id: relinfo
         uses: pozetroninc/github-action-get-latest-release@master
