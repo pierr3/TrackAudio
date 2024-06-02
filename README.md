@@ -54,7 +54,7 @@ If you opt-in, you can opt-out at any time in the settings. You will need to res
 
 ### What is XC and XCA?
 
-When you rigth click XCA on a frequency that you are listening to, and if you are logged in as ATC, all the transceivers of that frequency will be cross-coupled. This means that all transmissions received by a transceiver in that list will also be re-emitted by all other transceivers. This allows for pilots in different parts of your airspace to hear eachother, since they may be using a different transceiver. In general, you should be using XC every time you control.
+When you right click XCA on a frequency that you are listening to, and if you are logged in as ATC, all the transceivers of that frequency will be cross-coupled. This means that all transmissions received by a transceiver in that list will also be re-emitted by all other transceivers. This allows for pilots in different parts of your airspace to hear eachother, since they may be using a different transceiver. In general, you should be using XC every time you control.
 
 When you left click XCA, you activate "cross-couple across". This is the same as clicking "XC" in AFV for Windows, and allows you to cross-couple across frequencies, meaning you can join multiple sets of transceivers regardless of frequency.
 Pay attention, however, as you may cause overlap of radio by enabling this. For example, if you XCA one frequency that has a transceiver near the border of a neighboring vAcc with another that is at the other end of your sector, far away from that border with your neighboring vAcc, you will suddenly extend coverage of that second frequency to the border with your neighboor.
@@ -92,7 +92,7 @@ Note: this will install libafv_native.so in /usr/lib, a required library for Tra
 
 Download the latest release on the [release page](https://github.com/pierr3/TrackAudio/releases) and install the .app into your applications folder.
 
-TrackAudio is available in two versions, one for apple silicon (arm64) and one for intel macs (x64).
+TrackAudio is available in two versions, one for Apple Silicon (arm64) and one for Intel Macs (x64).
 
 Alternatively, TrackAudio can be installed using [Homebrew](https://brew.sh/index). Run the following commands to first install the Homebrew Tap and then the Homebrew Cask. This way the app gets upgraded when you run `brew upgrade`.
 
@@ -118,7 +118,7 @@ TrackAudio depends on afv-native and SFML (for input handling).
 
 `cmake` is required to build the project. Dependencies will be downloaded through vcpkg at build time. See vcpkg.json for further details.
 
-On linux, the following packages are required: `build-essentials libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config`, you may also need further packages to enable the different audio backends, such as Alsa, JACK or PulseAudio.
+On Linux, the following packages are required: `build-essentials libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config`, you may also need further packages to enable the different audio backends, such as Alsa, JACK or PulseAudio.
 
 On macOS, XCode Command Line tools, CMake and Homebrew are required and the following homebrew package is required: `pkg-config`
 
