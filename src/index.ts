@@ -70,6 +70,13 @@ const toggleMiniMode = () => {
     mainWindow.setSize(savedLastWindowSize.width, savedLastWindowSize.height);
     return;
   }
+
+  // Issue 84: If the window is maximized it has to be unmaximized before
+  // setting the window size to mini-mode otherwise nothing happens.
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize();
+  }
+
   savedLastWindowSize.width = mainWindow.getSize()[0];
   savedLastWindowSize.height = mainWindow.getSize()[1];
 
