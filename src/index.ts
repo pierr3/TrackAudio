@@ -29,6 +29,7 @@ let mainWindow: BrowserWindow;
 
 const defaultWindowSize = { width: 800, height: 660 };
 const savedLastWindowSize = { width: 800, height: 660 };
+const miniModeWidthBreakpoint = 300;
 
 let currentConfiguration: Configuration = {
   audioApi: -1,
@@ -45,6 +46,14 @@ let currentConfiguration: Configuration = {
 };
 const store = new Store();
 
+/**
+ * Checks to see if the window is in mini-mode.
+ * @returns True if the window is in mini-mode, false otherwise.
+ */
+const isInMiniMode = () => {
+  return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint;
+};
+
 const saveConfig = () => {
   store.set("configuration", JSON.stringify(currentConfiguration));
 };
@@ -60,16 +69,15 @@ const setAudioSettings = () => {
 };
 
 const toggleMiniMode = () => {
-  const miniModeWidthBreakpoint = 300;
-
   // Issue 79: Use the size of the content and the width breakpoint for mini-mode
   // to determine whether to restore from mini-mode. This solves an issue where
   // getSize() was returning a width value off by one from the getMinSize()
   // call.
-  if (mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint) {
+  if (isInMiniMode()) {
     mainWindow.setSize(savedLastWindowSize.width, savedLastWindowSize.height);
     return;
   }
+
   savedLastWindowSize.width = mainWindow.getSize()[0];
   savedLastWindowSize.height = mainWindow.getSize()[1];
 
@@ -149,10 +157,9 @@ const createWindow = (): void => {
         return;
       }
     }
-    const bounds = mainWindow.getBounds();
-    const minSize = mainWindow.getMinimumSize();
-    if (bounds.width > minSize[0] && bounds.height > minSize[1]) {
-      store.set("bounds", bounds); // We only save the bounds if the window is not in mini mode
+
+    if (!isInMiniMode()) {
+      store.set("bounds", mainWindow.getBounds());
     }
   });
 
