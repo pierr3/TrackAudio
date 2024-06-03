@@ -166,6 +166,22 @@ const Bootsrap: React.FC = () => {
       .catch((err: unknown) => {
         console.error(err);
       });
+
+    return () => {
+      window.api.removeAllListeners("VuMeter");
+      window.api.removeAllListeners("station-transceivers-updated");
+      window.api.removeAllListeners("station-data-received");
+      window.api.removeAllListeners("FrequencyRxBegin");
+      window.api.removeAllListeners("StationRxBegin");
+      window.api.removeAllListeners("FrequencyRxEnd");
+      window.api.removeAllListeners("PttState");
+      window.api.removeAllListeners("error");
+      window.api.removeAllListeners("VoiceConnected");
+      window.api.removeAllListeners("VoiceDisconnected");
+      window.api.removeAllListeners("network-connected");
+      window.api.removeAllListeners("network-disconnected");
+      window.api.removeAllListeners("ptt-key-set");
+    }
   }, []);
 
   return null;

@@ -9,6 +9,9 @@ const IElectronAPI = {
       listener(...args);
     });
   },
+  removeAllListeners: (channel: string) => {
+    ipcRenderer.removeAllListeners(channel);
+  },
 
   setAlwaysOnTop: (state: boolean) => {
     ipcRenderer.send("set-always-on-top", state);
