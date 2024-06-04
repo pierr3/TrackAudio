@@ -25,8 +25,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT=1)
 add_definitions(-DNAPI_VERSION=7)
+set(AFV_STATIC 1)
 
-include_directories(${CMAKE_SOURCE_DIR}/extern/afv-native/include)
+add_subdirectory(extern/afv-native)
+include_directories(extern/afv-native/include)
 
 if(MSVC)
     add_compile_options(
@@ -66,25 +68,6 @@ if (UNIX AND NOT APPLE)
     set(afv_native_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
   endif()
 endif()
-
-# Declare the content to be downloaded
-FetchContent_Declare(
-  afv_native
-  URL https://github.com/pierr3/afv-native/releases/download/v${afv_native_VERSION}/libafv-v${afv_native_VERSION}-${CMAKE_SYSTEM_NAME}-${afv_native_ARCHITECTURE}.zip
-)
-
-# Get the download directory
-FetchContent_GetProperties(afv-native)
-if(NOT afv_native_POPULATED)
-  FetchContent_Populate(afv_native)
-  set(afv_native_SOURCE_DIR ${afv_native_SOURCE_DIR})
-endif()
-
-message(STATUS "afv_native_SOURCE_DIR: ${afv_native_SOURCE_DIR}")
-list(APPEND CMAKE_MODULE_PATH "${afv_native_SOURCE_DIR}")
-
-# Now that the content has been downloaded, we can use find_package
-find_package(afv_native REQUIRED)
 
 # Find the required packages
 find_package(Threads REQUIRED)
@@ -132,24 +115,14 @@ set_target_properties(trackaudio-afv
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-if (UNIX)
-  add_custom_command(TARGET trackaudio-afv POST_BUILD  
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        $<TARGET_FILE:afv_native>
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)   
-endif()
-
 if (WIN32)
   add_custom_command(TARGET trackaudio-afv POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:trackaudio-afv> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>
     COMMAND_EXPAND_LISTS
     )
 
-  file(GLOB DLL_FILES "${afv_native_SOURCE_DIR}/lib/*.dll")
-  foreach(DLL_FILE ${DLL_FILES})
     add_custom_command(TARGET trackaudio-afv POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${DLL_FILE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>
-      COMMAND_EXPAND_LISTS
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:afv_native> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>
+    COMMAND_EXPAND_LISTS
     )
-  endforeach()
 endif()

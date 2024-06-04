@@ -14,7 +14,7 @@ import * as Sentry from "@sentry/electron/main";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { Configuration } from "./config";
-import icon from "../../resources/icon.png?asset";
+import icon from "../../resources/AppIcon/icon.png?asset";
 
 Sentry.init({
   dsn: "https://79ff6300423d5708cae256665d170c4b@o4507193732169728.ingest.de.sentry.io/4507193745145936",

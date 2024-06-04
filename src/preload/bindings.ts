@@ -1,8 +1,8 @@
 import { ipcRenderer, IpcRendererEvent } from "electron";
 
 export const api = {
-  on: (channel: string, listener: (...args: unknown[]) => void) => {
-    ipcRenderer.on(channel, (_event: IpcRendererEvent, ...args: unknown[]) => {
+  on: (channel: string, listener: (...args: any[]) => void) => {
+    ipcRenderer.on(channel, (_event: IpcRendererEvent, ...args: any[]) => {
       listener(...args);
     });
   },

@@ -1,6 +1,8 @@
 #include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
-#include <afv-native/afv_native.h>
+#include "afv-native/atcClientWrapper.h"
+#include "afv-native/event.h"
+#include "afv-native/hardwareType.h"
 #include <atomic>
 #include <chrono>
 #include <cstddef>
