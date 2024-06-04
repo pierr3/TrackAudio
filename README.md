@@ -131,16 +131,23 @@ If `cmake-js` isn't already installed run `npm install -g cmake-js`. For the fir
 ```sh
 git submodule update --init --remote backend/vcpkg
 git submodule update --init --remote backend/extern/afv-native
-npm run build-backend
+npm run build:backend
 npm install
-npm run start
+npm run dev
 ```
 
-Subsequent builds only require the `npm run start` command if you only wish to modify the frontend. Building the C++ backend will require running `npm run build-backend`.
+Subsequent builds only require the `npm run dev` command if you only wish to modify the frontend. Building the C++ backend will require running `npm run build:backend`.
 
 ## Packaging
 
-TrackAudio will be automatically packaged as a .dmg on macOs, .deb on Linux and .exe installer on windows, run `npm run make` to package.
+TrackAudio will be automatically packaged as a .dmg on macOs, .deb on Linux and .exe installer on windows. To package run the
+appropriate command for the desired platform.
+
+| Platform | Command |
+| - | - |
+| Linux | `npm run build:linux` |
+| Mac | `npm run build:mac` |
+| Windows | `npm run build:win` |
 
 ## Contributing
 
