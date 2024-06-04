@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import React from 'react'
-import useErrorStore from '../store/errorStore'
+import React from 'react';
+import useErrorStore from '../store/errorStore';
 
 const ErrorDialog: React.FC = () => {
-  const errorStore = useErrorStore((state) => state)
+  const errorStore = useErrorStore((state) => state);
 
   if (!errorStore.pending) {
-    return null
+    return null;
   }
 
   return (
@@ -26,13 +26,13 @@ const ErrorDialog: React.FC = () => {
         className="btn btn-danger"
         style={{ float: 'right' }}
         onClick={() => {
-          errorStore.acknowledge()
+          errorStore.acknowledge();
         }}
       >
         X
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default ErrorDialog
+export default ErrorDialog;

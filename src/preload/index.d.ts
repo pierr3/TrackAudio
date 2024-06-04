@@ -1,9 +1,9 @@
-import { ElectronAPI } from '@electron-toolkit/preload'
-import { API } from './bindings'
+import { ElectronAPI } from '@electron-toolkit/preload';
+import { API } from './bindings';
 
 declare global {
   interface Window {
-    electron: ElectronAPI
-    api: API
+    electron: ElectronAPI;
+    api: API;
   }
 }

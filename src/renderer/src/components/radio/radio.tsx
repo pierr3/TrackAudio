@@ -1,34 +1,34 @@
-import React from 'react'
-import useRadioState, { RadioType } from '../../store/radioStore'
-import clsx from 'clsx'
-import useErrorStore from '../../store/errorStore'
-import useSessionStore from '../../store/sessionStore'
+import React from 'react';
+import useRadioState, { RadioType } from '../../store/radioStore';
+import clsx from 'clsx';
+import useErrorStore from '../../store/errorStore';
+import useSessionStore from '../../store/sessionStore';
 
 export interface RadioProps {
-  radio: RadioType
+  radio: RadioType;
 }
 
 const Radio: React.FC<RadioProps> = ({ radio }) => {
-  const postError = useErrorStore((state) => state.postError)
+  const postError = useErrorStore((state) => state.postError);
   const [setRadioState, selectRadio, removeRadio, setPendingDeletion] = useRadioState((state) => [
     state.setRadioState,
     state.selectRadio,
     state.removeRadio,
     state.setPendingDeletion
-  ])
+  ]);
 
-  const isATC = useSessionStore((state) => state.isAtc)
+  const isATC = useSessionStore((state) => state.isAtc);
 
   const clickRadioHeader = () => {
-    selectRadio(radio.frequency)
+    selectRadio(radio.frequency);
     if (radio.transceiverCount === 0 && radio.callsign !== 'MANUAL') {
-      void window.api.RefreshStation(radio.callsign)
+      void window.api.RefreshStation(radio.callsign);
     }
-  }
+  };
 
   const clickRx = () => {
-    clickRadioHeader()
-    const newState = !radio.rx
+    clickRadioHeader();
+    const newState = !radio.rx;
 
     window.api
       .setFrequencyState(
@@ -41,9 +41,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       )
       .then((ret) => {
         if (!ret) {
-          postError('Invalid action on invalid radio: RX.')
-          removeRadio(radio.frequency)
-          return
+          postError('Invalid action on invalid radio: RX.');
+          removeRadio(radio.frequency);
+          return;
         }
         setRadioState(radio.frequency, {
           rx: newState,
@@ -51,15 +51,15 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           xc: !newState ? false : radio.xc,
           crossCoupleAcross: !newState ? false : radio.crossCoupleAcross,
           onSpeaker: radio.onSpeaker
-        })
+        });
       })
       .catch((err: unknown) => {
-        console.error(err)
-      })
-  }
+        console.error(err);
+      });
+  };
 
   const clickTx = () => {
-    const newState = !radio.tx
+    const newState = !radio.tx;
 
     window.api
       .setFrequencyState(
@@ -72,8 +72,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       )
       .then((ret) => {
         if (!ret) {
-          postError('Invalid action on invalid radio: TX.')
-          return
+          postError('Invalid action on invalid radio: TX.');
+          return;
         }
         setRadioState(radio.frequency, {
           rx: !radio.rx && newState ? true : radio.rx,
@@ -81,15 +81,15 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           xc: !newState ? false : radio.xc,
           crossCoupleAcross: !newState ? false : radio.crossCoupleAcross,
           onSpeaker: radio.onSpeaker
-        })
+        });
       })
       .catch((err: unknown) => {
-        console.error(err)
-      })
-  }
+        console.error(err);
+      });
+  };
 
   const clickXc = () => {
-    const newState = !radio.xc
+    const newState = !radio.xc;
     window.api
       .setFrequencyState(
         radio.frequency,
@@ -101,8 +101,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       )
       .then((ret) => {
         if (!ret) {
-          postError('Invalid action on invalid radio: XC.')
-          return
+          postError('Invalid action on invalid radio: XC.');
+          return;
         }
         setRadioState(radio.frequency, {
           rx: !radio.rx && newState ? true : radio.rx,
@@ -110,15 +110,15 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           xc: newState,
           crossCoupleAcross: false,
           onSpeaker: radio.onSpeaker
-        })
+        });
       })
       .catch((err: unknown) => {
-        console.error(err)
-      })
-  }
+        console.error(err);
+      });
+  };
 
   const clickCrossCoupleAcross = () => {
-    const newState = !radio.crossCoupleAcross
+    const newState = !radio.crossCoupleAcross;
     window.api
       .setFrequencyState(
         radio.frequency,
@@ -130,8 +130,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       )
       .then((ret) => {
         if (!ret) {
-          postError('Invalid action on invalid radio: XC across.')
-          return
+          postError('Invalid action on invalid radio: XC across.');
+          return;
         }
         setRadioState(radio.frequency, {
           rx: !radio.rx && newState ? true : radio.rx,
@@ -139,15 +139,15 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           xc: false,
           crossCoupleAcross: newState,
           onSpeaker: radio.onSpeaker
-        })
+        });
       })
       .catch((err: unknown) => {
-        console.error(err)
-      })
-  }
+        console.error(err);
+      });
+  };
 
   const clickSpK = () => {
-    const newState = !radio.onSpeaker
+    const newState = !radio.onSpeaker;
     window.api
       .setFrequencyState(
         radio.frequency,
@@ -159,9 +159,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       )
       .then((ret) => {
         if (!ret) {
-          postError('Invalid action on invalid radio: OnSPK.')
-          removeRadio(radio.frequency)
-          return
+          postError('Invalid action on invalid radio: OnSPK.');
+          removeRadio(radio.frequency);
+          return;
         }
         setRadioState(radio.frequency, {
           rx: radio.rx,
@@ -169,37 +169,37 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           xc: radio.xc,
           crossCoupleAcross: radio.crossCoupleAcross,
           onSpeaker: newState
-        })
+        });
       })
       .catch((err: unknown) => {
-        console.error(err)
-      })
-  }
+        console.error(err);
+      });
+  };
 
   const awaitEndOfRxForDeletion = (frequency: number): void => {
     const interval = setInterval(
       (frequency: number) => {
-        const radio = useRadioState.getState().radios.find((r) => r.frequency === frequency)
+        const radio = useRadioState.getState().radios.find((r) => r.frequency === frequency);
         if (!radio) {
-          clearInterval(interval)
-          return
+          clearInterval(interval);
+          return;
         }
 
         if (!radio.currentlyRx && !radio.currentlyTx) {
-          void window.api.removeFrequency(radio.frequency)
-          removeRadio(radio.frequency)
-          clearInterval(interval)
+          void window.api.removeFrequency(radio.frequency);
+          removeRadio(radio.frequency);
+          clearInterval(interval);
         }
       },
       60,
       frequency
-    )
+    );
 
     // Clear the interval after 5 seconds
     setTimeout(() => {
-      clearInterval(interval)
-    }, 10000)
-  }
+      clearInterval(interval);
+    }, 10000);
+  };
 
   return (
     <>
@@ -211,8 +211,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             onClick={clickRadioHeader}
             onKeyDown={(e) => {
               if (e.key === 'Delete' || e.key === 'Backspace') {
-                awaitEndOfRxForDeletion(radio.frequency)
-                setPendingDeletion(radio.frequency, true)
+                awaitEndOfRxForDeletion(radio.frequency);
+                setPendingDeletion(radio.frequency, true);
               }
             }}
           >
@@ -287,7 +287,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Radio
+export default Radio;

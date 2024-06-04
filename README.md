@@ -143,11 +143,11 @@ Subsequent builds only require the `npm run dev` command if you only wish to mod
 TrackAudio will be automatically packaged as a .dmg on macOs, .deb on Linux and .exe installer on windows. To package run the
 appropriate command for the desired platform.
 
-| Platform | Command |
-| - | - |
-| Linux | `npm run build:linux` |
-| Mac | `npm run build:mac` |
-| Windows | `npm run build:win` |
+| Platform | Command               |
+| -------- | --------------------- |
+| Linux    | `npm run build:linux` |
+| Mac      | `npm run build:mac`   |
+| Windows  | `npm run build:win`   |
 
 ## Contributing
 

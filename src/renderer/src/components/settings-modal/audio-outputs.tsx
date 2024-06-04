@@ -1,19 +1,19 @@
-import { AudioDevice } from 'trackaudio-afv'
-import React from 'react'
+import { AudioDevice } from 'trackaudio-afv';
+import React from 'react';
 
 export interface AudioOutputsProps {
-  devices: AudioDevice[]
-  selectedDeviceId: string
-  setDevice: (device: AudioDevice) => void
+  devices: AudioDevice[];
+  selectedDeviceId: string;
+  setDevice: (device: AudioDevice) => void;
 }
 
 const AudioOutputs: React.FC<AudioOutputsProps> = ({ devices, selectedDeviceId, setDevice }) => {
   const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedDevice = devices.find((device) => device.id === e.target.value)
+    const selectedDevice = devices.find((device) => device.id === e.target.value);
     if (selectedDevice) {
-      setDevice(selectedDevice)
+      setDevice(selectedDevice);
     }
-  }
+  };
 
   return (
     <select
@@ -32,7 +32,7 @@ const AudioOutputs: React.FC<AudioOutputsProps> = ({ devices, selectedDeviceId, 
         </option>
       ))}
     </select>
-  )
-}
+  );
+};
 
-export default AudioOutputs
+export default AudioOutputs;

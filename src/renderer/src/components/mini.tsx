@@ -1,19 +1,19 @@
-import React, { useState } from 'react'
-import useRadioState from '../store/radioStore'
-import MiniModeToggleButton from './MiniModeToggleButton'
+import React, { useState } from 'react';
+import useRadioState from '../store/radioStore';
+import MiniModeToggleButton from './MiniModeToggleButton';
 
 const Mini: React.FC = () => {
-  const [radios] = useRadioState((state) => [state.radios])
-  const [isHovered, setIsHovered] = useState(false)
+  const [radios] = useRadioState((state) => [state.radios]);
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
       className="box-container mini"
       onMouseEnter={() => {
-        setIsHovered(true)
+        setIsHovered(true);
       }}
       onMouseLeave={() => {
-        setIsHovered(false)
+        setIsHovered(false);
       }}
     >
       <div className="container">
@@ -30,14 +30,14 @@ const Mini: React.FC = () => {
                   {radio.lastReceivedCallsign ? radio.lastReceivedCallsign : ''}
                 </span>
               </div>
-            )
+            );
           })}
       </div>
       <div className={`exit-mini-mode-container ${isHovered ? 'visible' : 'hidden'}`}>
         <MiniModeToggleButton showRestoreButton={true} />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Mini
+export default Mini;

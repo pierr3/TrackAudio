@@ -1,17 +1,17 @@
-import React from 'react'
-import { createRoot } from 'react-dom/client'
-import Navbar from './components/navbar'
-import RadioContainer from './components/radio/radio-container'
-import Sidebar from './components/sidebar/sidebar'
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import Navbar from './components/navbar';
+import RadioContainer from './components/radio/radio-container';
+import Sidebar from './components/sidebar/sidebar';
 
-import ErrorDialog from './components/error'
-import Bootstrap from './components/bootstrap'
-import Mini from './components/mini'
-import * as Sentry from '@sentry/electron/renderer'
-import { init as reactInit } from '@sentry/react'
+import ErrorDialog from './components/error';
+import Bootstrap from './components/bootstrap';
+import Mini from './components/mini';
+import * as Sentry from '@sentry/electron/renderer';
+import { init as reactInit } from '@sentry/react';
 
-import './index.scss'
-import './style/app.scss'
+import './index.scss';
+import './style/app.scss';
 
 window.api
   .ShouldEnableTelemetryInTheRenderer()
@@ -24,12 +24,12 @@ window.api
         },
         // eslint-disable-next-line
         reactInit
-      )
+      );
     }
   })
   .catch((e: unknown) => {
-    console.error('Failed to get config and set telemetry status', e)
-  })
+    console.error('Failed to get config and set telemetry status', e);
+  });
 
 function App() {
   return (
@@ -43,14 +43,14 @@ function App() {
         <Sidebar />
       </div>
     </>
-  )
+  );
 }
 
-const rootElement = document.getElementById('root')
+const rootElement = document.getElementById('root');
 
 if (rootElement) {
-  const root = createRoot(rootElement)
-  root.render(<App />)
+  const root = createRoot(rootElement);
+  root.render(<App />);
 } else {
-  console.error("Could not find element with id 'root'")
+  console.error("Could not find element with id 'root'");
 }

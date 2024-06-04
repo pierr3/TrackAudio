@@ -1,19 +1,19 @@
-import { ipcRenderer, IpcRendererEvent } from 'electron'
+import { ipcRenderer, IpcRendererEvent } from 'electron';
 
 export const api = {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   on: (channel: string, listener: (...args: any[]) => void) => {
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     ipcRenderer.on(channel, (_event: IpcRendererEvent, ...args: any[]) => {
-      listener(...args)
-    })
+      listener(...args);
+    });
   },
   removeAllListeners: (channel: string) => {
-    ipcRenderer.removeAllListeners(channel)
+    ipcRenderer.removeAllListeners(channel);
   },
 
   setAlwaysOnTop: (state: boolean) => {
-    ipcRenderer.send('set-always-on-top', state)
+    ipcRenderer.send('set-always-on-top', state);
   },
   getAudioApis: () => ipcRenderer.invoke('audio-get-apis'),
   getAudioInputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-input-devices', apiId),
@@ -90,6 +90,6 @@ export const api = {
     message: string,
     buttons: string[]
   ) => ipcRenderer.invoke('dialog', type, title, message, buttons)
-}
+};
 
-export type API = typeof api
+export type API = typeof api;

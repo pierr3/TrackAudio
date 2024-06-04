@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react'
-import '../style/navbar.scss'
-import Clock from './clock'
-import SettingsModal from './settings-modal/settings-modal'
-import useErrorStore from '../store/errorStore'
-import useSessionStore from '../store/sessionStore'
-import clsx from 'clsx'
-import { checkIfCallsignIsRelief, getCleanCallsign } from '../helpers/CallsignHelper'
-import useUtilStore from '../store/utilStore'
-import { Configuration } from '../../../../src/main/config'
-import MiniModeToggleButton from './MiniModeToggleButton'
+import React, { useEffect, useState } from 'react';
+import '../style/navbar.scss';
+import Clock from './clock';
+import SettingsModal from './settings-modal/settings-modal';
+import useErrorStore from '../store/errorStore';
+import useSessionStore from '../store/sessionStore';
+import clsx from 'clsx';
+import { checkIfCallsignIsRelief, getCleanCallsign } from '../helpers/CallsignHelper';
+import useUtilStore from '../store/utilStore';
+import { Configuration } from '../../../../src/main/config';
+import MiniModeToggleButton from './MiniModeToggleButton';
 
 const Navbar: React.FC = () => {
-  const [showModal, setShowModal] = useState(false)
-  const [platform] = useUtilStore((state) => [state.platform])
+  const [showModal, setShowModal] = useState(false);
+  const [platform] = useUtilStore((state) => [state.platform]);
 
-  const postError = useErrorStore((state) => state.postError)
+  const postError = useErrorStore((state) => state.postError);
   const [
     isConnected,
     isConnecting,
@@ -37,57 +37,57 @@ const Navbar: React.FC = () => {
     state.setRadioGain,
     state.isAtc,
     state.setStationCallsign
-  ])
+  ]);
 
   useEffect(() => {
     window.api
       .getConfig()
       .then((config: Configuration) => {
-        const gain = config.radioGain || 0.5
-        const UiGain = gain * 100 || 50
+        const gain = config.radioGain || 0.5;
+        const UiGain = gain * 100 || 50;
 
         window.api
           .SetRadioGain(gain)
           .then(() => {
-            setRadioGain(UiGain)
+            setRadioGain(UiGain);
           })
           .catch((err: unknown) => {
-            console.error(err)
-          })
+            console.error(err);
+          });
       })
       .catch((err: unknown) => {
-        console.error(err)
-      })
-  }, [setRadioGain])
+        console.error(err);
+      });
+  }, [setRadioGain]);
 
   const doConnect = () => {
-    setIsConnecting(true)
+    setIsConnecting(true);
     window.api
       .connect()
       .then((ret) => {
         if (!ret) {
-          postError('Error connecting to AFV, check your configuration and credentials.')
-          setIsConnecting(false)
-          setIsConnected(false)
+          postError('Error connecting to AFV, check your configuration and credentials.');
+          setIsConnecting(false);
+          setIsConnected(false);
         }
       })
       .catch((err: unknown) => {
-        console.error(err)
-      })
-  }
+        console.error(err);
+      });
+  };
 
   const handleConnectDisconnect = () => {
     if (isConnected) {
-      void window.api.disconnect()
-      return
+      void window.api.disconnect();
+      return;
     }
 
     if (!isNetworkConnected) {
-      return
+      return;
     }
 
     if (checkIfCallsignIsRelief(callsign) && isAtc) {
-      const reliefCallsign = getCleanCallsign(callsign)
+      const reliefCallsign = getCleanCallsign(callsign);
       window.api
         .dialog(
           'question',
@@ -98,43 +98,43 @@ const Navbar: React.FC = () => {
         .then((ret) => {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           if (ret.response === 0) {
-            setStationCallsign(callsign)
+            setStationCallsign(callsign);
           } else {
-            setStationCallsign(reliefCallsign)
+            setStationCallsign(reliefCallsign);
           }
         })
         .then(() => {
-          doConnect()
+          doConnect();
         })
         .catch((err: unknown) => {
-          console.error(err)
-        })
+          console.error(err);
+        });
     } else {
-      setStationCallsign(callsign)
-      doConnect()
+      setStationCallsign(callsign);
+      doConnect();
     }
-  }
+  };
 
   const updateRadioGainValue = (newGain: number) => {
     window.api
       .SetRadioGain(newGain / 100)
       .then(() => {
-        setRadioGain(newGain)
+        setRadioGain(newGain);
       })
       .catch((err: unknown) => {
-        console.error(err)
-      })
-  }
+        console.error(err);
+      });
+  };
 
   const handleRadioGainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateRadioGainValue(event.target.valueAsNumber)
-  }
+    updateRadioGainValue(event.target.valueAsNumber);
+  };
 
   const handleRadioGainMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
-    const newValue = Math.min(Math.max(radioGain + (event.deltaY > 0 ? -1 : 1), 0), 100)
+    const newValue = Math.min(Math.max(radioGain + (event.deltaY > 0 ? -1 : 1), 0), 100);
 
-    updateRadioGainValue(newValue)
-  }
+    updateRadioGainValue(newValue);
+  };
 
   return (
     <>
@@ -156,7 +156,7 @@ const Navbar: React.FC = () => {
             isConnected && 'btn-danger'
           )}
           onClick={() => {
-            handleConnectDisconnect()
+            handleConnectDisconnect();
           }}
           disabled={isConnecting || !isNetworkConnected}
         >
@@ -166,7 +166,7 @@ const Navbar: React.FC = () => {
           className="btn btn-info m-2 hide-settings-flex"
           disabled={isConnected || isConnecting}
           onClick={() => {
-            setShowModal(true)
+            setShowModal(true);
           }}
         >
           Settings
@@ -202,12 +202,12 @@ const Navbar: React.FC = () => {
       {showModal && (
         <SettingsModal
           closeModal={() => {
-            setShowModal(false)
+            setShowModal(false);
           }}
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;
