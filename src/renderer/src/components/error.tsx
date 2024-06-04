@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import React from "react";
-import useErrorStore from "../store/errorStore";
+import React from 'react'
+import useErrorStore from '../store/errorStore'
 
 const ErrorDialog: React.FC = () => {
-  const errorStore = useErrorStore((state) => state);
+  const errorStore = useErrorStore((state) => state)
 
   if (!errorStore.pending) {
-    return null;
+    return null
   }
 
   return (
     <div className="alert alert-danger alert-popup" role="alert">
       <audio autoPlay>
-        <source src={require("../assets/alert.mp3")} type="audio/mp3"></source>
+        <source src={require('../assets/alert.mp3')} type="audio/mp3"></source>
       </audio>
-      <div style={{ float: "left" }}>
+      <div style={{ float: 'left' }}>
         {errorStore.messages.map((error, index) => (
           <div key={index}>
             [{error.timestamp}] {error.message}
@@ -24,15 +24,15 @@ const ErrorDialog: React.FC = () => {
 
       <button
         className="btn btn-danger"
-        style={{ float: "right" }}
+        style={{ float: 'right' }}
         onClick={() => {
-          errorStore.acknowledge();
+          errorStore.acknowledge()
         }}
       >
         X
       </button>
     </div>
-  );
-};
+  )
+}
 
-export default ErrorDialog;
+export default ErrorDialog

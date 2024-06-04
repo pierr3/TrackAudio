@@ -1,8 +1,8 @@
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
 #include "afv-native/hardwareType.h"
-#include "spdlog/spdlog.h"
 #include "spdlog/sinks/rotating_file_sink.h"
+#include "spdlog/spdlog.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
 #include <atomic>
@@ -640,13 +640,13 @@ void CreateLoggers()
 {
     auto max_size = 1048576 * 5;
     auto max_files = 3;
-    std::string fileName = std::string(FileSystem::GetStateFolderPath().string() + "trackaudio.log");
-    auto trackaudio_logger = spdlog::rotating_logger_mt("trackaudio_logger",
-        fileName, max_size, max_files);
+    std::string fileName
+        = std::string(FileSystem::GetStateFolderPath().string() + "trackaudio.log");
+    auto trackaudio_logger
+        = spdlog::rotating_logger_mt("trackaudio_logger", fileName, max_size, max_files);
 
     spdlog::set_default_logger(trackaudio_logger);
-    auto afv_logger = spdlog::rotating_logger_mt(
-        "afv_logger", fileName, max_size, max_files);
+    auto afv_logger = spdlog::rotating_logger_mt("afv_logger", fileName, max_size, max_files);
 
     // NOLINTNEXTLINE this cannot be solved here but in afv
     afv_native::api::setLogger(

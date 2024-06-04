@@ -76,8 +76,8 @@ Read this document entirely first. If you can't find the answer to your problem,
 
 TrackAudio is available in the [AUR](https://aur.archlinux.org/packages/trackaudio-bin) and can be installed using your favourite AUR helper, for example:
 
-* `yay -S trackaudio-bin`
-* `paru -S trackaudio-bin`
+- `yay -S trackaudio-bin`
+- `paru -S trackaudio-bin`
 
 #### Debian
 

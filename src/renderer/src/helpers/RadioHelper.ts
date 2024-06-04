@@ -1,4 +1,4 @@
-import { RadioType } from "../store/radioStore";
+import { RadioType } from '../store/radioStore'
 
 /**
  * Compares two radios to determine sort order. The currently connected station
@@ -13,20 +13,20 @@ import { RadioType } from "../store/radioStore";
 export const radioCompare = (
   a: RadioType,
   b: RadioType,
-  connectedStationCallsign: string,
+  connectedStationCallsign: string
 ): number => {
   // The connected station always get sorted to the front of the list.
-  if (a.callsign === connectedStationCallsign) return -1;
-  if (b.callsign === connectedStationCallsign) return 1;
+  if (a.callsign === connectedStationCallsign) return -1
+  if (b.callsign === connectedStationCallsign) return 1
 
   // The station name takes sort priority
-  const stationComparison = a.station.localeCompare(b.station);
-  if (stationComparison !== 0) return stationComparison;
+  const stationComparison = a.station.localeCompare(b.station)
+  if (stationComparison !== 0) return stationComparison
 
   // Subsort by position name if the station name is the same
-  const positionComparison = a.position.localeCompare(b.position);
-  if (positionComparison !== 0) return positionComparison;
+  const positionComparison = a.position.localeCompare(b.position)
+  if (positionComparison !== 0) return positionComparison
 
   // Subsort by sub-position name if the position is the same
-  return a.subPosition.localeCompare(b.subPosition);
-};
+  return a.subPosition.localeCompare(b.subPosition)
+}

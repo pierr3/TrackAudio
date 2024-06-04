@@ -1,70 +1,62 @@
-import {
-  app,
-  BrowserWindow,
-  dialog,
-  ipcMain,
-  Rectangle,
-  screen,
-  shell,
-} from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Rectangle, screen, shell } from 'electron'
 
-import { TrackAudioAfv, AfvEventTypes } from "trackaudio-afv";
-import Store from "electron-store";
-import * as Sentry from "@sentry/electron/main";
-import { join } from "path";
-import { electronApp, optimizer, is } from "@electron-toolkit/utils";
-import { Configuration } from "./config";
-import icon from "../../resources/AppIcon/icon.png?asset";
+import { TrackAudioAfv, AfvEventTypes } from 'trackaudio-afv'
+import Store from 'electron-store'
+import * as Sentry from '@sentry/electron/main'
+import { join } from 'path'
+import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { Configuration } from './config'
+import icon from '../../resources/AppIcon/icon.png?asset'
 
 Sentry.init({
-  dsn: "https://79ff6300423d5708cae256665d170c4b@o4507193732169728.ingest.de.sentry.io/4507193745145936",
+  dsn: 'https://79ff6300423d5708cae256665d170c4b@o4507193732169728.ingest.de.sentry.io/4507193745145936',
   enabled: false,
-  sendDefaultPii: false,
-});
+  sendDefaultPii: false
+})
 
-let version: string;
-let mainWindow: BrowserWindow;
+let version: string
+let mainWindow: BrowserWindow
 
-const defaultWindowSize = { width: 800, height: 660 };
-const savedLastWindowSize = { width: 800, height: 660 };
-const miniModeWidthBreakpoint = 300;
+const defaultWindowSize = { width: 800, height: 660 }
+const savedLastWindowSize = { width: 800, height: 660 }
+const miniModeWidthBreakpoint = 300
 
 let currentConfiguration: Configuration = {
   audioApi: -1,
-  audioInputDeviceId: "",
-  headsetOutputDeviceId: "",
-  speakerOutputDeviceId: "",
-  cid: "",
-  password: "",
-  callsign: "",
+  audioInputDeviceId: '',
+  headsetOutputDeviceId: '',
+  speakerOutputDeviceId: '',
+  cid: '',
+  password: '',
+  callsign: '',
   hardwareType: 0,
   radioGain: 0,
   alwaysOnTop: false,
-  consentedToTelemetry: undefined,
-};
-const store = new Store();
+  consentedToTelemetry: undefined
+}
+const store = new Store()
 
 /**
  * Checks to see if the window is in mini-mode.
  * @returns True if the window is in mini-mode, false otherwise.
  */
 const isInMiniMode = () => {
-  return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint;
-};
+  return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint
+}
 
 const saveConfig = () => {
-  store.set("configuration", JSON.stringify(currentConfiguration));
-};
+  store.set('configuration', JSON.stringify(currentConfiguration))
+}
 
 const setAudioSettings = () => {
   TrackAudioAfv.SetAudioSettings(
     currentConfiguration.audioApi || -1,
-    currentConfiguration.audioInputDeviceId || "",
-    currentConfiguration.headsetOutputDeviceId || "",
-    currentConfiguration.speakerOutputDeviceId || ""
-  );
-  TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
-};
+    currentConfiguration.audioInputDeviceId || '',
+    currentConfiguration.headsetOutputDeviceId || '',
+    currentConfiguration.speakerOutputDeviceId || ''
+  )
+  TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0)
+}
 
 const toggleMiniMode = () => {
   // Issue 79: Use the size of the content and the width breakpoint for mini-mode
@@ -72,31 +64,31 @@ const toggleMiniMode = () => {
   // getSize() was returning a width value off by one from the getMinSize()
   // call.
   if (isInMiniMode()) {
-    mainWindow.setSize(savedLastWindowSize.width, savedLastWindowSize.height);
-    return;
+    mainWindow.setSize(savedLastWindowSize.width, savedLastWindowSize.height)
+    return
   }
 
   // Issue 84: If the window is maximized it has to be unmaximized before
   // setting the window size to mini-mode otherwise nothing happens.
   if (mainWindow.isMaximized()) {
-    mainWindow.unmaximize();
+    mainWindow.unmaximize()
   }
 
-  savedLastWindowSize.width = mainWindow.getSize()[0];
-  savedLastWindowSize.height = mainWindow.getSize()[1];
+  savedLastWindowSize.width = mainWindow.getSize()[0]
+  savedLastWindowSize.height = mainWindow.getSize()[1]
 
   // Issue 79: Use the width breakpoint for the width instead of setting to 1
   // so the window doesn't go as small as possible when put in mini-mode. This
   // makes toggling work properly when using 300 as the value for determining when
   // to switch to big mode.
-  mainWindow.setSize(miniModeWidthBreakpoint, 1);
-};
+  mainWindow.setSize(miniModeWidthBreakpoint, 1)
+}
 
 const restoreWindowBounds = (win: BrowserWindow) => {
-  const savedBounds = store.get("bounds");
-  const boundsRectangle = savedBounds as Rectangle;
+  const savedBounds = store.get('bounds')
+  const boundsRectangle = savedBounds as Rectangle
   if (savedBounds !== undefined && savedBounds !== null) {
-    const screenArea = screen.getDisplayMatching(boundsRectangle).workArea;
+    const screenArea = screen.getDisplayMatching(boundsRectangle).workArea
     if (
       boundsRectangle.x > screenArea.x + screenArea.width ||
       boundsRectangle.x < screenArea.x ||
@@ -108,18 +100,18 @@ const restoreWindowBounds = (win: BrowserWindow) => {
         x: 0,
         y: 0,
         width: defaultWindowSize.width,
-        height: defaultWindowSize.height,
-      });
+        height: defaultWindowSize.height
+      })
     } else {
-      win.setBounds(boundsRectangle);
+      win.setBounds(boundsRectangle)
     }
   }
-};
+}
 
 const createWindow = (): void => {
   // Set the store CID
-  TrackAudioAfv.SetCid(currentConfiguration.cid || "");
-  TrackAudioAfv.SetRadioGain(currentConfiguration.radioGain || 0.5);
+  TrackAudioAfv.SetCid(currentConfiguration.cid || '')
+  TrackAudioAfv.SetRadioGain(currentConfiguration.radioGain || 0.5)
 
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -127,255 +119,249 @@ const createWindow = (): void => {
     width: defaultWindowSize.width,
     minWidth: 210,
     minHeight: 120,
-    ...(process.platform === "linux" ? { icon } : {}),
+    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
-      sandbox: false,
-    },
-  });
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false
+    }
+  })
 
-  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop || false);
+  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop || false)
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: "deny" };
-  });
+    shell.openExternal(details.url)
+    return { action: 'deny' }
+  })
 
-  if (process.platform !== "darwin") {
-    mainWindow.setMenu(null);
+  if (process.platform !== 'darwin') {
+    mainWindow.setMenu(null)
   }
 
-  restoreWindowBounds(mainWindow);
+  restoreWindowBounds(mainWindow)
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
   // Open the DevTools only in development mode.
-  if (process.env.NODE_ENV === "development") {
-    mainWindow.webContents.openDevTools();
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.webContents.openDevTools()
   }
 
-  mainWindow.on("close", (e) => {
+  mainWindow.on('close', (e) => {
     if (TrackAudioAfv.IsConnected()) {
       const response = dialog.showMessageBoxSync(mainWindow, {
-        type: "question",
-        buttons: ["Yes", "No"],
-        title: "Confirm",
-        message: "Are you sure you want to quit?",
-      });
+        type: 'question',
+        buttons: ['Yes', 'No'],
+        title: 'Confirm',
+        message: 'Are you sure you want to quit?'
+      })
 
       if (response == 1) {
-        e.preventDefault();
-        return;
+        e.preventDefault()
+        return
       }
     }
 
     if (!isInMiniMode()) {
-      store.set("bounds", mainWindow.getBounds());
+      store.set('bounds', mainWindow.getBounds())
     }
-  });
+  })
 
-  mainWindow.webContents.on("before-input-event", (e, input) => {
+  mainWindow.webContents.on('before-input-event', (e, input) => {
     if (
-      input.key.toLowerCase() === "m" &&
-      input.type === "keyDown" &&
+      input.key.toLowerCase() === 'm' &&
+      input.type === 'keyDown' &&
       (input.control || input.meta)
     ) {
-      toggleMiniMode();
-      e.preventDefault();
+      toggleMiniMode()
+      e.preventDefault()
     }
-  });
-};
+  })
+}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId("com.electron");
-  app.on("browser-window-created", (_, window) => {
-    optimizer.watchWindowShortcuts(window);
-  });
+  electronApp.setAppUserModelId('com.electron')
+  app.on('browser-window-created', (_, window) => {
+    optimizer.watchWindowShortcuts(window)
+  })
   // load the configuration
-  currentConfiguration = JSON.parse(
-    store.get("configuration", "{}") as string
-  ) as Configuration;
+  currentConfiguration = JSON.parse(store.get('configuration', '{}') as string) as Configuration
 
   if (currentConfiguration.consentedToTelemetry === undefined) {
     // We have not recorded any telemetry consent yet, so we will prompt the user
     const response = dialog.showMessageBoxSync(mainWindow, {
-      type: "question",
-      buttons: ["I consent to telemetry", "I want to opt out"],
-      title: "Telemetry consent",
+      type: 'question',
+      buttons: ['I consent to telemetry', 'I want to opt out'],
+      title: 'Telemetry consent',
       detail:
-        "Only essential information from the crash report is sent, and no data leaves your device unless an error occurs. We do not record your IP address or VATSIM password. Your data would be sent to a third-party service, Sentry, to their servers located in Germany. This is entirely optional, but greatly assists in tracking down errors.",
+        'Only essential information from the crash report is sent, and no data leaves your device unless an error occurs. We do not record your IP address or VATSIM password. Your data would be sent to a third-party service, Sentry, to their servers located in Germany. This is entirely optional, but greatly assists in tracking down errors.',
       message:
-        "TrackAudio utilizes remote telemetry in the event of a bug, sending an error report to a tool called Sentry.",
-    });
+        'TrackAudio utilizes remote telemetry in the event of a bug, sending an error report to a tool called Sentry.'
+    })
 
     if (response === 0) {
-      currentConfiguration.consentedToTelemetry = true;
+      currentConfiguration.consentedToTelemetry = true
     } else {
-      currentConfiguration.consentedToTelemetry = false;
+      currentConfiguration.consentedToTelemetry = false
     }
-    saveConfig();
+    saveConfig()
   }
 
   if (currentConfiguration.consentedToTelemetry) {
-    console.log("User opted into telemetry, enabling sentry");
-    const sclient = Sentry.getClient();
+    console.log('User opted into telemetry, enabling sentry')
+    const sclient = Sentry.getClient()
     if (sclient) {
       // Disable sentry in debug always
       sclient.getOptions().enabled = !app.isPackaged
         ? false
-        : currentConfiguration.consentedToTelemetry;
+        : currentConfiguration.consentedToTelemetry
     } else {
-      console.error("Could not enable sentry");
+      console.error('Could not enable sentry')
     }
   }
 
-  const bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
+  const bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath)
 
   if (bootstrapOutput.needUpdate) {
     dialog.showMessageBoxSync({
-      type: "error",
-      message:
-        "A new mandatory version is available, please update in order to continue.",
-      buttons: ["OK"],
-    });
-    app.quit();
+      type: 'error',
+      message: 'A new mandatory version is available, please update in order to continue.',
+      buttons: ['OK']
+    })
+    app.quit()
   }
 
   if (!bootstrapOutput.canRun) {
     dialog.showMessageBoxSync({
-      type: "error",
+      type: 'error',
       message:
-        "This application has experienced an error and cannot run, please check the logs for more information.",
-      buttons: ["OK"],
-    });
-    app.quit();
+        'This application has experienced an error and cannot run, please check the logs for more information.',
+      buttons: ['OK']
+    })
+    app.quit()
   }
 
-  version = bootstrapOutput.version;
+  version = bootstrapOutput.version
 
-  createWindow();
-});
+  createWindow()
+})
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  app.quit();
-});
+app.on('window-all-closed', () => {
+  app.quit()
+})
 
-app.on("quit", async () => {
-  await TrackAudioAfv.Exit();
-});
+app.on('quit', async () => {
+  await TrackAudioAfv.Exit()
+})
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-ipcMain.on("set-always-on-top", (_, state: boolean) => {
-  mainWindow.setAlwaysOnTop(state);
-  currentConfiguration.alwaysOnTop = state;
-  saveConfig();
-});
+ipcMain.on('set-always-on-top', (_, state: boolean) => {
+  mainWindow.setAlwaysOnTop(state)
+  currentConfiguration.alwaysOnTop = state
+  saveConfig()
+})
 
-ipcMain.handle("audio-get-apis", () => {
-  return TrackAudioAfv.GetAudioApis();
-});
+ipcMain.handle('audio-get-apis', () => {
+  return TrackAudioAfv.GetAudioApis()
+})
 
-ipcMain.handle("audio-get-input-devices", (_, apiId: string) => {
-  return TrackAudioAfv.GetAudioInputDevices(apiId);
-});
+ipcMain.handle('audio-get-input-devices', (_, apiId: string) => {
+  return TrackAudioAfv.GetAudioInputDevices(apiId)
+})
 
-ipcMain.handle("audio-get-output-devices", (_, apiId: string) => {
-  return TrackAudioAfv.GetAudioOutputDevices(apiId);
-});
+ipcMain.handle('audio-get-output-devices', (_, apiId: string) => {
+  return TrackAudioAfv.GetAudioOutputDevices(apiId)
+})
 
-ipcMain.handle("get-configuration", () => {
-  return currentConfiguration;
-});
+ipcMain.handle('get-configuration', () => {
+  return currentConfiguration
+})
 
-ipcMain.handle("request-ptt-key-name", () => {
-  TrackAudioAfv.RequestPttKeyName();
-});
+ipcMain.handle('request-ptt-key-name', () => {
+  TrackAudioAfv.RequestPttKeyName()
+})
 
 //
 // AFV audio settings
 //
 
-ipcMain.handle("set-audio-input-device", (_, deviceId: string) => {
-  currentConfiguration.audioInputDeviceId = deviceId;
-  saveConfig();
-});
+ipcMain.handle('set-audio-input-device', (_, deviceId: string) => {
+  currentConfiguration.audioInputDeviceId = deviceId
+  saveConfig()
+})
 
-ipcMain.handle("set-headset-output-device", (_, deviceId: string) => {
-  currentConfiguration.headsetOutputDeviceId = deviceId;
-  saveConfig();
-});
+ipcMain.handle('set-headset-output-device', (_, deviceId: string) => {
+  currentConfiguration.headsetOutputDeviceId = deviceId
+  saveConfig()
+})
 
-ipcMain.handle("set-speaker-output-device", (_, deviceId: string) => {
-  currentConfiguration.speakerOutputDeviceId = deviceId;
-  saveConfig();
-});
+ipcMain.handle('set-speaker-output-device', (_, deviceId: string) => {
+  currentConfiguration.speakerOutputDeviceId = deviceId
+  saveConfig()
+})
 
-ipcMain.handle("set-audio-api", (_, apiId: number) => {
-  currentConfiguration.audioApi = apiId;
-  saveConfig();
-});
+ipcMain.handle('set-audio-api', (_, apiId: number) => {
+  currentConfiguration.audioApi = apiId
+  saveConfig()
+})
 
-ipcMain.handle("toggle-mini-mode", () => {
-  toggleMiniMode();
-});
+ipcMain.handle('toggle-mini-mode', () => {
+  toggleMiniMode()
+})
 
 //
 // AFV login settings
 //
 
-ipcMain.handle("set-cid", (_, cid: string) => {
-  currentConfiguration.cid = cid;
-  saveConfig();
-  TrackAudioAfv.SetCid(cid);
-});
+ipcMain.handle('set-cid', (_, cid: string) => {
+  currentConfiguration.cid = cid
+  saveConfig()
+  TrackAudioAfv.SetCid(cid)
+})
 
-ipcMain.handle("set-password", (_, password: string) => {
-  currentConfiguration.password = password;
-  saveConfig();
-});
+ipcMain.handle('set-password', (_, password: string) => {
+  currentConfiguration.password = password
+  saveConfig()
+})
 
 //
 // AFV actions
 //
 
-ipcMain.handle("connect", () => {
+ipcMain.handle('connect', () => {
   if (!currentConfiguration.password || !currentConfiguration.cid) {
-    return false;
+    return false
   }
-  setAudioSettings();
-  return TrackAudioAfv.Connect(currentConfiguration.password);
-});
+  setAudioSettings()
+  return TrackAudioAfv.Connect(currentConfiguration.password)
+})
 
-ipcMain.handle("disconnect", () => {
-  TrackAudioAfv.Disconnect();
-});
+ipcMain.handle('disconnect', () => {
+  TrackAudioAfv.Disconnect()
+})
+
+ipcMain.handle('audio-add-frequency', (_, frequency: number, callsign: string) => {
+  return TrackAudioAfv.AddFrequency(frequency, callsign)
+})
+
+ipcMain.handle('audio-remove-frequency', (_, frequency: number) => {
+  TrackAudioAfv.RemoveFrequency(frequency)
+})
 
 ipcMain.handle(
-  "audio-add-frequency",
-  (_, frequency: number, callsign: string) => {
-    return TrackAudioAfv.AddFrequency(frequency, callsign);
-  }
-);
-
-ipcMain.handle("audio-remove-frequency", (_, frequency: number) => {
-  TrackAudioAfv.RemoveFrequency(frequency);
-});
-
-ipcMain.handle(
-  "audio-set-frequency-state",
+  'audio-set-frequency-state',
   (
     _,
     frequency: number,
@@ -385,85 +371,78 @@ ipcMain.handle(
     onSpeaker: boolean,
     crossCoupleAcross: boolean
   ) => {
-    return TrackAudioAfv.SetFrequencyState(
-      frequency,
-      rx,
-      tx,
-      xc,
-      onSpeaker,
-      crossCoupleAcross
-    );
+    return TrackAudioAfv.SetFrequencyState(frequency, rx, tx, xc, onSpeaker, crossCoupleAcross)
   }
-);
+)
 
-ipcMain.handle("audio-get-frequency-state", (_, frequency: number) => {
-  return TrackAudioAfv.GetFrequencyState(frequency);
-});
+ipcMain.handle('audio-get-frequency-state', (_, frequency: number) => {
+  return TrackAudioAfv.GetFrequencyState(frequency)
+})
 
-ipcMain.handle("audio-is-frequency-active", (_, frequency: number) => {
-  return TrackAudioAfv.IsFrequencyActive(frequency);
-});
+ipcMain.handle('audio-is-frequency-active', (_, frequency: number) => {
+  return TrackAudioAfv.IsFrequencyActive(frequency)
+})
 
-ipcMain.handle("get-station", (_, callsign: string) => {
-  TrackAudioAfv.GetStation(callsign);
-});
+ipcMain.handle('get-station', (_, callsign: string) => {
+  TrackAudioAfv.GetStation(callsign)
+})
 
-ipcMain.handle("refresh-station", (_, callsign: string) => {
-  TrackAudioAfv.RefreshStation(callsign);
-});
+ipcMain.handle('refresh-station', (_, callsign: string) => {
+  TrackAudioAfv.RefreshStation(callsign)
+})
 
-ipcMain.handle("setup-ptt", () => {
-  TrackAudioAfv.SetupPttBegin();
-});
+ipcMain.handle('setup-ptt', () => {
+  TrackAudioAfv.SetupPttBegin()
+})
 
-ipcMain.handle("set-radio-gain", (_, gain: number) => {
-  TrackAudioAfv.SetRadioGain(gain);
-  currentConfiguration.radioGain = gain;
-  saveConfig();
-});
+ipcMain.handle('set-radio-gain', (_, gain: number) => {
+  TrackAudioAfv.SetRadioGain(gain)
+  currentConfiguration.radioGain = gain
+  saveConfig()
+})
 
-ipcMain.handle("set-hardware-type", (_, type: number) => {
-  currentConfiguration.hardwareType = type;
-  saveConfig();
-  TrackAudioAfv.SetHardwareType(type);
-});
+ipcMain.handle('set-hardware-type', (_, type: number) => {
+  currentConfiguration.hardwareType = type
+  saveConfig()
+  TrackAudioAfv.SetHardwareType(type)
+})
 
-ipcMain.handle("start-mic-test", () => {
-  setAudioSettings();
-  TrackAudioAfv.StartMicTest();
-});
+ipcMain.handle('start-mic-test', () => {
+  setAudioSettings()
+  TrackAudioAfv.StartMicTest()
+})
 
-ipcMain.handle("stop-mic-test", () => {
-  mainWindow.webContents.send("MicTest", "0.0", "0.0");
-  TrackAudioAfv.StopMicTest();
-});
+ipcMain.handle('stop-mic-test', () => {
+  mainWindow.webContents.send('MicTest', '0.0', '0.0')
+  TrackAudioAfv.StopMicTest()
+})
 
-ipcMain.handle("update-platform", () => {
-  return process.platform;
-});
+ipcMain.handle('update-platform', () => {
+  return process.platform
+})
 
-ipcMain.handle("close-me", () => {
-  mainWindow.close();
-});
+ipcMain.handle('close-me', () => {
+  mainWindow.close()
+})
 
-ipcMain.handle("change-telemetry", (_, enabled: boolean) => {
-  currentConfiguration.consentedToTelemetry = enabled;
-  const sclient = Sentry.getClient();
+ipcMain.handle('change-telemetry', (_, enabled: boolean) => {
+  currentConfiguration.consentedToTelemetry = enabled
+  const sclient = Sentry.getClient()
   if (sclient) {
-    sclient.getOptions().enabled = enabled;
+    sclient.getOptions().enabled = enabled
   }
-  saveConfig();
-});
+  saveConfig()
+})
 
-ipcMain.handle("should-enable-renderer-telemetry", () => {
-  return !app.isPackaged ? false : currentConfiguration.consentedToTelemetry;
-});
+ipcMain.handle('should-enable-renderer-telemetry', () => {
+  return !app.isPackaged ? false : currentConfiguration.consentedToTelemetry
+})
 
 ipcMain.handle(
-  "dialog",
+  'dialog',
   (
     _,
-    type: "none" | "info" | "error" | "question" | "warning",
+    type: 'none' | 'info' | 'error' | 'question' | 'warning',
     title: string,
     message: string,
     buttons: string[]
@@ -472,72 +451,72 @@ ipcMain.handle(
       type,
       title,
       buttons,
-      message,
-    });
+      message
+    })
   }
-);
+)
 
-ipcMain.handle("get-version", () => {
-  return version;
-});
+ipcMain.handle('get-version', () => {
+  return version
+})
 
 //
 // Callbacks
 //
 TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   if (!arg) {
-    return;
+    return
   }
 
   if (arg === AfvEventTypes.VuMeter) {
-    mainWindow.webContents.send("VuMeter", arg2, arg3);
+    mainWindow.webContents.send('VuMeter', arg2, arg3)
   }
 
   if (arg === AfvEventTypes.FrequencyRxBegin) {
-    mainWindow.webContents.send("FrequencyRxBegin", arg2);
+    mainWindow.webContents.send('FrequencyRxBegin', arg2)
   }
 
   if (arg === AfvEventTypes.FrequencyRxEnd) {
-    mainWindow.webContents.send("FrequencyRxEnd", arg2);
+    mainWindow.webContents.send('FrequencyRxEnd', arg2)
   }
 
   if (arg == AfvEventTypes.StationRxBegin) {
-    mainWindow.webContents.send("StationRxBegin", arg2, arg3);
+    mainWindow.webContents.send('StationRxBegin', arg2, arg3)
   }
 
   if (arg == AfvEventTypes.StationTransceiversUpdated) {
-    mainWindow.webContents.send("station-transceivers-updated", arg2, arg3);
+    mainWindow.webContents.send('station-transceivers-updated', arg2, arg3)
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {
-    mainWindow.webContents.send("station-data-received", arg2, arg3);
+    mainWindow.webContents.send('station-data-received', arg2, arg3)
   }
 
   if (arg == AfvEventTypes.PttState) {
-    mainWindow.webContents.send("PttState", arg2);
+    mainWindow.webContents.send('PttState', arg2)
   }
 
   if (arg == AfvEventTypes.Error) {
-    mainWindow.webContents.send("error", arg2);
+    mainWindow.webContents.send('error', arg2)
   }
 
   if (arg == AfvEventTypes.VoiceConnected) {
-    mainWindow.webContents.send("VoiceConnected");
+    mainWindow.webContents.send('VoiceConnected')
   }
 
   if (arg == AfvEventTypes.VoiceDisconnected) {
-    mainWindow.webContents.send("VoiceDisconnected");
+    mainWindow.webContents.send('VoiceDisconnected')
   }
 
   if (arg == AfvEventTypes.NetworkConnected) {
-    mainWindow.webContents.send("network-connected", arg2, arg3);
+    mainWindow.webContents.send('network-connected', arg2, arg3)
   }
 
   if (arg == AfvEventTypes.NetworkDisconnected) {
-    mainWindow.webContents.send("network-disconnected");
+    mainWindow.webContents.send('network-disconnected')
   }
 
   if (arg == AfvEventTypes.PttKeySet) {
-    mainWindow.webContents.send("ptt-key-set", arg2);
+    mainWindow.webContents.send('ptt-key-set', arg2)
   }
-});
+})

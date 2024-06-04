@@ -1,87 +1,80 @@
-import React from "react";
-import useRadioState, { RadioHelper } from "../../store/radioStore";
+import React from 'react'
+import useRadioState, { RadioHelper } from '../../store/radioStore'
 
 const RadioStatus: React.FC = () => {
-  const [selectedRadio, removeRadio, setPendingDeletion] = useRadioState(
-    (state) => [
-      state.getSelectedRadio(),
-      state.removeRadio,
-      state.setPendingDeletion,
-    ]
-  );
+  const [selectedRadio, removeRadio, setPendingDeletion] = useRadioState((state) => [
+    state.getSelectedRadio(),
+    state.removeRadio,
+    state.setPendingDeletion
+  ])
 
   const awaitEndOfRxForDeletion = (frequency: number): void => {
     const interval = setInterval(
       (frequency: number) => {
-        const radio = useRadioState
-          .getState()
-          .radios.find((r) => r.frequency === frequency);
+        const radio = useRadioState.getState().radios.find((r) => r.frequency === frequency)
         if (!radio) {
-          clearInterval(interval);
-          return;
+          clearInterval(interval)
+          return
         }
 
         if (!radio.currentlyRx && !radio.currentlyTx) {
-          void window.api.removeFrequency(radio.frequency);
-          removeRadio(radio.frequency);
-          clearInterval(interval);
+          void window.api.removeFrequency(radio.frequency)
+          removeRadio(radio.frequency)
+          clearInterval(interval)
         }
       },
       60,
       frequency
-    );
+    )
 
     // Clear the interval after 5 seconds
     setTimeout(() => {
-      clearInterval(interval);
-    }, 10000);
-  };
+      clearInterval(interval)
+    }, 10000)
+  }
 
   const handleDeleteRadio = () => {
     if (!selectedRadio) {
-      return;
+      return
     }
-    setPendingDeletion(selectedRadio.frequency, true);
-    awaitEndOfRxForDeletion(selectedRadio.frequency);
-  };
+    setPendingDeletion(selectedRadio.frequency, true)
+    awaitEndOfRxForDeletion(selectedRadio.frequency)
+  }
 
   const handleForceRefresh = () => {
     if (!selectedRadio) {
-      return;
+      return
     }
-    if (selectedRadio.callsign === "MANUAL") {
-      return;
+    if (selectedRadio.callsign === 'MANUAL') {
+      return
     }
-    void window.api.RefreshStation(selectedRadio.callsign);
-  };
+    void window.api.RefreshStation(selectedRadio.callsign)
+  }
 
   return (
     <div className="box-container mt-3 w-100">
-      <div style={{ textAlign: "center" }} className="w-100 mb-0">
+      <div style={{ textAlign: 'center' }} className="w-100 mb-0">
         Radio Status
       </div>
-      <span>Callsign: {selectedRadio ? selectedRadio.callsign : ""}</span>
+      <span>Callsign: {selectedRadio ? selectedRadio.callsign : ''}</span>
       <br />
       <span>
-        Frequency:{" "}
-        {selectedRadio
-          ? RadioHelper.convertHzToMhzString(selectedRadio.frequency)
-          : ""}
+        Frequency: {selectedRadio ? RadioHelper.convertHzToMhzString(selectedRadio.frequency) : ''}
       </span>
       <br />
       <span>
-        Transceivers:{" "}
+        Transceivers:{' '}
         {selectedRadio
-          ? selectedRadio.callsign !== "MANUAL"
+          ? selectedRadio.callsign !== 'MANUAL'
             ? selectedRadio.transceiverCount
-            : "MAN"
-          : ""}
+            : 'MAN'
+          : ''}
       </span>
       <br />
       <button
         className="btn btn-info w-100 mt-2 btn-sm"
         onClick={() => {
-          handleForceRefresh();
+          handleForceRefresh()
         }}
         disabled={!selectedRadio}
       >
@@ -91,13 +84,13 @@ const RadioStatus: React.FC = () => {
         className="btn btn-danger w-100 mt-2 btn-sm"
         disabled={!selectedRadio}
         onClick={() => {
-          handleDeleteRadio();
+          handleDeleteRadio()
         }}
       >
-        {selectedRadio?.isPendingDeleting ? "Deleting..." : "Delete"}
+        {selectedRadio?.isPendingDeleting ? 'Deleting...' : 'Delete'}
       </button>
     </div>
-  );
-};
+  )
+}
 
-export default RadioStatus;
+export default RadioStatus

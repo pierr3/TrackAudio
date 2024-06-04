@@ -1,9 +1,9 @@
-import React from "react";
-import Radio from "./radio";
-import useRadioState from "../../store/radioStore";
+import React from 'react'
+import Radio from './radio'
+import useRadioState from '../../store/radioStore'
 
 const RadioContainer: React.FC = () => {
-  const radios = useRadioState((state) => state.radios);
+  const radios = useRadioState((state) => state.radios)
   return (
     <>
       <div className="box-container freq-box">
@@ -16,7 +16,7 @@ const RadioContainer: React.FC = () => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default RadioContainer;
+export default RadioContainer

@@ -1,352 +1,364 @@
 <!doctype html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>TrackAudio</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'" />
+    <link
+      rel="preload"
+      href="/assets/fonts/UbuntuMono-B.ttf"
+      as="font"
+      type="font/truetype"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/assets/fonts/UbuntuMono-R.ttf"
+      as="font"
+      type="font/truetype"
+      crossorigin
+    />
+    <link rel="preload" href="/assets/alert.mp3" as="audio" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>TrackAudio</title>
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'" />
-  <link rel="preload" href="/assets/fonts/UbuntuMono-B.ttf" as="font" type="font/truetype" crossorigin>
-  <link rel="preload" href="/assets/fonts/UbuntuMono-R.ttf" as="font" type="font/truetype" crossorigin>
-  <link rel="preload" href="/assets/alert.mp3" as="audio">
-</head>
-
-<body>
-  <div id="root">
-    <div id="loader">
-      <div class="razar">
-        <div class="ringbase ring1"></div>
-        <div class="ringbase ring2"></div>
-        <div class="pulse"></div>
-        <div class="pointer">
-          <div></div>
+  <body>
+    <div id="root">
+      <div id="loader">
+        <div class="razar">
+          <div class="ringbase ring1"></div>
+          <div class="ringbase ring2"></div>
+          <div class="pulse"></div>
+          <div class="pointer">
+            <div></div>
+          </div>
+          <div class="dot pos1"></div>
+          <div class="dot pos2"></div>
         </div>
-        <div class="dot pos1"></div>
-        <div class="dot pos2"></div>
       </div>
+      <style>
+        body {
+          background-color: #2c2f45;
+          overflow: hidden;
+        }
+
+        #loader {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+        }
+
+        .razar {
+          position: relative;
+          width: 70px;
+          height: 70px;
+          background-size: 100% 100%;
+          border-radius: 35px;
+          text-align: center;
+        }
+
+        .pulse {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 70px;
+          height: 70px;
+          border-radius: 35px;
+          background: #2c6be0;
+          animation: pulsating 2s ease-in-out;
+          opacity: 0;
+          z-index: 5;
+        }
+
+        .pulse-light {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 70px;
+          height: 70px;
+          border-radius: 35px;
+          background: #173f88;
+          animation: pulsating-light 2s ease-in-out;
+          animation-iteration-count: infinite;
+          opacity: 0;
+          z-index: 5;
+        }
+
+        .ringbase {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 70px;
+          height: 70px;
+          border-radius: 35px;
+          opacity: 0;
+          z-index: 10;
+        }
+
+        .ring1 {
+          animation: ring 2s ease-in-out;
+          animation-iteration-count: infinite;
+        }
+
+        .ring2 {
+          box-shadow:
+            0 0 1px 0px #72e5df,
+            inset 0 0 1px 0px #72e5df;
+          animation: ring 2s ease-in-out;
+          animation-iteration-count: infinite;
+          animation-delay: 0.5s;
+        }
+
+        @-webkit-keyframes pulsating-light {
+          0% {
+            opacity: 0.5;
+          }
+
+          50% {
+            opacity: 0.8;
+          }
+
+          100% {
+            opacity: 0.5;
+          }
+        }
+
+        @-moz-keyframes pulsating-light {
+          0% {
+            opacity: 0.5;
+          }
+
+          50% {
+            opacity: 0.8;
+          }
+
+          100% {
+            opacity: 0.5;
+          }
+        }
+
+        @keyframes pulsating-light {
+          0% {
+            opacity: 0.5;
+          }
+
+          50% {
+            opacity: 0.8;
+          }
+
+          100% {
+            opacity: 0.5;
+          }
+        }
+
+        @-webkit-keyframes pulsating {
+          0% {
+            opacity: 0;
+          }
+
+          50% {
+            opacity: 0.2;
+          }
+
+          100% {
+            opacity: 0;
+          }
+        }
+
+        @-moz-keyframes pulsating {
+          0% {
+            opacity: 0;
+          }
+
+          50% {
+            opacity: 0.2;
+          }
+
+          100% {
+            opacity: 0;
+          }
+        }
+
+        @keyframes pulsating {
+          0% {
+            opacity: 0;
+          }
+
+          50% {
+            opacity: 0.2;
+          }
+
+          100% {
+            opacity: 0;
+          }
+        }
+
+        @-webkit-keyframes ring {
+          0% {
+            -webkit-transform: scale(0.4, 0.4);
+            opacity: 0;
+          }
+
+          50% {
+            opacity: 0.6;
+          }
+
+          100% {
+            -webkit-transform: scale(1.1, 1.1);
+            opacity: 0;
+          }
+        }
+
+        @-moz-keyframes ring {
+          0% {
+            -moz-transform: scale(0.4, 0.4);
+            opacity: 0;
+          }
+
+          50% {
+            opacity: 0.6;
+          }
+
+          100% {
+            -moz-transform: scale(1.1, 1.1);
+            opacity: 0;
+          }
+        }
+
+        @keyframes ring {
+          0% {
+            transform: scale(0.4, 0.4);
+            opacity: 0;
+          }
+
+          50% {
+            opacity: 0.6;
+          }
+
+          100% {
+            transform: scale(1.1, 1.1);
+            opacity: 0;
+          }
+        }
+
+        .pointer {
+          position: relative;
+          width: 70px;
+          top: 35px;
+          -webkit-animation: circling 2s linear;
+          -webkit-animation-iteration-count: infinite;
+          -moz-animation: circling 2s linear;
+          -moz-animation-iteration-count: infinite;
+          animation: circling 2s linear;
+          animation-iteration-count: infinite;
+          z-index: 20;
+        }
+
+        .pointer div {
+          width: 49%;
+          border-bottom: 2px solid #72e5df;
+        }
+
+        .dot {
+          opacity: 0;
+          border: 3px solid #72e5df;
+          border-radius: 100%;
+          position: absolute;
+          -webkit-animation: blink 2s ease-out;
+          -webkit-animation-iteration-count: infinite;
+          -moz-animation: blink 2s ease-out;
+          -moz-animation-iteration-count: infinite;
+          animation: blink 2s ease-out;
+          animation-iteration-count: infinite;
+          z-index: 25;
+        }
+
+        .dot.pos1 {
+          left: 10px;
+          top: 38px;
+        }
+
+        .dot.pos2 {
+          left: 40px;
+          top: 18px;
+          -webkit-animation-delay: 0.6s;
+          -moz-animation-delay: 0.6s;
+          animation-delay: 0.6s;
+        }
+
+        @-webkit-keyframes circling {
+          0% {
+            -webkit-transform: rotate(0deg);
+          }
+
+          50% {
+            -webkit-transform: rotate(180deg);
+          }
+
+          100% {
+            -webkit-transform: rotate(360deg);
+          }
+        }
+
+        @-moz-keyframes circling {
+          0% {
+            -moz-transform: rotate(0deg);
+          }
+
+          50% {
+            -moz-transform: rotate(180deg);
+          }
+
+          100% {
+            -moz-transform: rotate(360deg);
+          }
+        }
+
+        @keyframes circling {
+          0% {
+            transform: rotate(0deg);
+          }
+
+          50% {
+            transform: rotate(180deg);
+          }
+
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+
+        @-webkit-keyframes blink {
+          0% {
+            opacity: 1;
+          }
+
+          100% {
+            opacity: 0;
+          }
+        }
+
+        @-moz-keyframes blink {
+          0% {
+            opacity: 1;
+          }
+
+          100% {
+            opacity: 0;
+          }
+        }
+
+        @keyframes blink {
+          0% {
+            opacity: 1;
+          }
+
+          100% {
+            opacity: 0;
+          }
+        }
+      </style>
     </div>
-    <style>
-      body {
-        background-color: #2c2f45;
-        overflow: hidden;
-      }
-
-      #loader {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-      }
-
-      .razar {
-        position: relative;
-        width: 70px;
-        height: 70px;
-        background-size: 100% 100%;
-        border-radius: 35px;
-        text-align: center;
-      }
-
-      .pulse {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 70px;
-        height: 70px;
-        border-radius: 35px;
-        background: #2c6be0;
-        animation: pulsating 2s ease-in-out;
-        opacity: 0;
-        z-index: 5;
-      }
-
-      .pulse-light {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 70px;
-        height: 70px;
-        border-radius: 35px;
-        background: #173f88;
-        animation: pulsating-light 2s ease-in-out;
-        animation-iteration-count: infinite;
-        opacity: 0;
-        z-index: 5;
-      }
-
-      .ringbase {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 70px;
-        height: 70px;
-        border-radius: 35px;
-        opacity: 0;
-        z-index: 10;
-      }
-
-      .ring1 {
-        animation: ring 2s ease-in-out;
-        animation-iteration-count: infinite;
-      }
-
-      .ring2 {
-        box-shadow: 0 0 1px 0px #72e5df, inset 0 0 1px 0px #72e5df;
-        animation: ring 2s ease-in-out;
-        animation-iteration-count: infinite;
-        animation-delay: 0.5s;
-      }
-
-      @-webkit-keyframes pulsating-light {
-        0% {
-          opacity: 0.5;
-        }
-
-        50% {
-          opacity: 0.8;
-        }
-
-        100% {
-          opacity: 0.5;
-        }
-      }
-
-      @-moz-keyframes pulsating-light {
-        0% {
-          opacity: 0.5;
-        }
-
-        50% {
-          opacity: 0.8;
-        }
-
-        100% {
-          opacity: 0.5;
-        }
-      }
-
-      @keyframes pulsating-light {
-        0% {
-          opacity: 0.5;
-        }
-
-        50% {
-          opacity: 0.8;
-        }
-
-        100% {
-          opacity: 0.5;
-        }
-      }
-
-      @-webkit-keyframes pulsating {
-        0% {
-          opacity: 0;
-        }
-
-        50% {
-          opacity: 0.2;
-        }
-
-        100% {
-          opacity: 0;
-        }
-      }
-
-      @-moz-keyframes pulsating {
-        0% {
-          opacity: 0;
-        }
-
-        50% {
-          opacity: 0.2;
-        }
-
-        100% {
-          opacity: 0;
-        }
-      }
-
-      @keyframes pulsating {
-        0% {
-          opacity: 0;
-        }
-
-        50% {
-          opacity: 0.2;
-        }
-
-        100% {
-          opacity: 0;
-        }
-      }
-
-      @-webkit-keyframes ring {
-        0% {
-          -webkit-transform: scale(0.4, 0.4);
-          opacity: 0;
-        }
-
-        50% {
-          opacity: 0.6;
-        }
-
-        100% {
-          -webkit-transform: scale(1.1, 1.1);
-          opacity: 0;
-        }
-      }
-
-      @-moz-keyframes ring {
-        0% {
-          -moz-transform: scale(0.4, 0.4);
-          opacity: 0;
-        }
-
-        50% {
-          opacity: 0.6;
-        }
-
-        100% {
-          -moz-transform: scale(1.1, 1.1);
-          opacity: 0;
-        }
-      }
-
-      @keyframes ring {
-        0% {
-          transform: scale(0.4, 0.4);
-          opacity: 0;
-        }
-
-        50% {
-          opacity: 0.6;
-        }
-
-        100% {
-          transform: scale(1.1, 1.1);
-          opacity: 0;
-        }
-      }
-
-      .pointer {
-        position: relative;
-        width: 70px;
-        top: 35px;
-        -webkit-animation: circling 2s linear;
-        -webkit-animation-iteration-count: infinite;
-        -moz-animation: circling 2s linear;
-        -moz-animation-iteration-count: infinite;
-        animation: circling 2s linear;
-        animation-iteration-count: infinite;
-        z-index: 20;
-      }
-
-      .pointer div {
-        width: 49%;
-        border-bottom: 2px solid #72e5df;
-      }
-
-      .dot {
-        opacity: 0;
-        border: 3px solid #72e5df;
-        border-radius: 100%;
-        position: absolute;
-        -webkit-animation: blink 2s ease-out;
-        -webkit-animation-iteration-count: infinite;
-        -moz-animation: blink 2s ease-out;
-        -moz-animation-iteration-count: infinite;
-        animation: blink 2s ease-out;
-        animation-iteration-count: infinite;
-        z-index: 25;
-      }
-
-      .dot.pos1 {
-        left: 10px;
-        top: 38px;
-      }
-
-      .dot.pos2 {
-        left: 40px;
-        top: 18px;
-        -webkit-animation-delay: 0.6s;
-        -moz-animation-delay: 0.6s;
-        animation-delay: 0.6s;
-      }
-
-      @-webkit-keyframes circling {
-        0% {
-          -webkit-transform: rotate(0deg);
-        }
-
-        50% {
-          -webkit-transform: rotate(180deg);
-        }
-
-        100% {
-          -webkit-transform: rotate(360deg);
-        }
-      }
-
-      @-moz-keyframes circling {
-        0% {
-          -moz-transform: rotate(0deg);
-        }
-
-        50% {
-          -moz-transform: rotate(180deg);
-        }
-
-        100% {
-          -moz-transform: rotate(360deg);
-        }
-      }
-
-      @keyframes circling {
-        0% {
-          transform: rotate(0deg);
-        }
-
-        50% {
-          transform: rotate(180deg);
-        }
-
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      @-webkit-keyframes blink {
-        0% {
-          opacity: 1;
-        }
-
-        100% {
-          opacity: 0;
-        }
-      }
-
-      @-moz-keyframes blink {
-        0% {
-          opacity: 1;
-        }
-
-        100% {
-          opacity: 0;
-        }
-      }
-
-      @keyframes blink {
-        0% {
-          opacity: 1;
-        }
-
-        100% {
-          opacity: 0;
-        }
-      }
-    </style>
-  </div>
-  <script type="module" src="/src/app.tsx"></script>
-</body>
-
+    <script type="module" src="/src/app.tsx"></script>
+  </body>
 </html>

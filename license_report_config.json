@@ -1,14 +1,14 @@
 {
-    "output": "markdown",
-    "fields": [
-      "name",
-      "relatedTo",
-      "licenseType",
-      "installedVersion",
-      "definedVersion",
-      "remoteVersion",
-      "latestRemoteVersion",
-      "latestRemoteModified",
-      "author"
-    ]
-  }
+  "output": "markdown",
+  "fields": [
+    "name",
+    "relatedTo",
+    "licenseType",
+    "installedVersion",
+    "definedVersion",
+    "remoteVersion",
+    "latestRemoteVersion",
+    "latestRemoteModified",
+    "author"
+  ]
+}

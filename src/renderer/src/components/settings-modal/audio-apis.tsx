@@ -1,28 +1,24 @@
-import { AudioApi } from "trackaudio-afv";
-import React from "react";
+import { AudioApi } from 'trackaudio-afv'
+import React from 'react'
 
 export interface AudioApisProps {
-  apis: AudioApi[];
-  selectedApiId: number;
-  selectApi: (apiId: number) => void;
+  apis: AudioApi[]
+  selectedApiId: number
+  selectApi: (apiId: number) => void
 }
 
-const AudioApis: React.FC<AudioApisProps> = ({
-  apis,
-  selectedApiId,
-  selectApi,
-}) => {
+const AudioApis: React.FC<AudioApisProps> = ({ apis, selectedApiId, selectApi }) => {
   return (
     <select
       className="form-control mt-1"
       onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-        selectApi(parseInt(e.target.value));
+        selectApi(parseInt(e.target.value))
       }}
-      value={apis.some((api) => api.id === selectedApiId) ? selectedApiId : ""}
+      value={apis.some((api) => api.id === selectedApiId) ? selectedApiId : ''}
     >
       <option disabled value="">
-        {" "}
-        -- select an option --{" "}
+        {' '}
+        -- select an option --{' '}
       </option>
       {apis.map(({ id, name }) => (
         <option key={id} value={id}>
@@ -30,7 +26,7 @@ const AudioApis: React.FC<AudioApisProps> = ({
         </option>
       ))}
     </select>
-  );
-};
+  )
+}
 
-export default AudioApis;
+export default AudioApis

@@ -12,20 +12,20 @@ $secondary-bg: #2c2f45;
 $dark-border: var(--navbar-color, darken($dark, 10));
 $navbar: var(--navbar-color, $dark);
 $theme-colors: (
-  "primary": $primary,
-  "secondary": $secondary,
-  "success": $success,
-  "info": $info,
-  "warning": $warning,
-  "danger": $danger,
-  "light": $light,
-  "dark": $dark,
+  'primary': $primary,
+  'secondary': $secondary,
+  'success': $success,
+  'info': $info,
+  'warning': $warning,
+  'danger': $danger,
+  'light': $light,
+  'dark': $dark
 );
 $alias: var(--alias-color, #5eb1bf);
 
 $disabled: darken($dark, 3);
 
-$font-fam: "Ubuntu Mono", monospace;
+$font-fam: 'Ubuntu Mono', monospace;
 $font-size-base: 18px;
 $body-bg: $bg-color;
 $body-color: #dddddd;

@@ -15,7 +15,7 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src'),
         '~bootstrap': resolve(__dirname, 'node_modules/bootstrap'),
         '~bootstrap-icons': resolve(__dirname, 'node_modules/bootstrap-icons'),
-        '~bootstrap-typeahead': resolve(__dirname, 'node_modules/react-bootstrap-typeahead'),
+        '~bootstrap-typeahead': resolve(__dirname, 'node_modules/react-bootstrap-typeahead')
       }
     },
     plugins: [react()]
