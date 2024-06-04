@@ -265,10 +265,10 @@ app.on('quit', async () => {
   await TrackAudioAfv.Exit();
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
 ipcMain.on('set-always-on-top', (_, state: boolean) => {
-  mainWindow.setAlwaysOnTop(state);
+  // Issue 90: Attempt to make always on top actually work all the time on Windows. There's
+  // an old Electron bug about needing to add "normal": https://github.com/electron/electron/issues/20933.
+  mainWindow.setAlwaysOnTop(state, 'normal');
   currentConfiguration.alwaysOnTop = state;
   saveConfig();
 });
