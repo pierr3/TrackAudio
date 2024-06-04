@@ -4,8 +4,6 @@
 #include <absl/strings/str_split.h>
 #include <cstddef>
 #include <mutex>
-#include <quill/Quill.h>
-#include <quill/detail/LogMacros.h>
 #include <string>
 
 #define WIN32_LEAN_AND_MEAN

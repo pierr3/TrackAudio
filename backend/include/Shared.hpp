@@ -1,22 +1,18 @@
 #pragma once
 #include "afv-native/atcClientWrapper.h"
+#include "spdlog/spdlog.h"
 #include <SimpleIni.h>
+#include <filesystem>
 #include <memory>
 #include <napi.h>
-#include <quill/Logger.h>
-#include <quill/Quill.h>
 #include <sago/platform_folders.h>
 #include <semver.hpp>
 #include <string>
 
-#define TRACK_LOG_INFO(fmt, ...)                                                                   \
-    LOG_INFO(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
-#define TRACK_LOG_WARNING(fmt, ...)                                                                \
-    LOG_WARNING(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
-#define TRACK_LOG_ERROR(fmt, ...)                                                                  \
-    LOG_ERROR(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
-#define TRACK_LOG_CRITICAL(fmt, ...)                                                               \
-    LOG_CRITICAL(quill::get_logger("trackaudio_logger"), fmt, ##__VA_ARGS__)
+#define TRACK_LOG_INFO(fmt, ...) spdlog::info(fmt, ##__VA_ARGS__);
+#define TRACK_LOG_WARNING(fmt, ...) spdlog::warn(fmt, ##__VA_ARGS__);
+#define TRACK_LOG_ERROR(fmt, ...) spdlog::error(fmt, ##__VA_ARGS__);
+#define TRACK_LOG_CRITICAL(fmt, ...) spdlog::critical(fmt, ##__VA_ARGS__);
 
 #define TIMER_CALLBACK_INTERVAL_SEC 15
 #define SLURPER_BASE_URL "https://slurper.vatsim.net"

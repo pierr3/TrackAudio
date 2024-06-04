@@ -272,8 +272,8 @@ app.on("window-all-closed", () => {
   app.quit();
 });
 
-app.on("quit", () => {
-  TrackAudioAfv.Exit();
+app.on("quit", async () => {
+  await TrackAudioAfv.Exit();
 });
 
 // In this file you can include the rest of your app's specific main process

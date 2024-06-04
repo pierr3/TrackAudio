@@ -1,7 +1,6 @@
 #include "sdk.hpp"
 #include "Helpers.hpp"
 #include "Shared.hpp"
-#include <quill/Quill.h>
 
 SDK::SDK() { this->buildServer(); }
 

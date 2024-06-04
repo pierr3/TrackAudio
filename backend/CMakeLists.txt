@@ -79,7 +79,7 @@ find_package(Poco COMPONENTS Foundation Util REQUIRED)
 find_package(semver CONFIG REQUIRED)
 find_package(restinio CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(quill CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 find_package(platform_folders CONFIG REQUIRED)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 find_path(SIMPLEINI_INCLUDE_DIRS "SimpleIni.h")
@@ -104,7 +104,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     semver::semver
     restinio::restinio
     nlohmann_json::nlohmann_json
-    quill::quill
+    spdlog::spdlog
     sago::platform_folders
     sfml-system sfml-graphics sfml-window
     ${CMAKE_JS_LIB})
