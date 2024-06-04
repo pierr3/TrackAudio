@@ -129,7 +129,8 @@ On Windows, Visual Studio is required (Community Edition is fine) with the `Desk
 If `cmake-js` isn't already installed run `npm install -g cmake-js`. For the first build run the following:
 
 ```sh
-git submodule update --init --recursive
+git submodule update --init --remote backend/vcpkg
+git submodule update --init --remote backend/extern/afv-native
 npm run build-backend
 npm install
 npm run start
