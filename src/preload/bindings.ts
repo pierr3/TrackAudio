@@ -1,11 +1,10 @@
-// See the Electron documentation for details on how to use preload scripts:
-// https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
+import { ipcRenderer, IpcRendererEvent } from "electron";
 
-import { ipcRenderer, contextBridge, IpcRendererEvent } from "electron";
-
-const IElectronAPI = {
-  on: (channel: string, listener: (...args: unknown[]) => void) => {
-    ipcRenderer.on(channel, (event: IpcRendererEvent, ...args: unknown[]) => {
+export const api = {
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
+  on: (channel: string, listener: (...args: any[]) => void) => {
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
+    ipcRenderer.on(channel, (_event: IpcRendererEvent, ...args: any[]) => {
       listener(...args);
     });
   },
@@ -54,7 +53,7 @@ const IElectronAPI = {
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean,
+    crossCoupleAcross: boolean
   ) =>
     ipcRenderer.invoke(
       "audio-set-frequency-state",
@@ -63,7 +62,7 @@ const IElectronAPI = {
       tx,
       xc,
       onSpeaker,
-      crossCoupleAcross,
+      crossCoupleAcross
     ),
   getFrequencyState: (frequency: number) =>
     ipcRenderer.invoke("audio-get-frequency-state", frequency),
@@ -98,10 +97,8 @@ const IElectronAPI = {
     type: "none" | "info" | "error" | "question" | "warning",
     title: string,
     message: string,
-    buttons: string[],
+    buttons: string[]
   ) => ipcRenderer.invoke("dialog", type, title, message, buttons),
 };
 
-contextBridge.exposeInMainWorld("api", IElectronAPI);
-
-export type IElectronAPIType = typeof IElectronAPI;
+export type API = typeof api;

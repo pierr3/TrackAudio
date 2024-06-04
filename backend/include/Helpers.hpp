@@ -2,9 +2,9 @@
 #include "RadioSimulation.h"
 #include "Shared.hpp"
 
+#include "spdlog/spdlog.h"
 #include <cmath>
 #include <mutex>
-#include <quill/Quill.h>
 #include <sago/platform_folders.h>
 #include <string>
 
@@ -62,12 +62,11 @@ public:
             return;
         }
 
-        std::lock_guard<std::mutex> lock(_mutex);
+        std::lock_guard<std::mutex> lock(_callElectronMutex);
 
         callbackRef->NonBlockingCall(
             [eventName, data, data2](Napi::Env env, Napi::Function jsCallback) {
-                LOG_TRACE_L1(quill::get_logger("trackaudio_logger"),
-                    "Event name: {}, data: {}, data2: {}", eventName, data, data2);
+                SPDLOG_TRACE("Event name: {}, data: {}, data2: {}", eventName, data, data2);
                 jsCallback.Call({ Napi::String::New(env, eventName), Napi::String::New(env, data),
                     Napi::String::New(env, data2) });
             });
@@ -78,6 +77,5 @@ public:
         callElectron("error", message);
     }
 
-protected:
-    inline static std::mutex _mutex;
+    inline static std::mutex _callElectronMutex;
 };

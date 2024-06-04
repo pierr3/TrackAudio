@@ -1,15 +1,17 @@
+import React from "react";
 import { createRoot } from "react-dom/client";
 import Navbar from "./components/navbar";
 import RadioContainer from "./components/radio/radio-container";
 import Sidebar from "./components/sidebar/sidebar";
+
 import ErrorDialog from "./components/error";
 import Bootstrap from "./components/bootstrap";
-
-import "./style/app.scss";
 import Mini from "./components/mini";
-
 import * as Sentry from "@sentry/electron/renderer";
 import { init as reactInit } from "@sentry/react";
+
+import "./index.scss"
+import "./style/app.scss";
 
 window.api
   .ShouldEnableTelemetryInTheRenderer()
@@ -20,7 +22,7 @@ window.api
           dsn: "https://79ff6300423d5708cae256665d170c4b@o4507193732169728.ingest.de.sentry.io/4507193745145936",
           sendDefaultPii: false,
         },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        // eslint-disable-next-line
         reactInit,
       );
     }

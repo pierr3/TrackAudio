@@ -92,12 +92,8 @@ typings/
 out/
 
 backend/build
-
 dist/
 
-backend/prebuilds
-
-build/
 # Sentry Config File
 .sentryclirc
 

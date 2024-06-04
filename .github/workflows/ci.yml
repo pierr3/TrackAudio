@@ -55,11 +55,11 @@ jobs:
       - name: Install dependencies
         run: |
           npm -g i cmake-js
-          npm run build-backend
+          npm run build:backend
           npm install
 
       - name: Run eslint
         run: npm run lint
 
       - name: Build
-        run: npm run package
+        run: npm run build

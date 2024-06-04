@@ -5,7 +5,7 @@ import AudioOutputs from "./audio-outputs";
 import useUtilStore from "../../store/utilStore";
 import clsx from "clsx";
 import { useDebouncedCallback } from "use-debounce";
-import { Configuration } from "../../../config.d";
+import { Configuration } from "../../../../../src/main/config";
 import { AudioApi, AudioDevice } from "trackaudio-afv";
 import useRadioState from "../../store/radioStore";
 
