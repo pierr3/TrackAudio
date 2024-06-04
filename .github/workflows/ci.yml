@@ -20,8 +20,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          git submodule update --init --remote backend/vcpkg
+          git submodule update --init --remote backend/extern/afv-native
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
