@@ -15,6 +15,10 @@ asarUnpack:
   - resources/**
 win:
   executableName: trackaudio
+  extraFiles:
+    - from: 'backend/build/Release/'
+      to: '.'
+      filter: ['*.dll']
 nsis:
   artifactName: ${name}-${version}-${arch}-setup.${ext}
   shortcutName: ${productName}
