@@ -30,10 +30,8 @@ let version: string;
 let mainWindow: BrowserWindow;
 
 const defaultWindowSize = { width: 800, height: 660 };
-const savedLastWindowSize = { width: 800, height: 660 };
-const savedLastMiniModeSize = { width: 0, height: 0 }; // 0,0 is used to indicate no previously saved size
-const miniModeWidthBreakpoint = 300;
-const defaultMiniModeWidth = 300;
+const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
+const defaultMiniModeWidth = 300; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
 
 let currentConfiguration: Configuration = {
   audioApi: -1,
@@ -55,6 +53,10 @@ const store = new Store();
  * @returns True if the window is in mini-mode, false otherwise.
  */
 const isInMiniMode = () => {
+  // Issue 79: Use the size of the content and the width breakpoint for mini-mode
+  // to determine whether the window is in mini-mode. This solves an issue where
+  // getSize() was returning a width value off by one from the getMinSize()
+  // call.
   return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint;
 };
 
@@ -72,37 +74,6 @@ const setAudioSettings = () => {
   TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
 };
 
-const saveWindowSize = () => {
-  if (isInMiniMode()) {
-    savedLastMiniModeSize.width = mainWindow.getSize()[0];
-    savedLastMiniModeSize.height = mainWindow.getSize()[1];
-  } else {
-    savedLastWindowSize.width = mainWindow.getSize()[0];
-    savedLastWindowSize.height = mainWindow.getSize()[1];
-  }
-};
-
-const restoreWindowSize = (mode: WindowMode) => {
-  if (mode === "maxi") {
-    mainWindow.setSize(savedLastWindowSize.width, savedLastWindowSize.height);
-  } else {
-    // If it's the first time going in to mini mode use the default mini-mode width
-    // instead of the saved size.
-    if (savedLastMiniModeSize.width === 0) {
-      // Issue 79: Use the width breakpoint for the width instead of setting to 1
-      // so the window doesn't go as small as possible when put in mini-mode. This
-      // makes toggling work properly when using 300 as the value for determining when
-      // to switch to big mode.
-      mainWindow.setSize(defaultMiniModeWidth, 1);
-    } else {
-      mainWindow.setSize(
-        savedLastMiniModeSize.width,
-        savedLastMiniModeSize.height
-      );
-    }
-  }
-};
-
 const toggleMiniMode = () => {
   // Issue 84: If the window is maximized it has to be unmaximized before
   // setting the window size to mini-mode otherwise nothing happens.
@@ -110,25 +81,32 @@ const toggleMiniMode = () => {
     mainWindow.unmaximize();
   }
 
-  saveWindowSize();
+  // Persists the window bounds for either mini or maxi mode so toggling between
+  // the modes puts the window back where it was last time.
   saveWindowBounds();
 
-  // Issue 79: Use the size of the content and the width breakpoint for mini-mode
-  // to determine whether to restore from mini-mode. This solves an issue where
-  // getSize() was returning a width value off by one from the getMinSize()
-  // call.
   if (isInMiniMode()) {
-    restoreWindowSize("maxi");
+    restoreWindowBounds("maxi");
   } else {
-    restoreWindowSize("mini");
+    restoreWindowBounds("mini");
   }
 };
 
+/**
+ * Saves the window position and size to persistent storage. The position
+ * and size of the mini vs. maxi mode window is stored separately, and the
+ * one saved is selected based on the value of isInMiniMode().
+ */
 const saveWindowBounds = () => {
   store.set(isInMiniMode() ? "miniBounds" : "bounds", mainWindow.getBounds());
 };
 
-const restoreWindowBounds = (win: BrowserWindow, mode: WindowMode) => {
+/**
+ * Restores the window to its saved position and size, depending on the window
+ * mode requested.
+ * @param mode The size to restore to: mini or maxi.
+ */
+const restoreWindowBounds = (mode: WindowMode) => {
   const savedBounds =
     mode === "maxi" ? store.get("bounds") : store.get("miniBounds");
   const boundsRectangle = savedBounds as Rectangle;
@@ -141,15 +119,22 @@ const restoreWindowBounds = (win: BrowserWindow, mode: WindowMode) => {
       boundsRectangle.y > screenArea.y + screenArea.height
     ) {
       // Reset window into existing screenarea
-      win.setBounds({
+      mainWindow.setBounds({
         x: 0,
         y: 0,
         width: defaultWindowSize.width,
         height: defaultWindowSize.height,
       });
     } else {
-      win.setBounds(boundsRectangle);
+      mainWindow.setBounds(boundsRectangle);
     }
+  }
+  // Covers the case where the window has never been put in mini-mode before
+  // and the request came from an explicit "enter mini mode action". In that
+  // situation just set the window size to the default mini-mode size but
+  // don't move it.
+  else if (mode === "mini") {
+    mainWindow.setSize(defaultMiniModeWidth, 1);
   }
 };
 
@@ -175,7 +160,8 @@ const createWindow = (): void => {
     mainWindow.setMenu(null);
   }
 
-  restoreWindowBounds(mainWindow, "maxi");
+  // Always restore to maxi mode on app launch.
+  restoreWindowBounds("maxi");
 
   // and load the index.html of the app.
   void mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
