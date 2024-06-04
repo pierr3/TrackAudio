@@ -1,0 +1,30 @@
+@font-face {
+  src: url("./assets/fonts/UbuntuMono-R.ttf") format("woff2");
+  font-family: "Ubuntu Mono";
+  font-display: swap;
+  font-weight: 400;
+  font-stretch: normal;
+  font-style: normal;
+}
+
+@font-face {
+  src: url("./assets/fonts/UbuntuMono-B.ttf") format("woff2");
+  font-family: "Ubuntu Mono";
+  font-display: swap;
+  font-weight: 700;
+  font-stretch: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: "Ubuntu Mono" !important;
+  font-optical-sizing: auto;
+  font-weight: normal;
+  font-style: normal;
+  overflow: hidden;
+}
+
+@import "./style/variables.scss";
+
+/* Importing Bootstrap SCSS file. */
+@import "~bootstrap/scss/bootstrap.scss";

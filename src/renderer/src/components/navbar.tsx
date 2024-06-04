@@ -10,7 +10,7 @@ import {
   getCleanCallsign,
 } from "../helpers/CallsignHelper";
 import useUtilStore from "../store/utilStore";
-import { Configuration } from "../../config";
+import { Configuration } from "../../../../src/main/config";
 import MiniModeToggleButton from "./MiniModeToggleButton";
 
 const Navbar: React.FC = () => {
