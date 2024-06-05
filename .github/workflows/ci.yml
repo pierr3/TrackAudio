@@ -27,6 +27,15 @@ jobs:
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
 
+      - name: Cache vcpkg
+        uses: actions/cache@v3
+        with:
+          path: |
+            backend/vcpkg
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
