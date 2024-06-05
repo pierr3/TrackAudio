@@ -30,5 +30,10 @@ export default [
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   pluginReactConfig,
-  { settings: { react: { version: 'detect' } } }
+  {
+    settings: { react: { version: 'detect' } },
+    rules: {
+      'react/react-in-jsx-scope': 'off'
+    }
+  }
 ];
