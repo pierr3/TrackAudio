@@ -56,14 +56,14 @@ public:
         const nlohmann::json& incomingValue, bool currentValue)
     {
         if (incomingValue.is_boolean()) {
-            TRACK_LOG_TRACE_L1("Received a boolean, returning it: {}", incomingValue.dump());
+            TRACK_LOG_TRACE("Received a boolean, returning it: {}", incomingValue.dump());
             return incomingValue.get<bool>();
         } else if (incomingValue.is_string() && incomingValue.get<std::string>() == "toggle") {
-            TRACK_LOG_TRACE_L1("Received \"toggle\", returning {}, the inverse of {}",
-                !currentValue, currentValue);
+            TRACK_LOG_TRACE("Received \"toggle\", returning {}, the inverse of {}", !currentValue,
+                currentValue);
             return !currentValue;
         } else {
-            TRACK_LOG_TRACE_L1("Invalid value for boolean property: {}, returning {}",
+            TRACK_LOG_TRACE("Invalid value for boolean property: {}, returning {}",
                 incomingValue.dump(), currentValue);
             return currentValue;
         }

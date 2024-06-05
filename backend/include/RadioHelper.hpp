@@ -2,7 +2,6 @@
 
 #include "Shared.hpp"
 #include "sdk.hpp"
-#include <quill/Quill.h>
 
 class RadioState {
 public:
@@ -26,16 +25,16 @@ public:
     inline static bool SetRadioState(SDK* mApiServer, const RadioState& newState)
     {
         if (!mClient->IsVoiceConnected()) {
-            TRACK_LOG_TRACE_L1("Voice is not connected, not setting radio state");
+            TRACK_LOG_TRACE("Voice is not connected, not setting radio state");
             return false;
         }
 
         if (!mClient->IsFrequencyActive(newState.frequency)) {
-            TRACK_LOG_TRACE_L1("Frequency is not active, not setting radio state");
+            TRACK_LOG_TRACE("Frequency is not active, not setting radio state");
             return false;
         }
 
-        TRACK_LOG_TRACE_L1(
+        TRACK_LOG_TRACE(
             "Setting radio state for frequency={}: rx={}, tx={}, xc={}, xca={}, headset = {} ",
             newState.frequency, newState.rx, newState.tx, newState.xc, newState.xca,
             newState.headset);
