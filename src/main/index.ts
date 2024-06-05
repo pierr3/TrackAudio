@@ -14,12 +14,14 @@ Sentry.init({
   sendDefaultPii: false
 });
 
+type WindowMode = 'mini' | 'maxi';
+
 let version: string;
 let mainWindow: BrowserWindow;
 
 const defaultWindowSize = { width: 800, height: 660 };
-const savedLastWindowSize = { width: 800, height: 660 };
-const miniModeWidthBreakpoint = 300;
+const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
+const defaultMiniModeWidth = 300; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
 
 let currentConfiguration: Configuration = {
   audioApi: -1,
@@ -41,6 +43,10 @@ const store = new Store();
  * @returns True if the window is in mini-mode, false otherwise.
  */
 const isInMiniMode = () => {
+  // Issue 79: Use the size of the content and the width breakpoint for mini-mode
+  // to determine whether the window is in mini-mode. This solves an issue where
+  // getSize() was returning a width value off by one from the getMinSize()
+  // call.
   return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint;
 };
 
@@ -58,34 +64,22 @@ const setAudioSettings = () => {
   TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
 };
 
-const toggleMiniMode = () => {
-  // Issue 79: Use the size of the content and the width breakpoint for mini-mode
-  // to determine whether to restore from mini-mode. This solves an issue where
-  // getSize() was returning a width value off by one from the getMinSize()
-  // call.
-  if (isInMiniMode()) {
-    mainWindow.setSize(savedLastWindowSize.width, savedLastWindowSize.height);
-    return;
-  }
-
-  // Issue 84: If the window is maximized it has to be unmaximized before
-  // setting the window size to mini-mode otherwise nothing happens.
-  if (mainWindow.isMaximized()) {
-    mainWindow.unmaximize();
-  }
-
-  savedLastWindowSize.width = mainWindow.getSize()[0];
-  savedLastWindowSize.height = mainWindow.getSize()[1];
-
-  // Issue 79: Use the width breakpoint for the width instead of setting to 1
-  // so the window doesn't go as small as possible when put in mini-mode. This
-  // makes toggling work properly when using 300 as the value for determining when
-  // to switch to big mode.
-  mainWindow.setSize(miniModeWidthBreakpoint, 1);
+/**
+ * Saves the window position and size to persistent storage. The position
+ * and size of the mini vs. maxi mode window is stored separately, and the
+ * one saved is selected based on the value of isInMiniMode().
+ */
+const saveWindowBounds = () => {
+  store.set(isInMiniMode() ? 'miniBounds' : 'bounds', mainWindow.getBounds());
 };
 
-const restoreWindowBounds = (win: BrowserWindow) => {
-  const savedBounds = store.get('bounds');
+/**
+ * Restores the window to its saved position and size, depending on the window
+ * mode requested.
+ * @param mode The size to restore to: mini or maxi.
+ */
+const restoreWindowBounds = (mode: WindowMode) => {
+  const savedBounds = mode === 'maxi' ? store.get('bounds') : store.get('miniBounds');
   const boundsRectangle = savedBounds as Rectangle;
   if (savedBounds !== undefined && savedBounds !== null) {
     const screenArea = screen.getDisplayMatching(boundsRectangle).workArea;
@@ -96,15 +90,40 @@ const restoreWindowBounds = (win: BrowserWindow) => {
       boundsRectangle.y > screenArea.y + screenArea.height
     ) {
       // Reset window into existing screenarea
-      win.setBounds({
+      mainWindow.setBounds({
         x: 0,
         y: 0,
         width: defaultWindowSize.width,
         height: defaultWindowSize.height
       });
     } else {
-      win.setBounds(boundsRectangle);
+      mainWindow.setBounds(boundsRectangle);
     }
+  }
+  // Covers the case where the window has never been put in mini-mode before
+  // and the request came from an explicit "enter mini mode action". In that
+  // situation just set the window size to the default mini-mode size but
+  // don't move it.
+  else if (mode === 'mini') {
+    mainWindow.setSize(defaultMiniModeWidth, 1);
+  }
+};
+
+const toggleMiniMode = () => {
+  // Issue 84: If the window is maximized it has to be unmaximized before
+  // setting the window size to mini-mode otherwise nothing happens.
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize();
+  }
+
+  // Persists the window bounds for either mini or maxi mode so toggling between
+  // the modes puts the window back where it was last time.
+  saveWindowBounds();
+
+  if (isInMiniMode()) {
+    restoreWindowBounds('maxi');
+  } else {
+    restoreWindowBounds('mini');
   }
 };
 
@@ -137,7 +156,9 @@ const createWindow = (): void => {
     mainWindow.setMenu(null);
   }
 
-  restoreWindowBounds(mainWindow);
+  // Always restore to maxi mode on app launch.
+  restoreWindowBounds('maxi');
+
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -166,9 +187,7 @@ const createWindow = (): void => {
       }
     }
 
-    if (!isInMiniMode()) {
-      store.set('bounds', mainWindow.getBounds());
-    }
+    saveWindowBounds();
   });
 
   mainWindow.webContents.on('before-input-event', (e, input) => {
