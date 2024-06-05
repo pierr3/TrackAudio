@@ -50,7 +50,7 @@
     "@types/node": "^18.19.9",
     "@vitejs/plugin-react": "^4.0.0",
     "electron": "^28.2.0",
-    "electron-builder": "24.6.3",
+    "electron-builder": "24.13.3",
     "electron-vite": "^2.0.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.2",
