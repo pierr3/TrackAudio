@@ -33,6 +33,7 @@ jobs:
         with:
           path: |
             backend/vcpkg
+            backend/build/vcpkg_installed
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
