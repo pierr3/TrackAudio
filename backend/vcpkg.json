@@ -10,9 +10,17 @@
         "openssl",
         "restinio",
         "nlohmann-json",
-        "quill",
+        "spdlog",
         "platform-folders",
         "sfml",
-        "simpleini"
+        "simpleini",
+        "opus",
+        "speexdsp",
+        "cpp-jwt",
+        "msgpack",
+        "curl",
+        "nlohmann-json",
+        "openssl",
+        "libevent"
     ]
 }

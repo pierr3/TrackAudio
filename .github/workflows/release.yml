@@ -22,8 +22,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          git submodule update --init --remote backend/vcpkg
+          git submodule update --init --remote backend/extern/afv-native
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -33,7 +37,7 @@ jobs:
       - name: Install Python 3.x
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11.x"
+          python-version: '3.11.x'
 
       - name: Update cmake
         if: matrix.os != 'macos-latest'
@@ -125,34 +129,38 @@ jobs:
           npm install
 
       - name: Package app
+        if: matrix.os == 'windows-2019'
+        shell: bash
+        run: npm run build:win
+
+      - name: Package app
+        if: matrix.os == 'macos-latest'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: npm run make -- --arch ${{ matrix.arch }}
+        run: npm run build:mac -- --${{ matrix.arch }}
+
+      - name: Package app
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: npm run build:linux -- --${{ matrix.arch }}
 
       - name: Rename installer to human friendly name
         if: matrix.os == 'macos-latest' && matrix.arch == 'arm64'
         run: |
-          cd out/make
+          cd dist/
           dmg_file=$(find . -name "*.dmg" -type f)
           new_dmg_file=$(echo $dmg_file | sed 's/arm64/apple-silicon/')
           mv $dmg_file $new_dmg_file
-      
+
       - id: relinfo
         uses: pozetroninc/github-action-get-latest-release@master
         with:
           repository: pierr3/TrackAudio
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Make AppImage
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          chmod +x ./scripts/make_appimage.sh
-          cp ./scripts/make_appimage.sh ./
-          ./make_appimage.sh ${{ matrix.arch }} ${{ steps.relinfo.outputs.release }}
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
@@ -160,15 +168,15 @@ jobs:
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
           files: |
-            out/make/**/*.exe
-            out/make/**/*.zip
+            dist/*.exe
+            dist/*.zip
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
         if: matrix.os == 'macos-latest'
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
-          files: "out/make/**/*.dmg"
+          files: 'dist/*.dmg'
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
@@ -176,6 +184,7 @@ jobs:
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
           files: |
-            out/make/**/*.deb
-            *.AppImage
-            *.zsync
+            dist/*.deb
+            dist/*.AppImage
+            dist/*.zsync
+            dist/*.snap

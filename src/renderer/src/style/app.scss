@@ -1,0 +1,418 @@
+@import 'variables';
+
+.form-control::-webkit-scrollbar-track {
+  padding: 0px 0;
+  background-color: $dark;
+}
+
+.form-control::-webkit-scrollbar {
+  width: 2px;
+}
+
+.form-control::-webkit-scrollbar-thumb {
+  background-color: $body-color;
+}
+
+.toolbar-item {
+  position: relative;
+  // margin-right: 20px;
+  // margin-left: 20px;
+  font-family: $font-medium;
+  height: $toolbar-item-height;
+  font-weight: 500;
+}
+
+.toolbar-btn {
+  height: 100%;
+  margin: 0px;
+  font-size: $main-font-size;
+  background-color: lighten($dark, 10);
+  color: $body-color;
+  border: 2px solid darken($dark, 5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: normal;
+}
+
+.unfocused-color {
+  color: darken($body-color, 10%) !important;
+}
+
+.toolbar-btn-info {
+  background-color: darken($info, 10) !important;
+}
+
+.toolbar-btn-active {
+  background-color: darken($success, 10) !important;
+}
+
+.toolbar-btn.hover-enabled:hover {
+  background-color: lighten($dark, 15);
+}
+
+.toolbar-btn.dark {
+  background-color: darken($dark, 5);
+}
+
+.toolbar-btn.dark:hover {
+  background-color: darken($dark, 0);
+}
+
+.toolbar-btn:last-child {
+  border-top-right-radius: $toolbar-border-radius;
+  border-bottom-right-radius: $toolbar-border-radius;
+}
+
+.toolbar-btn:first-child {
+  border-top-left-radius: $toolbar-border-radius;
+  border-bottom-left-radius: $toolbar-border-radius;
+}
+
+.toolbar-btn:not(:last-child) {
+  border-right: 0px;
+}
+
+.toolbar-dropdown-value {
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbar-dropdown-menu {
+  background-color: darken($dark, 5);
+  max-height: 150px;
+  overflow-y: scroll;
+}
+
+.toolbar-dropdown-menu::-webkit-scrollbar-track {
+  padding: 0px 0;
+  background-color: darken($dark, 5);
+}
+
+.toolbar-dropdown-menu::-webkit-scrollbar {
+  width: 2px;
+}
+
+.toolbar-dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: $body-color;
+}
+
+.toolbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-regular;
+  font-size: $main-font-size;
+  line-height: $main-font-size;
+}
+
+.toolbar-dropdown-item:hover {
+  background-color: darken($dark, 5);
+}
+
+$global-select-height: 30px;
+
+//
+// Standard buttons
+//
+
+@mixin setBgColorAndHover($baseColor) {
+  background-color: $baseColor;
+  &:hover {
+    background-color: lighten($baseColor, 5%);
+  }
+}
+
+button {
+  color: $btn-text-color;
+  height: 25px;
+  // line-height: 10px;
+}
+
+.btn {
+  height: 25px;
+  line-height: 13px; /* Make this equal to the height */
+  /* other styles if needed */
+  // font-weight: bold;
+}
+
+button:hover {
+  color: $btn-text-color;
+}
+
+.btn-success,
+.btn-success:focus {
+  color: $btn-text-color !important;
+  @include setBgColorAndHover($success);
+  border-color: darken($success, 15%);
+  outline: darken($success, 15%) solid 2px;
+}
+
+.btn-info,
+.btn-info:focus {
+  color: $btn-text-color !important;
+  @include setBgColorAndHover($info);
+  border-color: darken($info, 15%);
+  outline: darken($info, 15%) solid 2px;
+}
+
+.btn-danger,
+.btn-danger:focus {
+  color: $btn-text-color !important;
+  @include setBgColorAndHover($danger);
+  border-color: darken($danger, 15%);
+  outline: darken($danger, 15%) solid 2px;
+}
+
+.btn-secondary,
+.btn-secondary:focus {
+  color: $btn-text-color !important;
+  @include setBgColorAndHover($secondary);
+  border-color: darken($secondary, 15%);
+  outline: darken($secondary, 15%) solid 2px;
+}
+
+.btn-warning,
+.btn-warning:focus {
+  color: $btn-text-color !important;
+  @include setBgColorAndHover($warning);
+  border-color: darken($warning, 15%);
+  outline: darken($warning, 15%) solid 2px;
+}
+
+.btn-primary,
+.btn-primary:focus {
+  color: $btn-text-color !important;
+  @include setBgColorAndHover($primary);
+  border-color: darken($primary, 15%);
+  outline: darken($primary, 15%) solid 2px;
+}
+
+button:disabled {
+  color: darken($btn-text-color, 10%);
+  background-color: $disabled;
+  // border-color: darken($disabled, 10%);
+  border-width: 0px;
+  outline: #050506 solid 2px;
+  &:hover {
+    background-color: $disabled;
+  }
+}
+
+.structure {
+  height: calc(100vh - $navbar-height - $focusbar-height);
+}
+
+.text-box-container,
+.text-box-container:hover {
+  height: 25px;
+  line-height: 13px;
+  color: $btn-text-color;
+  background-color: $disabled;
+  border-color: lighten($disabled, 20%);
+  outline: lighten($disabled, 15%) solid 2px;
+}
+
+.box-container {
+  color: $btn-text-color;
+  background-color: $disabled;
+  border-color: lighten($disabled, 20%);
+  outline: lighten($disabled, 15%) solid 3px;
+  padding: 10px;
+  border-radius: 0.375rem;
+}
+
+.freq-box {
+  margin-left: 25px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  float: left;
+  height: 100%;
+  width: 65%;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+}
+
+// When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
+// the toggleMiniMode method in index.ts as well.
+@media only screen and (max-width: $mini-mode-width-break-point) {
+  .freq-box {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 670px) {
+  .freq-box {
+    width: calc(100% - 50px);
+    margin-right: 25px;
+  }
+}
+
+.right-box {
+  height: 100%;
+  width: 25%;
+  float: right;
+  margin-right: 25px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media only screen and (max-width: 670px) {
+  .hide-right-box {
+    display: none;
+  }
+}
+
+.radio {
+  margin-right: 10px;
+  margin-top: 10px;
+  color: $btn-text-color;
+  background-color: lighten($disabled, 5%);
+  border-color: lighten($disabled, 20%);
+  outline: lighten($disabled, 25%) solid 2px;
+  padding: 10px;
+  border-radius: 0.375rem;
+  height: 90px;
+  width: 195px;
+}
+
+.radio:hover {
+  background-color: lighten($disabled, 10%);
+}
+
+.radio-btn {
+  margin: 5px;
+  width: 100%;
+  height: 100%;
+}
+
+select:disabled {
+  color: darken($btn-text-color, 40%);
+  background-color: #28283c !important;
+  border-color: darken($disabled, 10%);
+}
+
+@media only screen and (max-width: 450px) {
+  .hide-settings-flex {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 350px) {
+  .hide-connect-flex {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 670px) {
+  .gain-slider {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 550px) {
+  .hide-gain-value {
+    display: none;
+  }
+}
+
+#stationInput {
+  text-transform: uppercase;
+}
+
+.settingsModalBackground {
+  background-color: rgba(255, 255, 255, 0.163);
+  display: block;
+}
+
+.settingsModal {
+  border-color: lighten($disabled, 20%);
+  outline: lighten($disabled, 25%) solid 4px;
+  border-radius: var(--bs-modal-border-radius);
+}
+
+.btn-no-interact,
+.btn-no-interact:focus,
+.btn-no-interact:hover,
+.btn-no-interact:active {
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.licenses {
+  font-size: 10px;
+}
+
+.alert-popup {
+  float: left;
+  width: 60%;
+  z-index: 1000;
+  position: absolute;
+  top: 0;
+  left: 20%;
+  margin-top: 5%;
+  line-height: 25px;
+}
+
+.btn-sm {
+  height: 20px;
+  line-height: 10px;
+}
+
+.gain-slider {
+  width: 15%;
+}
+
+.color-warning {
+  color: $warning !important;
+}
+
+.mini {
+  display: none;
+  height: calc(100vh - 14px) !important;
+  width: calc(100% - 14px);
+  margin-right: 7px;
+  margin-left: 7px;
+  margin-top: 7px;
+  margin-bottom: 7px;
+  float: left;
+  font-size: $mini-font-size;
+}
+
+// When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
+// the toggleMiniMode method in index.ts as well.
+@media only screen and (max-width: $mini-mode-width-break-point) {
+  .mini {
+    display: block;
+  }
+}
+
+// When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
+// the toggleMiniMode method in index.ts as well.
+@media only screen and (max-width: $mini-mode-width-break-point) {
+  .hide-topbar {
+    display: none !important;
+  }
+}
+
+.exit-mini-mode-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-block;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.exit-mini-mode-container.visible {
+  opacity: 1;
+}
+
+.exit-mini-mode-container.hidden {
+  opacity: 0;
+}
