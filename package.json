@@ -48,6 +48,7 @@
     "@rushstack/eslint-patch": "^1.7.1",
     "@sentry/cli": "^2.32.1",
     "@types/node": "^18.19.9",
+    "@types/react": "^18.3.3",
     "@vitejs/plugin-react": "^4.0.0",
     "electron": "^28.2.0",
     "electron-builder": "24.6.3",

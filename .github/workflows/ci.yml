@@ -16,6 +16,15 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         node-version: [20.x]
+        # Adds a platform value to the matrix, used later on to run the appropriate
+        # package command.
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: mac
+          - os: windows-2019
+            platform: win
 
     steps:
       - name: Checkout code
@@ -75,5 +84,5 @@ jobs:
       - name: Run eslint
         run: npm run lint
 
-      - name: Build
-        run: npm run build
+      - name: Build and package
+        run: npm run build:${{ matrix.platform }}
