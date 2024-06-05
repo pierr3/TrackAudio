@@ -2,7 +2,6 @@
 #include "Helpers.hpp"
 #include "RadioHelper.hpp"
 #include "Shared.hpp"
-#include <quill/Quill.h>
 
 SDK::SDK() { this->buildServer(); }
 

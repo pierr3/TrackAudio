@@ -8,7 +8,6 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <atomic>
 #include <mutex>
-#include <quill/Quill.h>
 #include <string>
 
 #include <Shared.hpp>

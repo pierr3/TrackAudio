@@ -76,8 +76,8 @@ Read this document entirely first. If you can't find the answer to your problem,
 
 TrackAudio is available in the [AUR](https://aur.archlinux.org/packages/trackaudio-bin) and can be installed using your favourite AUR helper, for example:
 
-* `yay -S trackaudio-bin`
-* `paru -S trackaudio-bin`
+- `yay -S trackaudio-bin`
+- `paru -S trackaudio-bin`
 
 #### Debian
 
@@ -129,17 +129,25 @@ On Windows, Visual Studio is required (Community Edition is fine) with the `Desk
 If `cmake-js` isn't already installed run `npm install -g cmake-js`. For the first build run the following:
 
 ```sh
-git submodule update --init --recursive
-npm run build-backend
+git submodule update --init --remote backend/vcpkg
+git submodule update --init --remote backend/extern/afv-native
+npm run build:backend
 npm install
-npm run start
+npm run dev
 ```
 
-Subsequent builds only require the `npm run start` command if you only wish to modify the frontend. Building the C++ backend will require running `npm run build-backend`.
+Subsequent builds only require the `npm run dev` command if you only wish to modify the frontend. Building the C++ backend will require running `npm run build:backend`.
 
 ## Packaging
 
-TrackAudio will be automatically packaged as a .dmg on macOs, .deb on Linux and .exe installer on windows, run `npm run make` to package.
+TrackAudio will be automatically packaged as a .dmg on macOs, .deb on Linux and .exe installer on windows. To package run the
+appropriate command for the desired platform.
+
+| Platform | Command               |
+| -------- | --------------------- |
+| Linux    | `npm run build:linux` |
+| Mac      | `npm run build:mac`   |
+| Windows  | `npm run build:win`   |
 
 ## Contributing
 

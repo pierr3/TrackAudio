@@ -18,7 +18,6 @@
 #include <absl/strings/str_join.h>
 #include <mutex>
 #include <nlohmann/json_fwd.hpp>
-#include <quill/Quill.h>
 #include <set>
 
 using sdk::types::WebsocketMessage;

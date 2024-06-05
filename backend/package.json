@@ -19,7 +19,8 @@
         "runtime": "electron"
     },
     "files": [
-        "build/Release/**",
+        "build/Release/trackaudio-afv.node",
+        "build/Release/*.dll",
         "js/bindings.js",
         "types/index.d.ts"
     ],

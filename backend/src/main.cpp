@@ -1,16 +1,18 @@
+#include "afv-native/atcClientWrapper.h"
+#include "afv-native/event.h"
+#include "afv-native/hardwareType.h"
+#include "spdlog/sinks/rotating_file_sink.h"
+#include "spdlog/spdlog.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
-#include <afv-native/afv_native.h>
 #include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <httplib.h>
 #include <memory>
+#include <mutex>
 #include <napi.h>
 #include <optional>
-#include <quill/LogLevel.h>
-#include <quill/Quill.h>
-#include <quill/detail/LogMacros.h>
 #include <sago/platform_folders.h>
 #include <semver.hpp>
 #include <string>
@@ -618,47 +620,23 @@ void CreateLogFolders()
 
 void CreateLoggers()
 {
-    quill::configure([]() {
-        quill::Config cfg;
-        return cfg;
-    }());
+    auto max_size = 1048576 * 5;
+    auto max_files = 3;
+    std::string fileName
+        = std::string(FileSystem::GetStateFolderPath().string() + "trackaudio.log");
+    auto trackaudio_logger
+        = spdlog::rotating_logger_mt("trackaudio_logger", fileName, max_size, max_files);
 
-    // Starts the logging backend thread
-    quill::start();
-
-    std::shared_ptr<quill::Handler> trackaudio_logger
-        = quill::rotating_file_handler(FileSystem::GetStateFolderPath() / "trackaudio.log", []() {
-              quill::RotatingFileHandlerConfig cfg;
-              cfg.set_rotation_max_file_size(5e+6); // 5MB files
-              cfg.set_max_backup_files(2);
-              cfg.set_overwrite_rolled_files(true);
-              return cfg;
-          }());
-
-    auto* logger = quill::create_logger("trackaudio_logger", std::move(trackaudio_logger));
-
-    logger->set_log_level(quill::LogLevel::Info);
-
-    std::shared_ptr<quill::Handler> afv_logger = quill::rotating_file_handler(
-        FileSystem::GetStateFolderPath() / "trackaudio-afv.log", []() {
-            quill::RotatingFileHandlerConfig cfg;
-            cfg.set_rotation_max_file_size(5e+6); // 5MB files
-            cfg.set_max_backup_files(2);
-            cfg.set_overwrite_rolled_files(true);
-            cfg.set_pattern("%(ascii_time) [%(thread)] %(message)");
-            return cfg;
-        }());
-
-    // Create a file logger
-    auto* _afv_logger = quill::create_logger("afv_logger", std::move(afv_logger));
+    spdlog::set_default_logger(trackaudio_logger);
+    auto afv_logger = spdlog::rotating_logger_mt("afv_logger", fileName, max_size, max_files);
 
     // NOLINTNEXTLINE this cannot be solved here but in afv
     afv_native::api::setLogger(
         // NOLINTNEXTLINE
-        [](std::string subsystem, std::string file, int line, std::string lineOut) {
+        [&](std::string subsystem, std::string file, int line, std::string lineOut) {
             auto strippedFiledName = file.substr(file.find_last_of('/') + 1);
-            LOG_INFO(quill::get_logger("afv_logger"), "[{}] [{}@{}] {}", subsystem,
-                strippedFiledName, line, lineOut);
+            spdlog::get("afv_logger")
+                ->info("{}:{}:{}: {}", subsystem, strippedFiledName, line, lineOut);
         });
 }
 
@@ -732,9 +710,11 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     return outObject;
 }
 
-void Exit(const Napi::CallbackInfo& /*info*/)
+Napi::Boolean Exit(const Napi::CallbackInfo& info)
 {
-    TRACK_LOG_INFO("Exiting TrackAudio");
+    TRACK_LOG_INFO("Awaiting to exit TrackAudio...");
+    std::lock_guard<std::mutex> HelperLock(NapiHelpers::_callElectronMutex);
+    TRACK_LOG_INFO("Exiting TrackAudio...")
     if (mClient->IsVoiceConnected()) {
         mClient->Disconnect();
     }
@@ -743,6 +723,9 @@ void Exit(const Napi::CallbackInfo& /*info*/)
     MainThreadShared::inputHandler.reset();
 
     mClient.reset();
+    spdlog::shutdown();
+
+    return Napi::Boolean::New(info.Env(), true);
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports)

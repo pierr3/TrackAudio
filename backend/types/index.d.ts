@@ -98,5 +98,5 @@ declare namespace TrackAudioAfv {
     needUpdate: boolean;
     version: string;
   };
-  export function Exit(): void;
+  export function Exit(): boolean;
 }
