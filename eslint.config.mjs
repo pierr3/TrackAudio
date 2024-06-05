@@ -23,7 +23,8 @@ export default [
       'test/**/*',
       'tests/**/*',
       'mocks/**/*',
-      'docs/**/*'
+      'docs/**/*',
+      '*-config.js'
     ]
   },
   pluginJs.configs.recommended,
