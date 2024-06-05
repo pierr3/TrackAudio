@@ -10,7 +10,6 @@ on:
 
 jobs:
   build:
-    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -28,8 +27,8 @@ jobs:
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
 
-      - name: Cache vcpkg
-        uses: actions/cache@v3
+      - name: Restore vcpkg from cache
+        uses: actions/cache@v4
         with:
           path: |
             backend/vcpkg
