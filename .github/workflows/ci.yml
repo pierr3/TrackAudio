@@ -74,9 +74,5 @@ jobs:
       - name: Run eslint
         run: npm run lint
 
-      - name: Build
-        run: npm run build
-
-      - name: Package
+      - name: Build and package
         run: npm run build:${{ matrix.platform }}
-
