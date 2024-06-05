@@ -119,7 +119,7 @@ const createWindow = (): void => {
     width: defaultWindowSize.width,
     minWidth: 210,
     minHeight: 120,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
