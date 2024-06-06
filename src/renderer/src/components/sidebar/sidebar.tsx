@@ -27,8 +27,6 @@ const Sidebar: React.FC = () => {
     setReadyToAdd(false);
   };
 
-  const lastReceivedCallsigns = radios.filter((radio) => radio.rx && radio.lastReceivedCallsign);
-
   return (
     <>
       <div className="box-container right-box hide-right-box">
@@ -62,7 +60,7 @@ const Sidebar: React.FC = () => {
           Source: Slurper
         </span> */}
 
-        <LastReceivedCallsigns lastReceivedCallsigns={lastReceivedCallsigns} />
+        <LastReceivedCallsigns radios={radios} />
 
         <RadioStatus />
 
