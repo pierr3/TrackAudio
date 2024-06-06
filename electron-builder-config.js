@@ -14,9 +14,7 @@ module.exports = {
     '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}',
     '!backend/*'
   ],
-  asarUnpack: [
-    'resources/**'
-  ],
+  asarUnpack: ['resources/**'],
   win: {
     executableName: 'trackaudio',
     extraFiles: [
@@ -43,11 +41,7 @@ module.exports = {
     artifactName: '${name}-${version}-${arch}.${ext}'
   },
   linux: {
-    target: [
-      'AppImage',
-      'snap',
-      'deb'
-    ],
+    target: ['AppImage', 'snap', 'deb'],
     maintainer: 'pierr3',
     category: 'Game'
   },

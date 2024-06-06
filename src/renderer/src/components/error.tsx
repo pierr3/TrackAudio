@@ -12,7 +12,7 @@ const ErrorDialog: React.FC = () => {
   return (
     <div className="alert alert-danger alert-popup" role="alert">
       <audio autoPlay>
-        <source src={require('../assets/alert.mp3')} type="audio/mp3"></source>
+        <source src="/alert.mp3" type="audio/mp3"></source>
       </audio>
       <div style={{ float: 'left' }}>
         {errorStore.messages.map((error, index) => (
