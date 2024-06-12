@@ -52,7 +52,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setCid(config.cid || '');
         setPassword(config.password || '');
         setHardwareType(config.hardwareType || 0);
-        setAlwaysOnTop(config.alwaysOnTop);
+        setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode); // Type assertion since the config will never be a boolean at this point
       })
       .catch((err: unknown) => {
         console.error(err);

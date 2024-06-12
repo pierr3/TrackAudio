@@ -13,6 +13,7 @@ export interface Configuration {
   hardwareType: number;
   radioGain: number;
 
-  alwaysOnTop: AlwaysOnTopMode;
+  // Boolean is the prior type for this property, AlwaysOnTopMode is the updated type.
+  alwaysOnTop: boolean | AlwaysOnTopMode;
   consentedToTelemetry: boolean | undefined;
 }

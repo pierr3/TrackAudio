@@ -129,9 +129,9 @@ const toggleMiniMode = () => {
   // Set the always on top state
   if (currentConfiguration.alwaysOnTop === 'inMiniMode') {
     if (isInMiniMode()) {
-      mainWindow.setAlwaysOnTop(true);
+      mainWindow.setAlwaysOnTop(true, 'normal');
     } else {
-      mainWindow.setAlwaysOnTop(false);
+      mainWindow.setAlwaysOnTop(false, 'normal');
     }
   }
 };
@@ -154,7 +154,7 @@ const createWindow = (): void => {
     }
   });
 
-  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false);
+  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false, 'normal');
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
@@ -222,6 +222,15 @@ app.whenReady().then(() => {
   });
   // load the configuration
   currentConfiguration = JSON.parse(store.get('configuration', '{}') as string) as Configuration;
+
+  // Upgrade the alwaysOnTop property from yes/no to the three mode version
+  if (typeof currentConfiguration.alwaysOnTop === 'boolean') {
+    currentConfiguration.alwaysOnTop
+      ? (currentConfiguration.alwaysOnTop = 'always')
+      : (currentConfiguration.alwaysOnTop = 'never');
+
+    saveConfig();
+  }
 
   if (currentConfiguration.consentedToTelemetry === undefined) {
     // We have not recorded any telemetry consent yet, so we will prompt the user
@@ -293,10 +302,17 @@ app.on('quit', async () => {
   await TrackAudioAfv.Exit();
 });
 
+/**
+ * Called by the settings component when the settings for always on top change.
+ */
 ipcMain.on('set-always-on-top', (_, state: AlwaysOnTopMode) => {
   // Issue 90: Attempt to make always on top actually work all the time on Windows. There's
   // an old Electron bug about needing to add "normal": https://github.com/electron/electron/issues/20933.
-  mainWindow.setAlwaysOnTop(state !== 'never' || isInMiniMode(), 'normal');
+  //
+  // The test for 'always' is sufficient to handle all current cases because it is impossible to change settings
+  // while in mini-mode. It's only necessary to check and see if the setting was changed to always, and if so,
+  // enable on top mode. mini mode handles setting this itself.
+  mainWindow.setAlwaysOnTop(state === 'always', 'normal');
   currentConfiguration.alwaysOnTop = state;
   saveConfig();
 });
