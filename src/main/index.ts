@@ -5,7 +5,7 @@ import Store from 'electron-store';
 import * as Sentry from '@sentry/electron/main';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import { Configuration } from './config';
+import { AlwaysOnTopMode, Configuration } from './config';
 import icon from '../../resources/AppIcon/icon.png?asset';
 
 Sentry.init({
@@ -33,7 +33,7 @@ let currentConfiguration: Configuration = {
   callsign: '',
   hardwareType: 0,
   radioGain: 0,
-  alwaysOnTop: false,
+  alwaysOnTop: 'never',
   consentedToTelemetry: undefined
 };
 const store = new Store();
@@ -125,6 +125,15 @@ const toggleMiniMode = () => {
   } else {
     restoreWindowBounds('mini');
   }
+
+  // Set the always on top state
+  if (currentConfiguration.alwaysOnTop === 'inMiniMode') {
+    if (isInMiniMode()) {
+      mainWindow.setAlwaysOnTop(true);
+    } else {
+      mainWindow.setAlwaysOnTop(false);
+    }
+  }
 };
 
 const createWindow = (): void => {
@@ -145,7 +154,7 @@ const createWindow = (): void => {
     }
   });
 
-  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop || false);
+  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false);
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
@@ -284,10 +293,10 @@ app.on('quit', async () => {
   await TrackAudioAfv.Exit();
 });
 
-ipcMain.on('set-always-on-top', (_, state: boolean) => {
+ipcMain.on('set-always-on-top', (_, state: AlwaysOnTopMode) => {
   // Issue 90: Attempt to make always on top actually work all the time on Windows. There's
   // an old Electron bug about needing to add "normal": https://github.com/electron/electron/issues/20933.
-  mainWindow.setAlwaysOnTop(state, 'normal');
+  mainWindow.setAlwaysOnTop(state !== 'never' || isInMiniMode(), 'normal');
   currentConfiguration.alwaysOnTop = state;
   saveConfig();
 });
@@ -505,6 +514,10 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
 
   if (arg == AfvEventTypes.StationTransceiversUpdated) {
     mainWindow.webContents.send('station-transceivers-updated', arg2, arg3);
+  }
+
+  if (arg == AfvEventTypes.StationStateUpdate) {
+    mainWindow.webContents.send('station-state-update', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {

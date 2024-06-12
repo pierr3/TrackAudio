@@ -1,3 +1,5 @@
+export type AlwaysOnTopMode = 'never' | 'always' | 'inMiniMode';
+
 export interface Configuration {
   audioApi: number;
   audioInputDeviceId: string;
@@ -11,6 +13,6 @@ export interface Configuration {
   hardwareType: number;
   radioGain: number;
 
-  alwaysOnTop: boolean;
+  alwaysOnTop: AlwaysOnTopMode;
   consentedToTelemetry: boolean | undefined;
 }

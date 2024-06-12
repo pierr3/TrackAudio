@@ -1,4 +1,5 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
+import { AlwaysOnTopMode } from '../main/config';
 
 export const api = {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
@@ -12,7 +13,7 @@ export const api = {
     ipcRenderer.removeAllListeners(channel);
   },
 
-  setAlwaysOnTop: (state: boolean) => {
+  setAlwaysOnTop: (state: AlwaysOnTopMode) => {
     ipcRenderer.send('set-always-on-top', state);
   },
   getAudioApis: () => ipcRenderer.invoke('audio-get-apis'),
