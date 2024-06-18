@@ -5,7 +5,7 @@ import Store from 'electron-store';
 import * as Sentry from '@sentry/electron/main';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import { Configuration } from './config';
+import { AlwaysOnTopMode, Configuration } from './config';
 import icon from '../../resources/AppIcon/icon.png?asset';
 
 Sentry.init({
@@ -33,7 +33,7 @@ let currentConfiguration: Configuration = {
   callsign: '',
   hardwareType: 0,
   radioGain: 0,
-  alwaysOnTop: false,
+  alwaysOnTop: 'never',
   consentedToTelemetry: undefined
 };
 const store = new Store();
@@ -125,6 +125,15 @@ const toggleMiniMode = () => {
   } else {
     restoreWindowBounds('mini');
   }
+
+  // Set the always on top state
+  if (currentConfiguration.alwaysOnTop === 'inMiniMode') {
+    if (isInMiniMode()) {
+      mainWindow.setAlwaysOnTop(true, 'normal');
+    } else {
+      mainWindow.setAlwaysOnTop(false, 'normal');
+    }
+  }
 };
 
 const createWindow = (): void => {
@@ -145,7 +154,7 @@ const createWindow = (): void => {
     }
   });
 
-  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop || false);
+  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false, 'normal');
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
@@ -213,6 +222,15 @@ app.whenReady().then(() => {
   });
   // load the configuration
   currentConfiguration = JSON.parse(store.get('configuration', '{}') as string) as Configuration;
+
+  // Upgrade the alwaysOnTop property from yes/no to the three mode version
+  if (typeof currentConfiguration.alwaysOnTop === 'boolean') {
+    currentConfiguration.alwaysOnTop
+      ? (currentConfiguration.alwaysOnTop = 'always')
+      : (currentConfiguration.alwaysOnTop = 'never');
+
+    saveConfig();
+  }
 
   if (currentConfiguration.consentedToTelemetry === undefined) {
     // We have not recorded any telemetry consent yet, so we will prompt the user
@@ -284,10 +302,17 @@ app.on('quit', async () => {
   await TrackAudioAfv.Exit();
 });
 
-ipcMain.on('set-always-on-top', (_, state: boolean) => {
+/**
+ * Called by the settings component when the settings for always on top change.
+ */
+ipcMain.on('set-always-on-top', (_, state: AlwaysOnTopMode) => {
   // Issue 90: Attempt to make always on top actually work all the time on Windows. There's
   // an old Electron bug about needing to add "normal": https://github.com/electron/electron/issues/20933.
-  mainWindow.setAlwaysOnTop(state, 'normal');
+  //
+  // The test for 'always' is sufficient to handle all current cases because it is impossible to change settings
+  // while in mini-mode. It's only necessary to check and see if the setting was changed to always, and if so,
+  // enable on top mode. mini mode handles setting this itself.
+  mainWindow.setAlwaysOnTop(state === 'always', 'normal');
   currentConfiguration.alwaysOnTop = state;
   saveConfig();
 });

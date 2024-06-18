@@ -5,7 +5,7 @@ import AudioOutputs from './audio-outputs';
 import useUtilStore from '../../store/utilStore';
 import clsx from 'clsx';
 import { useDebouncedCallback } from 'use-debounce';
-import { Configuration } from '../../../../../src/main/config';
+import { AlwaysOnTopMode, Configuration } from '../../../../../src/main/config';
 import { AudioApi, AudioDevice } from 'trackaudio-afv';
 import useRadioState from '../../store/radioStore';
 
@@ -26,7 +26,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [audioInputDevices, setAudioInputDevices] = useState(Array<AudioDevice>);
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
-  const [alwaysOnTop, setAlwaysOnTop] = useState(0);
+  const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
 
   const [cid, setCid] = useState('');
   const [password, setPassword] = useState('');
@@ -52,7 +52,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setCid(config.cid || '');
         setPassword(config.password || '');
         setHardwareType(config.hardwareType || 0);
-        setAlwaysOnTop(config.alwaysOnTop ? 1 : 0);
+        setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode); // Type assertion since the config will never be a boolean at this point
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -148,8 +148,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
   const handleAlwaysOnTop = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setChangesSaved(SaveStatus.Saving);
-    window.api.setAlwaysOnTop(e.target.value === '1');
-    setAlwaysOnTop(parseInt(e.target.value));
+    window.api.setAlwaysOnTop(e.target.value as AlwaysOnTopMode);
+    setAlwaysOnTop(e.target.value as AlwaysOnTopMode);
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -251,8 +251,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     onChange={handleAlwaysOnTop}
                     value={alwaysOnTop}
                   >
-                    <option value="1">Yes</option>
-                    <option value="0">No</option>
+                    <option value="always">Always</option>
+                    <option value="inMiniMode">In mini mode</option>
+                    <option value="never">Never</option>
                   </select>
 
                   <label className="mt-2" style={{ fontSize: '10px' }}>
