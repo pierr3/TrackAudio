@@ -343,6 +343,14 @@ restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
                         this->handleGetStationState(json["value"]["callsign"]);
                         return;
                     }
+                    if (messageType == "kPttPressed") {
+                        mClient->SetPtt(true);
+                        return;
+                    }
+                    if (messageType == "kPttReleased") {
+                        mClient->SetPtt(false);
+                        return;
+                    }
                 } catch (const std::exception& e) {
                     // Handle JSON parsing error
                     TRACK_LOG_ERROR("Error parsing incoming message JSON: ", e.what());
