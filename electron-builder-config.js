@@ -22,6 +22,11 @@ module.exports = {
         from: 'backend/build/Release/',
         to: '.',
         filter: ['*.dll']
+      },
+      {
+        from: 'resources/',
+        to: 'resources/',
+        filter: ['*.wav']
       }
     ]
   },
@@ -35,7 +40,14 @@ module.exports = {
     entitlementsInherit: 'build/entitlements.mac.plist',
     notarize: {
       teamId: process.env.APPLE_TEAM_ID
-    }
+    },
+    extraFiles: [
+      {
+        from: 'resources/',
+        to: 'Resources/',
+        filter: ['*.wav']
+      }
+    ]
   },
   dmg: {
     artifactName: '${name}-${version}-${arch}.${ext}'
@@ -43,7 +55,14 @@ module.exports = {
   linux: {
     target: ['AppImage', 'snap', 'deb'],
     maintainer: 'pierr3',
-    category: 'Game'
+    category: 'Game',
+    extraFiles: [
+      {
+        from: 'resources/',
+        to: 'resources/',
+        filter: ['*.wav']
+      }
+    ]
   },
   appImage: {
     artifactName: '${name}-${version}-${arch}.${ext}'
