@@ -142,9 +142,9 @@ const toggleMiniMode = () => {
   // Set the always on top state
   if (currentConfiguration.alwaysOnTop === 'inMiniMode') {
     if (isInMiniMode()) {
-      setAlwaysOnTop(true, 'normal');
+      setAlwaysOnTop(true);
     } else {
-      setAlwaysOnTop(false, 'normal');
+      setAlwaysOnTop(false);
     }
   }
 };
@@ -167,7 +167,7 @@ const createWindow = (): void => {
     }
   });
 
-  setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false, 'normal');
+  setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false);
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
@@ -325,7 +325,7 @@ ipcMain.on('set-always-on-top', (_, state: AlwaysOnTopMode) => {
   // The test for 'always' is sufficient to handle all current cases because it is impossible to change settings
   // while in mini-mode. It's only necessary to check and see if the setting was changed to always, and if so,
   // enable on top mode. mini mode handles setting this itself.
-  setAlwaysOnTop(state === 'always', 'normal');
+  setAlwaysOnTop(state === 'always');
   currentConfiguration.alwaysOnTop = state;
   saveConfig();
 });
