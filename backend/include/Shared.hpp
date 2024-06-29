@@ -83,6 +83,10 @@ public:
     {
         std::string settingsFilePath = (FileSystem::GetStateFolderPath() / "settings.ini").string();
 
+        // Remove the legacy "Ptt" section. Its values were migrated to the "Ptt1" section
+        // when the file was loaded.
+        ini.Delete("Ptt", nullptr);
+
         ini.SetLongValue("Ptt1", "PttKey", UserSettings::PttKey1);
         ini.SetLongValue("Ptt1", "JoystickId", UserSettings::JoystickId1);
         ini.SetBoolValue("Ptt1", "isJoystickButton", UserSettings::isJoystickButton1);
@@ -113,12 +117,25 @@ protected:
             }
         }
 
+        // Handle upgrading from prior versions that only supported one PTT key.
+        // Those values were stored in the "Ptt" section, so try and read them. If they
+        // aren't there the defaults will be used.
         UserSettings::PttKey1
-            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt1", "PttKey", 0));
+            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt", "PttKey", 0));
         UserSettings::JoystickId1
-            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt1", "JoystickId", 0));
+            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt", "JoystickId", 0));
         UserSettings::isJoystickButton1
-            = UserSettings::ini.GetBoolValue("Ptt1", "isJoystickButton", false);
+            = UserSettings::ini.GetBoolValue("Ptt", "isJoystickButton", false);
+
+        // Now try and load the "Ptt1" section. If that's not there then it means it's
+        // an old version of the ini file before two keys were supported, so use the
+        // previously loaded values from the "Ptt" section as the default.
+        UserSettings::PttKey1 = static_cast<int>(
+            UserSettings::ini.GetLongValue("Ptt1", "PttKey", UserSettings::PttKey1));
+        UserSettings::JoystickId1 = static_cast<int>(
+            UserSettings::ini.GetLongValue("Ptt1", "JoystickId", UserSettings::JoystickId1));
+        UserSettings::isJoystickButton1 = UserSettings::ini.GetBoolValue(
+            "Ptt1", "isJoystickButton", UserSettings::isJoystickButton1);
 
         UserSettings::PttKey2
             = static_cast<int>(UserSettings::ini.GetLongValue("Ptt2", "PttKey", 0));
