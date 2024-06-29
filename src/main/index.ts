@@ -437,7 +437,7 @@ ipcMain.handle('refresh-station', (_, callsign: string) => {
 
 ipcMain.handle('setup-ptt', (_, pttIndex: number) => {
   console.log(`Setting up PTT for ${pttIndex}`);
-  TrackAudioAfv.SetupPttBegin();
+  TrackAudioAfv.SetupPttBegin(pttIndex);
 });
 
 ipcMain.handle('set-radio-gain', (_, gain: number) => {

@@ -24,7 +24,7 @@ public:
 
     ~InputHandler();
 
-    void startPttSetup();
+    void startPttSetup(int pttIndex);
     void stopPttSetup();
 
     static void forwardPttKeyName(int pttIndex);

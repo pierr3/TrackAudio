@@ -15,7 +15,7 @@ InputHandler::InputHandler()
 
 InputHandler::~InputHandler() { timer.stop(); }
 
-void InputHandler::startPttSetup()
+void InputHandler::startPttSetup(int pttIndex)
 {
     std::lock_guard<std::mutex> lock(m);
     isPttSetupRunning = true;

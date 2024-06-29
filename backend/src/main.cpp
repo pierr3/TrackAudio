@@ -399,9 +399,11 @@ void StopAudio(const Napi::CallbackInfo& /*info*/)
     mClient->StopAudio();
 }
 
-void SetupPttBegin(const Napi::CallbackInfo& /*info*/)
+void SetupPttBegin(const Napi::CallbackInfo& info)
 {
-    MainThreadShared::inputHandler->startPttSetup();
+    int pttIndex = info[0].As<Napi::Number>().Int32Value();
+
+    MainThreadShared::inputHandler->startPttSetup(pttIndex);
 }
 
 void SetupPttEnd(const Napi::CallbackInfo& /*info*/)
