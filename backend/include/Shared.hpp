@@ -121,7 +121,7 @@ protected:
         // Those values were stored in the "Ptt" section, so try and read them. If they
         // aren't there the defaults will be used.
         UserSettings::PttKey1
-            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt", "PttKey", 0));
+            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt", "PttKey", -1));
         UserSettings::JoystickId1
             = static_cast<int>(UserSettings::ini.GetLongValue("Ptt", "JoystickId", 0));
         UserSettings::isJoystickButton1
@@ -138,7 +138,7 @@ protected:
             "Ptt1", "isJoystickButton", UserSettings::isJoystickButton1);
 
         UserSettings::PttKey2
-            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt2", "PttKey", 0));
+            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt2", "PttKey", -1));
         UserSettings::JoystickId2
             = static_cast<int>(UserSettings::ini.GetLongValue("Ptt2", "JoystickId", 0));
         UserSettings::isJoystickButton2
