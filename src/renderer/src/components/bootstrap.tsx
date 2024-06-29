@@ -6,7 +6,8 @@ import useUtilStore from '../store/utilStore';
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
-    void window.api.RequestPttKeyName();
+    void window.api.RequestPttKeyName(1);
+    void window.api.RequestPttKeyName(2);
 
     window.api.on('VuMeter', (vu: string, peakVu: string) => {
       const vuFloat = Math.abs(parseFloat(vu));
@@ -103,9 +104,16 @@ const Bootsrap: React.FC = () => {
       useSessionStore.getState().setFrequency(199998000);
     });
 
-    window.api.on('ptt-key-set', (key: string) => {
-      useUtilStore.getState().updatePttKeySet(true);
-      useUtilStore.getState().setPttKeyName(key);
+    window.api.on('ptt-key-set', (pttIndex: string, key: string) => {
+      const index = parseInt(pttIndex);
+
+      if (index == 1) {
+        useUtilStore.getState().updatePtt1KeySet(true);
+        useUtilStore.getState().setPtt1KeyName(key);
+      } else if (index == 2) {
+        useUtilStore.getState().updatePtt2KeySet(true);
+        useUtilStore.getState().setPtt2KeyName(key);
+      }
     });
 
     window.api

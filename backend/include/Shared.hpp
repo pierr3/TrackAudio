@@ -59,9 +59,14 @@ public:
 
 struct UserSettings {
 public:
-    inline static int PttKey = -1;
-    inline static int JoystickId = 0;
-    inline static bool isJoystickButton = false;
+    inline static int PttKey1 = -1;
+    inline static int JoystickId1 = 0;
+    inline static bool isJoystickButton1 = false;
+
+    inline static int PttKey2 = -1;
+    inline static int JoystickId2 = 0;
+    inline static bool isJoystickButton2 = false;
+
     // NOLINTNEXTLINE
     inline static CSimpleIniA ini;
 
@@ -77,9 +82,15 @@ public:
     inline static void save()
     {
         std::string settingsFilePath = (FileSystem::GetStateFolderPath() / "settings.ini").string();
-        ini.SetLongValue("Ptt", "PttKey", UserSettings::PttKey);
-        ini.SetLongValue("Ptt", "JoystickId", UserSettings::JoystickId);
-        ini.SetBoolValue("Ptt", "isJoystickButton", UserSettings::isJoystickButton);
+
+        ini.SetLongValue("Ptt1", "PttKey", UserSettings::PttKey1);
+        ini.SetLongValue("Ptt1", "JoystickId", UserSettings::JoystickId1);
+        ini.SetBoolValue("Ptt1", "isJoystickButton", UserSettings::isJoystickButton1);
+
+        ini.SetLongValue("Ptt2", "PttKey", UserSettings::PttKey2);
+        ini.SetLongValue("Ptt2", "JoystickId", UserSettings::JoystickId2);
+        ini.SetBoolValue("Ptt2", "isJoystickButton", UserSettings::isJoystickButton2);
+
         auto err = ini.SaveFile(settingsFilePath.c_str());
         if (err != SI_OK) {
             TRACK_LOG_ERROR("Error creating settings.ini: {}", err);
@@ -102,10 +113,18 @@ protected:
             }
         }
 
-        UserSettings::PttKey = static_cast<int>(UserSettings::ini.GetLongValue("Ptt", "PttKey", 0));
-        UserSettings::JoystickId
-            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt", "JoystickId", 0));
-        UserSettings::isJoystickButton
-            = UserSettings::ini.GetBoolValue("Ptt", "isJoystickButton", false);
+        UserSettings::PttKey1
+            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt1", "PttKey", 0));
+        UserSettings::JoystickId1
+            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt1", "JoystickId", 0));
+        UserSettings::isJoystickButton1
+            = UserSettings::ini.GetBoolValue("Ptt1", "isJoystickButton", false);
+
+        UserSettings::PttKey2
+            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt2", "PttKey", 0));
+        UserSettings::JoystickId2
+            = static_cast<int>(UserSettings::ini.GetLongValue("Ptt2", "JoystickId", 0));
+        UserSettings::isJoystickButton2
+            = UserSettings::ini.GetBoolValue("Ptt2", "isJoystickButton", false);
     }
 };

@@ -33,15 +33,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
   const [pttIsOn] = useRadioState((state) => [state.pttIsOn]);
 
-  const [vu, vuPeak, updateVu, pttKeyName, hasPttBeenSetDuringSetup, updatePttKeySet] =
-    useUtilStore((state) => [
-      state.vu,
-      state.peakVu,
-      state.updateVu,
-      state.pttKeyName,
-      state.hasPttBeenSetDuringSetup,
-      state.updatePttKeySet
-    ]);
+  const [
+    vu,
+    vuPeak,
+    updateVu,
+    ptt1KeyName,
+    ptt2KeyName,
+    hasPtt1BeenSetDuringSetup,
+    hasPtt2BeenSetDuringSetup,
+    updatePtt1KeySet,
+    updatePtt2KeySet
+  ] = useUtilStore((state) => [
+    state.vu,
+    state.peakVu,
+    state.updateVu,
+    state.ptt1KeyName,
+    state.ptt2KeyName,
+    state.hasPtt1BeenSetDuringSetup,
+    state.hasPtt2BeenSetDuringSetup,
+    state.updatePtt1KeySet,
+    state.updatePtt2KeySet
+  ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
   useEffect(() => {
@@ -153,10 +165,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saved);
   };
 
-  const handleSetPtt = () => {
-    updatePttKeySet(false);
+  const handleSetPtt = (pttIndex: number) => {
+    if (pttIndex === 1) {
+      updatePtt1KeySet(false);
+    } else if (pttIndex === 2) {
+      updatePtt2KeySet(false);
+    }
+
     setChangesSaved(SaveStatus.Saved);
-    void window.api.SetupPtt();
+    void window.api.SetupPtt(pttIndex);
   };
 
   const handleMicTest = () => {
@@ -315,7 +332,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     )}
                     onClick={handleMicTest}
                     disabled={
-                      !hasPttBeenSetDuringSetup ||
+                      !(hasPtt1BeenSetDuringSetup || hasPtt2BeenSetDuringSetup) ||
                       config.headsetOutputDeviceId === '' ||
                       config.speakerOutputDeviceId === '' ||
                       config.audioInputDeviceId === ''
@@ -336,7 +353,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     ></div>
                   </div>
                   <button className="btn text-box-container mt-3 w-100">
-                    Ptt: {!hasPttBeenSetDuringSetup ? 'Press any key or button' : pttKeyName}
+                    Ptt: {!hasPtt1BeenSetDuringSetup ? 'Press any key or button' : ptt1KeyName}
                   </button>
                   <button
                     className={clsx(
@@ -344,9 +361,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       !pttIsOn && 'btn-info',
                       pttIsOn && 'btn-warning'
                     )}
-                    onClick={handleSetPtt}
+                    onClick={() => {
+                      handleSetPtt(1);
+                    }}
                   >
-                    Set new PTT
+                    Set new PTT 1
+                  </button>
+                  <button className="btn text-box-container mt-3 w-100">
+                    Ptt: {!hasPtt2BeenSetDuringSetup ? 'Press any key or button' : ptt2KeyName}
+                  </button>
+                  <button
+                    className={clsx(
+                      'btn mt-2 w-100',
+                      !pttIsOn && 'btn-info',
+                      pttIsOn && 'btn-warning'
+                    )}
+                    onClick={() => {
+                      handleSetPtt(2);
+                    }}
+                  >
+                    Set new PTT 2
                   </button>
                 </div>
               </div>

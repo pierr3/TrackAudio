@@ -27,19 +27,22 @@ public:
     void startPttSetup();
     void stopPttSetup();
 
-    static void forwardPttKeyName();
+    static void forwardPttKeyName(int pttIndex);
 
-    static std::string getPttKeyName();
+    static std::string getPttKeyName(int pttIndex);
 
 private:
     std::mutex m;
     Poco::Timer timer;
     std::atomic<bool> isPttSetupRunning = true;
+    int activePtt = 0;
 
     bool isPttOpen = false;
 
-    static void updatePttKey(int key, bool isJoystickButton, int joystickId = 0);
+    static void updatePttKey(int pttIndex, int key, bool isJoystickButton, int joystickId = 0);
+    static std::string lookupPttKeyName(int key, bool isJoystickButton, int joystickId);
 
     // NOLINTNEXTLINE
     void onTimer(Poco::Timer& /*timer*/);
+    void checkForPtt(int pttIndex, int key, bool isJoystickButton, int joystickId);
 };

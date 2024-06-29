@@ -88,7 +88,7 @@ declare namespace TrackAudioAfv {
   export function SetupPttBegin(): void;
   export function SetupPttEnd(): void;
 
-  export function RequestPttKeyName(): void;
+  export function RequestPttKeyName(pttIndex: number): void;
 
   export function IsConnected(): boolean;
   export function Bootstrap(resourcePath: string): {

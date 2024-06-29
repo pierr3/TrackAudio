@@ -333,8 +333,8 @@ ipcMain.handle('get-configuration', () => {
   return currentConfiguration;
 });
 
-ipcMain.handle('request-ptt-key-name', () => {
-  TrackAudioAfv.RequestPttKeyName();
+ipcMain.handle('request-ptt-key-name', (_, pttIndex: number) => {
+  TrackAudioAfv.RequestPttKeyName(pttIndex);
 });
 
 //
@@ -435,7 +435,8 @@ ipcMain.handle('refresh-station', (_, callsign: string) => {
   TrackAudioAfv.RefreshStation(callsign);
 });
 
-ipcMain.handle('setup-ptt', () => {
+ipcMain.handle('setup-ptt', (_, pttIndex: number) => {
+  console.log(`Setting up PTT for ${pttIndex}`);
   TrackAudioAfv.SetupPttBegin();
 });
 
@@ -561,6 +562,6 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.PttKeySet) {
-    mainWindow.webContents.send('ptt-key-set', arg2);
+    mainWindow.webContents.send('ptt-key-set', arg2, arg3);
   }
 });
