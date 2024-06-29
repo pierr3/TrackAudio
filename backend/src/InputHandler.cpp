@@ -19,12 +19,14 @@ void InputHandler::startPttSetup(int pttIndex)
 {
     std::lock_guard<std::mutex> lock(m);
     isPttSetupRunning = true;
+    pttSetupIndex = pttIndex;
 }
 
 void InputHandler::stopPttSetup()
 {
     std::lock_guard<std::mutex> lock(m);
     isPttSetupRunning = false;
+    pttSetupIndex = 0;
 }
 
 void InputHandler::updatePttKey(int pttIndex, int key, bool isJoystickButton, int joystickId)
@@ -94,9 +96,10 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
         // Check for Key presses
         for (int i = sf::Keyboard::Scancode::A; i < sf::Keyboard::Scancode::ScancodeCount; i++) {
             if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Scancode>(i))) {
-                updatePttKey(1, i, false);
+                updatePttKey(pttSetupIndex, i, false);
 
                 isPttSetupRunning = false;
+                pttSetupIndex = 0;
                 return;
             }
         }
@@ -109,10 +112,12 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
 
             for (int j = 0; j < sf::Joystick::getButtonCount(i); j++) {
                 if (sf::Joystick::isButtonPressed(i, j)) {
-                    TRACK_LOG_INFO("Joystick Ptt Key set: {} on Joystick {}", j, i);
-                    updatePttKey(1, j, true, i);
+                    TRACK_LOG_INFO("Joystick Ptt {} Key set: {} on Joystick {}",
+                        std::to_string(pttSetupIndex), j, i);
+                    updatePttKey(pttSetupIndex, j, true, i);
 
                     isPttSetupRunning = false;
+                    pttSetupIndex = 0;
                     return;
                 }
             }

@@ -35,6 +35,7 @@ private:
     std::mutex m;
     Poco::Timer timer;
     std::atomic<bool> isPttSetupRunning = true;
+    std::atomic<int> pttSetupIndex = 0;
     int activePtt = 0;
 
     bool isPttOpen = false;
