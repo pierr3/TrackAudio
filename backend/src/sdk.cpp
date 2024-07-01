@@ -1,5 +1,6 @@
 #include "sdk.hpp"
 #include "Helpers.hpp"
+#include "RadioHelper.hpp"
 #include "Shared.hpp"
 
 SDK::SDK() { this->buildServer(); }
@@ -29,6 +30,25 @@ void SDK::buildServer()
     }
 }
 
+nlohmann::json SDK::buildStationStateJson(
+    const std::optional<std::string>& callsign, const int& frequencyHz)
+{
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kStationStateUpdate);
+
+    if (callsign.has_value()) {
+        jsonMessage["value"]["callsign"] = callsign.value();
+    }
+    jsonMessage["value"]["frequency"] = frequencyHz;
+    jsonMessage["value"]["tx"] = mClient->GetTxState(frequencyHz);
+    jsonMessage["value"]["rx"] = mClient->GetRxState(frequencyHz);
+    jsonMessage["value"]["xc"] = mClient->GetXcState(frequencyHz);
+    jsonMessage["value"]["xca"] = mClient->GetCrossCoupleAcrossState(frequencyHz);
+    jsonMessage["value"]["headset"] = mClient->GetOnHeadset(frequencyHz);
+
+    return jsonMessage;
+}
+
 // NOLINTNEXTLINE
 void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz)
@@ -41,6 +61,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         jsonMessage["value"]["rx"] = nlohmann::json::array();
         jsonMessage["value"]["tx"] = nlohmann::json::array();
         jsonMessage["value"]["xc"] = nlohmann::json::array();
+
         this->broadcastOnWebsocket(jsonMessage.dump());
         return;
     }
@@ -131,6 +152,17 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
 
         return;
     }
+
+    if (event == sdk::types::Event::kStationStateUpdated) {
+        if (!frequencyHz.has_value()) {
+            TRACK_LOG_ERROR("kStationStateUpdated requires a frequencyHz");
+            return;
+        }
+
+        this->broadcastOnWebsocket(
+            this->buildStationStateJson(callsign, frequencyHz.value()).dump());
+        return;
+    }
 };
 
 std::unique_ptr<restinio::router::express_router_t<>> SDK::buildRouter()
@@ -210,6 +242,71 @@ restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request
     return req->create_response().set_body(absl::StrJoin(outData, ",")).done();
 }
 
+void SDK::handleSetStationState(const nlohmann::json json)
+{
+    if (!json["value"].contains("frequency")) {
+        TRACK_LOG_ERROR("kSetStationState requires a frequency");
+        return;
+    }
+
+    RadioState radioState;
+    auto frequency = json["value"]["frequency"];
+
+    radioState.frequency = frequency;
+    radioState.rx = Helpers::ConvertBoolOrToggleToBool(
+        json["value"]["rx"], mClient->GetRxState(radioState.frequency));
+    radioState.tx = Helpers::ConvertBoolOrToggleToBool(
+        json["value"]["tx"], mClient->GetTxState(radioState.frequency));
+    radioState.xc
+        = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], mClient->GetXcState(frequency));
+    radioState.xca = Helpers::ConvertBoolOrToggleToBool(
+        json["value"]["xca"], mClient->GetCrossCoupleAcrossState(frequency));
+    radioState.headset = Helpers::ConvertBoolOrToggleToBool(
+        json["value"]["headset"], mClient->GetOnHeadset(frequency));
+
+    RadioHelper::SetRadioState(this, radioState);
+}
+
+void SDK::handleGetStationStates()
+{
+    std::vector<nlohmann::json> stationStates;
+
+    // Collect the states for all the radios
+    auto allRadios = mClient->getRadioState();
+    for (const auto& [frequency, state] : allRadios) {
+        stationStates.push_back(this->buildStationStateJson(state.stationName, frequency));
+    }
+
+    // Send the message
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kStationStates);
+    jsonMessage["value"]["stations"] = stationStates;
+    this->broadcastOnWebsocket(jsonMessage.dump());
+}
+
+void SDK::handleGetStationState(const std::string& callsign)
+{
+    if (!mClient->IsVoiceConnected()) {
+        TRACK_LOG_ERROR("kGetStationState requires a voice connection");
+        return;
+    }
+
+    auto allRadios = mClient->getRadioState();
+    for (const auto& [frequency, state] : allRadios) {
+        if (state.stationName == callsign) {
+            this->publishStationState(this->buildStationStateJson(callsign, frequency));
+            return;
+        }
+    }
+
+    TRACK_LOG_ERROR("Station {} not found", callsign);
+}
+
+void SDK::publishStationState(const nlohmann::json& state)
+{
+    this->broadcastOnWebsocket(state.dump());
+}
+
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
     const restinio::request_handle_t& req)
 {
@@ -228,6 +325,36 @@ restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
                 == message->opcode()) {
                 // Close connection
                 this->pWsRegistry.erase(wsh->connection_id());
+            } else if (restinio::websocket::basic::opcode_t::text_frame == message->opcode()) {
+                std::string payload = message->payload();
+
+                try {
+                    auto json = nlohmann::json::parse(payload);
+                    std::string messageType = json["type"];
+                    if (messageType == "kSetStationState") {
+                        this->handleSetStationState(std::move(json));
+                        return;
+                    }
+                    if (messageType == "kGetStationStates") {
+                        this->handleGetStationStates();
+                        return;
+                    }
+                    if (messageType == "kGetStationState") {
+                        this->handleGetStationState(json["value"]["callsign"]);
+                        return;
+                    }
+                    if (messageType == "kPttPressed") {
+                        mClient->SetPtt(true);
+                        return;
+                    }
+                    if (messageType == "kPttReleased") {
+                        mClient->SetPtt(false);
+                        return;
+                    }
+                } catch (const std::exception& e) {
+                    // Handle JSON parsing error
+                    TRACK_LOG_ERROR("Error parsing incoming message JSON: ", e.what());
+                }
             }
         });
 

@@ -30,7 +30,8 @@ enum Event {
     kTxBegin,
     kTxEnd,
     kFrequencyStateUpdate,
-    kDisconnectFrequencyStateUpdate
+    kDisconnectFrequencyStateUpdate,
+    kStationStateUpdated,
 };
 }
 
@@ -51,6 +52,24 @@ public:
      */
     void handleAFVEventForWebsocket(sdk::types::Event event,
         const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz);
+
+    /**
+     * @brief Builds a JSON object for the station state.
+     *
+     * @param callsign The callsign of the station. Optional.
+     * @param frequencyHz The frequency of the station.
+     *
+     * @return The JSON object for the station state.
+     */
+    nlohmann::json buildStationStateJson(
+        const std::optional<std::string>& callsign, const int& frequencyHz);
+
+    /**
+     * @brief Publishes the station state JSON to the websocket clients.
+     *
+     * @param state A JSON object representing the station state.
+     */
+    void publishStationState(const nlohmann::json& state);
 
 private:
     using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t, restinio::null_logger_t,
@@ -120,6 +139,7 @@ private:
      * @return The status of the request handling.
      */
     restinio::request_handling_status_t handleRxSDKCall(const restinio::request_handle_t& req);
+
     /**
      * Handles the SDK call.
      *
@@ -136,4 +156,23 @@ private:
      */
     restinio::request_handling_status_t handleWebSocketSDKCall(
         const restinio::request_handle_t& req);
+
+    /**
+     * Handles the SDK call to set a station status.
+     *
+     * @param json The incoming JSON with the station status.
+     */
+    void handleSetStationState(const nlohmann::json json);
+
+    /**
+     * Handles the SDK call to publish all the current station states.
+     *
+     */
+    void handleGetStationStates();
+
+    /**
+     * Handles the SDK call to publish the current station state for a single station.
+     *
+     */
+    void handleGetStationState(const std::string& callsign);
 };
