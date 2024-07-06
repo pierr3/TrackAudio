@@ -12,15 +12,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # does not produce the json file
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "") 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 project(trackaudio-afv)
 
-# Set the C++ standard to C++17
-set(CMAKE_CXX_STANDARD 17)
+# Set the C++ standard to C++20
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT=1)
@@ -40,14 +40,14 @@ if(MSVC)
     add_definitions(-D_WIN32_WINNT=0x0A00)
 endif()
 
-set(SOURCE 
+set(SOURCE
   src/main.cpp
   src/sdk.cpp
   src/RemoteData.cpp
   src/InputHandler.cpp
   src/win32_key_util.cpp)
 
-add_library(trackaudio-afv SHARED 
+add_library(trackaudio-afv SHARED
   ${SOURCE}
   ${CMAKE_JS_SRC})
 
@@ -93,7 +93,7 @@ set_target_properties(trackaudio-afv PROPERTIES PREFIX "" SUFFIX ".node")
 
 target_include_directories(trackaudio-afv PRIVATE ${CMAKE_JS_INC} ${SIMPLEINI_INCLUDE_DIRS} include/)
 
-target_link_libraries(trackaudio-afv PRIVATE 
+target_link_libraries(trackaudio-afv PRIVATE
     afv_native
     httplib::httplib
     Threads::Threads
