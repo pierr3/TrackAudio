@@ -1,9 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import React from 'react';
+import React, { useEffect } from 'react';
 import useErrorStore from '../store/errorStore';
+import useSound from 'use-sound';
+
+import errorSfx from '../assets/md80_error.mp3';
 
 const ErrorDialog: React.FC = () => {
   const errorStore = useErrorStore((state) => state);
+
+  const [play] = useSound(errorSfx);
+
+  useEffect(() => {
+    if (errorStore.pending) {
+      play();
+    }
+  }, [errorStore.pending, play]);
 
   if (!errorStore.pending) {
     return null;
@@ -11,9 +22,6 @@ const ErrorDialog: React.FC = () => {
 
   return (
     <div className="alert alert-danger alert-popup" role="alert">
-      <audio autoPlay>
-        <source src="/alert.mp3" type="audio/mp3"></source>
-      </audio>
       <div style={{ float: 'left' }}>
         {errorStore.messages.map((error, index) => (
           <div key={index}>
