@@ -133,15 +133,24 @@ jobs:
         shell: bash
         run: npm run build:win
 
+      - name: Install notarization tools
+        if: matrix.os == 'macos-latest'
+        run: |
+          cat << EOF > ./.a.p8
+          ${{ secrets.APPLE_API_KEY }}
+          EOF
+
       - name: Package app
         if: matrix.os == 'macos-latest'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: npm run build:mac -- --${{ matrix.arch }}
+          APPLE_API_KEY: "./.a.p8"
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          npm run build:mac -- --${{ matrix.arch }}
+          rm ./.a.p8
 
       - name: Package app
         if: matrix.os == 'ubuntu-latest'

@@ -48,7 +48,7 @@ public:
     inline static int frequency = OBS_FREQUENCY;
     inline static double lat = 0.0;
     inline static double lon = 0.0;
-    inline static bool isATC = false;
+    inline static bool xy = false;
     inline static bool isConnectedToTheNetwork = false;
     inline static float currentRadioGain = 0.5;
 };

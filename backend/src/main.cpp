@@ -277,7 +277,7 @@ void SetPtt(const Napi::CallbackInfo& info)
         return;
     }
 
-    if (!UserSession::isATC) {
+    if (!UserSession::xy) {
         mClient->SetPtt(false);
         return;
     }
