@@ -195,7 +195,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 
     mClient->SetRx(frequency, rx);
     mClient->SetRadioGainAll(UserSession::currentRadioGain);
-    if (UserSession::isATC) {
+    if (UserSession::xy) {
         mClient->SetTx(frequency, tx);
         mClient->SetXc(frequency, xc);
         mClient->SetCrossCoupleAcross(frequency, crossCoupleAcrossFrequencies);
@@ -299,7 +299,7 @@ void SetPtt(const Napi::CallbackInfo& info)
         return;
     }
 
-    if (!UserSession::isATC) {
+    if (!UserSession::xy) {
         mClient->SetPtt(false);
         return;
     }

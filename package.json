@@ -40,6 +40,7 @@
     "scss": "^0.2.4",
     "trackaudio-afv": "file:backend/trackaudio-afv-1.0.0.tgz",
     "use-debounce": "^10.0.1",
+    "use-sound": "^4.0.3",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
@@ -53,7 +54,7 @@
     "@types/react": "^18.3.3",
     "@vitejs/plugin-react": "^4.0.0",
     "electron": "^28.2.0",
-    "electron-builder": "24.6.3",
+    "electron-builder": "24.13.3",
     "electron-vite": "^2.0.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.2",
