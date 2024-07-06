@@ -1,13 +1,13 @@
+import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
+import { AudioApi, AudioDevice } from 'trackaudio-afv';
+import { useDebouncedCallback } from 'use-debounce';
+import { AlwaysOnTopMode, Configuration } from '../../../../../src/main/config';
+import useRadioState from '../../store/radioStore';
+import useUtilStore from '../../store/utilStore';
 import AudioApis from './audio-apis';
 import AudioInput from './audio-input';
 import AudioOutputs from './audio-outputs';
-import useUtilStore from '../../store/utilStore';
-import clsx from 'clsx';
-import { useDebouncedCallback } from 'use-debounce';
-import { AlwaysOnTopMode, Configuration } from '../../../../../src/main/config';
-import { AudioApi, AudioDevice } from 'trackaudio-afv';
-import useRadioState from '../../store/radioStore';
 
 export interface SettingsModalProps {
   closeModal: () => void;
@@ -100,7 +100,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
   const debouncedCid = useDebouncedCallback((cid: string) => {
     setChangesSaved(SaveStatus.Saving);
-    setCid(cid);
     setConfig({ ...config, cid: cid });
     void window.api.setCid(cid);
     setChangesSaved(SaveStatus.Saved);
@@ -224,12 +223,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                   <h5>VATSIM Details</h5>
                   <label className="mt-2">CID</label>
                   <input
-                    type="number"
                     className="form-control mt-1"
                     id="cidInput"
                     placeholder="99999"
-                    defaultValue={cid}
-                    onChange={(e) => debouncedCid(e.target.value)}
+                    value={cid}
+                    onChange={(e) => {
+                      // Issue #127: Strip non-digit characters instead of using type="number".
+                      const cleanCid = e.target.value.replace(/\D/g, ''); // Remove non-digit characters
+                      setCid(cleanCid);
+                      debouncedCid(cleanCid);
+                    }}
                   ></input>
                   <label className="mt-2">Password</label>
                   <input

@@ -4,10 +4,16 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      sourcemap: true
+    }
   },
   preload: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      sourcemap: true
+    }
   },
   renderer: {
     resolve: {
@@ -18,6 +24,9 @@ export default defineConfig({
         '~bootstrap-typeahead': resolve(__dirname, 'node_modules/react-bootstrap-typeahead')
       }
     },
-    plugins: [react()]
+    plugins: [react()],
+    build: {
+      sourcemap: true
+    }
   }
 });
