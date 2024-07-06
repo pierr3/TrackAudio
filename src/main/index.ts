@@ -1,12 +1,12 @@
 import { app, BrowserWindow, dialog, ipcMain, Rectangle, screen, shell } from 'electron';
 
-import { TrackAudioAfv, AfvEventTypes } from 'trackaudio-afv';
-import Store from 'electron-store';
+import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import * as Sentry from '@sentry/electron/main';
+import Store from 'electron-store';
 import { join } from 'path';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import { AlwaysOnTopMode, Configuration } from './config';
+import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
+import { AlwaysOnTopMode, Configuration } from './config';
 
 Sentry.init({
   dsn: 'https://79ff6300423d5708cae256665d170c4b@o4507193732169728.ingest.de.sentry.io/4507193745145936',
@@ -138,15 +138,6 @@ const toggleMiniMode = () => {
   } else {
     restoreWindowBounds('mini');
   }
-
-  // Set the always on top state
-  if (currentConfiguration.alwaysOnTop === 'inMiniMode') {
-    if (isInMiniMode()) {
-      setAlwaysOnTop(true);
-    } else {
-      setAlwaysOnTop(false);
-    }
-  }
 };
 
 const createWindow = (): void => {
@@ -220,6 +211,21 @@ const createWindow = (): void => {
     ) {
       toggleMiniMode();
       e.preventDefault();
+    }
+  });
+
+  mainWindow.on('resize', () => {
+    // Issue 129: Set the always on top state on any resize, not
+    // just when the mini-mode button is pressed. The resize event
+    // gets fired every time the window size changes, including on toggle
+    // button press, so this one handler is sufficient to cover all
+    // resize cases.
+    if (currentConfiguration.alwaysOnTop === 'inMiniMode') {
+      if (isInMiniMode()) {
+        setAlwaysOnTop(true);
+      } else {
+        setAlwaysOnTop(false);
+      }
     }
   });
 };
