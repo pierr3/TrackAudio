@@ -43,7 +43,7 @@ public:
         mClient->SetRx(newState.frequency, newState.rx);
         mClient->SetRadioGainAll(UserSession::currentRadioGain);
 
-        if (UserSession::isATC) {
+        if (UserSession::xy) {
             mClient->SetTx(newState.frequency, newState.tx);
             mClient->SetXc(newState.frequency, newState.xc);
             mClient->SetCrossCoupleAcross(newState.frequency, newState.xca);
