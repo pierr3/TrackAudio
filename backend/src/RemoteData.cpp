@@ -115,8 +115,12 @@ bool RemoteData::parseSlurper(const std::string& sluper_data)
             isPilot = true;
         }
 
-        ConnectionInfo connection
-            = { .callsign = res[1], .res3 = res[3], .res2 = res[2], .lat = res[5], .lon = res[6] };
+        ConnectionInfo connection;
+        connection.callsign = res[1];
+        connection.res3 = res[3];
+        connection.res2 = res[2];
+        connection.lat = res[5];
+        connection.lon = res[6];
 
         connections.emplace(getPyx_00z(isPilot, res[1]), connection);
     }
