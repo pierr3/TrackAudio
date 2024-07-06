@@ -113,3 +113,4 @@ dist/
 
 # Sentry Config File
 .sentryclirc
+temp.sh

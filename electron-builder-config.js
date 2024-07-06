@@ -38,9 +38,7 @@ module.exports = {
   },
   mac: {
     entitlementsInherit: 'build/entitlements.mac.plist',
-    notarize: {
-      teamId: process.env.APPLE_TEAM_ID
-    },
+    notarize: true,
     extraFiles: [
       {
         from: 'resources/',
@@ -68,10 +66,6 @@ module.exports = {
     artifactName: '${name}-${version}-${arch}.${ext}'
   },
   npmRebuild: false,
-  publish: {
-    provider: 'generic',
-    url: 'https://example.com/auto-updates'
-  },
   electronDownload: {
     mirror: 'https://npmmirror.com/mirrors/electron/'
   }
