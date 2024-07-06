@@ -19,8 +19,8 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 project(trackaudio-afv)
 
-# Set the C++ standard to C++20
-set(CMAKE_CXX_STANDARD 20)
+# Set the C++ standard to C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT=1)
