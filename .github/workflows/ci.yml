@@ -57,14 +57,12 @@ jobs:
         run: |
           brew update
           brew upgrade cmake
-          brew install boost
           cmake --version
 
       - name: Install SFML native dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libboost-all-dev
           sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
 
       - name: Install dependencies
