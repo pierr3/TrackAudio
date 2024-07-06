@@ -50,6 +50,7 @@ jobs:
         run: |
           brew update
           brew upgrade cmake
+          brew install boost
           cmake --version
 
       - name: Installing codesign certificates
@@ -63,6 +64,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x64'
         run: |
           sudo apt-get update
+          sudo apt-get install -y libboost-all-dev
           sudo apt-get install -y desktop-file-utils libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
 
       - name: Replace repositories with amd64 and arm64 repositories
