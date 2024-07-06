@@ -3,7 +3,8 @@ import React, { useEffect } from 'react';
 import useErrorStore from '../store/errorStore';
 import useSound from 'use-sound';
 
-import errorSfx from '../assets/md80_error.mp3';
+// @ts-expect-error idk this is weird
+import errorSfx from "../assets/md80_error.mp3";
 
 const ErrorDialog: React.FC = () => {
   const errorStore = useErrorStore((state) => state);

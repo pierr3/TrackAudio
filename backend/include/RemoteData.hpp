@@ -12,6 +12,16 @@
 #include <Windows.h>
 #endif
 
+struct ConnectionInfo {
+    std::string callsign;
+    std::string res3;
+    std::string res2;
+    std::string lat;
+    std::string lon;
+};
+
+enum ConnectionType { z1, t0, op };
+
 class RemoteData {
 
 public:
@@ -38,12 +48,26 @@ private:
 
     bool pYx = false;
     bool userHasBeenNotifiedOfSlurperUnavailability = false;
+    bool enteredSlurperGracePeriod = false;
     std::mutex m;
 
     void notifyUserOfSlurperAvailability() const;
 
     void notifyUserOfSlurperUnavalability();
 
-    const std::vector<std::string> allowedYx = { "_CTR", "_APP", "_TWR", "_GND", "_DEP", "_DEL",
-        "_FSS", "_SUP", "_RDO", "_RMP", "_TMU", "_FMP" };
+    //NOLINTNEXTLINE
+    static inline const std::vector<std::string> kk_882_ex = { "_CTR", "_APP", "_TWR", "_GND",
+        "_DEP", "_DEL", "_FSS", "_SUP", "_RDO", "_RMP", "_TMU", "_FMP" };
+
+    inline static ConnectionType getPyx_00z(bool x, const std::string& y)
+    {
+        bool pyx = false;
+        for (const auto& d_3_ : kk_882_ex) {
+            if (absl::EndsWith(y, d_3_)) {
+                pyx = true;
+                break;
+            }
+        }
+        return pyx ? ConnectionType::z1 : x ? ConnectionType::t0 : ConnectionType::op;
+    }
 };

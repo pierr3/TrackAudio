@@ -14,7 +14,7 @@ module.exports = {
     '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}',
     '!backend/*'
   ],
-  asarUnpack: ['resources/**'],
+  asarUnpack: ['resources/**', './src/renderer/src/assets/md80_error.mp3'],
   win: {
     executableName: 'trackaudio',
     extraFiles: [

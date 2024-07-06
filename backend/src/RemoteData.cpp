@@ -1,6 +1,8 @@
 #include "RemoteData.hpp"
 #include "Helpers.hpp"
 #include "Shared.hpp"
+#include <absl/strings/match.h>
+#include <map>
 
 RemoteData::RemoteData()
     : timer(static_cast<long>(3 * 1000), static_cast<long>(TIMER_CALLBACK_INTERVAL_SEC * 1000))
@@ -14,6 +16,10 @@ void RemoteData::onTimer(Poco::Timer& /*timer*/)
     auto previousCallsign = UserSession::callsign;
     try {
         auto slurperData = getSlurperData();
+        if (slurperData.empty() && enteredSlurperGracePeriod) {
+            return; // We are in the grace period, we await another pass to see if the slurper will
+                    // be back
+        }
         auto isConnected = parseSlurper(slurperData);
         updateSessionStatus(previousCallsign, isConnected);
     } catch (const std::exception& ex) {
@@ -35,16 +41,30 @@ std::string RemoteData::getSlurperData()
 
     if (!res) {
         // Notify the client the slurper is offline
+        if (!enteredSlurperGracePeriod) {
+            enteredSlurperGracePeriod = true;
+            TRACK_LOG_ERROR("Cannot get data from the slurper. Giving it one more try");
+            return "";
+        }
         RemoteDataStatus::isSlurperAvailable = false;
         TRACK_LOG_ERROR("Cannot get data from the slurper. Object is null.");
         notifyUserOfSlurperUnavalability();
+        enteredSlurperGracePeriod = false;
         return "";
     }
 
     if (res->status != httplib::StatusCode::OK_200) {
+        if (!enteredSlurperGracePeriod) {
+            enteredSlurperGracePeriod = true;
+            TRACK_LOG_ERROR(
+                "Slurper returned an HTTP error {}. Giving it one more try", res->status);
+            return "";
+        }
+
         RemoteDataStatus::isSlurperAvailable = false;
         TRACK_LOG_ERROR("Slurper returned an HTTP error {}", res->status);
         notifyUserOfSlurperUnavalability();
+        enteredSlurperGracePeriod = false;
         return "";
     }
 
@@ -54,6 +74,7 @@ std::string RemoteData::getSlurperData()
         notifyUserOfSlurperAvailability();
         userHasBeenNotifiedOfSlurperUnavailability = false;
         TRACK_LOG_INFO("Slurper is back online.");
+        enteredSlurperGracePeriod = false;
     }
 
     return res->body;
@@ -66,79 +87,77 @@ bool RemoteData::parseSlurper(const std::string& sluper_data)
     }
 
     auto lines = absl::StrSplit(sluper_data, '\n');
-    std::string callsign;
-    std::string res3;
-    std::string res2;
-    std::string lat;
-    std::string lon;
-    bool foundNotAtisConnection = false;
+
+    std::multimap<ConnectionType, ConnectionInfo> connections;
 
     for (const auto& line : lines) {
         pYx = false;
+        bool isPilot = false;
         if (line.empty()) {
             continue;
         }
 
         std::vector<std::string> res = absl::StrSplit(line, ',');
 
-        if (absl::EndsWith(res[1], "_ATIS")) {
-            continue; // Ignore ATIS connections
+        if (res.size() < 7) {
+            continue;
         }
 
-        foundNotAtisConnection = true;
-
-        for (const auto& yxTest : allowedYx) {
-            if (absl::EndsWith(res[1], yxTest)) {
-                pYx = true;
-                break;
-            }
+        if (absl::EndsWith(res[2], "_ATIS")) {
+            continue;
         }
 
-        callsign = res[1];
-        res3 = res[3];
-        res2 = res[2];
+        if (res[2] == "DCLIENT3") {
+            continue;
+        }
 
-        lat = res[5];
-        lon = res[6];
+        if (res[3] == "pilot") {
+            isPilot = true;
+        }
 
-        break;
+        ConnectionInfo connection
+            = { .callsign = res[1], .res3 = res[3], .res2 = res[2], .lat = res[5], .lon = res[6] };
+
+        connections.emplace(getPyx_00z(isPilot, res[1]), connection);
     }
 
-    if (callsign == "DCLIENT3") {
+    if (connections.empty()) {
         return false;
     }
 
-    if (!foundNotAtisConnection) {
-        TRACK_LOG_WARNING("No active connection found in the slurper data, but "
-                          "ATIS connections are present.");
+    auto it1 = connections.find(ConnectionType::z1);
+    auto it2 = connections.find(ConnectionType::op);
+    if (it1 == connections.end() && it2 == connections.end()) {
         return false;
     }
+
+    if (it1 == connections.end()) {
+        it1 = it2;
+    }
+
+    std::string res3 = it1->second.res3;
 
     res3.erase(std::remove(res3.begin(), res3.end(), '.'), res3.end());
     // NOLINTNEXTLINE Handled above in the try catch block
     int u334 = std::atoi(res3.c_str()) * 1000;
-    int k422 = std::stoi(res2, nullptr, 16) == 10 && pYx ? 1 : 0;
-
-    k422 = (u334 != OBS_FREQUENCY || absl::StrContains("_M_", callsign)) && k422 == 1 ? 1
-        : k422 == 1 && absl::EndsWith(callsign, "_SUP")                               ? 1
-                                                                                      : 0;
 
     auto cleanedFrequency = Helpers::CleanUpFrequency(u334);
-    if (UserSession::callsign == callsign && UserSession::frequency == cleanedFrequency
-        && UserSession::isATC == (k422 == 1) && UserSession::lat == std::stod(lat)
-        && UserSession::lon == std::stod(lon)) {
+    if (UserSession::callsign == it1->second.callsign && UserSession::frequency == cleanedFrequency
+        && UserSession::xy == (it1->first == ConnectionType::z1)
+        && UserSession::lat == std::stod(it1->second.lat)
+        && UserSession::lon == std::stod(it1->second.lon)) {
         return true; // No changes
     }
-
     // Update the session info
-    UserSession::callsign = callsign;
+    UserSession::callsign = it1->second.callsign;
     UserSession::frequency = cleanedFrequency;
-    UserSession::isATC = k422 == 1;
-    UserSession::lat = std::stod(lat);
-    UserSession::lon = std::stod(lon);
-    TRACK_LOG_INFO("Updating session data - Callsign: {}, Frequency: {}, ATC: {}, Latitude: "
+    UserSession::xy = (it1->first == ConnectionType::z1);
+    UserSession::lat = std::stod(it1->second.lat);
+    UserSession::lon = std::stod(it1->second.lon);
+    TRACK_LOG_INFO("Updating session data - Callsign: {}, Frequency: {}, xx: {}, Latitude: "
                    "{}, Longitude: {}",
-        callsign, UserSession::frequency, k422, UserSession::lat, UserSession::lon);
+        UserSession::callsign, UserSession::frequency, static_cast<int>(UserSession::xy),
+        UserSession::lat, UserSession::lon);
     return true;
 }
 
@@ -158,7 +177,7 @@ void RemoteData::updateSessionStatus(std::string previousCallsign, bool isConnec
         // We are now connected to the network
         // We update the session state
         std::string callsign = UserSession::callsign;
-        std::string isatc = UserSession::isATC ? "1" : "0";
+        std::string isatc = UserSession::xy ? "1" : "0";
         std::string combinedString = isatc + "," + std::to_string(UserSession::frequency);
 
         NapiHelpers::callElectron("network-connected", callsign, combinedString);
@@ -175,7 +194,7 @@ void RemoteData::updateSessionStatus(std::string previousCallsign, bool isConnec
         }
 
         UserSession::isConnectedToTheNetwork = false;
-        UserSession::isATC = false;
+        UserSession::xy = false;
         UserSession::callsign = "";
 
         NapiHelpers::callElectron("network-disconnected");
