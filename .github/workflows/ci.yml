@@ -75,4 +75,7 @@ jobs:
         run: npm run lint
 
       - name: Build and package
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:${{ matrix.platform }}
