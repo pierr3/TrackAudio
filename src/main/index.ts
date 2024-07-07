@@ -1,12 +1,12 @@
 import { app, BrowserWindow, dialog, ipcMain, Rectangle, screen, shell } from 'electron';
 
-import { TrackAudioAfv, AfvEventTypes } from 'trackaudio-afv';
-import Store from 'electron-store';
+import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import * as Sentry from '@sentry/electron/main';
+import Store from 'electron-store';
 import { join } from 'path';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import { AlwaysOnTopMode, Configuration } from './config';
+import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
+import { AlwaysOnTopMode, Configuration } from './config';
 
 Sentry.init({
   dsn: 'https://79ff6300423d5708cae256665d170c4b@o4507193732169728.ingest.de.sentry.io/4507193745145936',
@@ -37,6 +37,19 @@ let currentConfiguration: Configuration = {
   consentedToTelemetry: undefined
 };
 const store = new Store();
+
+/**
+ * Sets the always on top state for the main window, with different
+ * options depending on the platform the app is running on.
+ * @param onTop True if the window should be always on top. False otherwise.
+ */
+const setAlwaysOnTop = (onTop: boolean) => {
+  if (process.platform === 'win32') {
+    mainWindow.setAlwaysOnTop(onTop, 'normal');
+  } else {
+    mainWindow.setAlwaysOnTop(onTop);
+  }
+};
 
 /**
  * Checks to see if the window is in mini-mode.
@@ -125,15 +138,6 @@ const toggleMiniMode = () => {
   } else {
     restoreWindowBounds('mini');
   }
-
-  // Set the always on top state
-  if (currentConfiguration.alwaysOnTop === 'inMiniMode') {
-    if (isInMiniMode()) {
-      mainWindow.setAlwaysOnTop(true, 'normal');
-    } else {
-      mainWindow.setAlwaysOnTop(false, 'normal');
-    }
-  }
 };
 
 const createWindow = (): void => {
@@ -154,7 +158,7 @@ const createWindow = (): void => {
     }
   });
 
-  mainWindow.setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false, 'normal');
+  setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false);
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
@@ -207,6 +211,21 @@ const createWindow = (): void => {
     ) {
       toggleMiniMode();
       e.preventDefault();
+    }
+  });
+
+  mainWindow.on('resize', () => {
+    // Issue 129: Set the always on top state on any resize, not
+    // just when the mini-mode button is pressed. The resize event
+    // gets fired every time the window size changes, including on toggle
+    // button press, so this one handler is sufficient to cover all
+    // resize cases.
+    if (currentConfiguration.alwaysOnTop === 'inMiniMode') {
+      if (isInMiniMode()) {
+        setAlwaysOnTop(true);
+      } else {
+        setAlwaysOnTop(false);
+      }
     }
   });
 };
@@ -312,7 +331,7 @@ ipcMain.on('set-always-on-top', (_, state: AlwaysOnTopMode) => {
   // The test for 'always' is sufficient to handle all current cases because it is impossible to change settings
   // while in mini-mode. It's only necessary to check and see if the setting was changed to always, and if so,
   // enable on top mode. mini mode handles setting this itself.
-  mainWindow.setAlwaysOnTop(state === 'always', 'normal');
+  setAlwaysOnTop(state === 'always');
   currentConfiguration.alwaysOnTop = state;
   saveConfig();
 });
