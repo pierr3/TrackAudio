@@ -356,6 +356,10 @@ ipcMain.handle('request-ptt-key-name', () => {
   TrackAudioAfv.RequestPttKeyName();
 });
 
+ipcMain.handle('flashFrame', () => {
+  mainWindow.flashFrame(true);
+});
+
 //
 // AFV audio settings
 //
