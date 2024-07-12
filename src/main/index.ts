@@ -23,7 +23,9 @@ const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
 const defaultMiniModeWidth = 300; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
 
-let currentConfiguration: Configuration = {
+// Default application configuration. Used as a fallback when any of the properties
+// are missing from the saved configuration.
+const defaultConfiguration = {
   audioApi: -1,
   audioInputDeviceId: '',
   headsetOutputDeviceId: '',
@@ -36,6 +38,9 @@ let currentConfiguration: Configuration = {
   alwaysOnTop: 'never',
   consentedToTelemetry: undefined
 };
+
+let currentConfiguration: Configuration;
+
 const store = new Store();
 
 /**
@@ -69,12 +74,12 @@ const saveConfig = () => {
 
 const setAudioSettings = () => {
   TrackAudioAfv.SetAudioSettings(
-    currentConfiguration.audioApi || -1,
-    currentConfiguration.audioInputDeviceId || '',
-    currentConfiguration.headsetOutputDeviceId || '',
-    currentConfiguration.speakerOutputDeviceId || ''
+    currentConfiguration.audioApi,
+    currentConfiguration.audioInputDeviceId,
+    currentConfiguration.headsetOutputDeviceId,
+    currentConfiguration.speakerOutputDeviceId
   );
-  TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType || 0);
+  TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType);
 };
 
 /**
@@ -239,8 +244,19 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
   });
-  // load the configuration
-  currentConfiguration = JSON.parse(store.get('configuration', '{}') as string) as Configuration;
+
+  // Load the saved configuration. This may be missing properties, typically because there was no
+  // saved configuration.
+  const storedConfiguration = JSON.parse(
+    store.get('configuration', '{}') as string
+  ) as Configuration;
+
+  // Apply the default configuration then override the defaults with any saved configuration
+  // values. Spread operator is the best operator.
+  currentConfiguration = {
+    ...defaultConfiguration,
+    ...storedConfiguration
+  };
 
   // Upgrade the alwaysOnTop property from yes/no to the three mode version
   if (typeof currentConfiguration.alwaysOnTop === 'boolean') {
@@ -354,6 +370,10 @@ ipcMain.handle('get-configuration', () => {
 
 ipcMain.handle('request-ptt-key-name', () => {
   TrackAudioAfv.RequestPttKeyName();
+});
+
+ipcMain.handle('flashFrame', () => {
+  mainWindow.flashFrame(true);
 });
 
 //
