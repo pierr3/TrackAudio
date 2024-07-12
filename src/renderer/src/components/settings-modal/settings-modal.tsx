@@ -57,7 +57,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       .catch((err: unknown) => {
         console.error(err);
       });
+  }, []);
 
+  useEffect(() => {
+    if (!config.audioApi && config.audioApi !== 0) {
+      return;
+    }
     window.api
       .getAudioApis()
       .then((apis: AudioApi[]) => {
