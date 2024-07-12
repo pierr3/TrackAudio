@@ -4,6 +4,7 @@
   "compilerOptions": {
     "sourceMap": true,
     "composite": true,
+    "strictNullChecks": true,
     "types": ["electron-vite/node"]
   }
 }

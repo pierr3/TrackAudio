@@ -4,11 +4,12 @@ import useErrorStore from '../store/errorStore';
 import useSound from 'use-sound';
 
 // @ts-expect-error idk this is weird
-import errorSfx from "../assets/md80_error.mp3";
+import errorSfx from '../assets/md80_error.mp3';
 
 const ErrorDialog: React.FC = () => {
   const errorStore = useErrorStore((state) => state);
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const [play] = useSound(errorSfx);
 
   useEffect(() => {

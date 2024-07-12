@@ -11,6 +11,7 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "composite": true,
+    "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
       "@renderer/*": [
