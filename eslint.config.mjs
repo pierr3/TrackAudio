@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint';
 export default [
   {
     files: ['src/**/*.{tsx,ts,js,jsx}'],
-    languageOptions: { globals: { ...globals.browser, ...globals.node } }
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node }
+    }
   },
   {
     ignores: [
@@ -24,11 +26,22 @@ export default [
       'tests/**/*',
       'mocks/**/*',
       'docs/**/*',
-      '*-config.js'
+      '*-config.js',
+      'eslint.config.mjs'
     ]
   },
   pluginJs.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  ...tseslint.configs.strictTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+        project: ['./tsconfig.web.json', './tsconfig.node.json']
+      }
+    }
+  },
   pluginReactConfig,
   {
     settings: { react: { version: 'detect' } },

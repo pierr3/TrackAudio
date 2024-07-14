@@ -166,7 +166,10 @@ const createWindow = (): void => {
   setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false);
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
+    shell.openExternal(details.url).catch((e: unknown) => {
+      const err = e as Error;
+      console.log(`Error opening window: ${err.message}`);
+    });
     return { action: 'deny' };
   });
 
@@ -179,10 +182,16 @@ const createWindow = (): void => {
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
+  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL).catch((e: unknown) => {
+      const err = e as Error;
+      console.error(`Unable to load main UI: ${err.message}`);
+    });
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html')).catch((e: unknown) => {
+      const err = e as Error;
+      console.error(`Unable to load main UI: ${err.message}`);
+    });
   }
 
   // Open the DevTools only in development mode.
@@ -238,93 +247,99 @@ const createWindow = (): void => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron');
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window);
+app
+  .whenReady()
+  .then(() => {
+    // Set app user model id for windows
+    electronApp.setAppUserModelId('com.electron');
+    app.on('browser-window-created', (_, window) => {
+      optimizer.watchWindowShortcuts(window);
+    });
+
+    // Load the saved configuration. This may be missing properties, typically because there was no
+    // saved configuration.
+    const storedConfiguration = JSON.parse(
+      store.get('configuration', '{}') as string
+    ) as Configuration;
+
+    // Apply the default configuration then override the defaults with any saved configuration
+    // values. Spread operator is the best operator.
+    currentConfiguration = {
+      ...defaultConfiguration,
+      ...storedConfiguration
+    };
+
+    // Upgrade the alwaysOnTop property from yes/no to the three mode version
+    if (typeof currentConfiguration.alwaysOnTop === 'boolean') {
+      currentConfiguration.alwaysOnTop
+        ? (currentConfiguration.alwaysOnTop = 'always')
+        : (currentConfiguration.alwaysOnTop = 'never');
+
+      saveConfig();
+    }
+
+    if (currentConfiguration.consentedToTelemetry === undefined) {
+      // We have not recorded any telemetry consent yet, so we will prompt the user
+      const response = dialog.showMessageBoxSync(mainWindow, {
+        type: 'question',
+        buttons: ['I consent to telemetry', 'I want to opt out'],
+        title: 'Telemetry consent',
+        detail:
+          'Only essential information from the crash report is sent, and no data leaves your device unless an error occurs. We do not record your IP address or VATSIM password. Your data would be sent to a third-party service, Sentry, to their servers located in Germany. This is entirely optional, but greatly assists in tracking down errors.',
+        message:
+          'TrackAudio utilizes remote telemetry in the event of a bug, sending an error report to a tool called Sentry.'
+      });
+
+      if (response === 0) {
+        currentConfiguration.consentedToTelemetry = true;
+      } else {
+        currentConfiguration.consentedToTelemetry = false;
+      }
+      saveConfig();
+    }
+
+    if (currentConfiguration.consentedToTelemetry) {
+      console.log('User opted into telemetry, enabling sentry');
+      const sclient = Sentry.getClient();
+      if (sclient) {
+        // Disable sentry in debug always
+        sclient.getOptions().enabled = !app.isPackaged
+          ? false
+          : currentConfiguration.consentedToTelemetry;
+      } else {
+        console.error('Could not enable sentry');
+      }
+    }
+
+    const bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
+
+    if (bootstrapOutput.needUpdate) {
+      dialog.showMessageBoxSync({
+        type: 'error',
+        message: 'A new mandatory version is available, please update in order to continue.',
+        buttons: ['OK']
+      });
+      app.quit();
+    }
+
+    if (!bootstrapOutput.canRun) {
+      dialog.showMessageBoxSync({
+        type: 'error',
+        message:
+          'This application has experienced an error and cannot run, please check the logs for more information.',
+        buttons: ['OK']
+      });
+      app.quit();
+    }
+
+    version = bootstrapOutput.version;
+
+    createWindow();
+  })
+  .catch((e: unknown) => {
+    const err = e as Error;
+    console.log(`Error initializing app: ${err.message}`);
   });
-
-  // Load the saved configuration. This may be missing properties, typically because there was no
-  // saved configuration.
-  const storedConfiguration = JSON.parse(
-    store.get('configuration', '{}') as string
-  ) as Configuration;
-
-  // Apply the default configuration then override the defaults with any saved configuration
-  // values. Spread operator is the best operator.
-  currentConfiguration = {
-    ...defaultConfiguration,
-    ...storedConfiguration
-  };
-
-  // Upgrade the alwaysOnTop property from yes/no to the three mode version
-  if (typeof currentConfiguration.alwaysOnTop === 'boolean') {
-    currentConfiguration.alwaysOnTop
-      ? (currentConfiguration.alwaysOnTop = 'always')
-      : (currentConfiguration.alwaysOnTop = 'never');
-
-    saveConfig();
-  }
-
-  if (currentConfiguration.consentedToTelemetry === undefined) {
-    // We have not recorded any telemetry consent yet, so we will prompt the user
-    const response = dialog.showMessageBoxSync(mainWindow, {
-      type: 'question',
-      buttons: ['I consent to telemetry', 'I want to opt out'],
-      title: 'Telemetry consent',
-      detail:
-        'Only essential information from the crash report is sent, and no data leaves your device unless an error occurs. We do not record your IP address or VATSIM password. Your data would be sent to a third-party service, Sentry, to their servers located in Germany. This is entirely optional, but greatly assists in tracking down errors.',
-      message:
-        'TrackAudio utilizes remote telemetry in the event of a bug, sending an error report to a tool called Sentry.'
-    });
-
-    if (response === 0) {
-      currentConfiguration.consentedToTelemetry = true;
-    } else {
-      currentConfiguration.consentedToTelemetry = false;
-    }
-    saveConfig();
-  }
-
-  if (currentConfiguration.consentedToTelemetry) {
-    console.log('User opted into telemetry, enabling sentry');
-    const sclient = Sentry.getClient();
-    if (sclient) {
-      // Disable sentry in debug always
-      sclient.getOptions().enabled = !app.isPackaged
-        ? false
-        : currentConfiguration.consentedToTelemetry;
-    } else {
-      console.error('Could not enable sentry');
-    }
-  }
-
-  const bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
-
-  if (bootstrapOutput.needUpdate) {
-    dialog.showMessageBoxSync({
-      type: 'error',
-      message: 'A new mandatory version is available, please update in order to continue.',
-      buttons: ['OK']
-    });
-    app.quit();
-  }
-
-  if (!bootstrapOutput.canRun) {
-    dialog.showMessageBoxSync({
-      type: 'error',
-      message:
-        'This application has experienced an error and cannot run, please check the logs for more information.',
-      buttons: ['OK']
-    });
-    app.quit();
-  }
-
-  version = bootstrapOutput.version;
-
-  createWindow();
-});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -333,8 +348,8 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
-app.on('quit', async () => {
-  await TrackAudioAfv.Exit();
+app.on('quit', () => {
+  TrackAudioAfv.Exit();
 });
 
 /**
