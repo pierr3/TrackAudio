@@ -1,3 +1,4 @@
+#include "LogFactory.h"
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
 #include "afv-native/hardwareType.h"
@@ -636,29 +637,6 @@ void CreateLogFolders()
     }
 }
 
-void CreateLoggers()
-{
-    auto max_size = 1048576 * 5;
-    auto max_files = 3;
-    auto fileName = FileSystem::GetStateFolderPath() / "trackaudio.log";
-
-    auto trackaudio_logger
-        = spdlog::rotating_logger_mt("trackaudio_logger", fileName.string(), max_size, max_files);
-
-    spdlog::set_default_logger(trackaudio_logger);
-    auto afv_logger
-        = spdlog::rotating_logger_mt("afv_logger", fileName.string(), max_size, max_files);
-
-    // NOLINTNEXTLINE this cannot be solved here but in afv
-    afv_native::api::setLogger(
-        // NOLINTNEXTLINE
-        [&](std::string subsystem, std::string file, int line, std::string lineOut) {
-            auto strippedFiledName = file.substr(file.find_last_of('/') + 1);
-            spdlog::get("afv_logger")
-                ->info("{}:{}:{}: {}", subsystem, strippedFiledName, line, lineOut);
-        });
-}
-
 bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
 {
     // We force do a mandatory version check, if an update is needed, the
@@ -694,7 +672,7 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
 Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 {
     auto outObject = Napi::Object::New(info.Env());
-    CreateLoggers();
+    LogFactory::createLoggers();
 
     outObject["version"] = Napi::String::New(info.Env(), VERSION.to_string());
     outObject["canRun"] = Napi::Boolean::New(info.Env(), true);
@@ -742,7 +720,7 @@ Napi::Boolean Exit(const Napi::CallbackInfo& info)
     MainThreadShared::inputHandler.reset();
 
     mClient.reset();
-    spdlog::shutdown();
+    LogFactory::destroyLoggers();
 
     return Napi::Boolean::New(info.Env(), true);
 }
