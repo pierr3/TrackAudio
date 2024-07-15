@@ -249,20 +249,48 @@ void SDK::handleSetStationState(const nlohmann::json json)
         return;
     }
 
+    TRACK_LOG_INFO("handleSetStationState received {}", json.dump(4));
+
     RadioState radioState;
     auto frequency = json["value"]["frequency"];
 
     radioState.frequency = frequency;
-    radioState.rx = Helpers::ConvertBoolOrToggleToBool(
-        json["value"]["rx"], mClient->GetRxState(radioState.frequency));
-    radioState.tx = Helpers::ConvertBoolOrToggleToBool(
-        json["value"]["tx"], mClient->GetTxState(radioState.frequency));
-    radioState.xc
-        = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], mClient->GetXcState(frequency));
-    radioState.xca = Helpers::ConvertBoolOrToggleToBool(
-        json["value"]["xca"], mClient->GetCrossCoupleAcrossState(frequency));
-    radioState.headset = Helpers::ConvertBoolOrToggleToBool(
-        json["value"]["headset"], mClient->GetOnHeadset(frequency));
+
+    auto currentValue = mClient->GetRxState(frequency);
+    if (json["value"].contains("rx")) {
+        radioState.rx = Helpers::ConvertBoolOrToggleToBool(json["value"]["rx"], currentValue);
+    } else {
+        radioState.rx = currentValue;
+    }
+
+    currentValue = mClient->GetTxState(frequency);
+    if (json["value"].contains("tx")) {
+        radioState.tx = Helpers::ConvertBoolOrToggleToBool(json["value"]["tx"], currentValue);
+    } else {
+        radioState.tx = currentValue;
+    }
+
+    currentValue = mClient->GetXcState(frequency);
+    if (json["value"].contains("xc")) {
+        radioState.xc = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], currentValue);
+    } else {
+        radioState.xc = currentValue;
+    }
+
+    currentValue = mClient->GetCrossCoupleAcrossState(frequency);
+    if (json["value"].contains("xca")) {
+        radioState.xca = Helpers::ConvertBoolOrToggleToBool(json["value"]["xca"], currentValue);
+    } else {
+        radioState.xca = currentValue;
+    }
+
+    currentValue = mClient->GetOnHeadset(frequency);
+    if (json["value"].contains("headset")) {
+        radioState.headset
+            = Helpers::ConvertBoolOrToggleToBool(json["value"]["headset"], currentValue);
+    } else {
+        radioState.headset = currentValue;
+    }
 
     RadioHelper::SetRadioState(this, radioState);
 }

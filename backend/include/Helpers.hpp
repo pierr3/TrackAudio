@@ -55,18 +55,30 @@ public:
     inline static bool ConvertBoolOrToggleToBool(
         const nlohmann::json& incomingValue, bool currentValue)
     {
-        if (incomingValue.is_boolean()) {
-            TRACK_LOG_TRACE("Received a boolean, returning it: {}", incomingValue.dump());
-            return incomingValue.get<bool>();
-        } else if (incomingValue.is_string() && incomingValue.get<std::string>() == "toggle") {
-            TRACK_LOG_TRACE("Received \"toggle\", returning {}, the inverse of {}", !currentValue,
+        if (incomingValue.is_null()) {
+            TRACK_LOG_INFO("ConvertBoolOrToggleToBool: Incoming value wasn't specified, returning "
+                           "current value {}",
                 currentValue);
-            return !currentValue;
-        } else {
-            TRACK_LOG_TRACE("Invalid value for boolean property: {}, returning {}",
-                incomingValue.dump(), currentValue);
             return currentValue;
         }
+
+        if (incomingValue.is_boolean()) {
+            TRACK_LOG_INFO("ConvertBoolOrToggleToBool: Received a boolean, returning it: {}",
+                incomingValue.dump());
+            return incomingValue.get<bool>();
+        }
+
+        if (incomingValue.is_string() && incomingValue.get<std::string>() == "toggle") {
+            TRACK_LOG_INFO(
+                "ConvertBoolOrToggleToBool: Received \"toggle\", returning {}, the inverse of {}",
+                !currentValue, currentValue);
+            return !currentValue;
+        }
+
+        TRACK_LOG_INFO("ConvertBoolOrToggleToBool: Invalid value, type is {} for boolean property: "
+                       "{}, returning {}",
+            incomingValue.type_name(), incomingValue.dump(), currentValue);
+        return currentValue;
     }
 };
 
