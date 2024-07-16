@@ -32,6 +32,8 @@ enum Event {
     kFrequencyStateUpdate,
     kDisconnectFrequencyStateUpdate,
     kStationStateUpdated,
+    kVoiceConnected,
+    kVoiceDisconnected
 };
 }
 

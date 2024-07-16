@@ -54,6 +54,22 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz)
 {
 
+    if (event == sdk::types::Event::kVoiceConnected) {
+        nlohmann::json jsonMessage
+            = WebsocketMessage::buildMessage(WebsocketMessageType::kVoiceConnected);
+
+        this->broadcastOnWebsocket(jsonMessage.dump());
+        return;
+    }
+
+    if (event == sdk::types::Event::kVoiceDisconnected) {
+        nlohmann::json jsonMessage
+            = WebsocketMessage::buildMessage(WebsocketMessageType::kVoiceDisconnected);
+
+        this->broadcastOnWebsocket(jsonMessage.dump());
+        return;
+    }
+
     if (event == sdk::types::Event::kDisconnectFrequencyStateUpdate) {
         nlohmann::json jsonMessage
             = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyStateUpdate);

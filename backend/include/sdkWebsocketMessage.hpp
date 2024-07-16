@@ -13,17 +13,24 @@ enum class WebsocketMessageType {
     kTxEnd,
     kFrequencyStateUpdate,
     kStationStateUpdate,
-    kStationStates
+    kStationStates,
+    kVoiceConnected,
+    kVoiceDisconnected
 };
 
 inline const std::map<WebsocketMessageType, std::string>& getWebsocketMessageTypeMap()
 {
     static const std::map<WebsocketMessageType, std::string> kWebsocketMessageTypeMap {
-        { WebsocketMessageType::kRxBegin, "kRxBegin" }, { WebsocketMessageType::kRxEnd, "kRxEnd" },
-        { WebsocketMessageType::kTxBegin, "kTxBegin" }, { WebsocketMessageType::kTxEnd, "kTxEnd" },
+        { WebsocketMessageType::kRxBegin, "kRxBegin" },
+        { WebsocketMessageType::kRxEnd, "kRxEnd" },
+        { WebsocketMessageType::kTxBegin, "kTxBegin" },
+        { WebsocketMessageType::kTxEnd, "kTxEnd" },
         { WebsocketMessageType::kFrequencyStateUpdate, "kFrequencyStateUpdate" },
         { WebsocketMessageType::kStationStates, "kStationStates" },
-        { WebsocketMessageType::kStationStateUpdate, "kStationStateUpdate" }
+        { WebsocketMessageType::kStationStateUpdate, "kStationStateUpdate" },
+        { WebsocketMessageType::kVoiceConnected, "kVoiceConnected" },
+        { WebsocketMessageType::kVoiceDisconnected, "kVoiceDisconnected" },
+
     };
     return kWebsocketMessageTypeMap;
 }

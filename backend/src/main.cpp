@@ -398,10 +398,14 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
 
     if (eventType == afv_native::ClientEventType::VoiceServerConnected) {
         NapiHelpers::callElectron("VoiceConnected");
+        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kVoiceConnected, std::nullopt, std::nullopt);
     }
 
     if (eventType == afv_native::ClientEventType::VoiceServerDisconnected) {
         NapiHelpers::callElectron("VoiceDisconnected");
+        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kVoiceDisconnected, std::nullopt, std::nullopt);
     }
 
     if (eventType == afv_native::ClientEventType::StationTransceiversUpdated) {
