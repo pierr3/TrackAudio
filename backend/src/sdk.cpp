@@ -388,6 +388,10 @@ restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
                         mClient->SetPtt(false);
                         return;
                     }
+                    if (messageType == "kGetVoiceConnectedState") {
+                        this->handleVoiceConnectedEventForWebsocket(mClient->IsVoiceConnected());
+                        return;
+                    }
                 } catch (const std::exception& e) {
                     // Handle JSON parsing error
                     TRACK_LOG_ERROR("Error parsing incoming message JSON: ", e.what());
