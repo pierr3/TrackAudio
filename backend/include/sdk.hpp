@@ -32,8 +32,7 @@ enum Event {
     kFrequencyStateUpdate,
     kDisconnectFrequencyStateUpdate,
     kStationStateUpdated,
-    kVoiceConnected,
-    kVoiceDisconnected
+    kVoiceConnectedState,
 };
 }
 
@@ -54,6 +53,13 @@ public:
      */
     void handleAFVEventForWebsocket(sdk::types::Event event,
         const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz);
+
+    /**
+     * Handles an AFV voiceConnected event for the websocket.
+     *
+     * @param isVoiceConnected True if voice is connected.
+     */
+    void handleVoiceConnectedEventForWebsocket(bool isVoiceConnected);
 
     /**
      * @brief Builds a JSON object for the station state.
