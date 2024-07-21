@@ -28,7 +28,7 @@
 struct MainThreadShared {
 public:
     inline static std::unique_ptr<RemoteData> mRemoteDataHandler = nullptr;
-    inline static std::unique_ptr<SDK> mApiServer = nullptr;
+    inline static std::shared_ptr<SDK> mApiServer = nullptr;
 
     inline static bool ShouldRun = true;
 
@@ -162,7 +162,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     newState.headset = true;
     newState.xca = false;
 
-    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer.get(), newState);
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     return Napi::Boolean::New(info.Env(), result);
 }
 
@@ -177,7 +177,7 @@ void RemoveFrequency(const Napi::CallbackInfo& info)
     newState.headset = false;
     newState.xca = false;
 
-    RadioHelper::SetRadioState(MainThreadShared::mApiServer.get(), newState);
+    RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     mClient->RemoveFrequency(newState.frequency);
 }
 
@@ -195,7 +195,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     newState.headset = !info[4].As<Napi::Boolean>().Value();
     newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
 
-    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer.get(), newState);
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     return Napi::Boolean::New(info.Env(), result);
 }
 
@@ -699,7 +699,7 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
         HandleAfvEvents(eventType, data1, data2);
     });
 
-    MainThreadShared::mApiServer = std::make_unique<SDK>();
+    MainThreadShared::mApiServer = std::make_shared<SDK>();
 
     try {
         MainThreadShared::inputHandler = std::make_unique<InputHandler>();

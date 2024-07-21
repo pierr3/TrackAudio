@@ -36,7 +36,7 @@ enum Event {
 };
 }
 
-class SDK {
+class SDK : public std::enable_shared_from_this<SDK> {
 
 public:
     explicit SDK();

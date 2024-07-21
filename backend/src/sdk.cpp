@@ -301,7 +301,7 @@ void SDK::handleSetStationState(const nlohmann::json json)
         radioState.headset = currentValue;
     }
 
-    RadioHelper::SetRadioState(this, radioState);
+    RadioHelper::SetRadioState(shared_from_this(), radioState);
 }
 
 void SDK::handleGetStationStates()
