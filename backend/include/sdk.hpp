@@ -141,6 +141,13 @@ private:
         const restinio::request_handle_t& req);
 
     /**
+     * Handles an incoming websocket message.
+     *
+     * @param payload The unparsed JSON payload of the incoming message.
+     */
+    void handleIncomingWebSocketRequest(const std::string& payload);
+
+    /**handleIncomingWebSocketRequest
      * Handles the SDK call received in the request.
      *
      * @param req The request handle.

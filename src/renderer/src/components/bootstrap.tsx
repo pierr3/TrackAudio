@@ -47,18 +47,21 @@ const Bootsrap: React.FC = () => {
     window.api.on('station-state-update', (data: string) => {
       const update = JSON.parse(data) as StationStateUpdate;
 
-      useRadioState
+      const radio = useRadioState
         .getState()
-        .radios.filter((radio) => radio.frequency === update.value.frequency)
-        .forEach((radio) => {
-          useRadioState.getState().setRadioState(radio.frequency, {
-            rx: update.value.rx,
-            tx: update.value.tx,
-            xc: update.value.xc,
-            crossCoupleAcross: update.value.xca,
-            onSpeaker: !update.value.headset
-          });
-        });
+        .radios.find((radio) => radio.frequency === update.value.frequency);
+
+      if (!radio) {
+        return;
+      }
+
+      useRadioState.getState().setRadioState(radio.frequency, {
+        rx: update.value.rx,
+        tx: update.value.tx,
+        xc: update.value.xc,
+        crossCoupleAcross: update.value.xca,
+        onSpeaker: !update.value.headset
+      });
     });
 
     window.api.on('FrequencyRxBegin', (frequency: string) => {

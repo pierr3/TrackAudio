@@ -344,6 +344,42 @@ void SDK::publishStationState(const nlohmann::json& state)
     this->broadcastOnWebsocket(state.dump());
 }
 
+void SDK::handleIncomingWebSocketRequest(const std::string& payload)
+{
+    try {
+        auto json = nlohmann::json::parse(payload);
+        std::string messageType = json["type"];
+
+        if (messageType == "kSetStationState") {
+            this->handleSetStationState(std::move(json));
+            return;
+        }
+        if (messageType == "kGetStationStates") {
+            this->handleGetStationStates();
+            return;
+        }
+        if (messageType == "kGetStationState") {
+            this->handleGetStationState(json["value"]["callsign"]);
+            return;
+        }
+        if (messageType == "kPttPressed") {
+            mClient->SetPtt(true);
+            return;
+        }
+        if (messageType == "kPttReleased") {
+            mClient->SetPtt(false);
+            return;
+        }
+        if (messageType == "kGetVoiceConnectedState") {
+            this->handleVoiceConnectedEventForWebsocket(mClient->IsVoiceConnected());
+            return;
+        }
+    } catch (const std::exception& e) {
+        // Handle JSON parsing error
+        TRACK_LOG_ERROR("Error parsing incoming message JSON: ", e.what());
+    }
+}
+
 restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
     const restinio::request_handle_t& req)
 {
@@ -363,39 +399,7 @@ restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
                 // Close connection
                 this->pWsRegistry.erase(wsh->connection_id());
             } else if (restinio::websocket::basic::opcode_t::text_frame == message->opcode()) {
-                std::string payload = message->payload();
-
-                try {
-                    auto json = nlohmann::json::parse(payload);
-                    std::string messageType = json["type"];
-                    if (messageType == "kSetStationState") {
-                        this->handleSetStationState(std::move(json));
-                        return;
-                    }
-                    if (messageType == "kGetStationStates") {
-                        this->handleGetStationStates();
-                        return;
-                    }
-                    if (messageType == "kGetStationState") {
-                        this->handleGetStationState(json["value"]["callsign"]);
-                        return;
-                    }
-                    if (messageType == "kPttPressed") {
-                        mClient->SetPtt(true);
-                        return;
-                    }
-                    if (messageType == "kPttReleased") {
-                        mClient->SetPtt(false);
-                        return;
-                    }
-                    if (messageType == "kGetVoiceConnectedState") {
-                        this->handleVoiceConnectedEventForWebsocket(mClient->IsVoiceConnected());
-                        return;
-                    }
-                } catch (const std::exception& e) {
-                    // Handle JSON parsing error
-                    TRACK_LOG_ERROR("Error parsing incoming message JSON: ", e.what());
-                }
+                this->handleIncomingWebSocketRequest(message->payload());
             }
         });
 
