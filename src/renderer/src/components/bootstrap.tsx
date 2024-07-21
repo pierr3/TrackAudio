@@ -3,6 +3,7 @@ import useRadioState from '../store/radioStore';
 import useErrorStore from '../store/errorStore';
 import useSessionStore from '../store/sessionStore';
 import useUtilStore from '../store/utilStore';
+import { StationStateUpdate } from '../interfaces/StationStateUpdate';
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
@@ -37,6 +38,30 @@ const Bootsrap: React.FC = () => {
         .catch((err: unknown) => {
           console.error(err);
         });
+    });
+
+    // Received when a station's state is updated externally, typically
+    // by another client via a websocket message. When received go through
+    // and ensure the state of the button in TrackAudio matches the new
+    // state in AFV.
+    window.api.on('station-state-update', (data: string) => {
+      const update = JSON.parse(data) as StationStateUpdate;
+
+      const radio = useRadioState
+        .getState()
+        .radios.find((radio) => radio.frequency === update.value.frequency);
+
+      if (!radio) {
+        return;
+      }
+
+      useRadioState.getState().setRadioState(radio.frequency, {
+        rx: update.value.rx,
+        tx: update.value.tx,
+        xc: update.value.xc,
+        crossCoupleAcross: update.value.xca,
+        onSpeaker: !update.value.headset
+      });
     });
 
     window.api.on('FrequencyRxBegin', (frequency: string) => {

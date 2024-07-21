@@ -5,6 +5,7 @@
 #include "spdlog/spdlog.h"
 #include <cmath>
 #include <mutex>
+#include <nlohmann/json.hpp>
 #include <sago/platform_folders.h>
 #include <string>
 
@@ -40,6 +41,44 @@ public:
     {
         std::string temp = std::to_string(frequencyHz / 1000);
         return temp.substr(0, 3) + "." + temp.substr(3, 7);
+    }
+
+    /**
+     * @brief Converts a JSON property that is either true, false, or "toggle" to a boolean value.
+     *
+     * @param incomingValue The JSON property to convert.
+     * @param currentValue The current value of the property.
+     * @return The converted boolean value, either the value specified in the JSON property, or the
+     *        opposite of currentValue if the property is "toggle", or the currentValue if
+     *        incoming value is undefined or invalid.
+     */
+    inline static bool ConvertBoolOrToggleToBool(
+        const nlohmann::json& incomingValue, bool currentValue)
+    {
+        if (incomingValue.is_null()) {
+            TRACK_LOG_INFO("ConvertBoolOrToggleToBool: Incoming value wasn't specified, returning "
+                           "current value {}",
+                currentValue);
+            return currentValue;
+        }
+
+        if (incomingValue.is_boolean()) {
+            TRACK_LOG_INFO("ConvertBoolOrToggleToBool: Received a boolean, returning it: {}",
+                incomingValue.dump());
+            return incomingValue.get<bool>();
+        }
+
+        if (incomingValue.is_string() && incomingValue.get<std::string>() == "toggle") {
+            TRACK_LOG_INFO(
+                "ConvertBoolOrToggleToBool: Received \"toggle\", returning {}, the inverse of {}",
+                !currentValue, currentValue);
+            return !currentValue;
+        }
+
+        TRACK_LOG_INFO("ConvertBoolOrToggleToBool: Invalid value, type is {} for boolean property: "
+                       "{}, returning {}",
+            incomingValue.type_name(), incomingValue.dump(), currentValue);
+        return currentValue;
     }
 };
 
