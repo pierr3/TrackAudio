@@ -275,6 +275,15 @@ void SDK::handleSetStationState(const nlohmann::json json)
     currentValue = mClient->GetTxState(frequency);
     if (json["value"].contains("tx")) {
         radioState.tx = Helpers::ConvertBoolOrToggleToBool(json["value"]["tx"], currentValue);
+
+        if (radioState.tx) {
+            radioState.rx = true;
+        }
+    }
+    // Special case for when the rx message is provided and set to false, which should
+    // force the tx value to false as well.
+    else if (json["value"].contains("rx") && !radioState.rx) {
+        radioState.tx = false;
     } else {
         radioState.tx = currentValue;
     }
@@ -282,6 +291,11 @@ void SDK::handleSetStationState(const nlohmann::json json)
     currentValue = mClient->GetXcState(frequency);
     if (json["value"].contains("xc")) {
         radioState.xc = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], currentValue);
+
+        if (radioState.xc) {
+            radioState.tx = true;
+            radioState.rx = true;
+        }
     } else {
         radioState.xc = currentValue;
     }
@@ -289,6 +303,11 @@ void SDK::handleSetStationState(const nlohmann::json json)
     currentValue = mClient->GetCrossCoupleAcrossState(frequency);
     if (json["value"].contains("xca")) {
         radioState.xca = Helpers::ConvertBoolOrToggleToBool(json["value"]["xca"], currentValue);
+
+        if (radioState.xca) {
+            radioState.tx = true;
+            radioState.rx = true;
+        }
     } else {
         radioState.xca = currentValue;
     }
