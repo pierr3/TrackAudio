@@ -5,7 +5,7 @@
 
 class RadioState {
 public:
-    double frequency;
+    int frequency;
     bool headset;
     bool rx;
     bool tx;
