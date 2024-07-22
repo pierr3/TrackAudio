@@ -27,7 +27,7 @@
 
 #define API_SERVER_PORT 49080
 
-constexpr semver::version VERSION = semver::version { 1, 2, 0 };
+constexpr semver::version VERSION = semver::version { 1, 3, 0, semver::prerelease::beta, 1 };
 // NOLINTNEXTLINE
 const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
 
