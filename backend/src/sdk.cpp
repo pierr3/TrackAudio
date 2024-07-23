@@ -344,6 +344,27 @@ void SDK::publishStationState(const nlohmann::json& state)
     this->broadcastOnWebsocket(state.dump());
 }
 
+void SDK::publishStationAdded(const std::string& callsign, const int& frequencyHz)
+{
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kStationAdded);
+
+    jsonMessage["value"]["callsign"] = callsign;
+    jsonMessage["value"]["frequency"] = frequencyHz;
+
+    this->broadcastOnWebsocket(jsonMessage.dump());
+}
+
+void SDK::publishFrequencyRemoved(const int& frequencyHz)
+{
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyRemoved);
+
+    jsonMessage["value"]["frequency"] = frequencyHz;
+
+    this->broadcastOnWebsocket(jsonMessage.dump());
+}
+
 void SDK::handleIncomingWebSocketRequest(const std::string& payload)
 {
     try {
