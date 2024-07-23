@@ -180,6 +180,8 @@ void RemoveFrequency(const Napi::CallbackInfo& info)
 
     RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     mClient->RemoveFrequency(newState.frequency);
+
+    MainThreadShared::mApiServer->publishFrequencyRemoved(newState.frequency);
 }
 
 void Reset(const Napi::CallbackInfo& /*info*/) { mClient->reset(); }
@@ -450,8 +452,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         }
 
         NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
-        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-            sdk::types::Event::kStationStateUpdated, callsign, frequency);
+        MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
     }
 
     if (eventType == afv_native::ClientEventType::VccsReceived) {
@@ -473,8 +474,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
             }
 
             NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
-            MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-                sdk::types::Event::kStationStateUpdated, callsign, frequency);
+            MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
         }
     }
 
