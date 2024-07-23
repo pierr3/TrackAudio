@@ -385,6 +385,12 @@ select:disabled {
   font-size: $mini-font-size;
 }
 
+.radio-list
+{
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
 // When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
 // the toggleMiniMode method in index.ts as well.
 @media only screen and (max-width: $mini-mode-width-break-point) {
