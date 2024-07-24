@@ -1,9 +1,9 @@
 import { RadioType } from '@renderer/store/radioStore';
 import React, { useMemo } from 'react';
 
-type LastReceivedCallsignsProps = {
+interface LastReceivedCallsignsProps {
   radios: RadioType[];
-};
+}
 
 const LastReceivedCallsigns: React.FC<LastReceivedCallsignsProps> = ({ radios }) => {
   const rxRadios = useMemo(() => {

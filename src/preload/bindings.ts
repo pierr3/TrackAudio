@@ -6,6 +6,7 @@ export const api = {
   on: (channel: string, listener: (...args: any[]) => void) => {
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     ipcRenderer.on(channel, (_event: IpcRendererEvent, ...args: any[]) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       listener(...args);
     });
   },

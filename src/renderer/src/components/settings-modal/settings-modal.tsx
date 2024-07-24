@@ -61,15 +61,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       .getConfig()
       .then((config: Configuration) => {
         setConfig(config);
-        setCid(config.cid || '');
-        setPassword(config.password || '');
-        setHardwareType(config.hardwareType || 0);
+        setCid(config.cid);
+        setPassword(config.password);
+        setHardwareType(config.hardwareType);
         setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode); // Type assertion since the config will never be a boolean at this point
       })
       .catch((err: unknown) => {
         console.error(err);
       });
+  }, []);
 
+  useEffect(() => {
+    if (!config.audioApi && config.audioApi !== 0) {
+      return;
+    }
     window.api
       .getAudioApis()
       .then((apis: AudioApi[]) => {
@@ -80,7 +85,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       });
 
     window.api
-      .getAudioOutputDevices(config.audioApi || -1)
+      .getAudioOutputDevices(config.audioApi)
       .then((devices: AudioDevice[]) => {
         setAudioOutputDevices(devices);
       })
@@ -89,7 +94,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       });
 
     window.api
-      .getAudioInputDevices(config.audioApi || -1)
+      .getAudioInputDevices(config.audioApi)
       .then((devices: AudioDevice[]) => {
         setAudioInputDevices(devices);
       })

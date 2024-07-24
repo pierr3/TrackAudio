@@ -13,6 +13,7 @@
 #define TRACK_LOG_WARNING(fmt, ...) spdlog::warn(fmt, ##__VA_ARGS__);
 #define TRACK_LOG_ERROR(fmt, ...) spdlog::error(fmt, ##__VA_ARGS__);
 #define TRACK_LOG_CRITICAL(fmt, ...) spdlog::critical(fmt, ##__VA_ARGS__);
+#define TRACK_LOG_TRACE(fmt, ...) spdlog::trace(fmt, ##__VA_ARGS__);
 
 #define TIMER_CALLBACK_INTERVAL_SEC 15
 #define SLURPER_BASE_URL "https://slurper.vatsim.net"
@@ -26,7 +27,7 @@
 
 #define API_SERVER_PORT 49080
 
-constexpr semver::version VERSION = semver::version { 1, 2, 0 };
+constexpr semver::version VERSION = semver::version { 1, 3, 0, semver::prerelease::beta, 1 };
 // NOLINTNEXTLINE
 const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
 

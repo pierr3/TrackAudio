@@ -114,3 +114,6 @@ dist/
 # Sentry Config File
 .sentryclirc
 temp.sh
+
+extern/backend/afv-native/vcpkg
+extern/backend/afv-native/build

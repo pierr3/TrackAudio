@@ -1,3 +1,4 @@
+#include "LogFactory.h"
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
 #include "afv-native/hardwareType.h"
@@ -20,6 +21,7 @@
 
 #include "Helpers.hpp"
 #include "InputHandler.hpp"
+#include "RadioHelper.hpp"
 #include "RemoteData.hpp"
 #include "Shared.hpp"
 #include "sdk.hpp"
@@ -27,7 +29,7 @@
 struct MainThreadShared {
 public:
     inline static std::unique_ptr<RemoteData> mRemoteDataHandler = nullptr;
-    inline static std::unique_ptr<SDK> mApiServer = nullptr;
+    inline static std::shared_ptr<SDK> mApiServer = nullptr;
 
     inline static bool ShouldRun = true;
 
@@ -151,74 +153,51 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
         TRACK_LOG_WARNING("Could not add frequency, it already exists: {} {}", frequency, callsign);
         return Napi::Boolean::New(info.Env(), false);
     }
-    mClient->SetRx(frequency, false);
-    mClient->SetRadioGainAll(UserSession::currentRadioGain);
 
-    MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-        sdk::types::Event::kFrequencyStateUpdate, {}, {});
+    RadioState newState;
 
-    return Napi::Boolean::New(info.Env(), true);
+    newState.frequency = frequency;
+    newState.rx = false;
+    newState.tx = false;
+    newState.xc = false;
+    newState.headset = true;
+    newState.xca = false;
+
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
+    return Napi::Boolean::New(info.Env(), result);
 }
 
 void RemoveFrequency(const Napi::CallbackInfo& info)
 {
-    int frequency = info[0].As<Napi::Number>().Int32Value();
-    mClient->SetRx(frequency, false);
-    mClient->SetTx(frequency, false);
-    mClient->SetXc(frequency, false);
-    mClient->SetCrossCoupleAcross(frequency, false);
-    mClient->RemoveFrequency(frequency);
-    MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-        sdk::types::Event::kFrequencyStateUpdate, {}, {});
+    RadioState newState;
+
+    newState.frequency = info[0].As<Napi::Number>().Int32Value();
+    newState.rx = false;
+    newState.tx = false;
+    newState.xc = false;
+    newState.headset = false;
+    newState.xca = false;
+
+    RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
+    mClient->RemoveFrequency(newState.frequency);
 }
 
 void Reset(const Napi::CallbackInfo& /*info*/) { mClient->reset(); }
 
 Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 {
-    if (!mClient->IsVoiceConnected()) {
-        return Napi::Boolean::New(info.Env(), false);
-    }
+    RadioState newState;
 
-    int frequency = info[0].As<Napi::Number>().Int32Value();
-    if (!mClient->IsFrequencyActive(frequency)) {
-        return Napi::Boolean::New(info.Env(), false);
-    }
+    newState.frequency = info[0].As<Napi::Number>().Int32Value();
+    newState.rx = info[1].As<Napi::Boolean>().Value();
+    newState.tx = info[2].As<Napi::Boolean>().Value();
+    newState.xc = info[3].As<Napi::Boolean>().Value();
+    // Note the negation here, as the API uses the opposite of what is saved internally
+    newState.headset = !info[4].As<Napi::Boolean>().Value();
+    newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
 
-    bool rx = info[1].As<Napi::Boolean>().Value();
-    bool tx = info[2].As<Napi::Boolean>().Value();
-    bool xc = info[3].As<Napi::Boolean>().Value();
-    bool onSpeaker = info[4].As<Napi::Boolean>().Value();
-    bool crossCoupleAcrossFrequencies = info[5].As<Napi::Boolean>().Value(); // Not used
-
-    bool oldRxValue = mClient->GetRxState(frequency);
-
-    mClient->SetRx(frequency, rx);
-    mClient->SetRadioGainAll(UserSession::currentRadioGain);
-    if (UserSession::xy) {
-        mClient->SetTx(frequency, tx);
-        mClient->SetXc(frequency, xc);
-        mClient->SetCrossCoupleAcross(frequency, crossCoupleAcrossFrequencies);
-    } else {
-        mClient->SetTx(frequency, false);
-        mClient->SetXc(frequency, false);
-        mClient->SetCrossCoupleAcross(frequency, false);
-    }
-
-    mClient->SetOnHeadset(frequency, !onSpeaker);
-
-    MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-        sdk::types::Event::kFrequencyStateUpdate, {}, {});
-
-    if (!oldRxValue && rx) {
-        // When turning on RX, we refresh the transceivers
-        auto states = mClient->getRadioState();
-        if (states.find(frequency) != states.end() && !states[frequency].stationName.empty()) {
-            mClient->FetchTransceiverInfo(states[frequency].stationName);
-        }
-    }
-
-    return Napi::Boolean::New(info.Env(), true);
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
+    return Napi::Boolean::New(info.Env(), result);
 }
 
 Napi::Object GetFrequencyState(const Napi::CallbackInfo& info)
@@ -426,10 +405,12 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
 
     if (eventType == afv_native::ClientEventType::VoiceServerConnected) {
         NapiHelpers::callElectron("VoiceConnected");
+        MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(true);
     }
 
     if (eventType == afv_native::ClientEventType::VoiceServerDisconnected) {
         NapiHelpers::callElectron("VoiceDisconnected");
+        MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(false);
     }
 
     if (eventType == afv_native::ClientEventType::StationTransceiversUpdated) {
@@ -475,6 +456,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         }
 
         NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
+        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kStationStateUpdated, callsign, frequency);
     }
 
     if (eventType == afv_native::ClientEventType::VccsReceived) {
@@ -496,6 +479,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
             }
 
             NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
+            MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+                sdk::types::Event::kStationStateUpdated, callsign, frequency);
         }
     }
 
@@ -642,29 +627,6 @@ void CreateLogFolders()
     }
 }
 
-void CreateLoggers()
-{
-    auto max_size = 1048576 * 5;
-    auto max_files = 3;
-    auto fileName = FileSystem::GetStateFolderPath() / "trackaudio.log";
-
-    auto trackaudio_logger
-        = spdlog::rotating_logger_mt("trackaudio_logger", fileName.string(), max_size, max_files);
-
-    spdlog::set_default_logger(trackaudio_logger);
-    auto afv_logger
-        = spdlog::rotating_logger_mt("afv_logger", fileName.string(), max_size, max_files);
-
-    // NOLINTNEXTLINE this cannot be solved here but in afv
-    afv_native::api::setLogger(
-        // NOLINTNEXTLINE
-        [&](std::string subsystem, std::string file, int line, std::string lineOut) {
-            auto strippedFiledName = file.substr(file.find_last_of('/') + 1);
-            spdlog::get("afv_logger")
-                ->info("{}:{}:{}: {}", subsystem, strippedFiledName, line, lineOut);
-        });
-}
-
 bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
 {
     // We force do a mandatory version check, if an update is needed, the
@@ -700,7 +662,7 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
 Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 {
     auto outObject = Napi::Object::New(info.Env());
-    CreateLoggers();
+    LogFactory::createLoggers();
 
     outObject["version"] = Napi::String::New(info.Env(), VERSION.to_string());
     outObject["canRun"] = Napi::Boolean::New(info.Env(), true);
@@ -721,7 +683,7 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
         HandleAfvEvents(eventType, data1, data2);
     });
 
-    MainThreadShared::mApiServer = std::make_unique<SDK>();
+    MainThreadShared::mApiServer = std::make_shared<SDK>();
 
     try {
         MainThreadShared::inputHandler = std::make_unique<InputHandler>();
@@ -748,7 +710,7 @@ Napi::Boolean Exit(const Napi::CallbackInfo& info)
     MainThreadShared::inputHandler.reset();
 
     mClient.reset();
-    spdlog::shutdown();
+    LogFactory::destroyLoggers();
 
     return Napi::Boolean::New(info.Env(), true);
 }
