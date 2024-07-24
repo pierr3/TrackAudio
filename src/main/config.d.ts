@@ -1,6 +1,8 @@
 export type AlwaysOnTopMode = 'never' | 'always' | 'inMiniMode';
 
 export interface Configuration {
+  version?: number;
+
   audioApi: number;
   audioInputDeviceId: string;
   headsetOutputDeviceId: string;

@@ -22,10 +22,12 @@ let mainWindow: BrowserWindow;
 const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
 const defaultMiniModeWidth = 300; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
+const currentSettingsVersion = 2;
 
 // Default application configuration. Used as a fallback when any of the properties
 // are missing from the saved configuration.
 const defaultConfiguration = {
+  version: currentSettingsVersion,
   audioApi: -1,
   audioInputDeviceId: '',
   headsetOutputDeviceId: '',
@@ -66,6 +68,50 @@ const isInMiniMode = () => {
   // getSize() was returning a width value off by one from the getMinSize()
   // call.
   return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint;
+};
+
+const loadConfig = () => {
+  // Load the saved configuration. This may be missing properties, typically because there was no
+  // saved configuration.
+  const storedConfiguration = JSON.parse(
+    store.get('configuration', '{}') as string
+  ) as Configuration;
+
+  // If the configuration file exists then check and see if the version property is missing
+  // and an audio API is configured. If that's the case the user will need to reset their
+  // audio properties due to the big audio changes introduced after TrackAudio 1.2.
+  if (Object.keys(storedConfiguration).length !== 0) {
+    if (storedConfiguration.version === undefined && storedConfiguration.audioApi !== -1) {
+      storedConfiguration.audioApi = defaultConfiguration.audioApi;
+      storedConfiguration.audioInputDeviceId = defaultConfiguration.audioInputDeviceId;
+      storedConfiguration.headsetOutputDeviceId = defaultConfiguration.headsetOutputDeviceId;
+      storedConfiguration.speakerOutputDeviceId = defaultConfiguration.speakerOutputDeviceId;
+
+      dialog.showMessageBoxSync({
+        type: 'warning',
+        message:
+          'This release chanaged how audio works. Please open settings and re-configure your audio devices.',
+        buttons: ['OK']
+      });
+    }
+  }
+
+  // Apply the default configuration then override the defaults with any saved configuration
+  // values. This will automatically apply the current settings version to older config files
+  // that don't have a version. Spread operator is the best operator.
+  currentConfiguration = {
+    ...defaultConfiguration,
+    ...storedConfiguration
+  };
+
+  // Upgrade the alwaysOnTop property from yes/no to the three mode version
+  if (typeof currentConfiguration.alwaysOnTop === 'boolean') {
+    currentConfiguration.alwaysOnTop
+      ? (currentConfiguration.alwaysOnTop = 'always')
+      : (currentConfiguration.alwaysOnTop = 'never');
+
+    saveConfig();
+  }
 };
 
 const saveConfig = () => {
@@ -256,27 +302,7 @@ app
       optimizer.watchWindowShortcuts(window);
     });
 
-    // Load the saved configuration. This may be missing properties, typically because there was no
-    // saved configuration.
-    const storedConfiguration = JSON.parse(
-      store.get('configuration', '{}') as string
-    ) as Configuration;
-
-    // Apply the default configuration then override the defaults with any saved configuration
-    // values. Spread operator is the best operator.
-    currentConfiguration = {
-      ...defaultConfiguration,
-      ...storedConfiguration
-    };
-
-    // Upgrade the alwaysOnTop property from yes/no to the three mode version
-    if (typeof currentConfiguration.alwaysOnTop === 'boolean') {
-      currentConfiguration.alwaysOnTop
-        ? (currentConfiguration.alwaysOnTop = 'always')
-        : (currentConfiguration.alwaysOnTop = 'never');
-
-      saveConfig();
-    }
+    loadConfig();
 
     if (currentConfiguration.consentedToTelemetry === undefined) {
       // We have not recorded any telemetry consent yet, so we will prompt the user
@@ -587,7 +613,7 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.StationStateUpdate) {
-    mainWindow.webContents.send("station-state-update", arg2, arg3);
+    mainWindow.webContents.send('station-state-update', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {
