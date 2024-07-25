@@ -22,6 +22,9 @@ let mainWindow: BrowserWindow;
 const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
 const defaultMiniModeWidth = 300; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
+
+// Used to check for older settings that need upgrading. This should get
+// increased any time the Configuration object has a breaking change.
 const currentSettingsVersion = 2;
 
 // Default application configuration. Used as a fallback when any of the properties
