@@ -51,7 +51,7 @@ let currentConfiguration: Configuration;
 // settings wiped during upgrade.
 let autoOpenSettings = false;
 
-const store = new Store();
+const store = new Store({ clearInvalidConfig: true });
 
 /**
  * Sets the always on top state for the main window, with different
