@@ -43,6 +43,11 @@ const defaultConfiguration = {
 
 let currentConfiguration: Configuration;
 
+// This flag is set to true if the audio settings were reset when the saved configuration
+// gets loaded. It is used to send a message to the renderer to show the settings dialog
+// after the window loads;
+let audioReset = false;
+
 const store = new Store();
 
 /**
@@ -90,9 +95,12 @@ const loadConfig = () => {
       dialog.showMessageBoxSync({
         type: 'warning',
         message:
-          'This release chanaged how audio works. Please open settings and re-configure your audio devices.',
+          'Your audio settings have been reset. Please re-configure your audio devices in the settings.',
         buttons: ['OK']
       });
+
+      // Set the flag to force the settings dialog to show on launch.
+      audioReset = true;
     }
   }
 
@@ -376,6 +384,18 @@ app.on('window-all-closed', () => {
 
 app.on('quit', () => {
   TrackAudioAfv.Exit();
+});
+
+/**
+ * Called when the navbar finished its initial loading and the settings
+ * dialog can be triggered via IPC.
+ */
+ipcMain.handle('settings-ready', () => {
+  // Show the settings dialog if audios settings were reset.
+  if (audioReset) {
+    mainWindow.webContents.send('show-settings');
+    audioReset = false;
+  }
 });
 
 /**

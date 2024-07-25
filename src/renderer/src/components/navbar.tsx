@@ -1,14 +1,14 @@
+import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
-import '../style/navbar.scss';
-import Clock from './clock';
-import SettingsModal from './settings-modal/settings-modal';
+import { Configuration } from '../../../../src/main/config';
+import { checkIfCallsignIsRelief, getCleanCallsign } from '../helpers/CallsignHelper';
 import useErrorStore from '../store/errorStore';
 import useSessionStore from '../store/sessionStore';
-import clsx from 'clsx';
-import { checkIfCallsignIsRelief, getCleanCallsign } from '../helpers/CallsignHelper';
 import useUtilStore from '../store/utilStore';
-import { Configuration } from '../../../../src/main/config';
+import '../style/navbar.scss';
+import Clock from './clock';
 import MiniModeToggleButton from './MiniModeToggleButton';
+import SettingsModal from './settings-modal/settings-modal';
 
 const Navbar: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -38,6 +38,16 @@ const Navbar: React.FC = () => {
     state.isAtc,
     state.setStationCallsign
   ]);
+
+  useEffect(() => {
+    window.api.settingsReady().catch((err: unknown) => {
+      console.error(err);
+    });
+
+    window.electron.ipcRenderer.on('show-settings', () => {
+      setShowModal(true);
+    });
+  }, []);
 
   useEffect(() => {
     window.api
