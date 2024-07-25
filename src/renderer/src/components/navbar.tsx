@@ -39,6 +39,8 @@ const Navbar: React.FC = () => {
     state.setStationCallsign
   ]);
 
+  // Handles letting the main process know settings can be triggered
+  // remotely, and responds to requests to open the settings dialog.
   useEffect(() => {
     window.api.settingsReady().catch((err: unknown) => {
       console.error(err);

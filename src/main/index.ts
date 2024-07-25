@@ -78,6 +78,10 @@ const isInMiniMode = () => {
   return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint;
 };
 
+/**
+ * Loads the stored configuration, applying any upgrades as necessary based
+ * on the version of the saved config vs. the current version.
+ */
 const loadConfig = () => {
   // Load the saved configuration. This may be missing properties, typically because there was no
   // saved configuration.
