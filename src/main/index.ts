@@ -46,10 +46,10 @@ const defaultConfiguration = {
 
 let currentConfiguration: Configuration;
 
-// This flag is set to true if the audio settings were reset when the saved configuration
-// gets loaded. It is used to send a message to the renderer to show the settings dialog
-// after the window loads;
-let audioReset = false;
+// This flag is set to true if the settings dialog should be shown automatically on launch.
+// This happens when either there's no prior saved config, or the saved config had its audio
+// settings wiped during upgrade.
+let autoOpenSettings = false;
 
 const store = new Store();
 
@@ -107,8 +107,12 @@ const loadConfig = () => {
       });
 
       // Set the flag to force the settings dialog to show on launch.
-      audioReset = true;
+      autoOpenSettings = true;
     }
+  }
+  // No saved settings were loaded so auto-show the settings on launch.
+  else {
+    autoOpenSettings = true;
   }
 
   // Apply the default configuration then override the defaults with any saved configuration
@@ -398,10 +402,11 @@ app.on('quit', () => {
  * dialog can be triggered via IPC.
  */
 ipcMain.handle('settings-ready', () => {
-  // Show the settings dialog if audios settings were reset.
-  if (audioReset) {
+  // Automatically show the settings dialog if the flag was set during
+  // config load.
+  if (autoOpenSettings) {
     mainWindow.webContents.send('show-settings');
-    audioReset = false;
+    autoOpenSettings = false;
   }
 });
 
