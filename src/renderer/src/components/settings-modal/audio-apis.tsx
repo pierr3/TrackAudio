@@ -17,6 +17,7 @@ const AudioApis: React.FC<AudioApisProps> = ({ apis, selectedApiId, selectApi })
     apiValue = selectedApiId;
   } else if (apis.length === 1) {
     apiValue = apis[0].id;
+    selectApi(apiValue);
   }
 
   return (
