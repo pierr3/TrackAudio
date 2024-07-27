@@ -74,13 +74,6 @@ const loadConfig = () => {
   // If a stored config exists then migrate it to the current version.
   if (Object.keys(storedConfiguration).length !== 0) {
     storedConfiguration = migrateConfig(storedConfiguration);
-
-    // Auto-show the settings dialog if the audioApi is the default value.
-    autoOpenSettings = storedConfiguration.audioApi === -1;
-  }
-  // No saved settings were loaded so auto-show the settings on launch.
-  else {
-    autoOpenSettings = true;
   }
 
   // Apply the default config then override the defaults with the saved config.
@@ -91,6 +84,11 @@ const loadConfig = () => {
 
   // Save the config to ensure any default values and migrations were applied.
   saveConfig();
+
+  // Auto open the settings dialog if the audio API is still unset at this point.
+  // That happens during settings migration from v1 to v2, or on first launch.
+  // Auto-show the settings dialog if the audioApi is the default value.
+  autoOpenSettings = currentConfiguration.audioApi === -1;
 };
 
 const saveConfig = () => {
