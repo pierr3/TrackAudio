@@ -61,9 +61,15 @@ const isInMiniMode = () => {
  * on the version of the saved config vs. the current version.
  */
 const loadConfig = () => {
-  // Load the stored config. This may be missing properties, typically because there was no
-  // stored config.
-  let storedConfiguration = JSON.parse(store.get('configuration', '{}') as string) as Configuration;
+  let storedConfiguration: Configuration;
+
+  // Load the stored config. Handle any JSON parsing errors by reverting to the default config.
+  try {
+    storedConfiguration = JSON.parse(store.get('configuration', '{}') as string) as Configuration;
+  } catch (err) {
+    console.error(err);
+    storedConfiguration = defaultConfiguration;
+  }
 
   // If a stored config exists then migrate it to the current version.
   if (Object.keys(storedConfiguration).length !== 0) {

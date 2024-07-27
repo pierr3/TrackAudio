@@ -19,7 +19,7 @@ export const defaultConfiguration = {
   callsign: '',
   hardwareType: 0,
   radioGain: 0,
-  alwaysOnTop: 'never',
+  alwaysOnTop: 'never' as AlwaysOnTopMode,
   consentedToTelemetry: undefined
 };
 
