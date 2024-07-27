@@ -1,12 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain, Rectangle, screen, shell } from 'electron';
-
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import * as Sentry from '@sentry/electron/main';
 import Store from 'electron-store';
 import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
-import { AlwaysOnTopMode, Configuration } from './config';
+import { AlwaysOnTopMode, Configuration, defaultConfiguration, migrateConfig } from './config';
 
 Sentry.init({
   dsn: 'https://79ff6300423d5708cae256665d170c4b@o4507193732169728.ingest.de.sentry.io/4507193745145936',
@@ -22,27 +21,6 @@ let mainWindow: BrowserWindow;
 const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
 const defaultMiniModeWidth = 300; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
-
-// Used to check for older settings that need upgrading. This should get
-// increased any time the Configuration object has a breaking change.
-const currentSettingsVersion = 2;
-
-// Default application configuration. Used as a fallback when any of the properties
-// are missing from the saved configuration.
-const defaultConfiguration = {
-  version: currentSettingsVersion,
-  audioApi: -1,
-  audioInputDeviceId: '',
-  headsetOutputDeviceId: '',
-  speakerOutputDeviceId: '',
-  cid: '',
-  password: '',
-  callsign: '',
-  hardwareType: 0,
-  radioGain: 0,
-  alwaysOnTop: 'never',
-  consentedToTelemetry: undefined
-};
 
 let currentConfiguration: Configuration;
 
@@ -79,58 +57,34 @@ const isInMiniMode = () => {
 };
 
 /**
- * Loads the stored configuration, applying any upgrades as necessary based
+ * Loads the stored configuration, applying any migrations as necessary based
  * on the version of the saved config vs. the current version.
  */
 const loadConfig = () => {
-  // Load the saved configuration. This may be missing properties, typically because there was no
-  // saved configuration.
-  const storedConfiguration = JSON.parse(
-    store.get('configuration', '{}') as string
-  ) as Configuration;
+  // Load the stored config. This may be missing properties, typically because there was no
+  // stored config.
+  let storedConfiguration = JSON.parse(store.get('configuration', '{}') as string) as Configuration;
 
-  // If the configuration file exists then check and see if the version property is missing
-  // and an audio API is configured. If that's the case the user will need to reset their
-  // audio properties due to the big audio changes introduced after TrackAudio 1.2.
+  // If a stored config exists then migrate it to the current version.
   if (Object.keys(storedConfiguration).length !== 0) {
-    if (storedConfiguration.version === undefined && storedConfiguration.audioApi !== -1) {
-      storedConfiguration.audioApi = defaultConfiguration.audioApi;
-      storedConfiguration.audioInputDeviceId = defaultConfiguration.audioInputDeviceId;
-      storedConfiguration.headsetOutputDeviceId = defaultConfiguration.headsetOutputDeviceId;
-      storedConfiguration.speakerOutputDeviceId = defaultConfiguration.speakerOutputDeviceId;
+    storedConfiguration = migrateConfig(storedConfiguration);
 
-      dialog.showMessageBoxSync({
-        type: 'warning',
-        message:
-          'Your audio settings have been reset. Please re-configure your audio devices in the settings.',
-        buttons: ['OK']
-      });
-
-      // Set the flag to force the settings dialog to show on launch.
-      autoOpenSettings = true;
-    }
+    // Auto-show the settings dialog if the audioApi is the default value.
+    autoOpenSettings = storedConfiguration.audioApi === -1;
   }
   // No saved settings were loaded so auto-show the settings on launch.
   else {
     autoOpenSettings = true;
   }
 
-  // Apply the default configuration then override the defaults with any saved configuration
-  // values. This will automatically apply the current settings version to older config files
-  // that don't have a version. Spread operator is the best operator.
+  // Apply the default config then override the defaults with the saved config.
   currentConfiguration = {
     ...defaultConfiguration,
     ...storedConfiguration
   };
 
-  // Upgrade the alwaysOnTop property from yes/no to the three mode version
-  if (typeof currentConfiguration.alwaysOnTop === 'boolean') {
-    currentConfiguration.alwaysOnTop
-      ? (currentConfiguration.alwaysOnTop = 'always')
-      : (currentConfiguration.alwaysOnTop = 'never');
-
-    saveConfig();
-  }
+  // Save the config to ensure any default values and migrations were applied.
+  saveConfig();
 };
 
 const saveConfig = () => {
