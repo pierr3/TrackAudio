@@ -83,6 +83,42 @@ const setAudioSettings = () => {
 };
 
 /**
+ * Adjusts the window bounds on Windows to work around a bug with
+ * restoring the size on systems that have multiple monitors of varying
+ * aspect ratios. The width and height need to be scaled by the scaleFactor
+ * of the primary display if the display TrackAudio is on has a different
+ * scaleFactor.
+ */
+const adjustWindowBounds = (boundsRectangle: Rectangle) => {
+  if (process.platform !== 'win32') {
+    return boundsRectangle;
+  }
+
+  // Get the scale factor for the screen the display is on and the
+  // system's primary display.
+  const display = screen.getDisplayNearestPoint(boundsRectangle);
+  const scaleFactor = display.scaleFactor;
+  const primaryDisplayScaleFactor = screen.getPrimaryDisplay().scaleFactor;
+
+  console.log(
+    `Window's display scale factor: ${scaleFactor.toFixed(2)} Primary display's scale factor: ${primaryDisplayScaleFactor.toFixed(2)}`
+  );
+
+  // As long as the scale factors are the same there's no issue so just return the unmodified bounds.
+  if (scaleFactor === primaryDisplayScaleFactor) {
+    return boundsRectangle;
+  }
+
+  // Return the bounds with the width and height multiplied by the primary display scale factor
+  return {
+    x: boundsRectangle.x,
+    y: boundsRectangle.y,
+    width: Math.floor(boundsRectangle.width * primaryDisplayScaleFactor),
+    height: Math.floor(boundsRectangle.height * primaryDisplayScaleFactor)
+  };
+};
+
+/**
  * Saves the window position and size to persistent storage. The position
  * and size of the mini vs. maxi mode window is stored separately, and the
  * one saved is selected based on the value of isInMiniMode().
@@ -98,7 +134,8 @@ const saveWindowBounds = () => {
  */
 const restoreWindowBounds = (mode: WindowMode) => {
   const savedBounds = mode === 'maxi' ? store.get('bounds') : store.get('miniBounds');
-  const boundsRectangle = savedBounds as Rectangle;
+  const boundsRectangle = adjustWindowBounds(savedBounds as Rectangle);
+
   if (savedBounds !== undefined && savedBounds !== null) {
     const screenArea = screen.getDisplayMatching(boundsRectangle).workArea;
     if (
@@ -587,7 +624,7 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.StationStateUpdate) {
-    mainWindow.webContents.send("station-state-update", arg2, arg3);
+    mainWindow.webContents.send('station-state-update', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {
