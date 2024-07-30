@@ -91,7 +91,9 @@ export const api = {
     title: string,
     message: string,
     buttons: string[]
-  ) => ipcRenderer.invoke('dialog', type, title, message, buttons)
+  ) => ipcRenderer.invoke('dialog', type, title, message, buttons),
+
+  settingsReady: () => ipcRenderer.invoke('settings-ready')
 };
 
 export type API = typeof api;
