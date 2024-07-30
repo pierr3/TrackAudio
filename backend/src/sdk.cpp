@@ -45,6 +45,7 @@ nlohmann::json SDK::buildStationStateJson(
     jsonMessage["value"]["xc"] = mClient->GetXcState(frequencyHz);
     jsonMessage["value"]["xca"] = mClient->GetCrossCoupleAcrossState(frequencyHz);
     jsonMessage["value"]["headset"] = mClient->GetOnHeadset(frequencyHz);
+    jsonMessage["value"]["isAvailable"] = true;
 
     return jsonMessage;
 }
@@ -328,6 +329,7 @@ void SDK::handleGetStationState(const std::string& callsign)
         return;
     }
 
+    // Look for the station and if found send the state.
     auto allRadios = mClient->getRadioState();
     for (const auto& [frequency, state] : allRadios) {
         if (state.stationName == callsign) {
@@ -335,6 +337,14 @@ void SDK::handleGetStationState(const std::string& callsign)
             return;
         }
     }
+
+    // Since the station wasn't found send a kGetStationState message with isAvailable false
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kStationStateUpdate);
+
+    jsonMessage["value"]["callsign"] = callsign;
+    jsonMessage["value"]["isAvailable"] = false;
+    this->publishStationState(jsonMessage);
 
     TRACK_LOG_ERROR("Station {} not found", callsign);
 }
