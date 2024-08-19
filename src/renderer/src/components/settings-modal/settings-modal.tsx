@@ -361,7 +361,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     ></div>
                   </div>
                   <button className="btn text-box-container mt-3 w-100">
-                    Ptt 1: {!hasPtt1BeenSetDuringSetup ? 'Press any key or button' : ptt1KeyName}
+                    {`Ptt 1: ${!hasPtt1BeenSetDuringSetup ? 'Press any key or button' : ptt1KeyName}`}
                   </button>
                   <button
                     className={clsx(
@@ -376,7 +376,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     Set new PTT 1
                   </button>
                   <button className="btn text-box-container mt-3 w-100">
-                    Ptt 2: {!hasPtt2BeenSetDuringSetup ? 'Press any key or button' : ptt2KeyName}
+                    {`Ptt 2: ${!hasPtt2BeenSetDuringSetup ? 'Press any key or button' : ptt2KeyName}`}
                   </button>
                   <button
                     className={clsx(
