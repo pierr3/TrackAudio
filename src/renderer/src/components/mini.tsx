@@ -16,7 +16,7 @@ const Mini: React.FC = () => {
         setIsHovered(false);
       }}
     >
-      <div className="container">
+      <div className="container radio-list">
         {radios
           .filter((r) => r.rx)
           .map((radio) => {
