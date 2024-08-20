@@ -20,7 +20,7 @@ const AudioApis: React.FC<AudioApisProps> = ({ apis, selectedApiId, selectApi })
       setApiValue(apis[0].id);
       selectApi(apis[0].id);
     }
-  }, []);
+  }, [apis]);
 
   return (
     <select
