@@ -79,6 +79,21 @@ public:
      */
     void publishStationState(const nlohmann::json& state);
 
+    /**
+     * @brief Publishes the kStationAdded message.
+     *
+     * @param callsign The callsign for the added station.
+     * @param frequencyHz The frequency for the added station.
+     */
+    void publishStationAdded(const std::string& callsign, const int& frequencyHz);
+
+    /**
+     * @brief Publishes the kFrequencyRemoved message.
+     *
+     * @param frequencyHz The removed frequency.
+     */
+    void publishFrequencyRemoved(const int& frequencyHz);
+
 private:
     using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t, restinio::null_logger_t,
         restinio::router::express_router_t<>>;

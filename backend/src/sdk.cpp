@@ -45,6 +45,7 @@ nlohmann::json SDK::buildStationStateJson(
     jsonMessage["value"]["xc"] = mClient->GetXcState(frequencyHz);
     jsonMessage["value"]["xca"] = mClient->GetCrossCoupleAcrossState(frequencyHz);
     jsonMessage["value"]["headset"] = mClient->GetOnHeadset(frequencyHz);
+    jsonMessage["value"]["isAvailable"] = true;
 
     return jsonMessage;
 }
@@ -275,6 +276,15 @@ void SDK::handleSetStationState(const nlohmann::json json)
     currentValue = mClient->GetTxState(frequency);
     if (json["value"].contains("tx")) {
         radioState.tx = Helpers::ConvertBoolOrToggleToBool(json["value"]["tx"], currentValue);
+
+        if (radioState.tx) {
+            radioState.rx = true;
+        }
+    }
+    // Special case for when the rx message is provided and set to false, which should
+    // force the tx value to false as well.
+    else if (json["value"].contains("rx") && !radioState.rx) {
+        radioState.tx = false;
     } else {
         radioState.tx = currentValue;
     }
@@ -282,6 +292,11 @@ void SDK::handleSetStationState(const nlohmann::json json)
     currentValue = mClient->GetXcState(frequency);
     if (json["value"].contains("xc")) {
         radioState.xc = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], currentValue);
+
+        if (radioState.xc) {
+            radioState.tx = true;
+            radioState.rx = true;
+        }
     } else {
         radioState.xc = currentValue;
     }
@@ -289,6 +304,11 @@ void SDK::handleSetStationState(const nlohmann::json json)
     currentValue = mClient->GetCrossCoupleAcrossState(frequency);
     if (json["value"].contains("xca")) {
         radioState.xca = Helpers::ConvertBoolOrToggleToBool(json["value"]["xca"], currentValue);
+
+        if (radioState.xca) {
+            radioState.tx = true;
+            radioState.rx = true;
+        }
     } else {
         radioState.xca = currentValue;
     }
@@ -328,6 +348,7 @@ void SDK::handleGetStationState(const std::string& callsign)
         return;
     }
 
+    // Look for the station and if found send the state.
     auto allRadios = mClient->getRadioState();
     for (const auto& [frequency, state] : allRadios) {
         if (state.stationName == callsign) {
@@ -336,12 +357,41 @@ void SDK::handleGetStationState(const std::string& callsign)
         }
     }
 
+    // Since the station wasn't found send a kGetStationState message with isAvailable false
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kStationStateUpdate);
+
+    jsonMessage["value"]["callsign"] = callsign;
+    jsonMessage["value"]["isAvailable"] = false;
+    this->publishStationState(jsonMessage);
+
     TRACK_LOG_ERROR("Station {} not found", callsign);
 }
 
 void SDK::publishStationState(const nlohmann::json& state)
 {
     this->broadcastOnWebsocket(state.dump());
+}
+
+void SDK::publishStationAdded(const std::string& callsign, const int& frequencyHz)
+{
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kStationAdded);
+
+    jsonMessage["value"]["callsign"] = callsign;
+    jsonMessage["value"]["frequency"] = frequencyHz;
+
+    this->broadcastOnWebsocket(jsonMessage.dump());
+}
+
+void SDK::publishFrequencyRemoved(const int& frequencyHz)
+{
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyRemoved);
+
+    jsonMessage["value"]["frequency"] = frequencyHz;
+
+    this->broadcastOnWebsocket(jsonMessage.dump());
 }
 
 void SDK::handleIncomingWebSocketRequest(const std::string& payload)

@@ -1,12 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain, Rectangle, screen, shell } from 'electron';
-
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import * as Sentry from '@sentry/electron/main';
 import Store from 'electron-store';
 import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
-import { AlwaysOnTopMode, Configuration } from './config';
+import configManager, { AlwaysOnTopMode } from './config';
 
 Sentry.init({
   dsn: 'https://79ff6300423d5708cae256665d170c4b@o4507193732169728.ingest.de.sentry.io/4507193745145936',
@@ -23,25 +22,13 @@ const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
 const defaultMiniModeWidth = 300; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
 
-// Default application configuration. Used as a fallback when any of the properties
-// are missing from the saved configuration.
-const defaultConfiguration = {
-  audioApi: -1,
-  audioInputDeviceId: '',
-  headsetOutputDeviceId: '',
-  speakerOutputDeviceId: '',
-  cid: '',
-  password: '',
-  callsign: '',
-  hardwareType: 0,
-  radioGain: 0,
-  alwaysOnTop: 'never',
-  consentedToTelemetry: undefined
-};
+// This flag is set to true if the settings dialog should be shown automatically on launch.
+// This happens when either there's no prior saved config, or the saved config had its audio
+// settings wiped during upgrade.
+let autoOpenSettings = false;
 
-let currentConfiguration: Configuration;
-
-const store = new Store();
+const store = new Store({ clearInvalidConfig: true });
+configManager.setStore(store);
 
 /**
  * Sets the always on top state for the main window, with different
@@ -63,23 +50,19 @@ const setAlwaysOnTop = (onTop: boolean) => {
 const isInMiniMode = () => {
   // Issue 79: Use the size of the content and the width breakpoint for mini-mode
   // to determine whether the window is in mini-mode. This solves an issue where
-  // getSize() was returning a width value off by one from the getMinSize()
+  // getSize() was returning a width value off by one f5rom the getMinSize()
   // call.
   return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint;
 };
 
-const saveConfig = () => {
-  store.set('configuration', JSON.stringify(currentConfiguration));
-};
-
 const setAudioSettings = () => {
   TrackAudioAfv.SetAudioSettings(
-    currentConfiguration.audioApi,
-    currentConfiguration.audioInputDeviceId,
-    currentConfiguration.headsetOutputDeviceId,
-    currentConfiguration.speakerOutputDeviceId
+    configManager.config.audioApi,
+    configManager.config.audioInputDeviceId,
+    configManager.config.headsetOutputDeviceId,
+    configManager.config.speakerOutputDeviceId
   );
-  TrackAudioAfv.SetHardwareType(currentConfiguration.hardwareType);
+  TrackAudioAfv.SetHardwareType(configManager.config.hardwareType);
 };
 
 /**
@@ -147,8 +130,8 @@ const toggleMiniMode = () => {
 
 const createWindow = (): void => {
   // Set the store CID
-  TrackAudioAfv.SetCid(currentConfiguration.cid || '');
-  TrackAudioAfv.SetRadioGain(currentConfiguration.radioGain || 0.5);
+  TrackAudioAfv.SetCid(configManager.config.cid || '');
+  TrackAudioAfv.SetRadioGain(configManager.config.radioGain || 0.5);
 
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -163,7 +146,7 @@ const createWindow = (): void => {
     }
   });
 
-  setAlwaysOnTop(currentConfiguration.alwaysOnTop === 'always' || false);
+  setAlwaysOnTop(configManager.config.alwaysOnTop === 'always' || false);
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url).catch((e: unknown) => {
@@ -234,7 +217,7 @@ const createWindow = (): void => {
     // gets fired every time the window size changes, including on toggle
     // button press, so this one handler is sufficient to cover all
     // resize cases.
-    if (currentConfiguration.alwaysOnTop === 'inMiniMode') {
+    if (configManager.config.alwaysOnTop === 'inMiniMode') {
       if (isInMiniMode()) {
         setAlwaysOnTop(true);
       } else {
@@ -256,29 +239,14 @@ app
       optimizer.watchWindowShortcuts(window);
     });
 
-    // Load the saved configuration. This may be missing properties, typically because there was no
-    // saved configuration.
-    const storedConfiguration = JSON.parse(
-      store.get('configuration', '{}') as string
-    ) as Configuration;
+    configManager.loadConfig();
 
-    // Apply the default configuration then override the defaults with any saved configuration
-    // values. Spread operator is the best operator.
-    currentConfiguration = {
-      ...defaultConfiguration,
-      ...storedConfiguration
-    };
+    // Auto open the settings dialog if the audio API is still unset at this point.
+    // That happens during settings migration from v1 to v2, or on first launch.
+    // Auto-show the settings dialog if the audioApi is the default value.
+    autoOpenSettings = configManager.config.audioApi === -1;
 
-    // Upgrade the alwaysOnTop property from yes/no to the three mode version
-    if (typeof currentConfiguration.alwaysOnTop === 'boolean') {
-      currentConfiguration.alwaysOnTop
-        ? (currentConfiguration.alwaysOnTop = 'always')
-        : (currentConfiguration.alwaysOnTop = 'never');
-
-      saveConfig();
-    }
-
-    if (currentConfiguration.consentedToTelemetry === undefined) {
+    if (configManager.config.consentedToTelemetry === undefined) {
       // We have not recorded any telemetry consent yet, so we will prompt the user
       const response = dialog.showMessageBoxSync(mainWindow, {
         type: 'question',
@@ -291,21 +259,20 @@ app
       });
 
       if (response === 0) {
-        currentConfiguration.consentedToTelemetry = true;
+        configManager.updateConfig({ consentedToTelemetry: true });
       } else {
-        currentConfiguration.consentedToTelemetry = false;
+        configManager.updateConfig({ consentedToTelemetry: false });
       }
-      saveConfig();
     }
 
-    if (currentConfiguration.consentedToTelemetry) {
+    if (configManager.config.consentedToTelemetry) {
       console.log('User opted into telemetry, enabling sentry');
       const sclient = Sentry.getClient();
       if (sclient) {
         // Disable sentry in debug always
         sclient.getOptions().enabled = !app.isPackaged
           ? false
-          : currentConfiguration.consentedToTelemetry;
+          : configManager.config.consentedToTelemetry;
       } else {
         console.error('Could not enable sentry');
       }
@@ -353,18 +320,30 @@ app.on('quit', () => {
 });
 
 /**
+ * Called when the navbar finished its initial loading and the settings
+ * dialog can be triggered via IPC.
+ */
+ipcMain.handle('settings-ready', () => {
+  // Automatically show the settings dialog if the flag was set during
+  // config load.
+  if (autoOpenSettings) {
+    mainWindow.webContents.send('show-settings');
+    autoOpenSettings = false;
+  }
+});
+
+/**
  * Called by the settings component when the settings for always on top change.
  */
-ipcMain.on('set-always-on-top', (_, state: AlwaysOnTopMode) => {
+ipcMain.on('set-always-on-top', (_, alwaysOnTop: AlwaysOnTopMode) => {
   // Issue 90: Attempt to make always on top actually work all the time on Windows. There's
   // an old Electron bug about needing to add "normal": https://github.com/electron/electron/issues/20933.
   //
   // The test for 'always' is sufficient to handle all current cases because it is impossible to change settings
   // while in mini-mode. It's only necessary to check and see if the setting was changed to always, and if so,
   // enable on top mode. mini mode handles setting this itself.
-  setAlwaysOnTop(state === 'always');
-  currentConfiguration.alwaysOnTop = state;
-  saveConfig();
+  setAlwaysOnTop(alwaysOnTop === 'always');
+  configManager.updateConfig({ alwaysOnTop });
 });
 
 ipcMain.handle('audio-get-apis', () => {
@@ -380,7 +359,7 @@ ipcMain.handle('audio-get-output-devices', (_, apiId: string) => {
 });
 
 ipcMain.handle('get-configuration', () => {
-  return currentConfiguration;
+  return configManager.config;
 });
 
 ipcMain.handle('request-ptt-key-name', (_, pttIndex: number) => {
@@ -395,24 +374,20 @@ ipcMain.handle('flashFrame', () => {
 // AFV audio settings
 //
 
-ipcMain.handle('set-audio-input-device', (_, deviceId: string) => {
-  currentConfiguration.audioInputDeviceId = deviceId;
-  saveConfig();
+ipcMain.handle('set-audio-input-device', (_, audioInputDeviceId: string) => {
+  configManager.updateConfig({ audioInputDeviceId });
 });
 
-ipcMain.handle('set-headset-output-device', (_, deviceId: string) => {
-  currentConfiguration.headsetOutputDeviceId = deviceId;
-  saveConfig();
+ipcMain.handle('set-headset-output-device', (_, headsetOutputDeviceId: string) => {
+  configManager.updateConfig({ headsetOutputDeviceId });
 });
 
-ipcMain.handle('set-speaker-output-device', (_, deviceId: string) => {
-  currentConfiguration.speakerOutputDeviceId = deviceId;
-  saveConfig();
+ipcMain.handle('set-speaker-output-device', (_, speakerOutputDeviceId: string) => {
+  configManager.updateConfig({ speakerOutputDeviceId });
 });
 
-ipcMain.handle('set-audio-api', (_, apiId: number) => {
-  currentConfiguration.audioApi = apiId;
-  saveConfig();
+ipcMain.handle('set-audio-api', (_, audioApi: number) => {
+  configManager.updateConfig({ audioApi });
 });
 
 ipcMain.handle('toggle-mini-mode', () => {
@@ -424,14 +399,12 @@ ipcMain.handle('toggle-mini-mode', () => {
 //
 
 ipcMain.handle('set-cid', (_, cid: string) => {
-  currentConfiguration.cid = cid;
-  saveConfig();
+  configManager.updateConfig({ cid });
   TrackAudioAfv.SetCid(cid);
 });
 
 ipcMain.handle('set-password', (_, password: string) => {
-  currentConfiguration.password = password;
-  saveConfig();
+  configManager.updateConfig({ password });
 });
 
 //
@@ -439,11 +412,11 @@ ipcMain.handle('set-password', (_, password: string) => {
 //
 
 ipcMain.handle('connect', () => {
-  if (!currentConfiguration.password || !currentConfiguration.cid) {
+  if (!configManager.config.password || !configManager.config.cid) {
     return false;
   }
   setAudioSettings();
-  return TrackAudioAfv.Connect(currentConfiguration.password);
+  return TrackAudioAfv.Connect(configManager.config.password);
 });
 
 ipcMain.handle('disconnect', () => {
@@ -493,16 +466,14 @@ ipcMain.handle('setup-ptt', (_, pttIndex: number) => {
   TrackAudioAfv.SetupPttBegin(pttIndex);
 });
 
-ipcMain.handle('set-radio-gain', (_, gain: number) => {
-  TrackAudioAfv.SetRadioGain(gain);
-  currentConfiguration.radioGain = gain;
-  saveConfig();
+ipcMain.handle('set-radio-gain', (_, radioGain: number) => {
+  configManager.updateConfig({ radioGain });
+  TrackAudioAfv.SetRadioGain(radioGain);
 });
 
-ipcMain.handle('set-hardware-type', (_, type: number) => {
-  currentConfiguration.hardwareType = type;
-  saveConfig();
-  TrackAudioAfv.SetHardwareType(type);
+ipcMain.handle('set-hardware-type', (_, hardwareType: number) => {
+  configManager.updateConfig({ hardwareType });
+  TrackAudioAfv.SetHardwareType(hardwareType);
 });
 
 ipcMain.handle('start-mic-test', () => {
@@ -523,17 +494,16 @@ ipcMain.handle('close-me', () => {
   mainWindow.close();
 });
 
-ipcMain.handle('change-telemetry', (_, enabled: boolean) => {
-  currentConfiguration.consentedToTelemetry = enabled;
+ipcMain.handle('change-telemetry', (_, consentedToTelemetry: boolean) => {
+  configManager.updateConfig({ consentedToTelemetry });
   const sclient = Sentry.getClient();
   if (sclient) {
-    sclient.getOptions().enabled = enabled;
+    sclient.getOptions().enabled = consentedToTelemetry;
   }
-  saveConfig();
 });
 
 ipcMain.handle('should-enable-renderer-telemetry', () => {
-  return !app.isPackaged ? false : currentConfiguration.consentedToTelemetry;
+  return !app.isPackaged ? false : configManager.config.consentedToTelemetry;
 });
 
 ipcMain.handle(
@@ -587,7 +557,7 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.StationStateUpdate) {
-    mainWindow.webContents.send("station-state-update", arg2, arg3);
+    mainWindow.webContents.send('station-state-update', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {
