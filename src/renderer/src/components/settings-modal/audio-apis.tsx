@@ -1,5 +1,5 @@
+import React, { useEffect, useState } from 'react';
 import { AudioApi } from 'trackaudio-afv';
-import React from 'react';
 
 export interface AudioApisProps {
   apis: AudioApi[];
@@ -8,17 +8,19 @@ export interface AudioApisProps {
 }
 
 const AudioApis: React.FC<AudioApisProps> = ({ apis, selectedApiId, selectApi }) => {
-  let apiValue = -1;
+  const [apiValue, setApiValue] = useState(-1);
 
-  // Help the user out a bit by defaulting the audio API to the only valid
-  // entry if no API was selected and the list of available APIs only
-  // has one entry.
-  if (apis.some((api) => api.id === selectedApiId)) {
-    apiValue = selectedApiId;
-  } else if (apis.length === 1) {
-    apiValue = apis[0].id;
-    selectApi(apiValue);
-  }
+  useEffect(() => {
+    // Help the user out a bit by defaulting the audio API to the only valid
+    // entry if no API was selected and the list of available APIs only
+    // has one entry.
+    if (apis.find((api) => api.id === selectedApiId)) {
+      setApiValue(selectedApiId);
+    } else if (apis.length === 1) {
+      setApiValue(apis[0].id);
+      selectApi(apis[0].id);
+    }
+  }, []);
 
   return (
     <select
