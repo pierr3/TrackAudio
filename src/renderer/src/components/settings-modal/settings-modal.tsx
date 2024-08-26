@@ -250,6 +250,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     <option value="0">Schmid ED-137B</option>
                     <option value="1">Rockwell Collins 2100</option>
                     <option value="2">Garex 220</option>
+                    <option value="3">No Hardware (Real Radio Affects disabled)</option>
                   </select>
 
                   <label className="mt-2">Keep window on top</label>

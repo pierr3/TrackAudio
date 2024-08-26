@@ -271,6 +271,10 @@ void SetHardwareType(const Napi::CallbackInfo& info)
         hardware = afv_native::HardwareType::Garex_220;
     }
 
+    if (hardwareTypeIndex == 3) {
+        hardware = afv_native::HardwareType::No_Hardware;
+    }
+
     mClient->SetHardware(hardware);
 }
 
