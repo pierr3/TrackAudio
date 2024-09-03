@@ -87,10 +87,10 @@ declare namespace TrackAudioAfv {
     func: (arg: string, arg2: string, arg3: string) => void
   ): void;
 
-  export function SetupPttBegin(): void;
+  export function SetupPttBegin(pttIndex: number): void;
   export function SetupPttEnd(): void;
 
-  export function RequestPttKeyName(): void;
+  export function RequestPttKeyName(pttIndex: number): void;
 
   export function IsConnected(): boolean;
   export function Bootstrap(resourcePath: string): {
