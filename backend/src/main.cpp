@@ -380,9 +380,11 @@ void StopAudio(const Napi::CallbackInfo& /*info*/)
     mClient->StopAudio();
 }
 
-void SetupPttBegin(const Napi::CallbackInfo& /*info*/)
+void SetupPttBegin(const Napi::CallbackInfo& info)
 {
-    MainThreadShared::inputHandler->startPttSetup();
+    int pttIndex = info[0].As<Napi::Number>().Int32Value();
+
+    MainThreadShared::inputHandler->startPttSetup(pttIndex);
 }
 
 void SetupPttEnd(const Napi::CallbackInfo& /*info*/)
@@ -390,7 +392,11 @@ void SetupPttEnd(const Napi::CallbackInfo& /*info*/)
     MainThreadShared::inputHandler->stopPttSetup();
 }
 
-void RequestPttKeyName(const Napi::CallbackInfo& /*info*/) { InputHandler::forwardPttKeyName(); }
+void RequestPttKeyName(const Napi::CallbackInfo& info)
+{
+    int pttIndex = info[0].As<Napi::Number>().Int32Value();
+    InputHandler::forwardPttKeyName(pttIndex);
+}
 
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,readability-function-cognitive-complexity)
 static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)

@@ -63,7 +63,7 @@ export const api = {
   getFrequencyState: (frequency: number) =>
     ipcRenderer.invoke('audio-get-frequency-state', frequency),
 
-  SetupPtt: () => ipcRenderer.invoke('setup-ptt'),
+  SetupPtt: (pttIndex: number) => ipcRenderer.invoke('setup-ptt', pttIndex),
 
   SetRadioGain: (gain: number) => ipcRenderer.invoke('set-radio-gain', gain),
 
@@ -82,7 +82,7 @@ export const api = {
 
   ShouldEnableTelemetryInTheRenderer: () => ipcRenderer.invoke('should-enable-renderer-telemetry'),
 
-  RequestPttKeyName: () => ipcRenderer.invoke('request-ptt-key-name'),
+  RequestPttKeyName: (pttIndex: number) => ipcRenderer.invoke('request-ptt-key-name', pttIndex),
 
   toggleMiniMode: () => ipcRenderer.invoke('toggle-mini-mode'),
 
