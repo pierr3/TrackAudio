@@ -20,7 +20,8 @@
     "build:win": "npm run build && electron-builder --win -c electron-builder-config.js",
     "build:mac": "npm run build && electron-builder --mac -c electron-builder-config.js",
     "build:linux": "npm run build && electron-builder --linux -c electron-builder-config.js",
-    "build:backend": "cd backend && npm install && npm run build && cd .. && npm install ./backend/trackaudio-afv-1.0.0.tgz"
+    "build:backend": "cd backend && npm install && npm run build && cd .. && npm install ./backend/trackaudio-afv-1.0.0.tgz",
+    "build:backend-fast": "cd backend && npm install && npm run build-fast && cd .. && npm install ./backend/trackaudio-afv-1.0.0.tgz"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",

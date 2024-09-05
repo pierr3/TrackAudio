@@ -29,6 +29,7 @@ set(AFV_STATIC 1)
 
 add_subdirectory(extern/afv-native)
 include_directories(extern/afv-native/include)
+include_directories(extern/afv-native/extern)
 
 if(MSVC)
     add_compile_options(

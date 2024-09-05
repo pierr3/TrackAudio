@@ -346,7 +346,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
               <div className="col-6" style={{ float: 'left', paddingRight: '10px' }}>
                 <div className="form-group">
                   <button className="btn text-box-container mt-3 w-100">
-                    {`Ptt 1: ${!hasPtt1BeenSetDuringSetup ? 'Press any key or button' : ptt1KeyName}`}
+                    {`Ptt 1: ${!hasPtt1BeenSetDuringSetup ? 'Press any key/button' : ptt1KeyName}`}
                   </button>
                   <button
                     className={clsx(
@@ -365,7 +365,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
               <div className="col-6" style={{ float: 'right', paddingLeft: '10px' }}>
                 <div className="form-group">
                   <button className="btn text-box-container mt-3 w-100">
-                    {`Ptt 2: ${!hasPtt2BeenSetDuringSetup ? 'Press any key or button' : ptt2KeyName}`}
+                    {`Ptt 2: ${!hasPtt2BeenSetDuringSetup ? 'Press any key/button' : ptt2KeyName}`}
                   </button>
                   <button
                     className={clsx(
