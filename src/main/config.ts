@@ -20,8 +20,7 @@ export const defaultConfiguration = {
   callsign: '',
   hardwareType: 0,
   radioGain: 0,
-  alwaysOnTop: 'never' as AlwaysOnTopMode,
-  consentedToTelemetry: undefined
+  alwaysOnTop: 'never' as AlwaysOnTopMode
 };
 
 export interface Configuration {
@@ -41,7 +40,6 @@ export interface Configuration {
 
   // Boolean is the prior type for this property, AlwaysOnTopMode is the updated type.
   alwaysOnTop: boolean | AlwaysOnTopMode;
-  consentedToTelemetry: boolean | undefined;
 }
 
 class ConfigManager {

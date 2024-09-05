@@ -44,14 +44,6 @@ Yes, but only if you add a frequency by callsign (must be defined in database). 
 
 Yes, using the menu on the right, however, this will only create one transceiver (antenna) at your center of visibility set in your atc client. This means that you will not get the same radio coverage as stations defined in database.
 
-### What's this telemetry popup about?
-
-TrackAudio utilizes remote telemetry in the event of a bug, sending an error report to a tool called Sentry. Only essential information from the crash report is sent, and no data leaves your device unless an error occurs. We do not record your IP address or VATSIM password. Your data would be sent to a third-party service, Sentry, to their servers located in Germany.
-
-This is entirely optional, but greatly assists in tracking down errors.
-
-If you opt-in, you can opt-out at any time in the settings. You will need to restart TrackAudio for this to fully take effect.
-
 ### What is XC and XCA?
 
 When you right click XCA on a frequency that you are listening to, and if you are logged in as ATC, all the transceivers of that frequency will be cross-coupled. This means that all transmissions received by a transceiver in that list will also be re-emitted by all other transceivers. This allows for pilots in different parts of your airspace to hear eachother, since they may be using a different transceiver. In general, you should be using XC every time you control.

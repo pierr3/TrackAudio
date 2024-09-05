@@ -200,14 +200,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saved);
   };
 
-  const toggleTelemetry = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setChangesSaved(SaveStatus.Saving);
-    const consent = parseInt(e.target.value) == 1 ? true : false;
-    void window.api.SetTelemetryConsent(consent);
-    config.consentedToTelemetry = consent;
-    setChangesSaved(SaveStatus.Saved);
-  };
-
   const closeHander = () => {
     void window.api.StopMicTest();
     setIsMicTesting(false);
@@ -222,7 +214,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
             <div className="modal-header">
               <h5 className="modal-title">Settings</h5>
             </div>
-            <div className="modal-body">
+            <div className="modal-body" style={{ paddingBottom: '0' }}>
               <div className="col-5" style={{ float: 'left' }}>
                 <div className="form-group" style={{ width: '90%' }}>
                   <h5>VATSIM Details</h5>
@@ -249,7 +241,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     onChange={(e) => debouncedPassword(e.target.value)}
                   ></input>
 
-                  <h5 className="mt-4">Other</h5>
                   {/* <label className="mt-1">Radio Effects</label>
                   <select id="" className="form-control mt-1" disabled>
                     <option value="on">On</option>
@@ -279,20 +270,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     <option value="always">Always</option>
                     <option value="inMiniMode">In mini mode</option>
                     <option value="never">Never</option>
-                  </select>
-
-                  <label className="mt-2" style={{ fontSize: '10px' }}>
-                    Telemetry
-                  </label>
-                  <select
-                    id=""
-                    style={{ fontSize: '10px' }}
-                    className="form-control mt-1"
-                    onChange={toggleTelemetry}
-                    value={config.consentedToTelemetry ? 1 : 0}
-                  >
-                    <option value="1">Opt in to bug reports</option>
-                    <option value="0">Opt out of bug reports</option>
                   </select>
                 </div>
               </div>
@@ -332,34 +309,42 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       setInputDevice(device.id);
                     }}
                   />
-                  <button
-                    className={clsx(
-                      'btn mt-3 w-100',
-                      !isMicTesting && 'btn-info',
-                      isMicTesting && 'btn-warning'
-                    )}
-                    onClick={handleMicTest}
-                    disabled={
-                      !(hasPtt1BeenSetDuringSetup || hasPtt2BeenSetDuringSetup) ||
-                      config.headsetOutputDeviceId === '' ||
-                      config.speakerOutputDeviceId === '' ||
-                      config.audioInputDeviceId === ''
-                    }
-                  >
-                    {isMicTesting ? 'Stop mic test' : 'Start mic test'}
-                  </button>
-                  <div className="progress mt-2" style={{ height: '4px' }}>
-                    <div
-                      className="progress-bar bg-success no-amination"
-                      role="progressbar"
-                      style={{ width: vu.toString() + '%' }}
-                    ></div>
-                    <div
-                      className="progress-bar bg-danger no-amination"
-                      role="progressbar"
-                      style={{ width: (vuPeak - vu).toString() + '%' }}
-                    ></div>
-                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-body" style={{ paddingTop: '0' }}>
+              <div className="col-12">
+                <button
+                  className={clsx(
+                    'btn mt-3 w-100',
+                    !isMicTesting && 'btn-info',
+                    isMicTesting && 'btn-warning'
+                  )}
+                  onClick={handleMicTest}
+                  disabled={
+                    !(hasPtt1BeenSetDuringSetup || hasPtt2BeenSetDuringSetup) ||
+                    config.headsetOutputDeviceId === '' ||
+                    config.speakerOutputDeviceId === '' ||
+                    config.audioInputDeviceId === ''
+                  }
+                >
+                  {isMicTesting ? 'Stop mic test' : 'Start mic test'}
+                </button>
+                <div className="progress mt-2" style={{ height: '4px' }}>
+                  <div
+                    className="progress-bar bg-success no-amination"
+                    role="progressbar"
+                    style={{ width: vu.toString() + '%' }}
+                  ></div>
+                  <div
+                    className="progress-bar bg-danger no-amination"
+                    role="progressbar"
+                    style={{ width: (vuPeak - vu).toString() + '%' }}
+                  ></div>
+                </div>
+              </div>
+              <div className="col-6" style={{ float: 'left', paddingRight: '10px' }}>
+                <div className="form-group">
                   <button className="btn text-box-container mt-3 w-100">
                     {`Ptt 1: ${!hasPtt1BeenSetDuringSetup ? 'Press any key or button' : ptt1KeyName}`}
                   </button>
@@ -375,6 +360,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                   >
                     Set new PTT 1
                   </button>
+                </div>
+              </div>
+              <div className="col-6" style={{ float: 'right', paddingLeft: '10px' }}>
+                <div className="form-group">
                   <button className="btn text-box-container mt-3 w-100">
                     {`Ptt 2: ${!hasPtt2BeenSetDuringSetup ? 'Press any key or button' : ptt2KeyName}`}
                   </button>
@@ -393,6 +382,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                 </div>
               </div>
             </div>
+
             <div className="modal-footer">
               <span>
                 {changesSaved === SaveStatus.NoChanges
