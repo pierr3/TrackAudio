@@ -32,11 +32,11 @@ include_directories(extern/afv-native/include)
 include_directories(extern/afv-native/extern)
 
 if(MSVC)
-    add_compile_options(
-        $<$<CONFIG:>:/MD>
-        $<$<CONFIG:Debug>:/MDd>
-        $<$<CONFIG:Release>:/MD>
-    )
+    # add_compile_options(
+    #     $<$<CONFIG:>:/MD>
+    #     $<$<CONFIG:Debug>:/MDd>
+    #     $<$<CONFIG:Release>:/MD>
+    # )
 
     add_definitions(-D_WIN32_WINNT=0x0A00)
 endif()
