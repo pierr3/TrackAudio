@@ -76,7 +76,7 @@ find_package(httplib CONFIG REQUIRED)
 find_package(unofficial-node-addon-api CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(absl CONFIG REQUIRED)
-find_package(Poco COMPONENTS Foundation Util REQUIRED)
+find_package(Poco COMPONENTS Net Foundation Util REQUIRED)
 find_package(semver CONFIG REQUIRED)
 find_package(restinio CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -101,7 +101,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     unofficial::node-addon-api::node-addon-api
     OpenSSL::SSL OpenSSL::Crypto
     absl::strings absl::any
-    Poco::Foundation Poco::Util
+    Poco::Net Poco::Util
     semver::semver
     restinio::restinio
     nlohmann_json::nlohmann_json
