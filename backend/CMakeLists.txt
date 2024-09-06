@@ -101,7 +101,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     unofficial::node-addon-api::node-addon-api
     OpenSSL::SSL OpenSSL::Crypto
     absl::strings absl::any
-    Poco::Net Poco::Util
+    Poco::Foundation Poco::Net Poco::Util
     semver::semver
     restinio::restinio
     nlohmann_json::nlohmann_json
