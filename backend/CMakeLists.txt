@@ -17,6 +17,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
+set(BUILD_SHARED_LIBS OFF)
+
 project(trackaudio-afv)
 
 # Set the C++ standard to C++17
@@ -32,11 +34,11 @@ include_directories(extern/afv-native/include)
 include_directories(extern/afv-native/extern)
 
 if(MSVC)
-    # add_compile_options(
-    #     $<$<CONFIG:>:/MD>
-    #     $<$<CONFIG:Debug>:/MDd>
-    #     $<$<CONFIG:Release>:/MD>
-    # )
+    add_compile_options(
+        $<$<CONFIG:>:/MD>
+        $<$<CONFIG:Debug>:/MDd>
+        $<$<CONFIG:Release>:/MD>
+    )
 
     add_definitions(-D_WIN32_WINNT=0x0A00)
 endif()
