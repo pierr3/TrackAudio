@@ -471,6 +471,11 @@ ipcMain.handle('set-radio-gain', (_, radioGain: number) => {
   TrackAudioAfv.SetRadioGain(radioGain);
 });
 
+ipcMain.handle('set-radio-effects', (_, radioEffects: string) => {
+  configManager.updateConfig({ radioEffects });
+  TrackAudioAfv.SetRadioEffects(radioEffects);
+});
+
 ipcMain.handle('set-hardware-type', (_, hardwareType: number) => {
   configManager.updateConfig({ hardwareType });
   TrackAudioAfv.SetHardwareType(hardwareType);

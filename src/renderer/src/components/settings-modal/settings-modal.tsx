@@ -24,6 +24,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [audioApis, setAudioApis] = useState(Array<AudioApi>);
   const [audioOutputDevices, setAudioOutputDevices] = useState(Array<AudioDevice>);
   const [audioInputDevices, setAudioInputDevices] = useState(Array<AudioDevice>);
+  const [radioEffects, setRadioEffects] = useState(0);
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
@@ -63,6 +64,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setConfig(config);
         setCid(config.cid);
         setPassword(config.password);
+        setRadioEffects(config.radioEffects);
         setHardwareType(config.hardwareType);
         setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode); // Type assertion since the config will never be a boolean at this point
       })
@@ -191,6 +193,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     void window.api.StartMicTest();
   };
 
+  const handleRadioEffectsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    const radioEffects = e.target.value;
+    void window.api.SetRadioEffects(radioEffects);
+    setHardwareType(radioEffects);
+    setConfig({ ...config, radioEffects: radioEffects });
+    setChangesSaved(SaveStatus.Saved);
+  };
+
   const handleHardwareTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setChangesSaved(SaveStatus.Saving);
     const hardwareType = parseInt(e.target.value);
@@ -250,13 +261,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                   ></input>
 
                   <h5 className="mt-4">Other</h5>
-                  {/* <label className="mt-1">Radio Effects</label>
-                  <select id="" className="form-control mt-1" disabled>
+
+                  <label className="mt-1">Radio Effects</label>
+                  <select id=""
+                    className="form-control mt-1"
+                    value={radioEffects}
+                    onChange={handleRadioEffectsChange}>
                     <option value="on">On</option>
-                    <option value="saab">Input only</option>
-                    <option value="mercedes">Output only</option>
-                    <option value="audi">Off</option>
-                  </select> */}
+                    <option value="input">Input only</option>
+                    <option value="output">Output only</option>
+                    <option value="off">Off</option>
+                  </select>
+
                   <label className="mt-2">Radio Hardware</label>
                   <select
                     id=""
@@ -267,7 +283,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     <option value="0">Schmid ED-137B</option>
                     <option value="1">Rockwell Collins 2100</option>
                     <option value="2">Garex 220</option>
-                    <option value="3">No Hardware (Real Radio Affects disabled)</option>
                   </select>
 
                   <label className="mt-2">Keep window on top</label>

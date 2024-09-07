@@ -36,6 +36,7 @@ export interface Configuration {
   password: string;
   callsign: string;
 
+  radioEffects: string;
   hardwareType: number;
   radioGain: number;
 

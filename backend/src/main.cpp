@@ -258,6 +258,29 @@ void SetCid(const Napi::CallbackInfo& info)
     UserSession::cid = cid;
 }
 
+void SetRadioEffects(const Napi::CallbackInfo& info)
+{
+    auto radioEffects = info[0].As<Napi::String>().Utf8Value();
+    auto enableInputFilters = false;
+    auto enableOutputEffects = false;
+
+    if (radioEffects == "off") {
+        enableInputFilters = true;
+        enableOutputEffects = true;
+    }
+
+    if (radioEffects == "input") {
+      enableInputFilters = true;
+    }
+
+    if (radioEffects == "output") {
+        enableOutputEffects = true;
+    }
+
+    mClient->SetEnableInputFilters(enableInputFilters);
+    mClient->SetEnableOutputEffects(enableOutputEffects);
+}
+
 void SetHardwareType(const Napi::CallbackInfo& info)
 {
     auto hardwareTypeIndex = info[0].As<Napi::Number>().Int32Value();
@@ -269,10 +292,6 @@ void SetHardwareType(const Napi::CallbackInfo& info)
 
     if (hardwareTypeIndex == 2) {
         hardware = afv_native::HardwareType::Garex_220;
-    }
-
-    if (hardwareTypeIndex == 3) {
-        hardware = afv_native::HardwareType::No_Hardware;
     }
 
     mClient->SetHardware(hardware);
@@ -767,6 +786,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "SetPtt"), Napi::Function::New(env, SetPtt));
 
     exports.Set(Napi::String::New(env, "SetRadioGain"), Napi::Function::New(env, SetRadioGain));
+
+    exports.Set(
+        Napi::String::New(env, "SetRadioEffects"), Napi::Function::New(env, SetRadioEffects));
 
     exports.Set(
         Napi::String::New(env, "SetHardwareType"), Napi::Function::New(env, SetHardwareType));
