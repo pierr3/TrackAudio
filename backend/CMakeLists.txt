@@ -17,8 +17,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set(BUILD_SHARED_LIBS OFF)
-
 project(trackaudio-afv)
 
 # Set the C++ standard to C++17
@@ -33,7 +31,8 @@ add_subdirectory(extern/afv-native)
 include_directories(extern/afv-native/include)
 include_directories(extern/afv-native/extern)
 
-if(MSVC)
+if(WIN32)
+    set(BUILD_SHARED_LIBS ON)
     add_compile_options(
         $<$<CONFIG:>:/MD>
         $<$<CONFIG:Debug>:/MDd>
@@ -87,7 +86,7 @@ find_package(platform_folders CONFIG REQUIRED)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 find_path(SIMPLEINI_INCLUDE_DIRS "SimpleIni.h")
 
-if(MSVC AND CMAKE_JS_NODELIB_DEF AND CMAKE_JS_NODELIB_TARGET)
+if(WIN32 AND CMAKE_JS_NODELIB_DEF AND CMAKE_JS_NODELIB_TARGET)
   # Generate node.lib
   execute_process(COMMAND ${CMAKE_AR} /def:${CMAKE_JS_NODELIB_DEF} /out:${CMAKE_JS_NODELIB_TARGET} ${CMAKE_STATIC_LINKER_FLAGS})
 endif()
