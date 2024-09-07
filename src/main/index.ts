@@ -1,17 +1,10 @@
 import { app, BrowserWindow, dialog, ipcMain, Rectangle, screen, shell } from 'electron';
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
-import * as Sentry from '@sentry/electron/main';
 import Store from 'electron-store';
 import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
 import configManager, { AlwaysOnTopMode } from './config';
-
-Sentry.init({
-  dsn: 'https://79ff6300423d5708cae256665d170c4b@o4507193732169728.ingest.de.sentry.io/4507193745145936',
-  enabled: false,
-  sendDefaultPii: false
-});
 
 type WindowMode = 'mini' | 'maxi';
 
@@ -246,38 +239,6 @@ app
     // Auto-show the settings dialog if the audioApi is the default value.
     autoOpenSettings = configManager.config.audioApi === -1;
 
-    if (configManager.config.consentedToTelemetry === undefined) {
-      // We have not recorded any telemetry consent yet, so we will prompt the user
-      const response = dialog.showMessageBoxSync(mainWindow, {
-        type: 'question',
-        buttons: ['I consent to telemetry', 'I want to opt out'],
-        title: 'Telemetry consent',
-        detail:
-          'Only essential information from the crash report is sent, and no data leaves your device unless an error occurs. We do not record your IP address or VATSIM password. Your data would be sent to a third-party service, Sentry, to their servers located in Germany. This is entirely optional, but greatly assists in tracking down errors.',
-        message:
-          'TrackAudio utilizes remote telemetry in the event of a bug, sending an error report to a tool called Sentry.'
-      });
-
-      if (response === 0) {
-        configManager.updateConfig({ consentedToTelemetry: true });
-      } else {
-        configManager.updateConfig({ consentedToTelemetry: false });
-      }
-    }
-
-    if (configManager.config.consentedToTelemetry) {
-      console.log('User opted into telemetry, enabling sentry');
-      const sclient = Sentry.getClient();
-      if (sclient) {
-        // Disable sentry in debug always
-        sclient.getOptions().enabled = !app.isPackaged
-          ? false
-          : configManager.config.consentedToTelemetry;
-      } else {
-        console.error('Could not enable sentry');
-      }
-    }
-
     const bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
 
     if (bootstrapOutput.needUpdate) {
@@ -497,18 +458,6 @@ ipcMain.handle('update-platform', () => {
 
 ipcMain.handle('close-me', () => {
   mainWindow.close();
-});
-
-ipcMain.handle('change-telemetry', (_, consentedToTelemetry: boolean) => {
-  configManager.updateConfig({ consentedToTelemetry });
-  const sclient = Sentry.getClient();
-  if (sclient) {
-    sclient.getOptions().enabled = consentedToTelemetry;
-  }
-});
-
-ipcMain.handle('should-enable-renderer-telemetry', () => {
-  return !app.isPackaged ? false : configManager.config.consentedToTelemetry;
 });
 
 ipcMain.handle(

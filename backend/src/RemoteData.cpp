@@ -24,7 +24,13 @@ void RemoteData::onTimer(Poco::Timer& /*timer*/)
         updateSessionStatus(previousCallsign, isConnected);
     } catch (const std::exception& ex) {
         RemoteDataStatus::isSlurperAvailable = false;
+        enteredSlurperGracePeriod = false;
         TRACK_LOG_ERROR("Error while parsing slurper data: {}", ex.what());
+        notifyUserOfSlurperUnavalability();
+    } catch (...) {
+        RemoteDataStatus::isSlurperAvailable = false;
+        enteredSlurperGracePeriod = false;
+        TRACK_LOG_ERROR("Error while parsing slurper data.");
         notifyUserOfSlurperUnavalability();
     }
 }

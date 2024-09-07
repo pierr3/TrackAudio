@@ -29,8 +29,10 @@ set(AFV_STATIC 1)
 
 add_subdirectory(extern/afv-native)
 include_directories(extern/afv-native/include)
+include_directories(extern/afv-native/extern)
 
-if(MSVC)
+if(WIN32)
+    set(BUILD_SHARED_LIBS ON)
     add_compile_options(
         $<$<CONFIG:>:/MD>
         $<$<CONFIG:Debug>:/MDd>
@@ -75,7 +77,7 @@ find_package(httplib CONFIG REQUIRED)
 find_package(unofficial-node-addon-api CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(absl CONFIG REQUIRED)
-find_package(Poco COMPONENTS Foundation Util REQUIRED)
+find_package(Poco COMPONENTS Net Foundation Util REQUIRED)
 find_package(semver CONFIG REQUIRED)
 find_package(restinio CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -84,7 +86,7 @@ find_package(platform_folders CONFIG REQUIRED)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 find_path(SIMPLEINI_INCLUDE_DIRS "SimpleIni.h")
 
-if(MSVC AND CMAKE_JS_NODELIB_DEF AND CMAKE_JS_NODELIB_TARGET)
+if(WIN32 AND CMAKE_JS_NODELIB_DEF AND CMAKE_JS_NODELIB_TARGET)
   # Generate node.lib
   execute_process(COMMAND ${CMAKE_AR} /def:${CMAKE_JS_NODELIB_DEF} /out:${CMAKE_JS_NODELIB_TARGET} ${CMAKE_STATIC_LINKER_FLAGS})
 endif()
@@ -100,7 +102,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     unofficial::node-addon-api::node-addon-api
     OpenSSL::SSL OpenSSL::Crypto
     absl::strings absl::any
-    Poco::Foundation Poco::Util
+    Poco::Foundation Poco::Net Poco::Util
     semver::semver
     restinio::restinio
     nlohmann_json::nlohmann_json

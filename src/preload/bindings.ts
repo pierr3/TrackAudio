@@ -80,10 +80,6 @@ export const api = {
 
   CloseMe: () => ipcRenderer.invoke('close-me'),
 
-  SetTelemetryConsent: (enabled: boolean) => ipcRenderer.invoke('change-telemetry', enabled),
-
-  ShouldEnableTelemetryInTheRenderer: () => ipcRenderer.invoke('should-enable-renderer-telemetry'),
-
   RequestPttKeyName: (pttIndex: number) => ipcRenderer.invoke('request-ptt-key-name', pttIndex),
 
   toggleMiniMode: () => ipcRenderer.invoke('toggle-mini-mode'),
