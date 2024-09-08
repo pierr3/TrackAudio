@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
 import { AudioApi, AudioDevice } from 'trackaudio-afv';
 import { useDebouncedCallback } from 'use-debounce';
-import { AlwaysOnTopMode, Configuration } from '../../../../../src/main/config';
+import {AlwaysOnTopMode, Configuration, RadioEffects} from '../../../../../src/main/config';
 import useRadioState from '../../store/radioStore';
 import useUtilStore from '../../store/utilStore';
 import AudioApis from './audio-apis';
@@ -24,7 +24,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [audioApis, setAudioApis] = useState(Array<AudioApi>);
   const [audioOutputDevices, setAudioOutputDevices] = useState(Array<AudioDevice>);
   const [audioInputDevices, setAudioInputDevices] = useState(Array<AudioDevice>);
-  const [radioEffects, setRadioEffects] = useState("on");
+  const [radioEffects, setRadioEffects] = useState<RadioEffects>("on");
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
@@ -195,10 +195,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
   const handleRadioEffectsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setChangesSaved(SaveStatus.Saving);
-    const radioEffects = e.target.value;
+    const radioEffects = e.target.value as RadioEffects;
     void window.api.SetRadioEffects(radioEffects);
     setRadioEffects(radioEffects);
-    setConfig({ ...config, radioEffects: radioEffects });
+    setConfig({ ...config, radioEffects: radioEffects});
     setChangesSaved(SaveStatus.Saved);
   };
 

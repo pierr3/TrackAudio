@@ -4,7 +4,7 @@ import Store from 'electron-store';
 import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
-import configManager, { AlwaysOnTopMode } from './config';
+import configManager, {AlwaysOnTopMode, RadioEffects} from './config';
 
 type WindowMode = 'mini' | 'maxi';
 
@@ -433,7 +433,7 @@ ipcMain.handle('set-radio-gain', (_, radioGain: number) => {
   TrackAudioAfv.SetRadioGain(radioGain);
 });
 
-ipcMain.handle('set-radio-effects', (_, radioEffects: string) => {
+ipcMain.handle('set-radio-effects', (_, radioEffects: RadioEffects) => {
   configManager.updateConfig({ radioEffects });
   TrackAudioAfv.SetRadioEffects(radioEffects);
 });
