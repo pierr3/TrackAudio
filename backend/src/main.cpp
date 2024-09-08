@@ -261,20 +261,16 @@ void SetCid(const Napi::CallbackInfo& info)
 void SetRadioEffects(const Napi::CallbackInfo& info)
 {
     auto radioEffects = info[0].As<Napi::String>().Utf8Value();
-    auto enableInputFilters = false;
-    auto enableOutputEffects = false;
+    std::transform(radioEffects.begin(), radioEffects.end(), radioEffects.begin(), std::tolower);
+    auto enableInputFilters = true;
+    auto enableOutputEffects = true;
 
-    if (radioEffects == "on") {
-        enableInputFilters = true;
-        enableOutputEffects = true;
+    if (radioEffects == "off" || radioEffects == "input") {
+      enableOutputEffects = false;
     }
 
-    if (radioEffects == "input") {
-      enableInputFilters = true;
-    }
-
-    if (radioEffects == "output") {
-        enableOutputEffects = true;
+    if (radioEffects == "off" || radioEffects == "output") {
+        enableInputFilters = false;
     }
 
     mClient->SetEnableInputFilters(enableInputFilters);
