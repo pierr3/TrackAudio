@@ -80,12 +80,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:${{ matrix.platform }}
 
-  upload-artifacts:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Upload artifacts for all platforms
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TrackAudio
-          path: dist/
+          name: TrackAudio-${{ matrix.platform }}
+          path: dist/trackaudio-*.*
