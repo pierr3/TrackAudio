@@ -18,6 +18,7 @@ export const defaultConfiguration = {
   cid: '',
   password: '',
   callsign: '',
+  radioEffects: 'on',
   hardwareType: 0,
   radioGain: 0,
   alwaysOnTop: 'never' as AlwaysOnTopMode
@@ -35,7 +36,7 @@ export interface Configuration {
   password: string;
   callsign: string;
 
-  radioEffects: string;
+  radioEffects: "on" | "input" | "output" | "off";
   hardwareType: number;
   radioGain: number;
 

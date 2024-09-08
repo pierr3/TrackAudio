@@ -264,7 +264,7 @@ void SetRadioEffects(const Napi::CallbackInfo& info)
     auto enableInputFilters = false;
     auto enableOutputEffects = false;
 
-    if (radioEffects == "off") {
+    if (radioEffects == "on") {
         enableInputFilters = true;
         enableOutputEffects = true;
     }

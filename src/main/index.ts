@@ -55,6 +55,7 @@ const setAudioSettings = () => {
     configManager.config.headsetOutputDeviceId,
     configManager.config.speakerOutputDeviceId
   );
+  TrackAudioAfv.SetRadioEffects(configManager.config.radioEffects);
   TrackAudioAfv.SetHardwareType(configManager.config.hardwareType);
 };
 
