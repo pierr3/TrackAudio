@@ -24,7 +24,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [audioApis, setAudioApis] = useState(Array<AudioApi>);
   const [audioOutputDevices, setAudioOutputDevices] = useState(Array<AudioDevice>);
   const [audioInputDevices, setAudioInputDevices] = useState(Array<AudioDevice>);
-  const [radioEffects, setRadioEffects] = useState(0);
+  const [radioEffects, setRadioEffects] = useState("on");
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
@@ -197,7 +197,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saving);
     const radioEffects = e.target.value;
     void window.api.SetRadioEffects(radioEffects);
-    setHardwareType(radioEffects);
+    setRadioEffects(radioEffects);
     setConfig({ ...config, radioEffects: radioEffects });
     setChangesSaved(SaveStatus.Saved);
   };
