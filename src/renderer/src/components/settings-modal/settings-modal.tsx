@@ -252,8 +252,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     onChange={(e) => debouncedPassword(e.target.value)}
                   ></input>
 
-                  <h5 className="mt-4">Other</h5>
-
                   <label className="mt-1">Radio Effects</label>
                   <select id=""
                     className="form-control mt-1"
