@@ -7,6 +7,7 @@
 #include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
 #include <atomic>
+#include <cctype>
 #include <chrono>
 #include <cstddef>
 #include <httplib.h>
@@ -258,10 +259,20 @@ void SetCid(const Napi::CallbackInfo& info)
     UserSession::cid = cid;
 }
 
+std::string convertToLowercase(const std::string& str)
+{
+  std::string result = "";
+
+  for (char ch : str) {
+    result += std::tolower(ch);
+  }
+  return result;
+}
+
 void SetRadioEffects(const Napi::CallbackInfo& info)
 {
     auto radioEffects = info[0].As<Napi::String>().Utf8Value();
-    std::transform(radioEffects.begin(), radioEffects.end(), radioEffects.begin(), std::tolower);
+    radioEffects = convertToLowercase(radioEffects);
     auto enableInputFilters = true;
     auto enableOutputEffects = true;
 
