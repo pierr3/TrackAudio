@@ -273,17 +273,25 @@ void SetRadioEffects(const Napi::CallbackInfo& info)
 {
     auto radioEffects = info[0].As<Napi::String>().Utf8Value();
     radioEffects = convertToLowercase(radioEffects);
-    auto enableInputFilters = true;
-    auto enableOutputEffects = true;
+    auto enableInputFilters;
+    auto enableOutputEffects;
 
-    if (radioEffects == "off" || radioEffects == "input") {
-      enableOutputEffects = false;
-    }
-
-    if (radioEffects == "off" || radioEffects == "output") {
+    if (radioEffects == "on") {
+        enableInputFilters = true;
+        enableOutputEffects = true;
+    } else if (radioEffects == "input") {
+        enableInputFilters = true;
+        enableOutputEffects = false;
+    } else if (radioEffects == "output") {
         enableInputFilters = false;
+        enableOutputEffects = true;
+    } else if (radioEffects == "off") {
+        enableInputFilters = false;
+        enableOutputEffects = false;
+    } else {
+        TRACK_LOG_WARNING("Invalid radioEffects value: {}", radioEffects);
+        return;
     }
-
     mClient->SetEnableInputFilters(enableInputFilters);
     mClient->SetEnableOutputEffects(enableOutputEffects);
 }
