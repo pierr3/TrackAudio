@@ -259,22 +259,12 @@ void SetCid(const Napi::CallbackInfo& info)
     UserSession::cid = cid;
 }
 
-std::string convertToLowercase(const std::string& str)
-{
-  std::string result = "";
-
-  for (char ch : str) {
-    result += std::tolower(ch);
-  }
-  return result;
-}
-
 void SetRadioEffects(const Napi::CallbackInfo& info)
 {
     auto radioEffects = info[0].As<Napi::String>().Utf8Value();
-    radioEffects = convertToLowercase(radioEffects);
-    auto enableInputFilters;
-    auto enableOutputEffects;
+    radioEffects = absl::AsciiStrToLower(radioEffects);
+    bool enableInputFilters;
+    bool enableOutputEffects;
 
     if (radioEffects == "on") {
         enableInputFilters = true;
