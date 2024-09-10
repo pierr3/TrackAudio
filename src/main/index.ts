@@ -4,7 +4,7 @@ import Store from 'electron-store';
 import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
-import configManager, { AlwaysOnTopMode } from './config';
+import configManager, {AlwaysOnTopMode, RadioEffects} from './config';
 
 type WindowMode = 'mini' | 'maxi';
 
@@ -55,6 +55,7 @@ const setAudioSettings = () => {
     configManager.config.headsetOutputDeviceId,
     configManager.config.speakerOutputDeviceId
   );
+  TrackAudioAfv.SetRadioEffects(configManager.config.radioEffects);
   TrackAudioAfv.SetHardwareType(configManager.config.hardwareType);
 };
 
@@ -430,6 +431,11 @@ ipcMain.handle('setup-ptt', (_, pttIndex: number) => {
 ipcMain.handle('set-radio-gain', (_, radioGain: number) => {
   configManager.updateConfig({ radioGain });
   TrackAudioAfv.SetRadioGain(radioGain);
+});
+
+ipcMain.handle('set-radio-effects', (_, radioEffects: RadioEffects) => {
+  configManager.updateConfig({ radioEffects });
+  TrackAudioAfv.SetRadioEffects(radioEffects);
 });
 
 ipcMain.handle('set-hardware-type', (_, hardwareType: number) => {

@@ -1,5 +1,5 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
-import { AlwaysOnTopMode } from '../main/config';
+import {AlwaysOnTopMode, RadioEffects} from '../main/config';
 
 export const api = {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
@@ -66,6 +66,8 @@ export const api = {
   SetupPtt: (pttIndex: number) => ipcRenderer.invoke('setup-ptt', pttIndex),
 
   SetRadioGain: (gain: number) => ipcRenderer.invoke('set-radio-gain', gain),
+
+  SetRadioEffects: (type: RadioEffects) => ipcRenderer.invoke('set-radio-effects', type),
 
   SetHardwareType: (type: number) => ipcRenderer.invoke('set-hardware-type', type),
 

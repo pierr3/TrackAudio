@@ -1,6 +1,8 @@
 import { dialog } from 'electron';
 import Store from 'electron-store';
 
+export type RadioEffects = 'on' | 'input' | 'output' | 'off';
+
 export type AlwaysOnTopMode = 'never' | 'always' | 'inMiniMode';
 
 // Used to check for older settings that need upgrading. This should get
@@ -18,6 +20,7 @@ export const defaultConfiguration = {
   cid: '',
   password: '',
   callsign: '',
+  radioEffects: 'on' as RadioEffects,
   hardwareType: 0,
   radioGain: 0,
   alwaysOnTop: 'never' as AlwaysOnTopMode
@@ -35,6 +38,7 @@ export interface Configuration {
   password: string;
   callsign: string;
 
+  radioEffects: RadioEffects;
   hardwareType: number;
   radioGain: number;
 
