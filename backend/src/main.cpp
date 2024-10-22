@@ -1,5 +1,4 @@
 #include "LogFactory.h"
-#include "afv-native/afv/dto/StationTransceiver.h"
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
 #include "afv-native/hardwareType.h"
@@ -121,36 +120,9 @@ void Disconnect(const Napi::CallbackInfo& /*info*/)
         sdk::types::Event::kDisconnectFrequencyStateUpdate, {}, {});
 }
 
-void SetGuardAndUnicomTransceivers()
-{
-    auto transceivers = mClient->GetAllTransceivers();
-    auto state = mClient->getRadioState();
-
-    std::vector<std::string> activeStations;
-    std::vector<afv_native::afv::dto::StationTransceiver> transceiversToLink;
-
-    for (const auto& [frequency, radioState] : state) {
-        if (mClient->GetRxActive(frequency) && radioState.stationName != "") {
-            activeStations.push_back(radioState.stationName);
-        }
-    }
-
-    for (const auto& [stationName, antennas] : transceivers) {
-        // NOLINTNEXTLINE (annoying boost suggestion)
-        if (std::find(activeStations.begin(), activeStations.end(), stationName)
-            != activeStations.end()) {
-            for (const auto& ant : antennas) {
-                transceiversToLink.push_back(ant);
-            }
-        }
-    }
-
-    if (transceiversToLink.empty()) {
-        return; // Don't override default transceivers if we got nothing to link
-    }
-
-    mClient->SetManualTransceivers(UNICOM_FREQUENCY, transceiversToLink);
-    mClient->SetManualTransceivers(GUARD_FREQUENCY, transceiversToLink);
+void SetGuardAndUnicomTransceivers() {
+    mClient->UseAllActiveTransceivers(UNICOM_FREQUENCY);
+    mClient->UseAllActiveTransceivers(GUARD_FREQUENCY);
 }
 
 void SetAudioSettings(const Napi::CallbackInfo& info)
@@ -232,8 +204,9 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     newState.headset = !info[4].As<Napi::Boolean>().Value();
     newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
 
-    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     SetGuardAndUnicomTransceivers();
+
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     return Napi::Boolean::New(info.Env(), result);
 }
 
