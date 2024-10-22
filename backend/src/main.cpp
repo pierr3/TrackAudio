@@ -1,4 +1,5 @@
 #include "LogFactory.h"
+#include "afv-native/afv/dto/StationTransceiver.h"
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
 #include "afv-native/hardwareType.h"
@@ -120,6 +121,38 @@ void Disconnect(const Napi::CallbackInfo& /*info*/)
         sdk::types::Event::kDisconnectFrequencyStateUpdate, {}, {});
 }
 
+void SetGuardAndUnicomTransceivers()
+{
+    auto transceivers = mClient->GetAllTransceivers();
+    auto state = mClient->getRadioState();
+
+    std::vector<std::string> activeStations;
+    std::vector<afv_native::afv::dto::StationTransceiver> transceiversToLink;
+
+    for (const auto& [frequency, radioState] : state) {
+        if (mClient->GetRxActive(frequency) && radioState.stationName != "") {
+            activeStations.push_back(radioState.stationName);
+        }
+    }
+
+    for (const auto& [stationName, antennas] : transceivers) {
+        // NOLINTNEXTLINE (annoying boost suggestion)
+        if (std::find(activeStations.begin(), activeStations.end(), stationName)
+            != activeStations.end()) {
+            for (const auto& ant : antennas) {
+                transceiversToLink.push_back(ant);
+            }
+        }
+    }
+
+    if (transceiversToLink.empty()) {
+        return; // Don't override default transceivers if we got nothing to link
+    }
+
+    mClient->SetManualTransceivers(UNICOM_FREQUENCY, transceiversToLink);
+    mClient->SetManualTransceivers(GUARD_FREQUENCY, transceiversToLink);
+}
+
 void SetAudioSettings(const Napi::CallbackInfo& info)
 {
     if (mClient->IsVoiceConnected()) {
@@ -200,6 +233,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
 
     auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
+    SetGuardAndUnicomTransceivers();
     return Napi::Boolean::New(info.Env(), result);
 }
 
@@ -443,8 +477,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         for (const auto& state : states) {
             if (state.second.stationName == station) {
                 mClient->UseTransceiversFromStation(station, static_cast<int>(state.first));
-                mClient->UseTransceiversFromStation(station, UNICOM_FREQUENCY);
-                mClient->UseTransceiversFromStation(station, GUARD_FREQUENCY);
+                SetGuardAndUnicomTransceivers();
                 break;
             }
         }
