@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import useSessionStore from './sessionStore';
 import { radioCompare } from '../helpers/RadioHelper';
 import { getCallsignParts } from '../helpers/CallsignHelper';
+import { GuardFrequency, UnicomFrequency } from '../../../shared/common';
 
 export interface RadioType {
   frequency: number;
@@ -78,9 +79,11 @@ const useRadioState = create<RadioState>((set) => ({
   pttIsOn: false,
   addRadio: (frequency, callsign, stationCallsign) => {
     if (RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)) {
-      postMessage(
-        'Frequency already exists in local client, but maybe not in AFV, delete it and try again'
-      );
+      if (frequency !== UnicomFrequency && frequency !== GuardFrequency) {
+        postMessage(
+          'Frequency already exists in local client, but maybe not in AFV, delete it and try again'
+        );
+      }
       return;
     }
 

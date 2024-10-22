@@ -2,6 +2,8 @@
 
 #include "Shared.hpp"
 #include "sdk.hpp"
+#include "Helpers.hpp"
+
 
 class RadioState {
 public:
@@ -22,8 +24,7 @@ public:
      * @return true The state was set successfully
      * @return false The state was not set successfully
      */
-    inline static bool SetRadioState(
-        const std::shared_ptr<SDK>& mApiServer, const RadioState& newState)
+    static bool SetRadioState(const std::shared_ptr<SDK>& mApiServer, const RadioState& newState)
     {
         if (!mClient->IsVoiceConnected()) {
             TRACK_LOG_TRACE("Voice is not connected, not setting radio state");

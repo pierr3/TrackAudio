@@ -23,11 +23,12 @@
 #define VERSION_CHECK_ENDPOINT "/pierr3/TrackAudio/main/MANDATORY_VERSION"
 
 #define OBS_FREQUENCY 199998000 // 199.998
-#define UNICOM_FREQUENCY = 122800000 // 122.800
+#define UNICOM_FREQUENCY 122800000 // 122.800
+#define GUARD_FREQUENCY 121500000 // 121.500
 
 #define API_SERVER_PORT 49080
 
-constexpr semver::version VERSION = semver::version { 1, 3, 0, semver::prerelease::beta, 2 };
+constexpr semver::version VERSION = semver::version { 1, 3, 0, semver::prerelease::beta, 3 };
 // NOLINTNEXTLINE
 const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
 
@@ -35,7 +36,7 @@ const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string()
 static std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 
 struct FileSystem {
-    inline static std::filesystem::path GetStateFolderPath()
+    static std::filesystem::path GetStateFolderPath()
     {
         return std::filesystem::path(sago::getStateDir()) / "trackaudio";
     }
@@ -71,7 +72,7 @@ public:
     // NOLINTNEXTLINE
     inline static CSimpleIniA ini;
 
-    inline static void load()
+    static void load()
     {
         try {
             _load();
@@ -80,7 +81,7 @@ public:
         }
     }
 
-    inline static void save()
+    static void save()
     {
         std::string settingsFilePath = (FileSystem::GetStateFolderPath() / "settings.ini").string();
 
@@ -103,7 +104,7 @@ public:
     }
 
 protected:
-    inline static void _load()
+    static void _load()
     {
         std::string settingsFilePath = (FileSystem::GetStateFolderPath() / "settings.ini").string();
         ini.SetUnicode();

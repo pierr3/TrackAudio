@@ -4,7 +4,8 @@ import Store from 'electron-store';
 import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
-import configManager, { AlwaysOnTopMode } from './config';
+import configManager from './config';
+import { AlwaysOnTopMode } from '../shared/config.type';
 
 type WindowMode = 'mini' | 'maxi';
 
@@ -430,6 +431,10 @@ ipcMain.handle('setup-ptt', (_, pttIndex: number) => {
 ipcMain.handle('set-radio-gain', (_, radioGain: number) => {
   configManager.updateConfig({ radioGain });
   TrackAudioAfv.SetRadioGain(radioGain);
+});
+
+ipcMain.handle('set-frequency-radio-gain', (_, frequency: number, radioGain: number) => {
+  TrackAudioAfv.SetFrequencyRadioGain(frequency, radioGain);
 });
 
 ipcMain.handle('set-hardware-type', (_, hardwareType: number) => {

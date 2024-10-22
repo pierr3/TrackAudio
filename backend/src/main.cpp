@@ -2,8 +2,6 @@
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
 #include "afv-native/hardwareType.h"
-#include "spdlog/sinks/rotating_file_sink.h"
-#include "spdlog/spdlog.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
 #include <atomic>
@@ -38,7 +36,7 @@ public:
 
     inline static std::unique_ptr<InputHandler> inputHandler = nullptr;
 };
-
+namespace {
 Napi::Array GetAudioApis(const Napi::CallbackInfo& info)
 {
     Napi::Env env = info.Env();
@@ -149,12 +147,15 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
 
     auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
     if (!hasBeenAddded) {
+        if (frequency == UNICOM_FREQUENCY || frequency == GUARD_FREQUENCY) {
+            return Napi::Boolean::New(info.Env(), true);
+        }
         NapiHelpers::sendErrorToElectron("Could not add frequency: it already exists");
         TRACK_LOG_WARNING("Could not add frequency, it already exists: {} {}", frequency, callsign);
         return Napi::Boolean::New(info.Env(), false);
     }
 
-    RadioState newState;
+    RadioState newState {};
 
     newState.frequency = frequency;
     newState.rx = false;
@@ -169,7 +170,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
 
 void RemoveFrequency(const Napi::CallbackInfo& info)
 {
-    RadioState newState;
+    RadioState newState {};
 
     newState.frequency = info[0].As<Napi::Number>().Int32Value();
     newState.rx = false;
@@ -188,7 +189,7 @@ void Reset(const Napi::CallbackInfo& /*info*/) { mClient->reset(); }
 
 Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 {
-    RadioState newState;
+    RadioState newState {};
 
     newState.frequency = info[0].As<Napi::Number>().Int32Value();
     newState.rx = info[1].As<Napi::Boolean>().Value();
@@ -295,7 +296,22 @@ void SetRadioGain(const Napi::CallbackInfo& info)
     float gain = info[0].As<Napi::Number>().FloatValue();
     UserSession::currentRadioGain = gain;
 
-    mClient->SetRadioGainAll(gain);
+    auto states = mClient->getRadioState();
+    for (const auto& state : states) {
+        if (state.second.Frequency == UNICOM_FREQUENCY
+            || state.second.Frequency == GUARD_FREQUENCY) {
+            continue;
+        }
+        mClient->SetRadioGain(state.first, gain);
+    }
+}
+
+void SetFrequencyRadioGain(const Napi::CallbackInfo& info)
+{
+    int frequency = info[0].As<Napi::Number>().Int32Value();
+    float gain = info[1].As<Napi::Number>().FloatValue();
+
+    mClient->SetRadioGain(frequency, gain);
 }
 
 Napi::String Version(const Napi::CallbackInfo& info)
@@ -399,7 +415,7 @@ void RequestPttKeyName(const Napi::CallbackInfo& info)
 }
 
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,readability-function-cognitive-complexity)
-static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
+void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
 {
     if (!NapiHelpers::callbackAvailable) {
         return;
@@ -427,6 +443,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         for (const auto& state : states) {
             if (state.second.stationName == station) {
                 mClient->UseTransceiversFromStation(station, static_cast<int>(state.first));
+                mClient->UseTransceiversFromStation(station, UNICOM_FREQUENCY);
+                mClient->UseTransceiversFromStation(station, GUARD_FREQUENCY);
                 break;
             }
         }
@@ -458,7 +476,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         }
 
         NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
-        MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
+        MainThreadShared::mApiServer->publishStationAdded(callsign, static_cast<int>(frequency));
     }
 
     if (eventType == afv_native::ClientEventType::VccsReceived) {
@@ -480,7 +498,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
             }
 
             NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
-            MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
+            MainThreadShared::mApiServer->publishStationAdded(
+                callsign, static_cast<int>(frequency));
         }
     }
 
@@ -762,6 +781,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     exports.Set(Napi::String::New(env, "SetPtt"), Napi::Function::New(env, SetPtt));
 
+    exports.Set(Napi::String::New(env, "SetFrequencyRadioGain"),
+        Napi::Function::New(env, SetFrequencyRadioGain));
+
     exports.Set(Napi::String::New(env, "SetRadioGain"), Napi::Function::New(env, SetRadioGain));
 
     exports.Set(
@@ -793,5 +815,5 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     return exports;
 }
-
 NODE_API_MODULE(addon, Init)
+}
