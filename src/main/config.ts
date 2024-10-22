@@ -1,7 +1,6 @@
 import { dialog } from 'electron';
 import Store from 'electron-store';
-
-export type AlwaysOnTopMode = 'never' | 'always' | 'inMiniMode';
+import { AlwaysOnTopMode, Configuration } from '../shared/config.type';
 
 // Used to check for older settings that need upgrading. This should get
 // increased any time the Configuration object has a breaking change.
@@ -22,25 +21,6 @@ export const defaultConfiguration = {
   radioGain: 0,
   alwaysOnTop: 'never' as AlwaysOnTopMode
 };
-
-export interface Configuration {
-  version?: number;
-
-  audioApi: number;
-  audioInputDeviceId: string;
-  headsetOutputDeviceId: string;
-  speakerOutputDeviceId: string;
-
-  cid: string;
-  password: string;
-  callsign: string;
-
-  hardwareType: number;
-  radioGain: number;
-
-  // Boolean is the prior type for this property, AlwaysOnTopMode is the updated type.
-  alwaysOnTop: boolean | AlwaysOnTopMode;
-}
 
 class ConfigManager {
   private static _instance: ConfigManager | null = null;

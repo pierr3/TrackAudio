@@ -1,6 +1,5 @@
 import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
-import { Configuration } from '../../../../src/main/config';
 import { checkIfCallsignIsRelief, getCleanCallsign } from '../helpers/CallsignHelper';
 import useErrorStore from '../store/errorStore';
 import useSessionStore from '../store/sessionStore';
@@ -9,6 +8,7 @@ import '../style/navbar.scss';
 import Clock from './clock';
 import MiniModeToggleButton from './MiniModeToggleButton';
 import SettingsModal from './settings-modal/settings-modal';
+import { Configuration } from 'src/shared/config.type';
 
 const Navbar: React.FC = () => {
   const [showModal, setShowModal] = useState(false);

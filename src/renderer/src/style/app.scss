@@ -233,9 +233,7 @@ button:disabled {
   float: left;
   height: 100%;
   width: 65%;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-right: 0;
+  padding: 0;
 }
 
 // When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
@@ -385,8 +383,7 @@ select:disabled {
   font-size: $mini-font-size;
 }
 
-.radio-list
-{
+.radio-list {
   max-height: 80vh;
   overflow-y: auto;
 }
