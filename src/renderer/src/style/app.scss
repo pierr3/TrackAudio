@@ -419,3 +419,20 @@ select:disabled {
 .exit-mini-mode-container.hidden {
   opacity: 0;
 }
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(50, 50, 58); /* Color of the scrollbar thumb */
+  border-radius: 2px; /* Rounded corners of the scrollbar thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: lighten(rgb(50, 50, 58), 10%) /* Color of the scrollbar thumb on hover */
+}
