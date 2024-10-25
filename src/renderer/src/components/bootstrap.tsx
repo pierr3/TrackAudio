@@ -110,10 +110,10 @@ const Bootsrap: React.FC = () => {
       void window.api.addFrequency(GuardFrequency, 'GUARD');
       useRadioState
         .getState()
-        .addRadio(UnicomFrequency, 'UNICOM', useSessionStore.getState().getStationCallsign());
+        .addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
       useRadioState
         .getState()
-        .addRadio(GuardFrequency, 'GUARD', useSessionStore.getState().getStationCallsign());
+        .addRadio(GuardFrequency, 'GUARD', 'GUARD');
     });
 
     window.api.on('VoiceDisconnected', () => {
