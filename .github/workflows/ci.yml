@@ -36,6 +36,9 @@ jobs:
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
 
+      - name: Debug - List files
+        run: ls -la ./backend/vcpkg # Verify the directory exists and has content
+
       - name: Get submodule commit hash
         id: get-submodule-hash
         run: |
