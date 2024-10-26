@@ -739,16 +739,18 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 Napi::Boolean Exit(const Napi::CallbackInfo& info)
 {
     TRACK_LOG_INFO("Awaiting to exit TrackAudio...");
-    std::lock_guard<std::mutex> HelperLock(NapiHelpers::_callElectronMutex);
-    TRACK_LOG_INFO("Exiting TrackAudio...")
+    NapiHelpers::_requestExit.store(true);
     if (mClient->IsVoiceConnected()) {
+        TRACK_LOG_INFO("Forcing disconnect...");
         mClient->Disconnect();
     }
+
     MainThreadShared::mApiServer.reset();
     MainThreadShared::mRemoteDataHandler.reset();
     MainThreadShared::inputHandler.reset();
 
     mClient.reset();
+    TRACK_LOG_INFO("Exiting TrackAudio...")
     LogFactory::destroyLoggers();
 
     return Napi::Boolean::New(info.Env(), true);

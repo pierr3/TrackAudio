@@ -96,7 +96,8 @@ public:
     static void callElectron(
         const std::string& eventName, const std::string& data = "", const std::string& data2 = "")
     {
-        if (!NapiHelpers::callbackAvailable || NapiHelpers::callbackRef == nullptr) {
+        if (!NapiHelpers::callbackAvailable || NapiHelpers::callbackRef == nullptr
+            || NapiHelpers::_requestExit.load()) {
             return;
         }
 
@@ -113,4 +114,5 @@ public:
     static void sendErrorToElectron(const std::string& message) { callElectron("error", message); }
 
     inline static std::mutex _callElectronMutex;
+    inline static std::atomic<bool> _requestExit = false;
 };
