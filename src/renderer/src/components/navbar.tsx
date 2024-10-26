@@ -8,17 +8,31 @@ import Clock from './clock';
 import MiniModeToggleButton from './MiniModeToggleButton';
 import SettingsModal from './settings-modal/settings-modal';
 import TitleBar from './titlebar/TitleBar';
-import { GearFill, PlusCircleFill } from 'react-bootstrap-icons';
+import {
+  Check2Circle,
+  CheckCircleFill,
+  GearFill,
+  PencilSquare,
+  PlusCircleFill,
+  XCircleFill
+} from 'react-bootstrap-icons';
 import SessionStatus from './titlebar/session-status/SessionStatus';
 import { Configuration } from 'src/shared/config.type';
 import useUtilStore from '@renderer/store/utilStore';
 import AddStationModal from './add-station-model/station-modal';
 import RxInfo from './rxinfo';
+import DeleteMultipleRadios from './delete-multiple-radios';
+import useRadioState from '@renderer/store/radioStore';
+import RefreshMultipleRadios from './refresh-multiple-radios';
 
 const Navbar: React.FC = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAddStationModal, setShowAddStationModal] = useState(false);
-  const [platform] = useUtilStore((state) => [state.platform]);
+  const [platform, isEditMode, setIsEditMode] = useUtilStore((state) => [
+    state.platform,
+    state.isEditMode,
+    state.setIsEditMode
+  ]);
   const [callsign, isConnected, isConnecting, radioGain, setRadioGain] = useSessionStore(
     (state) => [
       state.callsign,
@@ -28,6 +42,8 @@ const Navbar: React.FC = () => {
       state.setRadioGain
     ]
   );
+
+  const [clearRadiosToBeDeleted] = useRadioState((state) => [state.clearRadiosToBeDeleted]);
 
   // Handles letting the main process know settings can be triggered
   // remotely, and responds to requests to open the settings dialog.
@@ -88,36 +104,68 @@ const Navbar: React.FC = () => {
     <>
       <TitleBar className="d-flex flex-md-row align-items-center  mb-3 custom-navbar hide-topbar">
         <TitleBar.Section name="left" priority={1}>
-          <TitleBar.Element priority={0}>
+          <TitleBar.Element priority={4}>
             <Clock />
           </TitleBar.Element>
           <TitleBar.Element priority={1}>
             <div className="d-flex h-100 align-items-center">
               <button
-                className="btn btn-primary hide-settings-flex"
-                disabled={isConnected || isConnecting}
+                className={clsx(
+                  'btn hide-settings-flex',
+                  isEditMode ? 'btn-warning' : 'btn-primary'
+                )}
+                disabled={!isConnected}
                 onClick={() => {
-                  if (showAddStationModal) return;
-                  setShowSettingsModal(true);
+                  setIsEditMode(!isEditMode);
+                  clearRadiosToBeDeleted();
                 }}
               >
-                <GearFill />
+                <PencilSquare />
               </button>
             </div>
           </TitleBar.Element>
-          <TitleBar.Element priority={2}>
-            <div className="d-flex h-100 align-items-center">
-              <MiniModeToggleButton showRestoreButton={false} />
-              {platform === 'linux' && (
+          {isEditMode && (
+            <TitleBar.Element priority={2}>
+              <DeleteMultipleRadios />
+            </TitleBar.Element>
+          )}
+          {isEditMode && (
+            <TitleBar.Element priority={3}>
+              <RefreshMultipleRadios />
+            </TitleBar.Element>
+          )}
+          {!isEditMode && (
+            <TitleBar.Element priority={2}>
+              <div className="d-flex h-100 align-items-center">
                 <button
-                  className="btn btn-danger m-1 hide-gain-value"
-                  onClick={() => void window.api.CloseMe()}
+                  className="btn btn-primary hide-settings-flex"
+                  disabled={isConnected || isConnecting}
+                  onClick={() => {
+                    if (showAddStationModal) return;
+                    setShowSettingsModal(true);
+                  }}
                 >
-                  X
+                  <GearFill />
                 </button>
-              )}
-            </div>
-          </TitleBar.Element>
+              </div>
+            </TitleBar.Element>
+          )}
+          {!isEditMode && (
+            <TitleBar.Element priority={3}>
+              <div className="d-flex h-100 align-items-center">
+                <MiniModeToggleButton showRestoreButton={false} />
+                {platform === 'linux' && (
+                  <button
+                    className="btn btn-danger m-1 hide-gain-value"
+                    onClick={() => void window.api.CloseMe()}
+                  >
+                    X
+                  </button>
+                )}
+              </div>
+            </TitleBar.Element>
+          )}
+
           {/* <TitleBar.Element priority={3}>
             <div className="d-flex h-100 align-items-center">
               <input

@@ -9,6 +9,7 @@ import Mini from './components/mini';
 
 import './index.scss';
 import './style/app.scss';
+import FocusBar from './components/focusBar';
 
 function App() {
   return (
@@ -19,7 +20,8 @@ function App() {
       <div className="structure">
         <Mini />
         <RadioContainer />
-        <Sidebar />
+        <FocusBar />
+        {/* <Sidebar /> */}
       </div>
     </>
   );

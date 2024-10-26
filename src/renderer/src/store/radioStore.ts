@@ -35,6 +35,7 @@ export interface FrequencyState {
 
 interface RadioState {
   radios: RadioType[];
+  radiosSelected: RadioType[];
   pttIsOn: boolean;
   addRadio: (frequency: number, callsign: string, stationCallsign: string) => void;
   removeRadio: (frequency: number) => void;
@@ -49,6 +50,8 @@ interface RadioState {
   setTransceiverCountForStationCallsign: (callsign: string, count: number) => void;
   setPendingDeletion: (frequency: number, value: boolean) => void;
   reset: () => void;
+  addOrRemoveRadioToBeDeleted: (radio: RadioType) => void;
+  clearRadiosToBeDeleted: () => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -76,6 +79,7 @@ export class RadioHelper {
 
 const useRadioState = create<RadioState>((set) => ({
   radios: [],
+  radiosSelected: [],
   pttIsOn: false,
   addRadio: (frequency, callsign, stationCallsign) => {
     if (RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)) {
@@ -111,6 +115,22 @@ const useRadioState = create<RadioState>((set) => ({
           isPendingDeleting: false
         }
       ].sort((a, b) => radioCompare(a, b, stationCallsign))
+    }));
+  },
+  addOrRemoveRadioToBeDeleted: (radio) => {
+    if (useRadioState.getState().radiosSelected.some((r) => r.frequency === radio.frequency)) {
+      set((state) => ({
+        radiosSelected: state.radiosSelected.filter((r) => r.frequency !== radio.frequency)
+      }));
+    } else {
+      set((state) => ({
+        radiosSelected: [...state.radiosSelected, radio]
+      }));
+    }
+  },
+  clearRadiosToBeDeleted: () => {
+    set(() => ({
+      radiosSelected: []
     }));
   },
   removeRadio: (frequency) => {
@@ -154,7 +174,8 @@ const useRadioState = create<RadioState>((set) => ({
   },
   reset: () => {
     set(() => ({
-      radios: []
+      radios: [],
+      radiosSelected: []
     }));
   },
   setTransceiverCountForStationCallsign: (callsign, count) => {

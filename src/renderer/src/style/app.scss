@@ -204,7 +204,7 @@ button:disabled {
 }
 
 .structure {
-  height: calc(100vh - $navbar-height - $focusbar-height);
+  height: calc(100vh - $navbar-height - $focusbar-height - 2rem);
 }
 
 .text-box-container,
@@ -224,6 +224,20 @@ button:disabled {
   outline: lighten($disabled, 15%) solid 3px;
   padding: 10px;
   border-radius: 0.375rem;
+  overflow: auto;
+}
+
+.box-container::-webkit-scrollbar-track {
+  padding: 0px 0;
+  background-color: $dark;
+}
+
+.box-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.box-container::-webkit-scrollbar-thumb {
+  background-color: $body-color;
 }
 
 .freq-box {
@@ -234,6 +248,15 @@ button:disabled {
   height: 100%;
   width: 65%;
   padding: 0;
+}
+
+.focusbar-container {
+  height: $focusbar-height;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
 }
 
 // When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
@@ -268,7 +291,7 @@ button:disabled {
 
 .radio {
   margin-right: 10px;
-  margin-top: 10px;
+  margin-top: 5px;
   color: $btn-text-color;
   background-color: lighten($disabled, 5%);
   border-color: lighten($disabled, 20%);

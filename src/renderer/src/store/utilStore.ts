@@ -10,6 +10,8 @@ interface UtilStore {
   isWindowMaximised: boolean;
   hasPtt1BeenSetDuringSetup: boolean;
   hasPtt2BeenSetDuringSetup: boolean;
+  isEditMode: boolean;
+  setIsEditMode: (isEditMode: boolean) => void;
   setPtt1KeyName: (ptt1KeyName: string) => void;
   setPtt2KeyName: (ptt2KeyName: string) => void;
   updateVu: (vu: number, peakVu: number) => void;
@@ -30,6 +32,10 @@ const useUtilStore = create<UtilStore>((set) => ({
   hasPtt2BeenSetDuringSetup: false,
   isWindowFullscreen: false,
   isWindowMaximised: false,
+  isEditMode: false,
+  setIsEditMode: (isEditMode: boolean) => {
+    set({ isEditMode });
+  },
   setPtt1KeyName: (ptt1KeyName: string) => {
     set({ ptt1KeyName });
   },

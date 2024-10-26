@@ -20,7 +20,7 @@ const RadioContainer: React.FC = () => {
         </div>
 
         <div className="container">
-          <div className="row" style={{margin: 'auto'}}>
+          <div className="row" style={{ margin: 'auto' }}>
             {filteredRadios.map((radio) => (
               <Radio key={radio.frequency} radio={radio} />
             ))}

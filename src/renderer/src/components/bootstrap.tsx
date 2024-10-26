@@ -111,6 +111,7 @@ const Bootsrap: React.FC = () => {
       useSessionStore.getState().setIsConnecting(false);
       useSessionStore.getState().setIsConnected(false);
       useRadioState.getState().reset();
+      useUtilStore.getState().setIsEditMode(false);
     });
 
     window.api.on('network-connected', (callsign: string, dataString: string) => {

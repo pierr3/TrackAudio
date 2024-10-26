@@ -3,6 +3,8 @@ import useRadioState, { RadioType } from '../../store/radioStore';
 import clsx from 'clsx';
 import useErrorStore from '../../store/errorStore';
 import useSessionStore from '../../store/sessionStore';
+import useUtilStore from '../../store/utilStore';
+import { is } from '@electron-toolkit/utils';
 
 export interface RadioProps {
   radio: RadioType;
@@ -10,16 +12,28 @@ export interface RadioProps {
 
 const Radio: React.FC<RadioProps> = ({ radio }) => {
   const postError = useErrorStore((state) => state.postError);
-  const [setRadioState, selectRadio, removeRadio, setPendingDeletion] = useRadioState((state) => [
+  const [
+    setRadioState,
+    selectRadio,
+    removeRadio,
+    setPendingDeletion,
+    addOrRemoveRadioToBeDeleted,
+    radiosToBeDeleted
+  ] = useRadioState((state) => [
     state.setRadioState,
     state.selectRadio,
     state.removeRadio,
-    state.setPendingDeletion
+    state.setPendingDeletion,
+    state.addOrRemoveRadioToBeDeleted,
+    state.radiosSelected
   ]);
-
+  const [isEditMode] = useUtilStore((state) => [state.isEditMode]);
   const isATC = useSessionStore((state) => state.isAtc);
 
   const clickRadioHeader = () => {
+    if (isEditMode) {
+      addOrRemoveRadioToBeDeleted(radio);
+    }
     selectRadio(radio.frequency);
     if (radio.transceiverCount === 0 && radio.callsign !== 'MANUAL') {
       void window.api.RefreshStation(radio.callsign);
@@ -203,7 +217,12 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
 
   return (
     <>
-      <div className="col-4 radio">
+      <div
+        className={clsx(
+          'col-4 radio',
+          isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info'
+        )}
+      >
         <div style={{ width: '48%', height: '45%', float: 'left' }}>
           <button
             className="btn btn-no-interact"
