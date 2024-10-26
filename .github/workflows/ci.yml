@@ -38,9 +38,13 @@ jobs:
 
       - name: Get Git revision
         run: |
-          SUBMODULE_REV=$(git rev-parse HEAD:./backend/vcpkg)
-          echo "Git revision is $SUBMODULE_REV" # Print the output for debugging
-          echo "SUBMODULE_REV=$SUBMODULE_REV" >> $GITHUB_ENV
+          if (${{ runner.os }} -eq 'Windows') {
+            $SUBMODULE_REV = & git rev-parse HEAD:./backend/vcpkg
+            echo "SUBMODULE_REV=$SUBMODULE_REV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          } else {
+            SUBMODULE_REV=$(git rev-parse HEAD:./backend/vcpkg)
+            echo "SUBMODULE_REV=$SUBMODULE_REV" >> $GITHUB_ENV
+          }
 
       - name: Restore vcpkg from cache
         uses: actions/cache@v4
