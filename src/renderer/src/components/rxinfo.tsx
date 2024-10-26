@@ -7,10 +7,6 @@ const RxInfo: React.FC = () => {
     return radios.filter((radio) => radio.rx && radio.lastReceivedCallsign);
   }, [radios]);
 
-  if (rxRadios.length === 0) {
-    return null;
-  }
-
   return (
     <div className="d-flex align-items-center h-100 rx-container">
       <h5 className="mr-md-auto rx-text m-1 pt-0.5 d-flex gap-2">

@@ -102,7 +102,7 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <TitleBar className="d-flex flex-md-row align-items-center  mb-3 custom-navbar hide-topbar">
+      <TitleBar className="d-flex flex-md-row align-items-center custom-navbar hide-topbar">
         <TitleBar.Section name="left" priority={1}>
           <TitleBar.Element priority={4}>
             <Clock />
@@ -201,9 +201,9 @@ const Navbar: React.FC = () => {
               </span>
             </div>
           </TitleBar.Element> */}
-          <TitleBar.Element priority={3}>
+          {/* <TitleBar.Element priority={3}>
             <RxInfo />
-          </TitleBar.Element>
+          </TitleBar.Element> */}
           <TitleBar.Element priority={2}>
             <div className="d-flex h-100 align-items-center">
               <button

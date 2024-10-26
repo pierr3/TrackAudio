@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import Radio from './radio';
 import useRadioState from '../../store/radioStore';
 import UnicomGuardBar from './unicom-guard';
+import UnicomGuardContainer from './unicom-guard-container';
 
 const RadioContainer: React.FC = () => {
   const radios = useRadioState((state) => state.radios);
@@ -14,13 +15,13 @@ const RadioContainer: React.FC = () => {
 
   return (
     <>
-      <div className="box-container freq-box">
-        <div className="unicon-overall-container">
-          <UnicomGuardBar />
+      <div className="h-100 mx-3 d-flex justify-content-center flex-column">
+        <div className="d-flex unicon-overall-container">
+          <UnicomGuardContainer />
         </div>
 
-        <div className="container">
-          <div className="row" style={{ margin: 'auto' }}>
+        <div className="box-container h-100 w-100">
+          <div className="row mx-1">
             {filteredRadios.map((radio) => (
               <Radio key={radio.frequency} radio={radio} />
             ))}
