@@ -1,5 +1,6 @@
 import { dialog } from 'electron';
 import Store from 'electron-store';
+
 import { AlwaysOnTopMode, Configuration } from '../shared/config.type';
 
 // Used to check for older settings that need upgrading. This should get
@@ -17,6 +18,7 @@ export const defaultConfiguration = {
   cid: '',
   password: '',
   callsign: '',
+  radioEffects: 'on' as RadioEffects,
   hardwareType: 0,
   radioGain: 0,
   alwaysOnTop: 'never' as AlwaysOnTopMode

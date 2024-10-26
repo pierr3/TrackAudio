@@ -79,6 +79,8 @@ declare namespace TrackAudioAfv {
   export function SetFrequencyRadioGain(frequency: number, gain: number): void;
   export function SetPtt(activate: boolean): void;
 
+  export function SetRadioEffects(type: string): void;
+
   export function SetHardwareType(type: number): void;
 
   export function StartMicTest(): void;

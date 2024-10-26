@@ -6,6 +6,7 @@
 #include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
 #include <atomic>
+#include <cctype>
 #include <chrono>
 #include <cstddef>
 #include <httplib.h>
@@ -279,6 +280,33 @@ void SetCid(const Napi::CallbackInfo& info)
 {
     auto cid = info[0].As<Napi::String>().Utf8Value();
     UserSession::cid = cid;
+}
+
+void SetRadioEffects(const Napi::CallbackInfo& info)
+{
+    auto radioEffects = info[0].As<Napi::String>().Utf8Value();
+    radioEffects = absl::AsciiStrToLower(radioEffects);
+    bool enableInputFilters;
+    bool enableOutputEffects;
+
+    if (radioEffects == "on") {
+        enableInputFilters = true;
+        enableOutputEffects = true;
+    } else if (radioEffects == "input") {
+        enableInputFilters = true;
+        enableOutputEffects = false;
+    } else if (radioEffects == "output") {
+        enableInputFilters = false;
+        enableOutputEffects = true;
+    } else if (radioEffects == "off") {
+        enableInputFilters = false;
+        enableOutputEffects = false;
+    } else {
+        TRACK_LOG_WARNING("Invalid radioEffects value: {}", radioEffects);
+        return;
+    }
+    mClient->SetEnableInputFilters(enableInputFilters);
+    mClient->SetEnableOutputEffects(enableOutputEffects);
 }
 
 void SetHardwareType(const Napi::CallbackInfo& info)
@@ -807,6 +835,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
         Napi::Function::New(env, SetFrequencyRadioGain));
 
     exports.Set(Napi::String::New(env, "SetRadioGain"), Napi::Function::New(env, SetRadioGain));
+
+    exports.Set(
+        Napi::String::New(env, "SetRadioEffects"), Napi::Function::New(env, SetRadioEffects));
 
     exports.Set(
         Napi::String::New(env, "SetHardwareType"), Napi::Function::New(env, SetHardwareType));
