@@ -36,13 +36,17 @@ jobs:
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
 
+      - name: Get submodule commit hash
+        id: get-submodule-hash
+        run: echo "SUBMODULE_HASH=$(git rev-parse :path/to/submodule)" >> $GITHUB_ENV
+
       - name: Restore vcpkg from cache
         uses: actions/cache@v4
         with:
           path: |
             backend/vcpkg
             backend/build/vcpkg_installed
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}-${{ env.SUBMODULE_HASH }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
