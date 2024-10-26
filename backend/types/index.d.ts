@@ -76,6 +76,7 @@ declare namespace TrackAudioAfv {
   export function SetCid(cid: string): void;
 
   export function SetRadioGain(gain: number): void;
+  export function SetFrequencyRadioGain(frequency: number, gain: number): void;
   export function SetPtt(activate: boolean): void;
 
   export function SetRadioEffects(type: string): void;

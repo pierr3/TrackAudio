@@ -233,9 +233,7 @@ button:disabled {
   float: left;
   height: 100%;
   width: 65%;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-right: 0;
+  padding: 0;
 }
 
 // When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
@@ -385,8 +383,7 @@ select:disabled {
   font-size: $mini-font-size;
 }
 
-.radio-list
-{
+.radio-list {
   max-height: 80vh;
   overflow-y: auto;
 }
@@ -421,4 +418,21 @@ select:disabled {
 
 .exit-mini-mode-container.hidden {
   opacity: 0;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(50, 50, 58); /* Color of the scrollbar thumb */
+  border-radius: 2px; /* Rounded corners of the scrollbar thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: lighten(rgb(50, 50, 58), 10%) /* Color of the scrollbar thumb on hover */
 }

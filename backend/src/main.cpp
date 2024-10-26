@@ -1,9 +1,8 @@
 #include "LogFactory.h"
+#include "afv-native/afv/dto/StationTransceiver.h"
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
 #include "afv-native/hardwareType.h"
-#include "spdlog/sinks/rotating_file_sink.h"
-#include "spdlog/spdlog.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
 #include <atomic>
@@ -39,7 +38,7 @@ public:
 
     inline static std::unique_ptr<InputHandler> inputHandler = nullptr;
 };
-
+namespace {
 Napi::Array GetAudioApis(const Napi::CallbackInfo& info)
 {
     Napi::Env env = info.Env();
@@ -123,6 +122,28 @@ void Disconnect(const Napi::CallbackInfo& /*info*/)
         sdk::types::Event::kDisconnectFrequencyStateUpdate, {}, {});
 }
 
+void SetGuardAndUnicomTransceivers()
+{
+    const auto transceivers = mClient->GetTransceivers();
+    const auto states = mClient->getRadioState();
+
+    std::vector<afv_native::afv::dto::StationTransceiver> guardAndUnicomTransceivers;
+    for (const auto& [frequency, state] : states) {
+        if (frequency == UNICOM_FREQUENCY || frequency == GUARD_FREQUENCY || !state.rx) {
+            continue;
+        }
+
+        if (transceivers.find(state.stationName) != transceivers.end()) {
+            for (const auto& transceiver : transceivers.at(state.stationName)) {
+                guardAndUnicomTransceivers.push_back(transceiver);
+            }
+        }
+    }
+
+    mClient->SetManualTransceivers(UNICOM_FREQUENCY, guardAndUnicomTransceivers);
+    mClient->SetManualTransceivers(GUARD_FREQUENCY, guardAndUnicomTransceivers);
+}
+
 void SetAudioSettings(const Napi::CallbackInfo& info)
 {
     if (mClient->IsVoiceConnected()) {
@@ -155,7 +176,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
         return Napi::Boolean::New(info.Env(), false);
     }
 
-    RadioState newState;
+    RadioState newState {};
 
     newState.frequency = frequency;
     newState.rx = false;
@@ -164,13 +185,13 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     newState.headset = true;
     newState.xca = false;
 
-    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, callsign);
     return Napi::Boolean::New(info.Env(), result);
 }
 
 void RemoveFrequency(const Napi::CallbackInfo& info)
 {
-    RadioState newState;
+    RadioState newState {};
 
     newState.frequency = info[0].As<Napi::Number>().Int32Value();
     newState.rx = false;
@@ -189,7 +210,7 @@ void Reset(const Napi::CallbackInfo& /*info*/) { mClient->reset(); }
 
 Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 {
-    RadioState newState;
+    RadioState newState {};
 
     newState.frequency = info[0].As<Napi::Number>().Int32Value();
     newState.rx = info[1].As<Napi::Boolean>().Value();
@@ -198,6 +219,8 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     // Note the negation here, as the API uses the opposite of what is saved internally
     newState.headset = !info[4].As<Napi::Boolean>().Value();
     newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
+
+    // SetGuardAndUnicomTransceivers();
 
     auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     return Napi::Boolean::New(info.Env(), result);
@@ -323,7 +346,22 @@ void SetRadioGain(const Napi::CallbackInfo& info)
     float gain = info[0].As<Napi::Number>().FloatValue();
     UserSession::currentRadioGain = gain;
 
-    mClient->SetRadioGainAll(gain);
+    auto states = mClient->getRadioState();
+    for (const auto& state : states) {
+        if (state.second.Frequency == UNICOM_FREQUENCY
+            || state.second.Frequency == GUARD_FREQUENCY) {
+            continue;
+        }
+        mClient->SetRadioGain(state.first, gain);
+    }
+}
+
+void SetFrequencyRadioGain(const Napi::CallbackInfo& info)
+{
+    int frequency = info[0].As<Napi::Number>().Int32Value();
+    float gain = info[1].As<Napi::Number>().FloatValue();
+
+    mClient->SetRadioGain(frequency, gain);
 }
 
 Napi::String Version(const Napi::CallbackInfo& info)
@@ -427,7 +465,7 @@ void RequestPttKeyName(const Napi::CallbackInfo& info)
 }
 
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,readability-function-cognitive-complexity)
-static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
+void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
 {
     if (!NapiHelpers::callbackAvailable) {
         return;
@@ -458,7 +496,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
                 break;
             }
         }
-
+        SetGuardAndUnicomTransceivers();
         NapiHelpers::callElectron(
             "StationTransceiversUpdated", station, std::to_string(transceiverCount));
     }
@@ -486,7 +524,7 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
         }
 
         NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
-        MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
+        MainThreadShared::mApiServer->publishStationAdded(callsign, static_cast<int>(frequency));
     }
 
     if (eventType == afv_native::ClientEventType::VccsReceived) {
@@ -508,7 +546,8 @@ static void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, v
             }
 
             NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
-            MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
+            MainThreadShared::mApiServer->publishStationAdded(
+                callsign, static_cast<int>(frequency));
         }
     }
 
@@ -728,16 +767,18 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 Napi::Boolean Exit(const Napi::CallbackInfo& info)
 {
     TRACK_LOG_INFO("Awaiting to exit TrackAudio...");
-    std::lock_guard<std::mutex> HelperLock(NapiHelpers::_callElectronMutex);
-    TRACK_LOG_INFO("Exiting TrackAudio...")
+    NapiHelpers::_requestExit.store(true);
     if (mClient->IsVoiceConnected()) {
+        TRACK_LOG_INFO("Forcing disconnect...");
         mClient->Disconnect();
     }
+
     MainThreadShared::mApiServer.reset();
     MainThreadShared::mRemoteDataHandler.reset();
     MainThreadShared::inputHandler.reset();
 
     mClient.reset();
+    TRACK_LOG_INFO("Exiting TrackAudio...")
     LogFactory::destroyLoggers();
 
     return Napi::Boolean::New(info.Env(), true);
@@ -790,6 +831,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     exports.Set(Napi::String::New(env, "SetPtt"), Napi::Function::New(env, SetPtt));
 
+    exports.Set(Napi::String::New(env, "SetFrequencyRadioGain"),
+        Napi::Function::New(env, SetFrequencyRadioGain));
+
     exports.Set(Napi::String::New(env, "SetRadioGain"), Napi::Function::New(env, SetRadioGain));
 
     exports.Set(
@@ -824,5 +868,5 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     return exports;
 }
-
 NODE_API_MODULE(addon, Init)
+}

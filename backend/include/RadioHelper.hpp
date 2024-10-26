@@ -1,7 +1,9 @@
 #pragma once
 
+#include "Helpers.hpp"
 #include "Shared.hpp"
 #include "sdk.hpp"
+#include <optional>
 
 class RadioState {
 public:
@@ -22,8 +24,8 @@ public:
      * @return true The state was set successfully
      * @return false The state was not set successfully
      */
-    inline static bool SetRadioState(
-        const std::shared_ptr<SDK>& mApiServer, const RadioState& newState)
+    static bool SetRadioState(const std::shared_ptr<SDK>& mApiServer, const RadioState& newState,
+        const std::string& stationCallsign = "")
     {
         if (!mClient->IsVoiceConnected()) {
             TRACK_LOG_TRACE("Voice is not connected, not setting radio state");
@@ -56,6 +58,7 @@ public:
 
         mClient->SetOnHeadset(newState.frequency, newState.headset);
 
+
         if (!oldRxValue && newState.rx) {
             // When turning on RX, we refresh the transceivers
             auto states = mClient->getRadioState();
@@ -66,10 +69,13 @@ public:
         }
 
         // Included for legacy reasons in case some older client depends on this message.
-        mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kFrequencyStateUpdate, {}, {});
+        mApiServer->handleAFVEventForWebsocket(
+            sdk::types::Event::kFrequencyStateUpdate, std::nullopt, std::nullopt);
 
         // New event that only notifies of the change to this specific station.
-        auto stateJson = mApiServer->buildStationStateJson(std::nullopt, newState.frequency);
+        std::optional<std::string> optionalCallsign
+            = stationCallsign.empty() ? std::nullopt : std::optional<std::string>(stationCallsign);
+        auto stateJson = mApiServer->buildStationStateJson(optionalCallsign, newState.frequency);
         mApiServer->publishStationState(stateJson);
         NapiHelpers::callElectron("station-state-update", stateJson.dump());
 

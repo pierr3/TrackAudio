@@ -57,7 +57,6 @@ void SDK::handleVoiceConnectedEventForWebsocket(bool isVoiceConnected)
 
     jsonMessage["value"]["connected"] = isVoiceConnected;
     this->broadcastOnWebsocket(jsonMessage.dump());
-    return;
 }
 
 // NOLINTNEXTLINE
@@ -330,6 +329,7 @@ void SDK::handleGetStationStates()
 
     // Collect the states for all the radios
     auto allRadios = mClient->getRadioState();
+    stationStates.reserve(allRadios.size());
     for (const auto& [frequency, state] : allRadios) {
         stationStates.push_back(this->buildStationStateJson(state.stationName, frequency));
     }
