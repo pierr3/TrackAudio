@@ -1,4 +1,5 @@
 export type AlwaysOnTopMode = 'never' | 'always' | 'inMiniMode';
+export type RadioEffects = 'on' | 'input' | 'output' | 'off';
 
 export interface Configuration {
   version?: number;
@@ -17,4 +18,5 @@ export interface Configuration {
 
   // Boolean is the prior type for this property, AlwaysOnTopMode is the updated type.
   alwaysOnTop: boolean | AlwaysOnTopMode;
+  radioEffects: RadioEffects;
 }

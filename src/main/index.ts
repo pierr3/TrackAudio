@@ -5,8 +5,8 @@ import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
 
-import configManager, {RadioEffects} from './config';
-import { AlwaysOnTopMode } from '../shared/config.type';
+import configManager from './config';
+import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
 
 type WindowMode = 'mini' | 'maxi';
 
@@ -442,7 +442,6 @@ ipcMain.handle('set-frequency-radio-gain', (_, frequency: number, radioGain: num
 ipcMain.handle('set-radio-effects', (_, radioEffects: RadioEffects) => {
   configManager.updateConfig({ radioEffects });
   TrackAudioAfv.SetRadioEffects(radioEffects);
-
 });
 
 ipcMain.handle('set-hardware-type', (_, hardwareType: number) => {

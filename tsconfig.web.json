@@ -5,7 +5,7 @@
     "src/renderer/src/**/*",
     "src/preload/*.d.ts",
     "src/renderer/src/**/*.tsx",
-     "src/shared/**/*"
+    "src/shared/**/*"
   ],
   "compilerOptions": {
     "sourceMap": true,

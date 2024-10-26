@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { AudioApi, AudioDevice } from 'trackaudio-afv';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { AlwaysOnTopMode, Configuration } from '../../../../shared/config.type';
+import { AlwaysOnTopMode, Configuration, RadioEffects } from '../../../../shared/config.type';
 import useRadioState from '../../store/radioStore';
 import useUtilStore from '../../store/utilStore';
 import AudioApis from './audio-apis';

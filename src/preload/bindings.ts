@@ -1,6 +1,6 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 
-import { AlwaysOnTopMode } from '../shared/config.type';
+import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
 
 
 export const api = {
