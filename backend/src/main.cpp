@@ -184,7 +184,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     newState.headset = true;
     newState.xca = false;
 
-    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, callsign);
     return Napi::Boolean::New(info.Env(), result);
 }
 
