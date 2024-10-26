@@ -39,9 +39,8 @@ jobs:
       - name: Get submodule commit hash
         id: get-submodule-hash
         run: |
-          SUBMODULE_HASH=$(git rev-parse HEAD:./backend/vcpkg)
-          echo "SUBMODULE_HASH=$SUBMODULE_HASH" >> $GITHUB_ENV
-          echo "Submodule commit hash is: ${{ env.SUBMODULE_HASH }}"
+          echo "SUBMODULE_REV=$(git rev-parse HEAD:./backend/vcpkg)" >> $GITHUB_ENV
+          echo "Submodule commit hash is: ${{ env.SUBMODULE_REV }}"
 
       - name: Restore vcpkg from cache
         uses: actions/cache@v4
@@ -49,7 +48,7 @@ jobs:
           path: |
             backend/vcpkg
             backend/build/vcpkg_installed
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}-${{ env.SUBMODULE_HASH }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}-${{ env.SUBMODULE_REV }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
