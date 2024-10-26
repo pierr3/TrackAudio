@@ -1,4 +1,5 @@
 #include "LogFactory.h"
+#include "afv-native/afv/dto/StationTransceiver.h"
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
 #include "afv-native/hardwareType.h"
@@ -120,9 +121,26 @@ void Disconnect(const Napi::CallbackInfo& /*info*/)
         sdk::types::Event::kDisconnectFrequencyStateUpdate, {}, {});
 }
 
-void SetGuardAndUnicomTransceivers() {
-    mClient->UseAllActiveTransceivers(UNICOM_FREQUENCY);
-    mClient->UseAllActiveTransceivers(GUARD_FREQUENCY);
+void SetGuardAndUnicomTransceivers()
+{
+    const auto transceivers = mClient->GetTransceivers();
+    const auto states = mClient->getRadioState();
+
+    std::vector<afv_native::afv::dto::StationTransceiver> guardAndUnicomTransceivers;
+    for (const auto& [frequency, state] : states) {
+        if (frequency == UNICOM_FREQUENCY || frequency == GUARD_FREQUENCY || !state.rx) {
+            continue;
+        }
+
+        if (transceivers.find(state.stationName) != transceivers.end()) {
+            for (const auto& transceiver : transceivers.at(state.stationName)) {
+                guardAndUnicomTransceivers.push_back(transceiver);
+            }
+        }
+    }
+
+    mClient->SetManualTransceivers(UNICOM_FREQUENCY, guardAndUnicomTransceivers);
+    mClient->SetManualTransceivers(GUARD_FREQUENCY, guardAndUnicomTransceivers);
 }
 
 void SetAudioSettings(const Napi::CallbackInfo& info)
@@ -152,9 +170,6 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
 
     auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
     if (!hasBeenAddded) {
-        if (frequency == UNICOM_FREQUENCY || frequency == GUARD_FREQUENCY) {
-            return Napi::Boolean::New(info.Env(), true);
-        }
         NapiHelpers::sendErrorToElectron("Could not add frequency: it already exists");
         TRACK_LOG_WARNING("Could not add frequency, it already exists: {} {}", frequency, callsign);
         return Napi::Boolean::New(info.Env(), false);
@@ -204,7 +219,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     newState.headset = !info[4].As<Napi::Boolean>().Value();
     newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
 
-    SetGuardAndUnicomTransceivers();
+    // SetGuardAndUnicomTransceivers();
 
     auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     return Napi::Boolean::New(info.Env(), result);
@@ -450,11 +465,10 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         for (const auto& state : states) {
             if (state.second.stationName == station) {
                 mClient->UseTransceiversFromStation(station, static_cast<int>(state.first));
-                SetGuardAndUnicomTransceivers();
                 break;
             }
         }
-
+        SetGuardAndUnicomTransceivers();
         NapiHelpers::callElectron(
             "StationTransceiversUpdated", station, std::to_string(transceiverCount));
     }

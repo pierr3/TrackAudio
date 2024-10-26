@@ -4,7 +4,6 @@ import useErrorStore from '../store/errorStore';
 import useSessionStore from '../store/sessionStore';
 import useUtilStore from '../store/utilStore';
 import { StationStateUpdate } from '../interfaces/StationStateUpdate';
-import { GuardFrequency, UnicomFrequency } from '../../../shared/common';
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
@@ -105,15 +104,6 @@ const Bootsrap: React.FC = () => {
       if (useSessionStore.getState().isAtc) {
         void window.api.GetStation(useSessionStore.getState().stationCallsign);
       }
-
-      void window.api.addFrequency(UnicomFrequency, 'UNICOM');
-      void window.api.addFrequency(GuardFrequency, 'GUARD');
-      useRadioState
-        .getState()
-        .addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
-      useRadioState
-        .getState()
-        .addRadio(GuardFrequency, 'GUARD', 'GUARD');
     });
 
     window.api.on('VoiceDisconnected', () => {

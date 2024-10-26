@@ -7,8 +7,16 @@ import useErrorStore from '@renderer/store/errorStore';
 import { GuardFrequency, UnicomFrequency } from '../../../../shared/common';
 
 const UnicomGuardBar = () => {
-  const [radios, setRadioState] = useRadioState((state) => [state.radios, state.setRadioState]);
-  const [isNetworkConnected, isAtc] = useSessionStore((state) => [state.isNetworkConnected, state.isAtc]);
+  const [radios, setRadioState, addRadio, removeRadio] = useRadioState((state) => [
+    state.radios,
+    state.setRadioState,
+    state.addRadio,
+    state.removeRadio
+  ]);
+  const [isConnected, isAtc] = useSessionStore((state) => [
+    state.isConnected,
+    state.isAtc
+  ]);
 
   const [localRadioGain, setLocalRadioGain] = useState(50);
 
@@ -16,11 +24,11 @@ const UnicomGuardBar = () => {
 
   const unicom = useMemo(() => {
     return radios.find((radio) => radio.frequency === UnicomFrequency);
-  }, [radios]);
+  }, [radios, isConnected]);
 
   const guard = useMemo(() => {
     return radios.find((radio) => radio.frequency === GuardFrequency);
-  }, [radios]);
+  }, [radios, isConnected]);
 
   const clickRx = (radio: RadioType | undefined) => {
     if (!radio) return;
@@ -115,12 +123,45 @@ const UnicomGuardBar = () => {
   };
 
   useEffect(() => {
+    if (!isConnected) {
+      void window.api.removeFrequency(UnicomFrequency).then((ret) => {
+        if (!ret) {
+          return;
+        }
+        removeRadio(UnicomFrequency);
+      });
+      void window.api.removeFrequency(GuardFrequency).then((ret) => {
+        if (!ret) {
+          return;
+        }
+        removeRadio(GuardFrequency);
+      });
+    } else {
+      void window.api.addFrequency(UnicomFrequency, 'UNICOM').then((ret) => {
+        if (!ret) {
+          console.error('Failed to add UNICOM frequency');
+          return;
+        }
+        console.log('Adding unicom frequency');
+        addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
+        void window.api.SetFrequencyRadioGain(UnicomFrequency, localRadioGain / 100);
+      });
+      void window.api.addFrequency(GuardFrequency, 'GUARD').then((ret) => {
+        if (!ret) {
+          console.error('Failed to add GUARD frequency');
+          return;
+        }
+        console.log('Adding guard frequency');
+        addRadio(GuardFrequency, 'GUARD', 'GUARD');
+        void window.api.SetFrequencyRadioGain(GuardFrequency, localRadioGain / 100);
+      });
+    }
+  }, [isConnected]);
+
+  useEffect(() => {
     const storedGain = window.localStorage.getItem('unicomRadioGain');
     const gainToSet = storedGain?.length ? parseInt(storedGain) : 50;
-    setLocalRadioGain(storedGain?.length ? parseInt(storedGain) : 50);
-    console.log('Setting unicom radio gain to', gainToSet);
-    void window.api.SetFrequencyRadioGain(UnicomFrequency, gainToSet / 100);
-    void window.api.SetFrequencyRadioGain(GuardFrequency, gainToSet / 100);
+    setLocalRadioGain(gainToSet);
   }, []);
 
   const updateRadioGainValue = (newGain: number) => {
@@ -130,7 +171,6 @@ const UnicomGuardBar = () => {
       .then(() => {
         void window.api.SetFrequencyRadioGain(guard.frequency, newGain / 100);
         setLocalRadioGain(newGain);
-        console.log('Setting unicom radio gain to', newGain);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -162,7 +202,7 @@ const UnicomGuardBar = () => {
             unicom?.rx && unicom.currentlyRx && 'btn-warning',
             unicom?.rx && !unicom.currentlyRx && 'btn-success'
           )}
-          disabled={!isNetworkConnected || !unicom}
+          disabled={!isConnected || !unicom}
           onClick={() => {
             clickRx(unicom);
           }}
@@ -176,7 +216,7 @@ const UnicomGuardBar = () => {
             unicom?.tx && unicom.currentlyTx && 'btn-warning',
             unicom?.tx && !unicom.currentlyTx && 'btn-success'
           )}
-          disabled={!isNetworkConnected || !unicom || !isAtc}
+          disabled={!isConnected || !unicom || !isAtc}
           onClick={() => {
             clickTx(unicom);
           }}
@@ -190,7 +230,7 @@ const UnicomGuardBar = () => {
               !unicom?.onSpeaker && 'btn-info',
               unicom?.onSpeaker && 'btn-success'
             )}
-            disabled={!isNetworkConnected || !unicom}
+            disabled={!isConnected || !unicom}
             onClick={() => {
               clickSpK(unicom);
             }}
@@ -211,7 +251,7 @@ const UnicomGuardBar = () => {
             guard?.rx && guard.currentlyRx && 'btn-warning',
             guard?.rx && !guard.currentlyRx && 'btn-success'
           )}
-          disabled={!isNetworkConnected || !guard}
+          disabled={!isConnected || !guard}
           onClick={() => {
             clickRx(guard);
           }}
@@ -225,7 +265,7 @@ const UnicomGuardBar = () => {
             guard?.tx && guard.currentlyTx && 'btn-warning',
             guard?.tx && !guard.currentlyTx && 'btn-success'
           )}
-          disabled={!isNetworkConnected || !guard || !isAtc}
+          disabled={!isConnected || !guard || !isAtc}
           onClick={() => {
             clickTx(guard);
           }}
@@ -239,7 +279,7 @@ const UnicomGuardBar = () => {
               !guard?.onSpeaker && 'btn-info',
               guard?.onSpeaker && 'btn-success'
             )}
-            disabled={!isNetworkConnected || !guard}
+            disabled={!isConnected || !guard}
             onClick={() => {
               clickSpK(guard);
             }}
