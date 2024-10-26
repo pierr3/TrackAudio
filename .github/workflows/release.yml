@@ -29,6 +29,20 @@ jobs:
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
 
+      - name: Get submodule commit hash
+        id: get-submodule-hash
+        run: echo "SUBMODULE_HASH=$(git rev-parse :./backend/vcpkg)" >> $GITHUB_ENV
+
+      - name: Restore vcpkg from cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            backend/vcpkg
+            backend/build/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}-${{ env.SUBMODULE_HASH }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -37,7 +51,7 @@ jobs:
       - name: Install Python 3.x
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11.x"
+          python-version: '3.11.x'
 
       - name: Update cmake
         if: matrix.os != 'macos-latest'
@@ -147,7 +161,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLE_API_KEY: "./.a.p8"
+          APPLE_API_KEY: './.a.p8'
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
@@ -189,7 +203,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
-          files: "dist/*.dmg"
+          files: 'dist/*.dmg'
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
