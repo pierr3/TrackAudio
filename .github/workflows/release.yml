@@ -28,17 +28,20 @@ jobs:
         run: |
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
-          - name: Get Git revision (windows)
-          if: matrix.os == 'windows-2019'
-          run: |
-            $SUBMODULE_REV = & git rev-parse HEAD:./backend/vcpkg
-            echo "SUBMODULE_REV=$SUBMODULE_REV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Get Git revision (windows)
+        if: matrix.os == 'windows-2019'
+        run: |
+          $SUBMODULE_REV = & git rev-parse HEAD:./backend/vcpkg
+          echo "SUBMODULE_REV=$SUBMODULE_REV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "vcpkg submodule revision ${{ env.SUBMODULE_REV }}"
 
       - name: Get Git revision (macos and linux)
         if: matrix.os != 'windows-2019'
         run: |
           SUBMODULE_REV=$(git rev-parse HEAD:./backend/vcpkg)
           echo "SUBMODULE_REV=$SUBMODULE_REV" >> $GITHUB_ENV
+          echo "vcpkg submodule revision ${{ env.SUBMODULE_REV }}"
 
       - name: Restore vcpkg from cache
         uses: actions/cache@v4
