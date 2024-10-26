@@ -2,7 +2,11 @@ import React, { useRef, useState } from 'react';
 import useRadioState, { RadioHelper } from '../../store/radioStore';
 import useSessionStore from '../../store/sessionStore';
 
-const AddFrequency: React.FC = () => {
+export interface AddFrequencyProps {
+  onAddFrequency: () => void;
+}
+
+const AddFrequency: React.FC<AddFrequencyProps> = () => {
   const [readyToAdd, setReadyToAdd] = useState(false);
   const [previousValue, setPreviousValue] = useState('');
   const [addRadio] = useRadioState((state) => [state.addRadio]);
@@ -38,6 +42,7 @@ const AddFrequency: React.FC = () => {
     frequencyInputRef.current.value = '';
     setPreviousValue('');
     setReadyToAdd(false);
+    onAddFrequency();
   };
 
   const checkFrequency = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,8 +70,8 @@ const AddFrequency: React.FC = () => {
   };
 
   return (
-    <div className="form-group mt-3">
-      <label>Add a VHF frequency</label>
+    <div className="form-group">
+      <h5>Add a VHF frequency</h5>
       <input
         type="text"
         className="form-control mt-2"

@@ -52,7 +52,7 @@ const RadioStatus: React.FC = () => {
   };
 
   return (
-    <div className="box-container mt-3 w-100">
+    <div className=" w-100">
       <div style={{ textAlign: 'center' }} className="w-100 mb-0">
         Radio Status
       </div>

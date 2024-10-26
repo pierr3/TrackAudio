@@ -1,0 +1,207 @@
+@use '../../style/variables.scss' as GlobalVars;
+
+$toolbar-border-radius: 4px;
+$toolbar-item-height: 26px;
+$transition-speed: 0.1s;
+
+.titlebar-container {
+  // line-height: 0 !important;
+  position: relative;
+  height: GlobalVars.$navbar-height;
+  z-index: 1000;
+  // border-bottom: 1px solid GlobalVars.$dark-border;
+  font: 600 15px sans-serif;
+  color: GlobalVars.$body-color;
+  -webkit-app-region: drag;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &.focused {
+    background-color: GlobalVars.$navbar;
+  }
+
+  &.unfocused {
+    background-color: GlobalVars.$disabled;
+  }
+}
+
+.clock-text {
+  // -webkit-app-region: drag;
+  font-family: GlobalVars.$font-medium;
+  font-weight: 600;
+}
+
+.rx-text {
+  font-size: 16px;
+  font-family: GlobalVars.$font-medium !important;
+  font-weight: 600 !important;
+}
+.rx-container {
+  width: 100px;
+  display: flex;
+  justify-content: end;
+}
+
+.titlebar-section {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+  margin-top: 1px;
+  gap: 15px;
+
+  &.center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+  }
+}
+
+.toolbar-item {
+  position: relative;
+  height: GlobalVars.$toolbar-item-height;
+  font-weight: 500;
+}
+
+.package-text {
+  line-height: 0;
+}
+
+.toolbar-btn {
+  height: 100%;
+  margin: 0px;
+  font-size: GlobalVars.$main-font-size;
+  background-color: lighten(GlobalVars.$dark, 10);
+  color: GlobalVars.$body-color;
+  border: 2px solid darken(GlobalVars.$dark, 5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+
+  &.hover-enabled:hover {
+    background-color: lighten(GlobalVars.$dark, 15);
+  }
+
+  &.dark {
+    background-color: darken(GlobalVars.$dark, 5);
+    &:hover {
+      background-color: darken(GlobalVars.$dark, 0);
+    }
+  }
+
+  &.info {
+    background-color: darken(GlobalVars.$info, 10) !important;
+  }
+
+  &.active {
+    background-color: darken(GlobalVars.$success, 10) !important;
+  }
+
+  &:last-child {
+    border-top-right-radius: $toolbar-border-radius;
+    border-bottom-right-radius: $toolbar-border-radius;
+  }
+
+  &:first-child {
+    border-top-left-radius: $toolbar-border-radius;
+    border-bottom-left-radius: $toolbar-border-radius;
+  }
+
+  &:not(:last-child) {
+    border-right: 0px;
+  }
+}
+
+.unfocused-color {
+  color: darken(GlobalVars.$body-color, 10%) !important;
+}
+
+.draggable {
+  -webkit-app-region: drag;
+}
+
+.windows-caption-buttons {
+  display: flex;
+  right: 0;
+  z-index: 10;
+  -webkit-app-region: no-drag;
+  background-color: GlobalVars.$dark;
+  // border-bottom: 1px solid GlobalVars.$dark-border;
+
+  &.focused {
+    background-color: GlobalVars.$navbar;
+  }
+
+  &.unfocused {
+    background-color: GlobalVars.$disabled;
+  }
+  .element {
+    line-height: 33px;
+    height: 35px;
+    width: 16px;
+    stroke: #575c63;
+    padding: 0 5px;
+    box-sizing: content-box;
+    fill: transparent;
+    text-align: center;
+    transition:
+      background-color $transition-speed linear,
+      color $transition-speed linear;
+    stroke: #a4a9b0;
+
+    &:hover {
+      background-color: rgba(196, 196, 196, 0.4);
+      transition: none;
+      stroke: #fff;
+    }
+
+    &:active {
+      background-color: rgba(168, 168, 168, 0.5);
+    }
+
+    &.disable-resize {
+      pointer-events: none; /* Disables all interactions */
+      stroke: #575c63;
+    }
+
+    // &.caption-close {
+    //   stroke: #a4a9b0;
+    // }
+
+    &.caption-close:hover {
+      background-color: #e81123;
+
+      > svg {
+        stroke: #fff;
+        stroke-width: 1.1px;
+      }
+    }
+
+    &.caption-close:active {
+      background-color: rgba(232, 17, 35, 0.6);
+    }
+
+    > svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+}
+body:not(.task-overlay-is-shown).dark-theme .windows-caption-buttons .element {
+  stroke: #fff;
+}
+
+.gear {
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  // min-width: 31px;
+}

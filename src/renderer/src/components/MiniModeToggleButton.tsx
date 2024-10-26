@@ -14,7 +14,7 @@ const MiniModeToggleButton: React.FC<MiniModeToggleButtonProps> = ({ showRestore
 
   return (
     <button
-      className="btn btn-primary m-2"
+      className="btn btn-primary"
       style={{ lineHeight: 0, fontSize: '14px' }}
       onClick={toggleMiniMode}
     >

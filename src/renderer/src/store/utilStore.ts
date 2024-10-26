@@ -6,6 +6,8 @@ interface UtilStore {
   platform: string;
   ptt1KeyName: string;
   ptt2KeyName: string;
+  isWindowFullscreen: boolean;
+  isWindowMaximised: boolean;
   hasPtt1BeenSetDuringSetup: boolean;
   hasPtt2BeenSetDuringSetup: boolean;
   setPtt1KeyName: (ptt1KeyName: string) => void;
@@ -14,6 +16,8 @@ interface UtilStore {
   updatePlatform: (platform: string) => void;
   updatePtt1KeySet: (hasPtt1BeenSetDuringSetup: boolean) => void;
   updatePtt2KeySet: (hasPtt2BeenSetDuringSetup: boolean) => void;
+  setWindowFullscreen: (fullscreen: boolean) => void;
+  setWindowMaximised: (maximised: boolean) => void;
 }
 
 const useUtilStore = create<UtilStore>((set) => ({
@@ -24,6 +28,8 @@ const useUtilStore = create<UtilStore>((set) => ({
   ptt2KeyName: '',
   hasPtt1BeenSetDuringSetup: false,
   hasPtt2BeenSetDuringSetup: false,
+  isWindowFullscreen: false,
+  isWindowMaximised: false,
   setPtt1KeyName: (ptt1KeyName: string) => {
     set({ ptt1KeyName });
   },
@@ -41,6 +47,12 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   updatePtt2KeySet: (hasPtt2BeenSetDuringSetup: boolean) => {
     set({ hasPtt2BeenSetDuringSetup });
+  },
+  setWindowFullscreen: (fullscreen: boolean): void => {
+    set({ isWindowFullscreen: fullscreen });
+  },
+  setWindowMaximised: (maximised: boolean): void => {
+    set({ isWindowMaximised: maximised });
   }
 }));
 

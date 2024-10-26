@@ -10,6 +10,7 @@ const Bootsrap: React.FC = () => {
     void window.api.RequestPttKeyName(1);
     void window.api.RequestPttKeyName(2);
 
+    window.api.window.checkIsFullscreen();
     window.api.on('VuMeter', (vu: string, peakVu: string) => {
       const vuFloat = Math.abs(parseFloat(vu));
       const peakVuFloat = Math.abs(parseFloat(peakVu));

@@ -2,7 +2,6 @@ import { ipcRenderer, IpcRendererEvent } from 'electron';
 
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
 
-
 export const api = {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   on: (channel: string, listener: (...args: any[]) => void) => {
@@ -11,6 +10,18 @@ export const api = {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       listener(...args);
     });
+  },
+
+  onIpc<T>(channel: string, func: (data: T) => void): () => void {
+    const subscription = (_event: IpcRendererEvent, args: unknown): void => {
+      func(args as T);
+    };
+
+    ipcRenderer.on(channel, subscription);
+
+    return () => {
+      ipcRenderer.removeListener(channel, subscription);
+    };
   },
   removeAllListeners: (channel: string) => {
     ipcRenderer.removeAllListeners(channel);
@@ -95,7 +106,35 @@ export const api = {
     buttons: string[]
   ) => ipcRenderer.invoke('dialog', type, title, message, buttons),
 
-  settingsReady: () => ipcRenderer.invoke('settings-ready')
+  settingsReady: () => ipcRenderer.invoke('settings-ready'),
+
+  window: {
+    checkIsFullscreen(): void {
+      ipcRenderer.send('is-window-fullscreen');
+    },
+    minimise: (): void => {
+      ipcRenderer.send('minimise-window');
+    },
+    maximise: (): void => {
+      ipcRenderer.send('maximise-window');
+    },
+    unmaximise: (): void => {
+      ipcRenderer.send('unmaximise-window');
+    },
+    close: (): void => {
+      ipcRenderer.send('close-window');
+    },
+    isFullScreen: (callback: (status: boolean) => void): (() => void) => {
+      return api.onIpc<boolean>('is-window-fullscreen', (data) => {
+        callback(data);
+      });
+    },
+    isMaximised: (callback: (status: boolean) => void): (() => void) => {
+      return api.onIpc<boolean>('is-window-maximised', (data) => {
+        callback(data);
+      });
+    }
+  }
 };
 
 export type API = typeof api;

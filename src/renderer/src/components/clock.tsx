@@ -18,9 +18,9 @@ const Clock: React.FC = () => {
     }, 1000);
   }, []);
   return (
-    <>
-      <h5 className="my-1 mr-md-auto font-weight-normal m-2">{time}</h5>
-    </>
+    <div className="d-flex align-items-center h-100">
+      <h5 className="mr-md-auto clock-text m-1 pt-0.5">{time}</h5>
+    </div>
   );
 };
 

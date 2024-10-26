@@ -136,6 +136,8 @@ const createWindow = (): void => {
     minWidth: 210,
     minHeight: 120,
     icon,
+    trafficLightPosition: { x: 12, y: 10 },
+    titleBarStyle: 'hidden',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -220,6 +222,22 @@ const createWindow = (): void => {
         setAlwaysOnTop(false);
       }
     }
+  });
+
+  mainWindow.on('enter-full-screen', () => {
+    mainWindow.webContents.send('is-window-fullscreen', true);
+  });
+
+  mainWindow.on('leave-full-screen', () => {
+    mainWindow.webContents.send('is-window-fullscreen', false);
+  });
+
+  mainWindow.on('maximize', () => {
+    mainWindow.webContents.send('is-window-maximised', true);
+  });
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow.webContents.send('is-window-maximised', false);
   });
 };
 
@@ -435,7 +453,6 @@ ipcMain.handle('set-radio-gain', (_, radioGain: number) => {
   TrackAudioAfv.SetRadioGain(radioGain);
 });
 
-
 ipcMain.handle('set-frequency-radio-gain', (_, frequency: number, radioGain: number) => {
   TrackAudioAfv.SetFrequencyRadioGain(frequency, radioGain);
 });
@@ -487,6 +504,26 @@ ipcMain.handle(
 
 ipcMain.handle('get-version', () => {
   return version;
+});
+
+ipcMain.on('maximise-window', () => {
+  mainWindow.maximize();
+});
+
+ipcMain.on('unmaximise-window', () => {
+  mainWindow.unmaximize();
+});
+
+ipcMain.on('minimise-window', () => {
+  mainWindow.minimize();
+});
+
+ipcMain.on('close-window', () => {
+  mainWindow.close();
+});
+
+ipcMain.on('is-window-fullscreen', () => {
+  mainWindow.webContents.send('is-window-fullscreen', mainWindow.isFullScreen());
 });
 
 //
