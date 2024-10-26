@@ -39,11 +39,11 @@ jobs:
       - name: Debug - List files
         run: ls -la ./backend/vcpkg # Verify the directory exists and has content
 
-      - name: Get submodule commit hash
-        id: get-submodule-hash
+      - name: Get Git revision
         run: |
-          echo "SUBMODULE_REV=$(git rev-parse HEAD:./backend/vcpkg)" >> $GITHUB_ENV
-          echo "Submodule commit hash is: ${{ env.SUBMODULE_REV }}"
+          SUBMODULE_REV=$(git rev-parse HEAD:./backend/vcpkg)
+          echo "Git revision is $SUBMODULE_REV" # Print the output for debugging
+          echo "SUBMODULE_REV=$SUBMODULE_REV" >> $GITHUB_ENV
 
       - name: Restore vcpkg from cache
         uses: actions/cache@v4
