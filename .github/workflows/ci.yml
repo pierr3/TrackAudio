@@ -38,58 +38,9 @@ jobs:
           cd backend/extern/afv-native
           git checkout unicom2
 
-      - name: Get afv-native submodule revision (windows)
-        if: matrix.os == 'windows-2019'
-        run: |
-          $AFVNATIVE_REV = & git rev-parse HEAD:./backend/extern/afv-native
-          echo "AFVNATIVE_REV=$AFVNATIVE_REV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "afv-native submodule revision $AFVNATIVE_REV"
-
-      - name: Get afv-native submodule revision (macos and linux)
-        if: matrix.os != 'windows-2019'
-        run: |
-          AFVNATIVE_REV=$(git rev-parse HEAD:./backend/extern/afv-native)
-          echo "AFVNATIVE_REV=$AFVNATIVE_REV" >> $GITHUB_ENV
-          echo "afv-native submodule revision $AFVNATIVE_REV"
-
-      - name: Restore afv-native from cache
-        id: afv-native
-        uses: actions/cache@v4
-        with:
-          path: |
-            backend/trackaudio-afv-1.0.0.tgz
-          key: ${{ runner.os }}-afv-native-${{ env.AFVNATIVE_REV }}
-
-      - name: Get vcpkg submodule revision (windows)
-        if: matrix.os == 'windows-2019'
-        run: |
-          $VCPKG_REV = & git rev-parse HEAD:./backend/vcpkg
-          echo "VCPKG_REV=$VCPKG_REV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "vcpkg submodule revision $VCPKG_REV"
-
-      - name: Get vcpkg submodule revision (macos and linux)
-        if: matrix.os != 'windows-2019'
-        run: |
-          VCPKG_REV=$(git rev-parse HEAD:./backend/vcpkg)
-          echo "VCPKG_REV=$VCPKG_REV" >> $GITHUB_ENV
-          echo "vcpkg submodule revision $VCPKG_REV"
-
-      - name: Restore vcpkg from cache
-        uses: actions/cache@v4
-        if: steps.afv-native.outputs.cache-hit != 'true'
-        with:
-          path: |
-            backend/vcpkg
-            backend/build/vcpkg_installed
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}-${{ env.VCPKG_REV }}
-
-      - name: Restore electron-builder cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/electron
-            ~/.cache/electron-builder
-          key: ${{ runner.os }}-electron-builder-${{ hashFiles('./package-lock.json') }}
+      - name: Restore cache
+        id: restore-cache
+        uses: ./.github/actions/restore-cache.yml
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -121,13 +72,13 @@ jobs:
           sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
 
       - name: Build afv-native
-        if: steps.afv-native.outputs.cache-hit != 'true'
+        if: steps.restore-cache.outputs.afv-native != 'true'
         run: |
           npm -g i cmake-js
           npm run build:backend
 
       - name: Install cached afv-native
-        if: steps.afv-native.outputs.cache-hit == 'true'
+        if: steps.restore-cache.outputs.afv-native == 'true'
         run: npm install trackaudio-afv-1.0.0.tgz
 
       - name: Build trackaudio
