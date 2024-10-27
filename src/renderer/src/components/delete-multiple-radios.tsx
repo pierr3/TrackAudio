@@ -1,7 +1,7 @@
 import useRadioState from '@renderer/store/radioStore';
 import useSessionStore from '@renderer/store/sessionStore';
 import React from 'react';
-import { CheckCircleFill, TrashFill } from 'react-bootstrap-icons';
+import { TrashFill } from 'react-bootstrap-icons';
 
 const DeleteMultipleRadios: React.FC = () => {
   const [isConnected] = useSessionStore((state) => [state.isConnected]);

@@ -207,6 +207,10 @@ button:disabled {
   height: calc(100vh - $navbar-height - $focusbar-height - 1rem);
 }
 
+.sub-structure {
+  height: calc(100vh - $navbar-height - $focusbar-height - 35px - 2rem);
+}
+
 .text-box-container,
 .text-box-container:hover {
   min-height: 25px;
@@ -458,4 +462,13 @@ select:disabled {
 
 ::-webkit-scrollbar-thumb:hover {
   background: lighten(rgb(50, 50, 58), 10%); /* Color of the scrollbar thumb on hover */
+}
+
+.radio-text {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.radio-sub-text {
+  font-size: 13px;
 }

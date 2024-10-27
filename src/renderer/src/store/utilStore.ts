@@ -8,6 +8,7 @@ interface UtilStore {
   ptt2KeyName: string;
   isWindowFullscreen: boolean;
   isWindowMaximised: boolean;
+  showExpandedRxInfo: boolean;
   hasPtt1BeenSetDuringSetup: boolean;
   hasPtt2BeenSetDuringSetup: boolean;
   isEditMode: boolean;
@@ -20,6 +21,7 @@ interface UtilStore {
   updatePtt2KeySet: (hasPtt2BeenSetDuringSetup: boolean) => void;
   setWindowFullscreen: (fullscreen: boolean) => void;
   setWindowMaximised: (maximised: boolean) => void;
+  setShowExpandedRxInfo: (showExpandedRxInfo: boolean) => void;
 }
 
 const useUtilStore = create<UtilStore>((set) => ({
@@ -32,6 +34,7 @@ const useUtilStore = create<UtilStore>((set) => ({
   hasPtt2BeenSetDuringSetup: false,
   isWindowFullscreen: false,
   isWindowMaximised: false,
+  showExpandedRxInfo: false,
   isEditMode: false,
   setIsEditMode: (isEditMode: boolean) => {
     set({ isEditMode });
@@ -59,6 +62,9 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   setWindowMaximised: (maximised: boolean): void => {
     set({ isWindowMaximised: maximised });
+  },
+  setShowExpandedRxInfo: (showExpandedRxInfo: boolean): void => {
+    set({ showExpandedRxInfo });
   }
 }));
 

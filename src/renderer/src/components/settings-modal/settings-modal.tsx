@@ -25,7 +25,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [audioApis, setAudioApis] = useState(Array<AudioApi>);
   const [audioOutputDevices, setAudioOutputDevices] = useState(Array<AudioDevice>);
   const [audioInputDevices, setAudioInputDevices] = useState(Array<AudioDevice>);
-  const [radioEffects, setRadioEffects] = useState<RadioEffects>("on");
+  const [radioEffects, setRadioEffects] = useState<RadioEffects>('on');
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
@@ -44,7 +44,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     hasPtt1BeenSetDuringSetup,
     hasPtt2BeenSetDuringSetup,
     updatePtt1KeySet,
-    updatePtt2KeySet
+    updatePtt2KeySet,
+    showExpandedRxInfo,
+    setShowExpandedRxInfo
   ] = useUtilStore((state) => [
     state.vu,
     state.peakVu,
@@ -54,7 +56,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     state.hasPtt1BeenSetDuringSetup,
     state.hasPtt2BeenSetDuringSetup,
     state.updatePtt1KeySet,
-    state.updatePtt2KeySet
+    state.updatePtt2KeySet,
+    state.showExpandedRxInfo,
+    state.setShowExpandedRxInfo
   ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
@@ -68,6 +72,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setRadioEffects(config.radioEffects);
         setHardwareType(config.hardwareType);
         setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode); // Type assertion since the config will never be a boolean at this point
+        setShowExpandedRxInfo(config.showExpandedRx);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -172,6 +177,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saved);
   };
 
+  const handleShowExpandedRxChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    if (e.target.value === 'true') {
+      setShowExpandedRxInfo(true);
+      window.api.setShowExpandedRx(true);
+    } else {
+      setShowExpandedRxInfo(false);
+      window.api.setShowExpandedRx(false);
+    }
+    setChangesSaved(SaveStatus.Saved);
+  };
+
   const handleSetPtt = (pttIndex: number) => {
     if (pttIndex === 1) {
       updatePtt1KeySet(false);
@@ -199,7 +216,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     const radioEffects = e.target.value as RadioEffects;
     void window.api.SetRadioEffects(radioEffects);
     setRadioEffects(radioEffects);
-    setConfig({ ...config, radioEffects: radioEffects});
+    setConfig({ ...config, radioEffects: radioEffects });
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -254,10 +271,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                   ></input>
 
                   <label className="mt-1">Radio Effects</label>
-                  <select id=""
+                  <select
+                    id=""
                     className="form-control mt-1"
                     value={radioEffects}
-                    onChange={handleRadioEffectsChange}>
+                    onChange={handleRadioEffectsChange}
+                  >
                     <option value="on">On</option>
                     <option value="input">Input only</option>
                     <option value="output">Output only</option>
@@ -286,6 +305,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     <option value="always">Always</option>
                     <option value="inMiniMode">In mini mode</option>
                     <option value="never">Never</option>
+                  </select>
+
+                  <label className="mt-2">Always show expanded RX</label>
+                  <select
+                    id=""
+                    className="form-control mt-1"
+                    onChange={handleShowExpandedRxChange}
+                    value={showExpandedRxInfo.toString()}
+                  >
+                    <option value="true">Always</option>
+                    <option value="false">Never</option>
                   </select>
                 </div>
               </div>

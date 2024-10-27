@@ -21,7 +21,8 @@ export const defaultConfiguration = {
   radioEffects: 'on' as RadioEffects,
   hardwareType: 0,
   radioGain: 0,
-  alwaysOnTop: 'never' as AlwaysOnTopMode
+  alwaysOnTop: 'never' as AlwaysOnTopMode,
+  showExpandedRx: false
 };
 
 class ConfigManager {

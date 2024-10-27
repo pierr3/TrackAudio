@@ -4,7 +4,7 @@ import RadioStatus from './sidebar/radio-status';
 const FocusBar = () => {
   const [version] = useSessionStore((state) => [state.version]);
   return (
-    <div className="focusbar-container bg-dark">
+    <div className="focusbar-container bg-dark hide-topbar">
       <div className="container-fluid h-100">
         <div className="row h-100 position-relative">
           {/* Center Radio Status */}

@@ -4,6 +4,7 @@ import useErrorStore from '../store/errorStore';
 import useSessionStore from '../store/sessionStore';
 import useUtilStore from '../store/utilStore';
 import { StationStateUpdate } from '../interfaces/StationStateUpdate';
+import { Configuration } from 'src/shared/config.type';
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
@@ -11,6 +12,16 @@ const Bootsrap: React.FC = () => {
     void window.api.RequestPttKeyName(2);
 
     window.api.window.checkIsFullscreen();
+
+    window.api
+      .getConfig()
+      .then((config: Configuration) => {
+        useUtilStore.getState().setShowExpandedRxInfo(config.showExpandedRx);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+
     window.api.on('VuMeter', (vu: string, peakVu: string) => {
       const vuFloat = Math.abs(parseFloat(vu));
       const peakVuFloat = Math.abs(parseFloat(peakVu));

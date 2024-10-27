@@ -30,6 +30,9 @@ export const api = {
   setAlwaysOnTop: (state: AlwaysOnTopMode) => {
     ipcRenderer.send('set-always-on-top', state);
   },
+  setShowExpandedRx: (state: boolean) => {
+    ipcRenderer.send('set-show-expanded-rx', state);
+  },
   getAudioApis: () => ipcRenderer.invoke('audio-get-apis'),
   getAudioInputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-input-devices', apiId),
   getAudioOutputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-output-devices', apiId),

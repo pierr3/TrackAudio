@@ -328,6 +328,10 @@ ipcMain.on('set-always-on-top', (_, alwaysOnTop: AlwaysOnTopMode) => {
   configManager.updateConfig({ alwaysOnTop });
 });
 
+ipcMain.on('set-show-expanded-rx', (_, showExpandedRx: boolean) => {
+  configManager.updateConfig({ showExpandedRx });
+});
+
 ipcMain.handle('audio-get-apis', () => {
   return TrackAudioAfv.GetAudioApis();
 });

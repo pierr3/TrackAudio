@@ -101,7 +101,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ className = '' }) =
         : isConnecting
           ? 'CONNECTING'
           : callsign
-            ? `CONNECT AS ${callsign}`
+            ? `CONNECT`
             : 'NO ACTIVE CONNECTION'}
     </button>
   );

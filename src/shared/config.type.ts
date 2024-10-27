@@ -19,4 +19,6 @@ export interface Configuration {
   // Boolean is the prior type for this property, AlwaysOnTopMode is the updated type.
   alwaysOnTop: boolean | AlwaysOnTopMode;
   radioEffects: RadioEffects;
+
+  showExpandedRx: boolean;
 }

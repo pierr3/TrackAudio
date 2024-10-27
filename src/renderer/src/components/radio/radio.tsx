@@ -4,7 +4,6 @@ import clsx from 'clsx';
 import useErrorStore from '../../store/errorStore';
 import useSessionStore from '../../store/sessionStore';
 import useUtilStore from '../../store/utilStore';
-import { is } from '@electron-toolkit/utils';
 
 export interface RadioProps {
   radio: RadioType;

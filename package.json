@@ -34,6 +34,7 @@
     "react": "^18.3.1",
     "react-bootstrap-icons": "^1.11.4",
     "react-dom": "^18.3.1",
+    "react-responsive": "^10.0.0",
     "scss": "^0.2.4",
     "trackaudio-afv": "file:backend/trackaudio-afv-1.0.0.tgz",
     "use-debounce": "^10.0.1",
