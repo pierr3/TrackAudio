@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+env:
+  ELECTRON_CACHE: .cache/electron
+  ELETCRON_BUILDER_CACHE: .cache/electron-builder
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
