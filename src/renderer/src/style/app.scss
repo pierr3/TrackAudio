@@ -306,6 +306,10 @@ button:disabled {
   width: 205px;
 }
 
+.radio-list-expanded {
+  width: 100%;
+}
+
 .radio:hover {
   background-color: lighten($disabled, 10%);
 }

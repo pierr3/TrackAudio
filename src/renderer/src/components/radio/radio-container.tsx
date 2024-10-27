@@ -10,7 +10,7 @@ import { useMediaQuery } from 'react-responsive';
 const RadioContainer: React.FC = () => {
   const radios = useRadioState((state) => state.radios);
   const [isNetworkConnected] = useSessionStore((state) => [state.isNetworkConnected]);
-  const isWideScreen = useMediaQuery({ minWidth: '690px' });
+  const isWideScreen = useMediaQuery({ minWidth: '790px' });
   const filteredRadios = useMemo(() => {
     return radios.filter(
       (radio) => radio.frequency !== 0 && radio.frequency !== 122.8e6 && radio.frequency !== 121.5e6
@@ -41,7 +41,7 @@ const RadioContainer: React.FC = () => {
 
         <div className="d-flex sub-structure w-100 d-flex gap-3">
           <div
-            className={`box-container ${showExpandedRxInfo && isWideScreen ? 'w-75' : 'w-100'} h-100`}
+            className={`box-container ${showExpandedRxInfo && isWideScreen ? 'radio-list-expanded' : 'w-100'} h-100`}
           >
             {filteredRadios.length === 0 ? (
               <div className="d-flex justify-content-center radio-text text-muted"></div>
@@ -55,7 +55,13 @@ const RadioContainer: React.FC = () => {
           </div>
 
           {showExpandedRxInfo && isWideScreen && (
-            <div className="box-container w-25 h-100">
+            <div
+              className="box-container w-25 h-100"
+              style={{
+                maxWidth: '220px',
+                minWidth: '200px'
+              }}
+            >
               {/* Content for the right box-container */}
               <ExpandedRxInfo />
             </div>

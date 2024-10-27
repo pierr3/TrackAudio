@@ -24,7 +24,7 @@ const ExpandedRxInfo: React.FC = () => {
             <span className="unicom-text">{radio.callsign}:</span>
           </div>
           <div
-            className="flex-grow-1 d-flex justify-content-center align-items-center"
+            className="flex-grow-1 d-flex justify-content-end align-items-center"
             style={{
               overflow: 'hidden',
               whiteSpace: 'nowrap',
