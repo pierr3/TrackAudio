@@ -2,7 +2,7 @@
 
 A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows.
 
-![screengrab of application](https://raw.githubusercontent.com/pierr3/TrackAudio/main/docs/app_screenshot_apr2024.png)
+![screengrab of application](https://raw.githubusercontent.com/pierr3/TrackAudio/main/docs/app_screenshot_oct2024.png)
 
 ## Note
 
