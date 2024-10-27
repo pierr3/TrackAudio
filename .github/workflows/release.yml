@@ -55,6 +55,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
+      - name: Restore electron-builder cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+          key: electron-builder-${{ hashFiles('./package-lock.json') }}
+          restore-keys: |
+            electron-builder-
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
