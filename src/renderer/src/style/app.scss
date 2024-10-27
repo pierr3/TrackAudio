@@ -476,3 +476,9 @@ select:disabled {
 .radio-sub-text {
   font-size: 13px;
 }
+
+* {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

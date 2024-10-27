@@ -78,7 +78,6 @@ const RadioContainer: React.FC = () => {
                 minWidth: '200px'
               }}
             >
-              {/* Content for the right box-container */}
               <ExpandedRxInfo />
             </div>
           )}
