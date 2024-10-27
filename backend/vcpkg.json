@@ -10,7 +10,7 @@
         "openssl",
         "restinio",
         "nlohmann-json",
-        "spdlog",
+        "plog",
         "platform-folders",
         "sfml",
         "simpleini",

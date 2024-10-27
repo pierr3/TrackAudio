@@ -100,6 +100,7 @@ declare namespace TrackAudioAfv {
     canRun: boolean;
     needUpdate: boolean;
     version: string;
+    checkSuccessful: boolean;
   };
   export function Exit(): boolean;
 }

@@ -4,6 +4,7 @@
 #include "Shared.hpp"
 #include "sdk.hpp"
 #include <optional>
+#include <plog/Log.h>
 
 class RadioState {
 public:
@@ -28,19 +29,18 @@ public:
         const std::string& stationCallsign = "")
     {
         if (!mClient->IsVoiceConnected()) {
-            TRACK_LOG_TRACE("Voice is not connected, not setting radio state");
+            PLOGV << "Voice is not connected, not setting radio state";
             return false;
         }
 
         if (!mClient->IsFrequencyActive(newState.frequency)) {
-            TRACK_LOG_TRACE("Frequency is not active, not setting radio state");
+            PLOG_VERBOSE << "Frequency is not active, not setting radio state";
             return false;
         }
 
-        TRACK_LOG_TRACE(
-            "Setting radio state for frequency={}: rx={}, tx={}, xc={}, xca={}, headset = {} ",
-            newState.frequency, newState.rx, newState.tx, newState.xc, newState.xca,
-            newState.headset);
+        PLOGV << "Setting radio state for frequency=" << newState.frequency
+              << ": rx=" << newState.rx << ", tx=" << newState.tx << ", xc=" << newState.xc
+              << ", xca=" << newState.xca << ", headset = " << newState.headset;
 
         bool oldRxValue = mClient->GetRxState(newState.frequency);
         mClient->SetRx(newState.frequency, newState.rx);
@@ -57,7 +57,6 @@ public:
         }
 
         mClient->SetOnHeadset(newState.frequency, newState.headset);
-
 
         if (!oldRxValue && newState.rx) {
             // When turning on RX, we refresh the transceivers
