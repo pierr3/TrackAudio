@@ -39,10 +39,12 @@ runs:
 
     - name: Set afv-native cache key (windows)
       if: matrix.os == 'windows-2019'
-      run: echo "AFV_NATIVE_CACHE_KEY=${{ runner.os }}-afv-native-${{ hashFiles('backend\\**') }}-${{ env.AFVNATIVE_REV }}" >> $GITHUB_ENV
+      shell: pwsh
+      run: echo "AFV_NATIVE_CACHE_KEY=${{ runner.os }}-afv-native-${{ hashFiles('backend\\**') }}-${{ env.AFVNATIVE_REV }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Set afv-native cache key (macos and linux)
       if: matrix.os == 'windows-2019'
+      shell: bash
       run: echo "AFV_NATIVE_CACHE_KEY=${{ runner.os }}-afv-native-${{ hashFiles('backend/**') }}-${{ env.AFVNATIVE_REV }}" >> $GITHUB_ENV
 
     # afv-native is cached based on the SHA of afv-native and the hash of all files under
