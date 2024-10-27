@@ -47,7 +47,7 @@ runs:
       with:
         path: |
           backend/trackaudio-afv-1.0.0.tgz
-        key: ${{ runner.os }}-afv-native-${{ hashFiles('./backend/**') }}-${{ env.AFVNATIVE_REV }}
+        key: ${{ runner.os }}-afv-native-${{ hashFiles('backend/**') }}-${{ env.AFVNATIVE_REV }}
 
     - name: Get vcpkg submodule revision (windows)
       if: matrix.os == 'windows-2019'
