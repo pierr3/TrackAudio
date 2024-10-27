@@ -17,6 +17,7 @@ runs:
   steps:
     - name: Get afv-native submodule revision (windows)
       if: matrix.os == 'windows-2019'
+      shell: pwsh
       run: |
         $AFVNATIVE_REV = & git rev-parse HEAD:./backend/extern/afv-native
         echo "AFVNATIVE_REV=$AFVNATIVE_REV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
@@ -24,6 +25,7 @@ runs:
 
     - name: Get afv-native submodule revision (macos and linux)
       if: matrix.os != 'windows-2019'
+      shell: bash
       run: |
         AFVNATIVE_REV=$(git rev-parse HEAD:./backend/extern/afv-native)
         echo "AFVNATIVE_REV=$AFVNATIVE_REV" >> $GITHUB_ENV
@@ -39,6 +41,7 @@ runs:
 
     - name: Get vcpkg submodule revision (windows)
       if: matrix.os == 'windows-2019'
+      shell: pwsh
       run: |
         $VCPKG_REV = & git rev-parse HEAD:./backend/vcpkg
         echo "VCPKG_REV=$VCPKG_REV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
@@ -46,6 +49,7 @@ runs:
 
     - name: Get vcpkg submodule revision (macos and linux)
       if: matrix.os != 'windows-2019'
+      shell: bash
       run: |
         VCPKG_REV=$(git rev-parse HEAD:./backend/vcpkg)
         echo "VCPKG_REV=$VCPKG_REV" >> $GITHUB_ENV
