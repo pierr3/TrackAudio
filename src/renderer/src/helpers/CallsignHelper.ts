@@ -3,7 +3,13 @@ export const checkIfCallsignIsRelief = (callsign: string): boolean => {
 };
 
 export const getCleanCallsign = (callsign: string): string => {
-  return callsign.replace('_1_', '_').replace('__', '_');
+  if (callsign.includes('__')) {
+    return callsign.replace('__', '_');
+  } else if (callsign.includes('_1_')) {
+    return callsign.replace('_1_', '_');
+  }
+
+  return callsign;
 };
 
 /**
