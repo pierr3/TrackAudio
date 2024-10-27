@@ -61,7 +61,7 @@ jobs:
           path: |
             ~/.cache/electron
             ~/.cache/electron-builder
-          key: electron-builder-${{ hashFiles('./package-lock.json') }}
+          key: ${{ runner.os }}-electron-builder-${{ hashFiles('./package-lock.json') }}
           restore-keys: |
             electron-builder-
 
