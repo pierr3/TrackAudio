@@ -96,7 +96,7 @@ jobs:
           sudo apt-get install -y desktop-file-utils ninja-build gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64 python3-jinja2:amd64 libgcrypt20:arm64 libgcrypt20-dev:arm64 libgpg-error-dev:arm64 libx11-dev:arm64 libxrandr-dev:arm64 libxcursor-dev:arm64 libxi-dev:arm64 libudev-dev:arm64 libgl1-mesa-dev:arm64
 
       - name: Build afv-native (x64)
-        if: matrix.arch == 'x64' && steps.restore-cache.outputs.afv-native != 'true'
+        if: matrix.arch == 'x64'
         run: |
           npm -g i cmake-js
           cd backend/
@@ -105,9 +105,10 @@ jobs:
           node custom_build.mjs
           npm pack
           cd ..
+          npm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Build afv-native (macOs arm64)
-        if: matrix.arch == 'arm64' && matrix.os == 'macos-latest' && steps.restore-cache.outputs.afv-native != 'true'
+        if: matrix.arch == 'arm64' && matrix.os == 'macos-latest'
         run: |
           npm -g i cmake-js
           cd backend/
@@ -119,7 +120,7 @@ jobs:
           npm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Build afv-native (linux arm64 cross compile)
-        if: matrix.arch == 'arm64' && matrix.os == 'ubuntu-latest' && steps.restore-cache.outputs.afv-native != 'true'
+        if: matrix.arch == 'arm64' && matrix.os == 'ubuntu-latest'
         run: |
           npm -g i cmake-js
           cd backend/
@@ -129,10 +130,6 @@ jobs:
           npm pack
           cd ..
           npm install ./backend/trackaudio-afv-1.0.0.tgz
-
-      - name: Install cached afv-native
-        if: steps.restore-cache.outputs.afv-native == 'true'
-        run: npm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Install dependencies
         run: npm install

@@ -1,6 +1,12 @@
 name: Restore cached files
 description: Restores afv-native, vcpkg, and electron-builder from cache
 
+inputs:
+  afv-native:
+    description: 'Set to true to cache afv-native'
+    required: false
+    default: 'false'
+
 outputs:
   afv-native:
     description: True if afv-native was restored from cache
@@ -32,10 +38,12 @@ runs:
         echo "afv-native submodule revision $AFVNATIVE_REV"
 
     # afv-native is cached based on the SHA of afv-native and the hash of all files under
-    # backend/
+    # backend/. It only gets cached if afv-native is set to 'true' when calling this composite
+    # action, currently only in the ci.yml flow. release.yml does not cache afv-native.
     - name: Restore afv-native from cache
       id: afv-native
       uses: actions/cache@v4
+      if: ${{ inputs.afv-native }} == 'true'
       with:
         path: |
           backend/trackaudio-afv-1.0.0.tgz

@@ -41,6 +41,8 @@ jobs:
       - name: Restore cache
         id: restore-cache
         uses: ./.github/actions/restore-cache
+        with:
+          afv-native: 'true'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
