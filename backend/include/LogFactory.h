@@ -13,7 +13,7 @@ public:
         CreateLogFolders();
         auto fileName = FileSystem::GetStateFolderPath() / "trackaudio.log";
 
-        plog::init(plog::info, fileName.c_str(), max_size, max_files);
+        plog::init(plog::info, fileName.string().c_str(), max_size, max_files);
 
         // Detect whether we should enable verbose logging
         try {
@@ -50,7 +50,7 @@ private:
         }
     }
 
-    static constexpr int max_size = 1048576 * 5;
+    static constexpr size_t max_size = 3000000;
     static constexpr int max_files = 3;
 
 protected:

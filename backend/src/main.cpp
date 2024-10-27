@@ -142,6 +142,8 @@ void SetGuardAndUnicomTransceivers()
 
     mClient->SetManualTransceivers(UNICOM_FREQUENCY, guardAndUnicomTransceivers);
     mClient->SetManualTransceivers(GUARD_FREQUENCY, guardAndUnicomTransceivers);
+
+    PLOGV << "SetGuardAndUnicomTransceivers: " << guardAndUnicomTransceivers.size();
 }
 
 void SetAudioSettings(const Napi::CallbackInfo& info)

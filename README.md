@@ -2,7 +2,7 @@
 
 A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows.
 
-![screengrab of application](https://raw.githubusercontent.com/pierr3/TrackAudio/main/docs/app_screenshot_oct2024.png)
+![screengrab of application](https://raw.githubusercontent.com/pierr3/TrackAudio/main/docs/app_screenshot_good_oct2024.png)
 
 ## Note
 
@@ -22,7 +22,7 @@ TrackAudio is simply the next iteration of VectorAudio, using a different set of
 
 macOS has strict permissioning around background keyboard inputs. TrackAudio should prompt you on first launch to request input monitoring permissions. Sometimes, upon updating the app, this setting will undo itself. In that case, please go to your Settings -> Privacy & Security -> Input Monitoring and add TrackAudio in the list (remove it if it was already there). This is required purely because otherwise, your Push to Talk would not work when the window is not in focus (if you use a keyboard push to talk, a Joystick push to talk does not require this permission)
 
-### Where are the log files stored?
+### Where are the log and config files stored?
 
 On macOS: `~/Library/Application\ Support/trackaudio`
 On Linux: `~/.local/state/trackaudio`
@@ -55,6 +55,27 @@ This feature is mostly useful for CTR positions, when regrouping large sectors t
 ### Can I extend TrackAudio using a plugin/is there an SDK?
 
 Yes! Have a look [in the wiki](https://github.com/pierr3/TrackAudio/wiki/SDK-documentation). TrackAudio offers a WebSocket and HTTP SDK. If you need additional features, please open an issue with a detailed request, I'll be happy to look at it with no guarantees.
+
+### Ports and endpoints access required for TrackAudio
+
+To function, TrackAudio requires that:
+
+- An HTTPS (port 443) connection to the endpoint raw.githubusercontent.com be possible
+- An HTTPS (port 443) connection to the endpoint voice1.vatsim.net be possible
+- An HTTPS (port 443) connection to the endpoint slurper.vatsim.net be possible
+- A UDP bidirectional connection be possible towards vatsim servers
+
+Verify that your anti-virus, firewall or other network controller allows access to those endpoints.
+
+For the SDK to function
+
+- Local TCP port 49080 be open for both HTTP and WebSocket
+
+Your system date and time must also be synced properly to reflect the actual current time (irrespective of timezones).
+
+### How to enable verbose logging (advanced)
+
+On request, you can enable verbose logging of the backend which may provide some useful debug information. To do so, create an empty file called verbose.enable in the folder where the config and log file is stored.
 
 ### I have an issue with TrackAudio
 
