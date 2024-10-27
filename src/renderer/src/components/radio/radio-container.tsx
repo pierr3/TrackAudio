@@ -9,7 +9,10 @@ import { useMediaQuery } from 'react-responsive';
 
 const RadioContainer: React.FC = () => {
   const radios = useRadioState((state) => state.radios);
-  const [isNetworkConnected] = useSessionStore((state) => [state.isNetworkConnected]);
+  const [isConnected, isNetworkConnected] = useSessionStore((state) => [
+    state.isConnected,
+    state.isNetworkConnected
+  ]);
   const isWideScreen = useMediaQuery({ minWidth: '790px' });
   const filteredRadios = useMemo(() => {
     return radios.filter(
@@ -20,7 +23,7 @@ const RadioContainer: React.FC = () => {
 
   if (!isNetworkConnected) {
     return (
-      <div className="h-100 mx-3 d-flex justify-content-center flex-column gap-0.5">
+      <div className="h-100 mx-3 d-flex justify-content-center flex-column gap-0.5 hide-topbar">
         <div className="d-flex justify-content-center radio-text  text-center">
           No VATSIM connection found!
         </div>
@@ -32,9 +35,22 @@ const RadioContainer: React.FC = () => {
     );
   }
 
+  if (!isConnected) {
+    return (
+      <div className="h-100 mx-3 d-flex justify-content-center flex-column gap-0.5 hide-topbar">
+        <div className="d-flex justify-content-center radio-text  text-center">
+          VATSIM connection found!
+        </div>
+        <div className="d-flex justify-content-center radio-sub-text text-muted text-center">
+          Click the connect button to establish a connection to AFV.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="h-100 mx-3 d-flex justify-content-center flex-column">
+      <div className="h-100 mx-3 d-flex justify-content-center flex-column hide-topbar">
         <div className="d-flex unicon-overall-container">
           <TopBarContainer />
         </div>
