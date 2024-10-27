@@ -31,13 +31,15 @@ runs:
         echo "AFVNATIVE_REV=$AFVNATIVE_REV" >> $GITHUB_ENV
         echo "afv-native submodule revision $AFVNATIVE_REV"
 
+    # afv-native is cached based on the SHA of afv-native and the hash of all files under
+    # backend/
     - name: Restore afv-native from cache
       id: afv-native
       uses: actions/cache@v4
       with:
         path: |
           backend/trackaudio-afv-1.0.0.tgz
-        key: ${{ runner.os }}-afv-native-${{ env.AFVNATIVE_REV }}
+        key: ${{ runner.os }}-afv-native-${{ hashFiles('./backend/**') }}-${{ env.AFVNATIVE_REV }}
 
     - name: Get vcpkg submodule revision (windows)
       if: matrix.os == 'windows-2019'
