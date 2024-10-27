@@ -46,7 +46,7 @@ jobs:
         id: restore-cache
         uses: ./.github/actions/restore-cache
         with:
-          afv-native: 'true'
+          backend: 'true'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -77,14 +77,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
 
-      - name: Build afv-native
-        if: steps.restore-cache.outputs.afv-native != 'true'
+      - name: Build backend
+        if: steps.restore-cache.outputs.backend != 'true'
         run: |
           npm -g i cmake-js
           npm run build:backend
 
-      - name: Install cached afv-native
-        if: steps.restore-cache.outputs.afv-native == 'true'
+      - name: Install cached backend
+        if: steps.restore-cache.outputs.backend == 'true'
         run: npm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Install dependencies

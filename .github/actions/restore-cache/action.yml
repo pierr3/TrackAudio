@@ -1,16 +1,16 @@
 name: Restore cached files
-description: Restores afv-native, vcpkg, and electron-builder from cache
+description: Restores backend, vcpkg, and electron-builder from cache
 
 inputs:
-  afv-native:
-    description: 'Set to true to cache afv-native'
+  backend:
+    description: 'Set to true to cache backend'
     required: false
     default: 'false'
 
 outputs:
-  afv-native:
-    description: True if afv-native was restored from cache
-    value: ${{ steps.afv-native.outputs.cache-hit }}
+  backend:
+    description: True if backend was restored from cache
+    value: ${{ steps.backend.outputs.cache-hit }}
   vcpkg:
     description: True if vcpkg was restored from cache
     value: ${{ steps.vcpkg.outputs.cache-hit }}
@@ -37,27 +37,29 @@ runs:
         echo "AFVNATIVE_REV=$AFVNATIVE_REV" >> $GITHUB_ENV
         echo "afv-native submodule revision $AFVNATIVE_REV"
 
-    - name: Set afv-native cache key (windows)
+    # The cache key for backend has to be constructed differently on windows vs
+    # macos/linux because hashFiles doesn't work on windows if you specify `backend/**`.
+    - name: Set backend cache key (windows)
       if: matrix.os == 'windows-2019'
       shell: pwsh
-      run: echo "AFV_NATIVE_CACHE_KEY=${{ runner.os }}-afv-native-${{ hashFiles('backend\\**') }}-${{ env.AFVNATIVE_REV }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      run: echo "BACKEND_CACHE_KEY=${{ runner.os }}-backend-${{ hashFiles('backend\\**') }}-${{ env.AFVNATIVE_REV }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-    - name: Set afv-native cache key (macos and linux)
+    - name: Set backend cache key (macos and linux)
       if: matrix.os != 'windows-2019'
       shell: bash
-      run: echo "AFV_NATIVE_CACHE_KEY=${{ runner.os }}-afv-native-${{ hashFiles('backend/**') }}-${{ env.AFVNATIVE_REV }}" >> $GITHUB_ENV
+      run: echo "BACKEND_CACHE_KEY=${{ runner.os }}-backend-${{ hashFiles('backend/**') }}-${{ env.AFVNATIVE_REV }}" >> $GITHUB_ENV
 
-    # afv-native is cached based on the SHA of afv-native and the hash of all files under
-    # backend/. It only gets cached if afv-native is set to 'true' when calling this composite
-    # action, currently only in the ci.yml flow. release.yml does not cache afv-native.
-    - name: Restore afv-native from cache
-      id: afv-native
+    # backend is cached based on the SHA of backend and the hash of all files under
+    # backend/. It only gets cached if backend is set to 'true' when calling this composite
+    # action, currently only in the ci.yml flow. release.yml does not cache backend.
+    - name: Restore backend from cache
+      id: backend
       uses: actions/cache@v4
-      if: ${{ inputs.afv-native }} == 'true'
+      if: ${{ inputs.backend }} == 'true'
       with:
         path: |
           backend/trackaudio-afv-1.0.0.tgz
-        key: ${{ env.AFV_NATIVE_CACHE_KEY }}
+        key: ${{ env.BACKEND_CACHE_KEY }}
 
     - name: Get vcpkg submodule revision (windows)
       if: matrix.os == 'windows-2019'
@@ -77,7 +79,7 @@ runs:
 
     - name: Restore vcpkg from cache
       uses: actions/cache@v4
-      if: steps.afv-native.outputs.cache-hit != 'true'
+      if: steps.backend.outputs.cache-hit != 'true'
       with:
         path: |
           backend/vcpkg
