@@ -62,30 +62,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
-      - name: Get afv-native submodule revision (windows)
-        if: matrix.os == 'windows-2019'
-        run: |
-          $AFVNATIVE_REV = & git rev-parse HEAD:./backend/extern/afv-native
-          echo "AFVNATIVE_REV=$AFVNATIVE_REV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "afv-native submodule revision $AFVNATIVE_REV"
-
-      - name: Get afv-native submodule revision (macos and linux)
-        if: matrix.os != 'windows-2019'
-        run: |
-          AFVNATIVE_REV=$(git rev-parse HEAD:./backend/extern/afv-native)
-          echo "AFVNATIVE_REV=$AFVNATIVE_REV" >> $GITHUB_ENV
-          echo "afv-native submodule revision $AFVNATIVE_REV"
-
-      - name: Restore afv-native from cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            backend/extern/afv-native
-            backend/build/Release
-          key: ${{ runner.os }}-afv-native-${{ env.AFVNATIVE_REV }}
-          restore-keys: |
-            ${{ runner.os }}-afv-native-
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
