@@ -37,6 +37,14 @@ runs:
         echo "AFVNATIVE_REV=$AFVNATIVE_REV" >> $GITHUB_ENV
         echo "afv-native submodule revision $AFVNATIVE_REV"
 
+    - name: Set afv-native cache key (windows)
+      if: matrix.os == 'windows-2019'
+      run: echo "AFV_NATIVE_CACHE_KEY=${{ runner.os }}-afv-native-${{ hashFiles('backend\\**') }}-${{ env.AFVNATIVE_REV }}" >> $GITHUB_ENV
+
+    - name: Set afv-native cache key (macos and linux)
+      if: matrix.os == 'windows-2019'
+      run: echo "AFV_NATIVE_CACHE_KEY=${{ runner.os }}-afv-native-${{ hashFiles('backend/**') }}-${{ env.AFVNATIVE_REV }}" >> $GITHUB_ENV
+
     # afv-native is cached based on the SHA of afv-native and the hash of all files under
     # backend/. It only gets cached if afv-native is set to 'true' when calling this composite
     # action, currently only in the ci.yml flow. release.yml does not cache afv-native.
@@ -47,7 +55,7 @@ runs:
       with:
         path: |
           backend/trackaudio-afv-1.0.0.tgz
-        key: ${{ runner.os }}-afv-native-${{ hashFiles('backend\**') }}-${{ env.AFVNATIVE_REV }}
+        key: ${{ env.AFV_NATIVE_CACHE_KEY }}
 
     - name: Get vcpkg submodule revision (windows)
       if: matrix.os == 'windows-2019'
