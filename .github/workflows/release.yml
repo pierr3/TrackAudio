@@ -63,7 +63,7 @@ jobs:
             ~/.cache/electron-builder
           key: ${{ runner.os }}-electron-builder-${{ hashFiles('./package-lock.json') }}
           restore-keys: |
-            electron-builder-
+            ${{ runner.os }}-electron-builder-
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
