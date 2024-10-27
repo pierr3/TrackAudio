@@ -5,7 +5,7 @@ on:
 
 env:
   ELECTRON_CACHE: .cache/electron
-  ELETCRON_BUILDER_CACHE: .cache/electron-builder
+  ELECTRON_BUILDER_CACHE: .cache/electron-builder
 
 jobs:
   build:
