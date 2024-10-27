@@ -40,10 +40,22 @@ runs:
     # afv-native is cached based on the SHA of afv-native and the hash of all files under
     # backend/. It only gets cached if afv-native is set to 'true' when calling this composite
     # action, currently only in the ci.yml flow. release.yml does not cache afv-native.
-    - name: Restore afv-native from cache
+    - name: Restore afv-native from cache (windows)
       id: afv-native
       uses: actions/cache@v4
-      if: ${{ inputs.afv-native }} == 'true'
+      if: ${{ inputs.afv-native }} == 'true' && matrix.os == 'windows-2019'
+      with:
+        path: |
+          backend/trackaudio-afv-1.0.0.tgz
+        key: ${{ runner.os }}-afv-native-${{ hashFiles('backend\**') }}-${{ env.AFVNATIVE_REV }}
+
+    # afv-native is cached based on the SHA of afv-native and the hash of all files under
+    # backend/. It only gets cached if afv-native is set to 'true' when calling this composite
+    # action, currently only in the ci.yml flow. release.yml does not cache afv-native.
+    - name: Restore afv-native from cache (macos and linux)
+      id: afv-native
+      uses: actions/cache@v4
+      if: ${{ inputs.afv-native }} == 'true' && matrix.os != 'windows-2019'
       with:
         path: |
           backend/trackaudio-afv-1.0.0.tgz
