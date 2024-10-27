@@ -4,19 +4,15 @@ A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows.
 
 ![screengrab of application](https://raw.githubusercontent.com/pierr3/TrackAudio/main/docs/app_screenshot_good_oct2024.png)
 
-## Note
-
-This software is in beta, and is missing features or may be broken in some places. Report any issues on GitHub. It is, however, ready for use on the network and you should not encounter major issues.
-
 ## Releases
 
-See [releases](https://github.com/pierr3/TrackAudio/releases) for latest builds
+See [releases](https://github.com/pierr3/TrackAudio/releases) for latest builds, remember that beta builds may be unstable. Please report any issues on GitHub.
 
 ## FAQ
 
 ### What's the difference between VectorAudio and TrackAudio?
 
-TrackAudio is simply the next iteration of VectorAudio, using a different set of technology. While TrackAudio is still in beta, you should try to use it instead of VectorAudio, as the latter will no longer be supported at some point.
+TrackAudio is simply the next iteration of VectorAudio, using a different set of technology. VectorAudio is no longer maintained and supported, so you should switch to TrackAudio as soon as possible.
 
 ### My PTT does not work on macOS
 
