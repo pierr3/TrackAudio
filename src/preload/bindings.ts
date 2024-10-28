@@ -100,7 +100,8 @@ export const api = {
 
   RequestPttKeyName: (pttIndex: number) => ipcRenderer.invoke('request-ptt-key-name', pttIndex),
 
-  toggleMiniMode: () => ipcRenderer.invoke('toggle-mini-mode'),
+  toggleMiniMode: (numberOfRadios: number) =>
+    ipcRenderer.invoke('toggle-mini-mode', numberOfRadios),
 
   dialog: (
     type: 'none' | 'info' | 'error' | 'question' | 'warning',
@@ -136,6 +137,9 @@ export const api = {
       return api.onIpc<boolean>('is-window-maximised', (data) => {
         callback(data);
       });
+    },
+    setMinimumSize: (width: number, height: number): void => {
+      ipcRenderer.send('set-minimum-size', width, height);
     }
   }
 };

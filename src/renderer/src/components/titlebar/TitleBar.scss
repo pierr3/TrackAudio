@@ -27,6 +27,10 @@ $transition-speed: 0.1s;
   }
 }
 
+.transparent-bg {
+  background-color: transparent !important;
+}
+
 .clock-text {
   // -webkit-app-region: drag;
   font-family: GlobalVars.$font-medium;
@@ -34,6 +38,12 @@ $transition-speed: 0.1s;
 }
 
 .rx-text {
+  font-size: 16px;
+  font-family: GlobalVars.$font-medium !important;
+  font-weight: 600 !important;
+}
+
+.rx-text-nofont {
   font-size: 16px;
   font-family: GlobalVars.$font-medium !important;
   font-weight: 600 !important;
@@ -124,6 +134,10 @@ $transition-speed: 0.1s;
 
 .draggable {
   -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
 }
 
 .windows-caption-buttons {

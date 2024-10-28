@@ -1,3 +1,4 @@
+import useRadioState from '@renderer/store/radioStore';
 import React, { useCallback } from 'react';
 import { Fullscreen, FullscreenExit } from 'react-bootstrap-icons';
 
@@ -6,11 +7,12 @@ interface MiniModeToggleButtonProps {
 }
 
 const MiniModeToggleButton: React.FC<MiniModeToggleButtonProps> = ({ showRestoreButton }) => {
+  const [radios] = useRadioState((state) => [state.radios]);
   const toggleMiniMode = useCallback(() => {
-    window.api.toggleMiniMode().catch((error: unknown) => {
+    window.api.toggleMiniMode(radios.filter((r) => r.rx).length).catch((error: unknown) => {
       console.error(error);
     });
-  }, []);
+  }, [radios]);
 
   return (
     <button

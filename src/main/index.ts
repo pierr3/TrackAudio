@@ -15,7 +15,7 @@ let mainWindow: BrowserWindow;
 
 const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
-const defaultMiniModeWidth = 300; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
+const defaultMiniModeWidth = 250; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
 
 // This flag is set to true if the settings dialog should be shown automatically on launch.
 // This happens when either there's no prior saved config, or the saved config had its audio
@@ -75,11 +75,21 @@ const saveWindowBounds = () => {
  * mode requested.
  * @param mode The size to restore to: mini or maxi.
  */
-const restoreWindowBounds = (mode: WindowMode) => {
+const restoreWindowBounds = (mode: WindowMode, numOfRadios = 0) => {
+  const miniModeHeight = 33 + 24 * (numOfRadios === 0 ? 1 : numOfRadios);
+  const miniModeHeightMin = 22 + 24 * (numOfRadios === 0 ? 1 : numOfRadios);
+
   const savedBounds = mode === 'maxi' ? store.get('bounds') : store.get('miniBounds');
   const boundsRectangle = savedBounds as Rectangle;
+  if (mode === 'mini') {
+    mainWindow.setMinimumSize(250, miniModeHeightMin);
+  } else {
+    mainWindow.setMinimumSize(250, 120);
+  }
+
   if (savedBounds !== undefined && savedBounds !== null) {
     const screenArea = screen.getDisplayMatching(boundsRectangle).workArea;
+
     if (
       boundsRectangle.x > screenArea.x + screenArea.width ||
       boundsRectangle.x < screenArea.x ||
@@ -87,26 +97,32 @@ const restoreWindowBounds = (mode: WindowMode) => {
       boundsRectangle.y > screenArea.y + screenArea.height
     ) {
       // Reset window into existing screenarea
+      const computedHeight = mode === 'mini' ? miniModeHeight : defaultWindowSize.height;
       mainWindow.setBounds({
         x: 0,
         y: 0,
         width: defaultWindowSize.width,
-        height: defaultWindowSize.height
+        height: computedHeight
       });
     } else {
-      mainWindow.setBounds(boundsRectangle);
+      const computedHeight = mode === 'mini' ? miniModeHeight : boundsRectangle.height;
+      mainWindow.setBounds({
+        x: boundsRectangle.x,
+        y: boundsRectangle.y,
+        width: boundsRectangle.width,
+        height: computedHeight
+      });
+
+      mainWindow.setSize(boundsRectangle.width, computedHeight);
     }
-  }
-  // Covers the case where the window has never been put in mini-mode before
-  // and the request came from an explicit "enter mini mode action". In that
-  // situation just set the window size to the default mini-mode size but
-  // don't move it.
-  else if (mode === 'mini') {
-    mainWindow.setSize(defaultMiniModeWidth, 1);
+  } else if (mode === 'mini') {
+    // Handle first-time mini mode
+    mainWindow.setSize(defaultMiniModeWidth, miniModeHeight);
+    mainWindow.setMinimumSize(250, 42); // Set minimum size after setting initial size
   }
 };
 
-const toggleMiniMode = () => {
+const toggleMiniMode = (numOfRadios = 0) => {
   // Issue 84: If the window is maximized it has to be unmaximized before
   // setting the window size to mini-mode otherwise nothing happens.
   if (mainWindow.isMaximized()) {
@@ -120,7 +136,9 @@ const toggleMiniMode = () => {
   if (isInMiniMode()) {
     restoreWindowBounds('maxi');
   } else {
-    restoreWindowBounds('mini');
+    restoreWindowBounds('mini', numOfRadios);
+    mainWindow.setVibrancy('fullscreen-ui');
+    mainWindow.setBackgroundMaterial('mica');
   }
 };
 
@@ -133,11 +151,14 @@ const createWindow = (): void => {
   mainWindow = new BrowserWindow({
     height: defaultWindowSize.height,
     width: defaultWindowSize.width,
-    minWidth: 210,
+    minWidth: 250,
     minHeight: 120,
     icon,
     trafficLightPosition: { x: 12, y: 10 },
     titleBarStyle: 'hidden',
+    vibrancy: 'fullscreen-ui', // on MacOS
+    backgroundMaterial: 'acrylic', // on Windows 11
+    // backgroundColor: '#2c2f45',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -376,8 +397,8 @@ ipcMain.handle('set-audio-api', (_, audioApi: number) => {
   configManager.updateConfig({ audioApi });
 });
 
-ipcMain.handle('toggle-mini-mode', () => {
-  toggleMiniMode();
+ipcMain.handle('toggle-mini-mode', (_, numberOfRadios: number) => {
+  toggleMiniMode(numberOfRadios);
 });
 
 //
@@ -520,6 +541,10 @@ ipcMain.on('unmaximise-window', () => {
 
 ipcMain.on('minimise-window', () => {
   mainWindow.minimize();
+});
+
+ipcMain.on('set-minimum-size', (_, width: number, height: number) => {
+  mainWindow.setMinimumSize(width, height);
 });
 
 ipcMain.on('close-window', () => {
