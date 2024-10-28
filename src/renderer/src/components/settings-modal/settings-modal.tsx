@@ -29,7 +29,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
-
+  const [transparentMiniMode, setLocalTransparentMiniMode] = useState(false);
   const [cid, setCid] = useState('');
   const [password, setPassword] = useState('');
 
@@ -41,7 +41,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     updateVu,
     ptt1KeyName,
     ptt2KeyName,
-    transparentMiniMode,
     hasPtt1BeenSetDuringSetup,
     hasPtt2BeenSetDuringSetup,
     updatePtt1KeySet,
@@ -56,7 +55,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     state.updateVu,
     state.ptt1KeyName,
     state.ptt2KeyName,
-    state.transparentMiniMode,
     state.hasPtt1BeenSetDuringSetup,
     state.hasPtt2BeenSetDuringSetup,
     state.updatePtt1KeySet,
@@ -80,6 +78,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode); // Type assertion since the config will never be a boolean at this point
         setShowExpandedRxInfo(config.showExpandedRx);
         setTransparentMiniMode(config.transparentMiniMode);
+        setLocalTransparentMiniMode(config.transparentMiniMode);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -200,8 +199,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saving);
     if (e.target.value === 'true') {
       window.api.setTransparentMiniMode(true);
+      setLocalTransparentMiniMode(true);
     } else {
       window.api.setTransparentMiniMode(false);
+      setLocalTransparentMiniMode(false);
     }
     setPendingRestart(true);
     setChangesSaved(SaveStatus.Saved);
