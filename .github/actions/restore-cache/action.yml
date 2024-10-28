@@ -91,6 +91,6 @@ runs:
       uses: actions/cache@v4
       with:
         path: |
-          ~/.cache/electron
-          ~/.cache/electron/electron-builder
+          ${{ github.workspace }}/.cache/electron
+          ${{ github.workspace }}/.cache/electron/electron-builder
         key: ${{ runner.os }}-electron-builder-${{ hashFiles('./package-lock.json') }}
