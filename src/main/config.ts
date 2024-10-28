@@ -22,7 +22,8 @@ export const defaultConfiguration = {
   hardwareType: 0,
   radioGain: 0,
   alwaysOnTop: 'never' as AlwaysOnTopMode,
-  showExpandedRx: false
+  showExpandedRx: false,
+  transparentMiniMode: false
 };
 
 class ConfigManager {

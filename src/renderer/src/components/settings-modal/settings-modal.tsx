@@ -41,24 +41,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     updateVu,
     ptt1KeyName,
     ptt2KeyName,
+    transparentMiniMode,
     hasPtt1BeenSetDuringSetup,
     hasPtt2BeenSetDuringSetup,
     updatePtt1KeySet,
     updatePtt2KeySet,
     showExpandedRxInfo,
-    setShowExpandedRxInfo
+    setShowExpandedRxInfo,
+    setTransparentMiniMode,
+    setPendingRestart
   ] = useUtilStore((state) => [
     state.vu,
     state.peakVu,
     state.updateVu,
     state.ptt1KeyName,
     state.ptt2KeyName,
+    state.transparentMiniMode,
     state.hasPtt1BeenSetDuringSetup,
     state.hasPtt2BeenSetDuringSetup,
     state.updatePtt1KeySet,
     state.updatePtt2KeySet,
     state.showExpandedRxInfo,
-    state.setShowExpandedRxInfo
+    state.setShowExpandedRxInfo,
+    state.setTransparentMiniMode,
+    state.setPendingRestart
   ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
@@ -73,6 +79,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setHardwareType(config.hardwareType);
         setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode); // Type assertion since the config will never be a boolean at this point
         setShowExpandedRxInfo(config.showExpandedRx);
+        setTransparentMiniMode(config.transparentMiniMode);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -186,6 +193,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       setShowExpandedRxInfo(false);
       window.api.setShowExpandedRx(false);
     }
+    setChangesSaved(SaveStatus.Saved);
+  };
+
+  const handleTransparentMiniMode = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    if (e.target.value === 'true') {
+      window.api.setTransparentMiniMode(true);
+    } else {
+      window.api.setTransparentMiniMode(false);
+    }
+    setPendingRestart(true);
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -313,6 +331,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     className="form-control mt-1"
                     onChange={handleShowExpandedRxChange}
                     value={showExpandedRxInfo.toString()}
+                  >
+                    <option value="true">Always</option>
+                    <option value="false">Never</option>
+                  </select>
+
+                  <label className="mt-2">Transparent mini mode</label>
+                  <select
+                    id=""
+                    className="form-control mt-1"
+                    onChange={handleTransparentMiniMode}
+                    value={transparentMiniMode.toString()}
                   >
                     <option value="true">Always</option>
                     <option value="false">Never</option>

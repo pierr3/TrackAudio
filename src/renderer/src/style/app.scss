@@ -490,6 +490,11 @@ select:disabled {
   min-width: 90px;
 }
 
+.cursor {
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+}
+
 * {
   -webkit-user-select: none;
   -ms-user-select: none;

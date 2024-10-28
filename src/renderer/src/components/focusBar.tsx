@@ -1,12 +1,32 @@
 import useSessionStore from '@renderer/store/sessionStore';
 import RadioStatus from './sidebar/radio-status';
+import useUtilStore from '@renderer/store/utilStore';
 
 const FocusBar = () => {
   const [version] = useSessionStore((state) => [state.version]);
+  const [pendingRestart] = useUtilStore((state) => [state.pendingRestart]);
+
+  const restartApp = () => {
+    window.api.Restart().catch((error: unknown) => {
+      console.error(error);
+    });
+  };
+
   return (
     <div className="focusbar-container bg-dark hide-topbar">
       <div className="container-fluid h-100">
         <div className="row h-100 position-relative">
+          {pendingRestart && (
+            <div
+              className="col-12 d-flex justify-content-start align-items-center position-absolute w-100 h-100"
+              style={{ zIndex: 3 }}
+            >
+              <a className="small font-weight-bold text-danger cursor" onClick={restartApp}>
+                Fast reload required to apply changes
+              </a>
+            </div>
+          )}
+
           {/* Center Radio Status */}
           <div className="col-12 d-flex justify-content-center align-items-center position-absolute w-100 h-100">
             <div className="text-nowrap">

@@ -17,6 +17,7 @@ const Bootsrap: React.FC = () => {
       .getConfig()
       .then((config: Configuration) => {
         useUtilStore.getState().setShowExpandedRxInfo(config.showExpandedRx);
+        useUtilStore.getState().setTransparentMiniMode(config.transparentMiniMode);
       })
       .catch((err: unknown) => {
         console.error(err);

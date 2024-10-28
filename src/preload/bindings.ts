@@ -33,6 +33,9 @@ export const api = {
   setShowExpandedRx: (state: boolean) => {
     ipcRenderer.send('set-show-expanded-rx', state);
   },
+  setTransparentMiniMode: (state: boolean) => {
+    ipcRenderer.send('set-transparent-mini-mode', state);
+  },
   getAudioApis: () => ipcRenderer.invoke('audio-get-apis'),
   getAudioInputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-input-devices', apiId),
   getAudioOutputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-output-devices', apiId),
@@ -97,6 +100,7 @@ export const api = {
   UpdatePlatform: () => ipcRenderer.invoke('update-platform'),
 
   CloseMe: () => ipcRenderer.invoke('close-me'),
+  Restart: () => ipcRenderer.invoke('restart'),
 
   RequestPttKeyName: (pttIndex: number) => ipcRenderer.invoke('request-ptt-key-name', pttIndex),
 

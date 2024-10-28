@@ -14,7 +14,7 @@ let version: string;
 let mainWindow: BrowserWindow;
 
 const defaultWindowSize = { width: 800, height: 660 };
-const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
+const miniModeWidthBreakpoint = 455; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
 const defaultMiniModeWidth = 250; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
 
 // This flag is set to true if the settings dialog should be shown automatically on launch.
@@ -135,12 +135,16 @@ const toggleMiniMode = (numOfRadios = 0) => {
 
   if (isInMiniMode()) {
     restoreWindowBounds('maxi');
-    mainWindow.setWindowButtonVisibility(true);
+    if (process.platform === 'darwin') {
+      mainWindow.setWindowButtonVisibility(true);
+    }
   } else {
     restoreWindowBounds('mini', numOfRadios);
     mainWindow.setVibrancy('fullscreen-ui');
     mainWindow.setBackgroundMaterial('mica');
-    mainWindow.setWindowButtonVisibility(false);
+    if (process.platform === 'darwin') {
+      mainWindow.setWindowButtonVisibility(false);
+    }
   }
 };
 
@@ -149,8 +153,7 @@ const createWindow = (): void => {
   TrackAudioAfv.SetCid(configManager.config.cid || '');
   TrackAudioAfv.SetRadioGain(configManager.config.radioGain || 0.5);
 
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
+  const options: Electron.BrowserWindowConstructorOptions = {
     height: defaultWindowSize.height,
     width: defaultWindowSize.width,
     minWidth: 250,
@@ -158,14 +161,19 @@ const createWindow = (): void => {
     icon,
     trafficLightPosition: { x: 12, y: 10 },
     titleBarStyle: 'hidden',
-    vibrancy: 'fullscreen-ui', // on MacOS
-    backgroundMaterial: 'acrylic', // on Windows 11
-    // backgroundColor: '#2c2f45',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
-  });
+  };
+
+  if (configManager.config.transparentMiniMode) {
+    options.vibrancy = 'fullscreen-ui';
+    options.backgroundMaterial = 'acrylic';
+  }
+
+  // Create the browser window.
+  mainWindow = new BrowserWindow(options);
 
   if (process.platform === 'darwin') {
     mainWindow.setWindowButtonVisibility(true);
@@ -359,6 +367,12 @@ ipcMain.on('set-show-expanded-rx', (_, showExpandedRx: boolean) => {
   configManager.updateConfig({ showExpandedRx });
 });
 
+ipcMain.on('set-transparent-mini-mode', (_, transparentMiniMode: boolean) => {
+  configManager.updateConfig({ transparentMiniMode });
+  mainWindow.setVibrancy(transparentMiniMode ? 'fullscreen-ui' : null);
+  mainWindow.setBackgroundMaterial('none');
+});
+
 ipcMain.handle('audio-get-apis', () => {
   return TrackAudioAfv.GetAudioApis();
 });
@@ -513,6 +527,11 @@ ipcMain.handle('update-platform', () => {
 
 ipcMain.handle('close-me', () => {
   mainWindow.close();
+});
+
+ipcMain.handle('restart', () => {
+  mainWindow.close();
+  createWindow();
 });
 
 ipcMain.handle(

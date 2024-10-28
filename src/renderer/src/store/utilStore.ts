@@ -12,6 +12,8 @@ interface UtilStore {
   hasPtt1BeenSetDuringSetup: boolean;
   hasPtt2BeenSetDuringSetup: boolean;
   isEditMode: boolean;
+  pendingRestart: boolean;
+  transparentMiniMode: boolean;
   setIsEditMode: (isEditMode: boolean) => void;
   setPtt1KeyName: (ptt1KeyName: string) => void;
   setPtt2KeyName: (ptt2KeyName: string) => void;
@@ -22,6 +24,8 @@ interface UtilStore {
   setWindowFullscreen: (fullscreen: boolean) => void;
   setWindowMaximised: (maximised: boolean) => void;
   setShowExpandedRxInfo: (showExpandedRxInfo: boolean) => void;
+  setTransparentMiniMode: (transparentMiniMode: boolean) => void;
+  setPendingRestart: (pendingRestart: boolean) => void;
 }
 
 const useUtilStore = create<UtilStore>((set) => ({
@@ -36,6 +40,8 @@ const useUtilStore = create<UtilStore>((set) => ({
   isWindowMaximised: false,
   showExpandedRxInfo: false,
   isEditMode: false,
+  transparentMiniMode: false,
+  pendingRestart: false,
   setIsEditMode: (isEditMode: boolean) => {
     set({ isEditMode });
   },
@@ -65,6 +71,12 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   setShowExpandedRxInfo: (showExpandedRxInfo: boolean): void => {
     set({ showExpandedRxInfo });
+  },
+  setTransparentMiniMode: (transparentMiniMode: boolean): void => {
+    set({ transparentMiniMode });
+  },
+  setPendingRestart: (pendingRestart: boolean): void => {
+    set({ pendingRestart });
   }
 }));
 
