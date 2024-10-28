@@ -135,10 +135,12 @@ const toggleMiniMode = (numOfRadios = 0) => {
 
   if (isInMiniMode()) {
     restoreWindowBounds('maxi');
+    mainWindow.setWindowButtonVisibility(true);
   } else {
     restoreWindowBounds('mini', numOfRadios);
     mainWindow.setVibrancy('fullscreen-ui');
     mainWindow.setBackgroundMaterial('mica');
+    mainWindow.setWindowButtonVisibility(false);
   }
 };
 
@@ -164,6 +166,10 @@ const createWindow = (): void => {
       sandbox: false
     }
   });
+
+  if (process.platform === 'darwin') {
+    mainWindow.setWindowButtonVisibility(true);
+  }
 
   setAlwaysOnTop(configManager.config.alwaysOnTop === 'always' || false);
 
@@ -545,6 +551,10 @@ ipcMain.on('minimise-window', () => {
 
 ipcMain.on('set-minimum-size', (_, width: number, height: number) => {
   mainWindow.setMinimumSize(width, height);
+});
+
+ipcMain.on('set-window-button-visibility', (_, status: boolean) => {
+  mainWindow.setWindowButtonVisibility(status);
 });
 
 ipcMain.on('close-window', () => {

@@ -8,16 +8,17 @@ const Mini: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
   const isMiniMode = useMediaQuery({ maxWidth: '330px' });
   useEffect(() => {
-    console.log('isMiniMode', isMiniMode);
     const numOfRadios = radios.filter((r) => r.rx).length;
     const miniModeHeightMin = 22 + 24 * (numOfRadios === 0 ? 1 : numOfRadios);
 
     if (isMiniMode) {
       document.body.style.backgroundColor = 'transparent';
       window.api.window.setMinimumSize(250, miniModeHeightMin);
+      window.api.window.setWindowButtonVisibility(false);
     } else {
       document.body.style.backgroundColor = '#2c2f45';
       window.api.window.setMinimumSize(250, 120);
+      window.api.window.setWindowButtonVisibility(true);
     }
   }, [isMiniMode]);
 

@@ -140,6 +140,9 @@ export const api = {
     },
     setMinimumSize: (width: number, height: number): void => {
       ipcRenderer.send('set-minimum-size', width, height);
+    },
+    setWindowButtonVisibility: (status: boolean): void => {
+      ipcRenderer.send('set-window-button-visibility', status);
     }
   }
 };
