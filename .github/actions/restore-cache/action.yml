@@ -21,6 +21,30 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    # The cache folder for electron and electron-builder is different across the three platforms.
+    # Furthermore, the ELECTRON_CACHE and ELECTRON_BUILDER_CACHE environment variables don't work.
+    # So there has to be separate steps for the different platforms to set the proper cache locations,
+    # which were determined by looking at the code here:
+    # https://github.com/develar/app-builder/blob/c87157ae504895a7e9e1329437293846b8e57beb/pkg/download/artifactDownloader.go#L195
+    - name: Set Electron cache paths (macos and linux)
+      if: matrix.os != 'Windows-2019'
+      shell: bash
+      run: |
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
+          echo "ELECTRON_CACHE_DIR=$HOME/.cache/electron" >> $GITHUB_ENV
+          echo "ELECTRON_BUILDER_CACHE_DIR=$HOME/.cache/electron-builder" >> $GITHUB_ENV
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
+          echo "ELECTRON_CACHE_DIR=$HOME/Library/Caches/electron" >> $GITHUB_ENV
+          echo "ELECTRON_BUILDER_CACHE_DIR=$HOME/Library/Caches/electron-builder" >> $GITHUB_ENV
+        fi
+
+    - name: Set Electron cache paths (Windows)
+      if: matrix.os == 'Windows-2019'
+      shell: pwsh
+      run: |
+        echo "ELECTRON_CACHE_DIR=$Env:LOCALAPPDATA\electron\Cache" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+        echo "ELECTRON_BUILDER_CACHE_DIR=$Env:LOCALAPPDATA\electron-builder\Cache" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
     - name: Get afv-native submodule revision (windows)
       if: matrix.os == 'windows-2019'
       shell: pwsh
@@ -91,8 +115,8 @@ runs:
       uses: actions/cache@v4
       with:
         path: |
-          ~/.cache/electron
-          ~/.cache/electron/electron-builder
+          ${{ env.ELECTRON_CACHE_DIR }}
+          ${{ env.ELECTRON_BUILDER_CACHE_DIR }}
         key: ${{ runner.os }}-electron-builder-${{ hashFiles('./package-lock.json') }}
 
     - name: Restore node_modules cache
