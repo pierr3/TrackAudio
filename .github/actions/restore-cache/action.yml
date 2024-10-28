@@ -86,11 +86,11 @@ runs:
           backend/build/vcpkg_installed
         key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}-${{ env.VCPKG_REV }}
 
-    - name: Restore electron-builder cache
-      id: electron-builder
-      uses: actions/cache@v4
-      with:
-        path: |
-          ${{ env.ELECTRON_CACHE }}
-          ${{ env.ELECTRON_BUILDER_CACHE}}
-        key: ${{ runner.os }}-electron-builder-${{ hashFiles('./package-lock.json') }}
+    # - name: Restore electron-builder cache
+    #   id: electron-builder
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: |
+    #       ${{ env.ELECTRON_CACHE }}
+    #       ${{ env.ELECTRON_BUILDER_CACHE}}
+    #     key: ${{ runner.os }}-electron-builder-${{ hashFiles('./package-lock.json') }}
