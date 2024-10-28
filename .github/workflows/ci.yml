@@ -8,9 +8,9 @@ on:
     branches:
       - main
 
-env:
-  ELECTRON_CACHE: .cache/electron
-  ELECTRON_BUILDER_CACHE: .cache/electron-builder
+# env:
+#   ELECTRON_CACHE: .cache/electron
+#   ELECTRON_BUILDER_CACHE: .cache/electron-builder
 
 jobs:
   build:
