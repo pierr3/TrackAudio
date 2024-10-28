@@ -486,6 +486,10 @@ select:disabled {
   font-size: 13px;
 }
 
+.connection-status {
+  min-width: 90px;
+}
+
 * {
   -webkit-user-select: none;
   -ms-user-select: none;

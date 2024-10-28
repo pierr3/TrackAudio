@@ -154,7 +154,7 @@ const createWindow = (): void => {
     height: defaultWindowSize.height,
     width: defaultWindowSize.width,
     minWidth: 250,
-    minHeight: 120,
+    minHeight: 240,
     icon,
     trafficLightPosition: { x: 12, y: 10 },
     titleBarStyle: 'hidden',
