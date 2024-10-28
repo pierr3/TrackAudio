@@ -135,9 +135,6 @@ jobs:
           cd ..
           npm install ./backend/trackaudio-afv-1.0.0.tgz
 
-      - name: Install dependencies
-        run: npm install
-
       - name: Package app
         if: matrix.os == 'windows-2019'
         shell: bash

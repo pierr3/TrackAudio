@@ -3,7 +3,7 @@ description: Restores backend, vcpkg, and electron-builder from cache
 
 inputs:
   backend:
-    description: 'Set to true to cache backend'
+    description: Set to true to cache backend
     required: false
     default: 'false'
 
@@ -45,6 +45,8 @@ runs:
         echo "ELECTRON_CACHE_DIR=$Env:LOCALAPPDATA\electron\Cache" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
         echo "ELECTRON_BUILDER_CACHE_DIR=$Env:LOCALAPPDATA\electron-builder\Cache" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
+    # Since Windows doesn't have bash, use separate steps to get the afv-native submodule
+    # revision on Windows vs. macos and linux.
     - name: Get afv-native submodule revision (windows)
       if: matrix.os == 'windows-2019'
       shell: pwsh
@@ -61,30 +63,8 @@ runs:
         echo "AFVNATIVE_REV=$AFVNATIVE_REV" >> $GITHUB_ENV
         echo "afv-native submodule revision $AFVNATIVE_REV"
 
-    # The cache key for backend has to be constructed differently on windows vs
-    # macos/linux because hashFiles doesn't work on windows if you specify `backend/**`.
-    - name: Set backend cache key (windows)
-      if: matrix.os == 'windows-2019'
-      shell: pwsh
-      run: echo "BACKEND_CACHE_KEY=${{ runner.os }}-backend-${{ hashFiles('backend\\**') }}-${{ env.AFVNATIVE_REV }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-    - name: Set backend cache key (macos and linux)
-      if: matrix.os != 'windows-2019'
-      shell: bash
-      run: echo "BACKEND_CACHE_KEY=${{ runner.os }}-backend-${{ hashFiles('backend/**') }}-${{ env.AFVNATIVE_REV }}" >> $GITHUB_ENV
-
-    # backend is cached based on the SHA of backend and the hash of all files under
-    # backend/. It only gets cached if backend is set to 'true' when calling this composite
-    # action, currently only in the ci.yml flow. release.yml does not cache backend.
-    - name: Restore backend from cache
-      id: backend
-      uses: actions/cache@v4
-      if: ${{ inputs.backend }} == 'true'
-      with:
-        path: |
-          backend/trackaudio-afv-1.0.0.tgz
-        key: ${{ env.BACKEND_CACHE_KEY }}
-
+    # Since Windows doesn't have bash, use separate steps to get the vcpkg submodule
+    # revision on Windows vs. macos and linux.
     - name: Get vcpkg submodule revision (windows)
       if: matrix.os == 'windows-2019'
       shell: pwsh
@@ -100,6 +80,31 @@ runs:
         VCPKG_REV=$(git rev-parse HEAD:./backend/vcpkg)
         echo "VCPKG_REV=$VCPKG_REV" >> $GITHUB_ENV
         echo "vcpkg submodule revision $VCPKG_REV"
+
+    # The cache key for backend has to be constructed differently on windows vs
+    # macos/linux because hashFiles doesn't work on windows if you specify `backend/**`.
+    # backend is cached based on the SHA of backend and the hash of all files under
+    # backend/.
+    - name: Set backend cache key (windows)
+      if: matrix.os == 'windows-2019'
+      shell: pwsh
+      run: echo "BACKEND_CACHE_KEY=${{ runner.os }}-backend-${{ hashFiles('backend\\**') }}-${{ env.AFVNATIVE_REV }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Set backend cache key (macos and linux)
+      if: matrix.os != 'windows-2019'
+      shell: bash
+      run: echo "BACKEND_CACHE_KEY=${{ runner.os }}-backend-${{ hashFiles('backend/**') }}-${{ env.AFVNATIVE_REV }}" >> $GITHUB_ENV
+
+    # The backend only gets cached if backend is set to 'true' when calling this composite
+    # action, currently only in the ci.yml flow. release.yml does not cache backend.
+    - name: Restore backend from cache
+      id: backend
+      uses: actions/cache@v4
+      if: ${{ inputs.backend }} == 'true'
+      with:
+        path: |
+          backend/trackaudio-afv-1.0.0.tgz
+        key: ${{ env.BACKEND_CACHE_KEY }}
 
     - name: Restore vcpkg from cache
       uses: actions/cache@v4

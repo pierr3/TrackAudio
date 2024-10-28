@@ -8,10 +8,6 @@ on:
     branches:
       - main
 
-# env:
-#   ELECTRON_CACHE: .cache/electron
-#   ELECTRON_BUILDER_CACHE: .cache/electron-builder
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -77,18 +73,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
 
-      - name: Build backend
+      - name: Build backend and install dependencies
         if: steps.restore-cache.outputs.backend != 'true'
         run: |
           npm -g i cmake-js
           npm run build:backend
 
-      - name: Install cached backend
+      - name: Install cached backend and dependencies
         if: steps.restore-cache.outputs.backend == 'true'
         run: npm install ./backend/trackaudio-afv-1.0.0.tgz
-
-      - name: Install dependencies
-        run: npm install
 
       - name: Run eslint
         run: npm run lint
