@@ -703,8 +703,14 @@ VersionCheckResponse CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         httplib::Client client(VERSION_CHECK_BASE_URL);
         auto res = client.Get(VERSION_CHECK_ENDPOINT);
         if (!res || res->status != httplib::StatusCode::OK_200) {
+            std::string errorDetail;
+            if (res) {
+              errorDetail = "HTTP error " + std::to_string(res->status);
+            } else {
+              errorDetail = "Unable to reach server at all or no internet connection";
+            }
+            PLOGE << "Error fetching version: " << errorDetail;
             MainThreadShared::ShouldRun = false;
-            PLOGE << "Error fetching version: " << res->status;
             return { false, false };
         }
 
