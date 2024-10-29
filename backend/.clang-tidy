@@ -14,7 +14,8 @@ Checks: "*,
   -misc-non-private-member-variables-in-classes,
   -cppcoreguidelines-avoid-magic-numbers,
   -readability-magic-numbers,
-  -unused-includes"
+  -unused-includes
+  -boost-*"
 
 WarningsAsErrors: ''
 HeaderFilterRegex: ''

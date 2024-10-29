@@ -14,9 +14,9 @@ public:
      * @return True if the frequency is a valid 8.33kHz channel, false
      * otherwise.
      */
-    static inline bool isValid8_33kHzChannel(int fKHz)
+    static bool isValid8_33kHzChannel(int fKHz)
     {
-        const int lastDigits = static_cast<int>(fKHz) % 100;
+        const int lastDigits = fKHz % 100;
         return fKHz % 5 == 0 && lastDigits != 20 && lastDigits != 45 && lastDigits != 70
             && lastDigits != 95;
     }
@@ -26,11 +26,11 @@ public:
      * @param fKHz The frequency in kHz.
      * @return The rounded frequency in kHz.
      */
-    static inline int round8_33kHzChannel(int fKHz)
+    static int round8_33kHzChannel(int fKHz)
     {
         fKHz = fKHz / 1000;
         if (!isValid8_33kHzChannel(fKHz)) {
-            const int diff = static_cast<int>(fKHz) % 5;
+            const int diff = fKHz % 5;
             int lower = fKHz - diff;
             if (!isValid8_33kHzChannel(lower)) {
                 lower -= 5;

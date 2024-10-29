@@ -24,7 +24,7 @@ using sdk::types::WebsocketMessage;
 using sdk::types::WebsocketMessageType;
 
 namespace sdk::types {
-enum Event {
+enum class Event : std::uint8_t {
     kRxBegin,
     kRxEnd,
     kTxBegin,
@@ -69,7 +69,7 @@ public:
      *
      * @return The JSON object for the station state.
      */
-    nlohmann::json buildStationStateJson(
+    static nlohmann::json buildStationStateJson(
         const std::optional<std::string>& callsign, const int& frequencyHz);
 
     /**
@@ -104,7 +104,7 @@ private:
 
     ws_registry_t pWsRegistry;
 
-    enum sdkCall {
+    enum sdkCall : std::uint8_t {
         kTransmitting,
         kRx,
         kTx,
@@ -116,7 +116,7 @@ private:
 
     static inline std::mutex BroadcastMutex;
 
-    inline static std::map<sdkCall, std::string>& getSDKCallUrlMap()
+    static std::map<sdkCall, std::string>& getSDKCallUrlMap()
     {
         static std::map<sdkCall, std::string> mSDKCallUrl = { { kTransmitting, "/transmitting" },
             { kRx, "/rx" }, { kTx, "/tx" }, { kWebSocket, "/ws" } };
@@ -192,7 +192,7 @@ private:
      *
      * @param json The incoming JSON with the station status.
      */
-    void handleSetStationState(const nlohmann::json json);
+    void handleSetStationState(const nlohmann::json& json);
 
     /**
      * Handles the SDK call to publish all the current station states.

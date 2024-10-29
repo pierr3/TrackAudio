@@ -1,9 +1,8 @@
 #pragma once
-#include "Helpers.hpp"
+#include "Shared.hpp"
+#include "plog/Initializers/RollingFileInitializer.h"
 #include <filesystem>
-#include <spdlog/logger.h>
-#include <spdlog/sinks/rotating_file_sink.h>
-#include <spdlog/spdlog.h>
+#include <plog/Log.h> // Step1: include the headers
 
 #include <memory>
 class LogFactory {
@@ -11,39 +10,49 @@ class LogFactory {
 public:
     LogFactory()
     {
+        CreateLogFolders();
         auto fileName = FileSystem::GetStateFolderPath() / "trackaudio.log";
 
-        trackaudio_logger = spdlog::rotating_logger_mt(
-            "trackaudio_logger", fileName.string(), max_size, max_files);
+        plog::init(plog::info, fileName.string().c_str(), max_size, max_files);
 
-        spdlog::set_default_logger(trackaudio_logger);
-        afv_logger
-            = spdlog::rotating_logger_mt("afv_logger", fileName.string(), max_size, max_files);
+        // Detect whether we should enable verbose logging
+        try {
+            auto verboseFileName = FileSystem::GetStateFolderPath() / "verbose.enable";
+            if (std::filesystem::exists(verboseFileName)) {
+                plog::get()->setMaxSeverity(plog::verbose);
+            }
+        } catch (const std::exception& e) {
+            PLOGE << "Error trying to determine whether to enable verbose logging: " << e.what();
+        }
 
         // NOLINTNEXTLINE this cannot be solved here but in afv
         afv_native::api::setLogger(
             // NOLINTNEXTLINE
             [&](std::string subsystem, std::string file, int line, std::string lineOut) {
                 auto strippedFiledName = file.substr(file.find_last_of('/') + 1);
-                spdlog::get("afv_logger")
-                    ->info("{}:{}:{}: {}", subsystem, strippedFiledName, line, lineOut);
+                PLOG_INFO << "[afv_native] " << subsystem << ":" << strippedFiledName << ":" << line
+                          << ": " << lineOut;
             });
     }
 
     static void createLoggers() { m_instance = std::make_unique<LogFactory>(); }
-    static void destroyLoggers()
-    {
-        spdlog::shutdown();
-        m_instance->afv_logger.reset();
-        m_instance->trackaudio_logger.reset();
-    }
+    static void destroyLoggers() { m_instance.reset(); }
 
 private:
-    static constexpr int max_size = 1048576 * 5;
+    static void CreateLogFolders()
+    {
+        if (!std::filesystem::exists(FileSystem::GetStateFolderPath())) {
+            std::error_code err;
+            if (!std::filesystem::create_directory(FileSystem::GetStateFolderPath(), err)) {
+                PLOGE << "Could not create state directory at "
+                      << FileSystem::GetStateFolderPath().string() << ": " << err.message();
+            }
+        }
+    }
+
+    static constexpr size_t max_size = 3000000;
     static constexpr int max_files = 3;
 
 protected:
-    std::shared_ptr<spdlog::logger> afv_logger;
-    std::shared_ptr<spdlog::logger> trackaudio_logger;
     static inline std::unique_ptr<LogFactory> m_instance = nullptr;
 };

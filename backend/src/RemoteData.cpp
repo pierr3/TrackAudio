@@ -3,6 +3,7 @@
 #include "Shared.hpp"
 #include <absl/strings/match.h>
 #include <map>
+#include <plog/Log.h>
 
 RemoteData::RemoteData()
     : timer(static_cast<long>(3 * 1000), static_cast<long>(TIMER_CALLBACK_INTERVAL_SEC * 1000))
@@ -25,16 +26,17 @@ void RemoteData::onTimer(Poco::Timer& /*timer*/)
     } catch (const std::exception& ex) {
         RemoteDataStatus::isSlurperAvailable = false;
         enteredSlurperGracePeriod = false;
-        TRACK_LOG_ERROR("Error while parsing slurper data: {}", ex.what());
+        PLOG_ERROR << "Error while parsing slurper data: " << ex.what();
         notifyUserOfSlurperUnavalability();
     } catch (...) {
         RemoteDataStatus::isSlurperAvailable = false;
         enteredSlurperGracePeriod = false;
-        TRACK_LOG_ERROR("Error while parsing slurper data.");
+        PLOG_ERROR << "Error while parsing slurper data.";
         notifyUserOfSlurperUnavalability();
     }
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 std::string RemoteData::getSlurperData()
 {
     if (UserSession::cid.empty()) {
@@ -49,11 +51,11 @@ std::string RemoteData::getSlurperData()
         // Notify the client the slurper is offline
         if (!enteredSlurperGracePeriod) {
             enteredSlurperGracePeriod = true;
-            TRACK_LOG_ERROR("Cannot get data from the slurper. Giving it one more try");
+            PLOG_ERROR << "Cannot get data from the slurper. Giving it one more try";
             return "";
         }
         RemoteDataStatus::isSlurperAvailable = false;
-        TRACK_LOG_ERROR("Cannot get data from the slurper. Object is null.");
+        PLOG_ERROR << "Cannot get data from the slurper. Object is null.";
         notifyUserOfSlurperUnavalability();
         enteredSlurperGracePeriod = false;
         return "";
@@ -62,13 +64,13 @@ std::string RemoteData::getSlurperData()
     if (res->status != httplib::StatusCode::OK_200) {
         if (!enteredSlurperGracePeriod) {
             enteredSlurperGracePeriod = true;
-            TRACK_LOG_ERROR(
-                "Slurper returned an HTTP error {}. Giving it one more try", res->status);
+            PLOG_ERROR << "Slurper returned an HTTP error " << res->status
+                       << ". Giving it one more try";
             return "";
         }
 
         RemoteDataStatus::isSlurperAvailable = false;
-        TRACK_LOG_ERROR("Slurper returned an HTTP error {}", res->status);
+        PLOG_ERROR << "Slurper returned an HTTP error " << res->status;
         notifyUserOfSlurperUnavalability();
         enteredSlurperGracePeriod = false;
         return "";
@@ -79,7 +81,7 @@ std::string RemoteData::getSlurperData()
         RemoteDataStatus::isSlurperAvailable = true;
         notifyUserOfSlurperAvailability();
         userHasBeenNotifiedOfSlurperUnavailability = false;
-        TRACK_LOG_INFO("Slurper is back online.");
+        PLOG_INFO << "Slurper is back online.";
         enteredSlurperGracePeriod = false;
     }
 
@@ -164,20 +166,19 @@ bool RemoteData::parseSlurper(const std::string& sluper_data)
     UserSession::xy = (it1->first == ConnectionType::z1);
     UserSession::lat = std::stod(it1->second.lat);
     UserSession::lon = std::stod(it1->second.lon);
-    TRACK_LOG_INFO("Updating session data - Callsign: {}, Frequency: {}, xx: {}, Latitude: "
-                   "{}, Longitude: {}",
-        UserSession::callsign, UserSession::frequency, static_cast<int>(UserSession::xy),
-        UserSession::lat, UserSession::lon);
+    PLOG_INFO << "Updating session data - Callsign: " << UserSession::callsign
+              << ", Frequency: " << UserSession::frequency
+              << ", xx: " << static_cast<int>(UserSession::xy) << ", Latitude: " << UserSession::lat
+              << ", Longitude: " << UserSession::lon;
     return true;
 }
 
-void RemoteData::updateSessionStatus(std::string previousCallsign, bool isConnected)
+void RemoteData::updateSessionStatus(const std::string& previousCallsign, bool isConnected)
 {
     if (UserSession::isConnectedToTheNetwork && UserSession::callsign != previousCallsign
         && !previousCallsign.empty() && isConnected && mClient->IsVoiceConnected()) {
-        TRACK_LOG_INFO("Callsign changed during an active session, "
-                       "disconnecting ({} -> {})",
-            previousCallsign, UserSession::callsign);
+        PLOG_INFO << "Callsign changed during an active session, disconnecting ("
+                  << previousCallsign << " -> " << UserSession::callsign << ")";
         mClient->Disconnect();
         NapiHelpers::sendErrorToElectron("Callsign changed during an active session, "
                                          "you have been disconnected.");
@@ -197,8 +198,8 @@ void RemoteData::updateSessionStatus(std::string previousCallsign, bool isConnec
     } else {
         if (mClient->IsVoiceConnected()) {
             mClient->Disconnect();
-            TRACK_LOG_INFO("Disconnected from the network because no active "
-                           "connection was found in the slurper data.");
+            PLOG_INFO << "Disconnected from the network because no active connection was found in "
+                         "the slurper data.";
             NapiHelpers::sendErrorToElectron("No active connection found in the slurper data, "
                                              "you have been disconnected.");
         }

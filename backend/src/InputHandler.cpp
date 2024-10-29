@@ -1,10 +1,14 @@
 #include "InputHandler.hpp"
 #include "Helpers.hpp"
 #include "Shared.hpp"
-#include "win32_key_util.h"
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <plog/Log.h>
 #include <string>
+
+#ifdef _WIN32
+#include "win32_key_util.h"
+#endif
 
 InputHandler::InputHandler()
     : isPttSetupRunning(false)
@@ -29,6 +33,7 @@ void InputHandler::stopPttSetup()
     pttSetupIndex = 0;
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void InputHandler::updatePttKey(int pttIndex, int key, bool isJoystickButton, int joystickId)
 {
     if (pttIndex == 1) {
@@ -45,11 +50,12 @@ void InputHandler::updatePttKey(int pttIndex, int key, bool isJoystickButton, in
     InputHandler::forwardPttKeyName(pttIndex);
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void InputHandler::checkForPtt(int pttIndex, int key, bool isJoystickButton, int joystickId)
 {
     // Check and see if another PTT key is currently in use. If so, don't check for PTT
     // state.
-    if (activePtt && activePtt != pttIndex) {
+    if ((activePtt != 0) && activePtt != pttIndex) {
         return;
     }
 
@@ -112,8 +118,8 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
 
             for (int j = 0; j < sf::Joystick::getButtonCount(i); j++) {
                 if (sf::Joystick::isButtonPressed(i, j)) {
-                    TRACK_LOG_INFO("Joystick Ptt {} Key set: {} on Joystick {}",
-                        std::to_string(pttSetupIndex), j, i);
+                    PLOGE << "Joystick Ptt " << std::to_string(pttSetupIndex) << " Key set: " << j
+                          << " on Joystick " << i;
                     updatePttKey(pttSetupIndex, j, true, i);
 
                     isPttSetupRunning = false;
@@ -138,7 +144,7 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
 
 void InputHandler::forwardPttKeyName(int pttIndex)
 {
-    TRACK_LOG_INFO("Forwarding Ptt Key Name {} for PTT {}", getPttKeyName(pttIndex), pttIndex);
+    PLOGI << "Forwarding Ptt Key Name " << getPttKeyName(pttIndex) << " for PTT " << pttIndex;
 
     auto pttKeyName = getPttKeyName(pttIndex);
     NapiHelpers::callElectron("UpdatePttKeyName", std::to_string(pttIndex), pttKeyName);

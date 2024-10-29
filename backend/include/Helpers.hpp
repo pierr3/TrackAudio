@@ -2,10 +2,10 @@
 #include "RadioSimulation.h"
 #include "Shared.hpp"
 
-#include "spdlog/spdlog.h"
 #include <cmath>
 #include <mutex>
 #include <nlohmann/json.hpp>
+#include <plog/Log.h>
 #include <sago/platform_folders.h>
 #include <string>
 
@@ -55,28 +55,25 @@ public:
     static bool ConvertBoolOrToggleToBool(const nlohmann::json& incomingValue, bool currentValue)
     {
         if (incomingValue.is_null()) {
-            TRACK_LOG_INFO("ConvertBoolOrToggleToBool: Incoming value wasn't specified, returning "
-                           "current value {}",
-                currentValue);
+            PLOGI << "ConvertBoolOrToggleToBool: Incoming value wasn't specified, returning "
+                  << currentValue;
             return currentValue;
         }
 
         if (incomingValue.is_boolean()) {
-            TRACK_LOG_INFO("ConvertBoolOrToggleToBool: Received a boolean, returning it: {}",
-                incomingValue.dump());
+            PLOGI << "ConvertBoolOrToggleToBool: Received a boolean, returning it: "
+                  << incomingValue.get<bool>();
             return incomingValue.get<bool>();
         }
 
         if (incomingValue.is_string() && incomingValue.get<std::string>() == "toggle") {
-            TRACK_LOG_INFO(
-                "ConvertBoolOrToggleToBool: Received \"toggle\", returning {}, the inverse of {}",
-                !currentValue, currentValue);
+            PLOGI << "ConvertBoolOrToggleToBool: Received \"toggle\", returning " << !currentValue
+                  << ", the inverse of " << currentValue;
             return !currentValue;
         }
-
-        TRACK_LOG_INFO("ConvertBoolOrToggleToBool: Invalid value, type is {} for boolean property: "
-                       "{}, returning {}",
-            incomingValue.type_name(), incomingValue.dump(), currentValue);
+        PLOGI << "ConvertBoolOrToggleToBool: Invalid value, type is " << incomingValue.type_name()
+              << " for boolean property: " << incomingValue.dump() << ", returning "
+              << currentValue;
         return currentValue;
     }
 };
@@ -105,7 +102,7 @@ public:
 
         callbackRef->NonBlockingCall(
             [eventName, data, data2](Napi::Env env, Napi::Function jsCallback) {
-                SPDLOG_TRACE("Event name: {}, data: {}, data2: {}", eventName, data, data2);
+                PLOGV << "Event name: " << eventName << ", data: " << data << ", data2: " << data2;
                 jsCallback.Call({ Napi::String::New(env, eventName), Napi::String::New(env, data),
                     Napi::String::New(env, data2) });
             });

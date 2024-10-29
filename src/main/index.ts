@@ -244,6 +244,16 @@ app
 
     const bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
 
+    if (!bootstrapOutput.checkSuccessful) {
+      dialog.showMessageBoxSync({
+        type: 'error',
+        message:
+          'An error occured during the version check, either your internet connection is down or the server (raw.githubusercontent.com) is unreachable.',
+        buttons: ['OK']
+      });
+      app.quit();
+    }
+
     if (bootstrapOutput.needUpdate) {
       dialog.showMessageBoxSync({
         type: 'error',
@@ -256,8 +266,7 @@ app
     if (!bootstrapOutput.canRun) {
       dialog.showMessageBoxSync({
         type: 'error',
-        message:
-          'This application has experienced an error and cannot run, please check the logs for more information.',
+        message: 'This application cannot run on this platform.',
         buttons: ['OK']
       });
       app.quit();
@@ -434,7 +443,6 @@ ipcMain.handle('set-radio-gain', (_, radioGain: number) => {
   configManager.updateConfig({ radioGain });
   TrackAudioAfv.SetRadioGain(radioGain);
 });
-
 
 ipcMain.handle('set-frequency-radio-gain', (_, frequency: number, radioGain: number) => {
   TrackAudioAfv.SetFrequencyRadioGain(frequency, radioGain);

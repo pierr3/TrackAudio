@@ -13,10 +13,7 @@ const UnicomGuardBar = () => {
     state.addRadio,
     state.removeRadio
   ]);
-  const [isConnected, isAtc] = useSessionStore((state) => [
-    state.isConnected,
-    state.isAtc
-  ]);
+  const [isConnected, isAtc] = useSessionStore((state) => [state.isConnected, state.isAtc]);
 
   const [localRadioGain, setLocalRadioGain] = useState(50);
 
@@ -30,7 +27,37 @@ const UnicomGuardBar = () => {
     return radios.find((radio) => radio.frequency === GuardFrequency);
   }, [radios, isConnected]);
 
-  const clickRx = (radio: RadioType | undefined) => {
+  const reAddRadio = (radio: RadioType, eventType: 'RX' | 'TX' | 'SPK') => {
+    const radioName =
+      radio.frequency === UnicomFrequency
+        ? 'UNICOM'
+        : radio.frequency === GuardFrequency
+          ? 'GUARD'
+          : 'INVALIDUNIGUARD';
+
+    window.api
+      .addFrequency(radio.frequency, radioName)
+      .then((ret) => {
+        if (!ret) {
+          postError(`Failed to re-add ${radioName} frequency`);
+          return;
+        }
+        if (eventType === 'RX') {
+          clickRx(radio, true);
+        }
+        if (eventType === 'TX') {
+          clickTx(radio, true);
+        }
+        if (eventType === 'SPK') {
+          clickSpK(radio, true);
+        }
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+  };
+
+  const clickRx = (radio: RadioType | undefined, noError = false) => {
     if (!radio) return;
     const newState = !radio.rx;
 
@@ -44,8 +71,8 @@ const UnicomGuardBar = () => {
         false
       )
       .then((ret) => {
-        if (!ret) {
-          postError('Invalid action on invalid radio: RX.');
+        if (!ret && !noError) {
+          reAddRadio(radio, 'RX');
           return;
         }
         setRadioState(radio.frequency, {
@@ -61,7 +88,7 @@ const UnicomGuardBar = () => {
       });
   };
 
-  const clickTx = (radio: RadioType | undefined) => {
+  const clickTx = (radio: RadioType | undefined, noError = false) => {
     if (!radio) return;
     const newState = !radio.tx;
 
@@ -75,8 +102,8 @@ const UnicomGuardBar = () => {
         false
       )
       .then((ret) => {
-        if (!ret) {
-          postError('Invalid action on invalid radio: TX.');
+        if (!ret && !noError) {
+          reAddRadio(radio, 'TX');
           return;
         }
         setRadioState(radio.frequency, {
@@ -92,7 +119,7 @@ const UnicomGuardBar = () => {
       });
   };
 
-  const clickSpK = (radio: RadioType | undefined) => {
+  const clickSpK = (radio: RadioType | undefined, noError = false) => {
     if (!radio) return;
     const newState = !radio.onSpeaker;
     window.api
@@ -105,8 +132,8 @@ const UnicomGuardBar = () => {
         radio.crossCoupleAcross
       )
       .then((ret) => {
-        if (!ret) {
-          postError('Invalid action on invalid radio: OnSPK.');
+        if (!ret && !noError) {
+          reAddRadio(radio, 'SPK');
           return;
         }
         setRadioState(radio.frequency, {
