@@ -81,7 +81,7 @@ jobs:
 
       - name: Install cached backend and dependencies
         if: steps.restore-cache.outputs.backend == 'true'
-        run: npm ci ./backend/trackaudio-afv-1.0.0.tgz
+        run: npm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Run eslint
         run: npm run lint
