@@ -104,36 +104,36 @@ jobs:
         run: |
           npm -g i cmake-js
           cd backend/
-          npm ci
+          npm install
           cmake-js compile -B Release -a x64
           node custom_build.mjs
           npm pack
           cd ..
-          npm ci ./backend/trackaudio-afv-1.0.0.tgz
+          npm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Build backend (macOs arm64)
         if: matrix.arch == 'arm64' && matrix.os == 'macos-latest'
         run: |
           npm -g i cmake-js
           cd backend/
-          npm ci
+          npm install
           cmake-js compile -B Release -a arm64
           node custom_build.mjs
           npm pack
           cd ..
-          npm ci ./backend/trackaudio-afv-1.0.0.tgz
+          npm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Build backend (linux arm64 cross compile)
         if: matrix.arch == 'arm64' && matrix.os == 'ubuntu-latest'
         run: |
           npm -g i cmake-js
           cd backend/
-          npm ci
+          npm install
           cmake-js compile -B Release -a arm64 --prefer-clang false --CD -DVCPKG_TARGET_TRIPLET=arm64-linux
           node custom_build.mjs
           npm pack
           cd ..
-          npm ci ./backend/trackaudio-afv-1.0.0.tgz
+          npm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Package app
         if: matrix.os == 'windows-2019'

@@ -77,7 +77,7 @@ jobs:
         if: steps.restore-cache.outputs.backend != 'true'
         run: |
           npm -g i cmake-js
-          npm run build:backend_ci
+          npm run build:backend
 
       - name: Install cached backend and dependencies
         if: steps.restore-cache.outputs.backend == 'true'
