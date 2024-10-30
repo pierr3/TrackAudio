@@ -33,6 +33,19 @@ const TitleBar: React.FC<TitleBarProps> & {
     getElementRef
   } = useTitleBarUtils(children, titleBarRef);
 
+  useEffect(() => {
+    if (os.length === 0) {
+      window.api
+        .UpdatePlatform()
+        .then((platform: string) => {
+          useUtilStore.getState().updatePlatform(platform);
+        })
+        .catch((err: unknown) => {
+          console.error(err);
+        });
+    }
+  }, []);
+
   const handleResize = useCallback(() => {
     const sections = React.Children.toArray(children) as React.ReactElement[];
     const spacing = 16;

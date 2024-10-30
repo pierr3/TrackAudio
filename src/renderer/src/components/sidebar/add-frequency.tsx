@@ -6,7 +6,7 @@ export interface AddFrequencyProps {
   onAddFrequency: () => void;
 }
 
-const AddFrequency: React.FC<AddFrequencyProps> = () => {
+const AddFrequency: React.FC<AddFrequencyProps> = ({ onAddFrequency }) => {
   const [readyToAdd, setReadyToAdd] = useState(false);
   const [previousValue, setPreviousValue] = useState('');
   const [addRadio] = useRadioState((state) => [state.addRadio]);

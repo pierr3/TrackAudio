@@ -1,0 +1,172 @@
+$primary-color: #2c6be0;
+$secondary-color: #173f88;
+$accent-color: #72e5df;
+
+#loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  // height: 50vh;
+  margin: 25px 0px;
+}
+
+.razar {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  background-size: 100% 100%;
+  border-radius: 35px;
+  text-align: center;
+}
+
+.progress-bar-div {
+  display: flex;
+  justify-content: center;
+  line-height: 1;
+}
+
+.pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
+  background: $primary-color;
+  animation: pulsating 2s ease-in-out;
+  opacity: 0;
+  z-index: 5;
+}
+
+.pulse-light {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
+  background: $secondary-color;
+  animation: pulsating-light 2s ease-in-out;
+  animation-iteration-count: infinite;
+  opacity: 0;
+  z-index: 5;
+}
+
+.ringbase {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
+  opacity: 0;
+  z-index: 10;
+}
+
+.ring1 {
+  animation: ring 2s ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.ring2 {
+  box-shadow:
+    0 0 1px 0px $accent-color,
+    inset 0 0 1px 0px $accent-color;
+  animation: ring 2s ease-in-out;
+  animation-iteration-count: infinite;
+  animation-delay: 0.5s;
+}
+
+@keyframes pulsating-light {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes pulsating {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes ring {
+  0% {
+    transform: scale(0.4, 0.4);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.1, 1.1);
+    opacity: 0;
+  }
+}
+
+.pointer {
+  position: relative;
+  width: 70px;
+  top: 35px;
+  animation: circling 2s linear;
+  animation-iteration-count: infinite;
+  z-index: 20;
+
+  div {
+    width: 49%;
+    border-bottom: 2px solid $accent-color;
+  }
+}
+
+.dot {
+  opacity: 0;
+  border: 3px solid $accent-color;
+  border-radius: 100%;
+  position: absolute;
+  animation: blink-dot 2s ease-out;
+  animation-iteration-count: infinite;
+  z-index: 25;
+
+  &.pos1 {
+    left: 10px;
+    top: 38px;
+  }
+
+  &.pos2 {
+    left: 40px;
+    top: 18px;
+    animation-delay: 0.6s;
+  }
+}
+
+@keyframes circling {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blink-dot {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

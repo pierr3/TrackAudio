@@ -1,9 +1,19 @@
-import { app, BrowserWindow, dialog, ipcMain, Rectangle, screen, shell } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Rectangle,
+  screen,
+  shell,
+  systemPreferences
+} from 'electron';
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import Store from 'electron-store';
 import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
+import updater from 'electron-updater';
 
 import configManager from './config';
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
@@ -274,6 +284,25 @@ const createWindow = (): void => {
   mainWindow.on('unmaximize', () => {
     mainWindow.webContents.send('is-window-maximised', false);
   });
+
+  updater.autoUpdater.on('checking-for-update', () => {
+    mainWindow.webContents.send('check-for-updates');
+  });
+  updater.autoUpdater.on('update-available', (info) => {
+    mainWindow.webContents.send('update-available', info);
+  });
+  updater.autoUpdater.on('update-not-available', () => {
+    mainWindow.webContents.send('update-not-available');
+  });
+  updater.autoUpdater.on('error', (err) => {
+    mainWindow.webContents.send('update-error', err);
+  });
+  updater.autoUpdater.on('download-progress', (progressObj) => {
+    mainWindow.webContents.send('update-download-progress', progressObj);
+  });
+  updater.autoUpdater.on('update-downloaded', (info) => {
+    mainWindow.webContents.send('update-downloaded', info);
+  });
 };
 
 // This method will be called when Electron has finished
@@ -534,6 +563,35 @@ ipcMain.handle('restart', () => {
   createWindow();
 });
 
+ipcMain.on('check-for-updates', (event) => {
+  if (process.platform === 'win32') {
+    event.reply('update-not-available');
+    return;
+  }
+
+  if (app.isPackaged) {
+    updater.autoUpdater.autoInstallOnAppQuit = false;
+    updater.autoUpdater.checkForUpdatesAndNotify().catch(() => {
+      console.error(`Error checking for updates`);
+    });
+  } else {
+    event.reply('update-not-available');
+  }
+});
+
+ipcMain.on('quit-and-install', () => {
+  // First disconnect TrackAudioAfv if connected
+  if (TrackAudioAfv.IsConnected()) {
+    TrackAudioAfv.Disconnect();
+  }
+
+  // Call Exit to clean up resources
+  TrackAudioAfv.Exit();
+
+  // Then perform the update
+  updater.autoUpdater.quitAndInstall();
+});
+
 ipcMain.handle(
   'dialog',
   (
@@ -582,6 +640,10 @@ ipcMain.on('close-window', () => {
 
 ipcMain.on('is-window-fullscreen', () => {
   mainWindow.webContents.send('is-window-fullscreen', mainWindow.isFullScreen());
+});
+
+ipcMain.handle('is-trusted-accessibility', () => {
+  return systemPreferences.isTrustedAccessibilityClient(true);
 });
 
 //

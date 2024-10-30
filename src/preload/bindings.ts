@@ -1,6 +1,7 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
+import { ProgressInfo, UpdateDownloadedEvent, UpdateInfo } from 'electron-updater';
 
 export const api = {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
@@ -115,6 +116,67 @@ export const api = {
   ) => ipcRenderer.invoke('dialog', type, title, message, buttons),
 
   settingsReady: () => ipcRenderer.invoke('settings-ready'),
+
+  isTrustedAccessibility(): Promise<boolean> {
+    return ipcRenderer.invoke('is-trusted-accessibility') as Promise<boolean>;
+  },
+
+  updater: {
+    checkForUpdates(): Promise<void> {
+      return new Promise<void>((resolve) => {
+        ipcRenderer.once('check-for-updates', () => {
+          resolve();
+        });
+        ipcRenderer.send('check-for-updates');
+      });
+    },
+
+    onCheckingForUpdate(callback: () => void): () => void {
+      return api.onIpc('check-for-updates', () => {
+        callback();
+      });
+    },
+
+    quitAndInstall(): void {
+      ipcRenderer.send('quit-and-install');
+    },
+
+    onUpdateAvailable(): Promise<UpdateInfo> {
+      return new Promise<UpdateInfo>((resolve) => {
+        ipcRenderer.once('update-available', (_event, info: UpdateInfo) => {
+          resolve(info);
+        });
+      });
+    },
+
+    onUpdateNotAvailable(): Promise<void> {
+      return new Promise<void>((resolve) => {
+        ipcRenderer.once('update-not-available', () => {
+          resolve();
+        });
+      });
+    },
+
+    onUpdateError(callback: (error: Error) => void): () => void {
+      return api.onIpc<Error>('update-error', (error) => {
+        callback(error);
+      });
+    },
+
+    onUpdateDownloadProgress(callback: (progressObj: ProgressInfo) => void): () => void {
+      return api.onIpc<ProgressInfo>('update-download-progress', (info) => {
+        callback(info);
+      });
+    },
+
+    onUpdateDownloaded(): Promise<UpdateDownloadedEvent> {
+      return new Promise<UpdateDownloadedEvent>((resolve) => {
+        ipcRenderer.once('update-downloaded', (_event, info: UpdateDownloadedEvent) => {
+          resolve(info);
+        });
+      });
+    }
+  },
 
   window: {
     checkIsFullscreen(): void {
