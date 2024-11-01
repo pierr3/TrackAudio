@@ -9,26 +9,25 @@
 }
 
 .unicom-bar-container {
-  height: 29px;
+  height: 30px;
   width: fit-content;
-  margin: 10px;
+  // margin: 10px;
   background-color: lighten($disabled, 10%);
   border-radius: $card-border-radius;
   border-color: lighten($disabled, 20%);
   outline: lighten($disabled, 25%) solid 2px;
   padding-left: 10px;
-  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center; // Added to center items horizontally
 }
 
 .rx-info-expand {
-  height: 29px;
+  height: 30px;
 }
 
 .rx-bar-container {
-  height: 29px;
+  height: 30px;
   width: fit-content;
   margin: 10px 0px;
   background-color: lighten($disabled, 10%);
@@ -36,7 +35,6 @@
   border-color: lighten($disabled, 20%);
   outline: lighten($disabled, 25%) solid 2px;
   padding: 0px 5px;
-  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center; // Added to center items horizontally
@@ -101,5 +99,4 @@
 
 .global-volume-bar {
   height: 23px;
-  width: 100px !important;
 }

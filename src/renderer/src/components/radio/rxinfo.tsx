@@ -34,8 +34,8 @@ const RxInfo: React.FC = () => {
   }, [radios]);
 
   return (
-    <div className="d-flex h-100 align-items-center">
-      <div className="unicom-bar-container d-flex" style={{ width: '120px' }}>
+    <div className="d-flex h-100 align-items-center " style={{ gap: '15px' }}>
+      <div className="unicom-bar-container d-flex" style={{ width: '130px' }}>
         <div className="d-flex justify-content-start">
           <span className="unicom-text">RX:</span>
         </div>

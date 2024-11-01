@@ -53,10 +53,16 @@ const GlobalRadioGain = () => {
     <div
       className="unicom-bar-container d-flex gap-2"
       style={{
-        marginRight: '30px'
+        width: '135px',
+        marginRight: '40px'
       }}
     >
-      <div className="unicom-line-item d-flex ">
+      <div
+        className="d-flex w-100 h-100 align-items-center"
+        style={{
+          paddingRight: '10px'
+        }}
+      >
         <input
           type="range"
           className="form-range unicom-text global-volume-bar"
