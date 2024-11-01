@@ -1,19 +1,13 @@
 #pragma once
 #include "afv-native/atcClientWrapper.h"
-#include "spdlog/spdlog.h"
 #include <SimpleIni.h>
 #include <filesystem>
 #include <memory>
 #include <napi.h>
+#include <plog/Log.h>
 #include <sago/platform_folders.h>
 #include <semver.hpp>
 #include <string>
-
-#define TRACK_LOG_INFO(fmt, ...) spdlog::info(fmt, ##__VA_ARGS__);
-#define TRACK_LOG_WARNING(fmt, ...) spdlog::warn(fmt, ##__VA_ARGS__);
-#define TRACK_LOG_ERROR(fmt, ...) spdlog::error(fmt, ##__VA_ARGS__);
-#define TRACK_LOG_CRITICAL(fmt, ...) spdlog::critical(fmt, ##__VA_ARGS__);
-#define TRACK_LOG_TRACE(fmt, ...) spdlog::trace(fmt, ##__VA_ARGS__);
 
 #define TIMER_CALLBACK_INTERVAL_SEC 15
 #define SLURPER_BASE_URL "https://slurper.vatsim.net"
@@ -28,7 +22,7 @@
 
 #define API_SERVER_PORT 49080
 
-constexpr semver::version VERSION = semver::version { 1, 3, 0, semver::prerelease::beta, 3 };
+constexpr semver::version VERSION = semver::version { 1, 3, 0, semver::prerelease::beta, 4 };
 // NOLINTNEXTLINE
 const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
 
@@ -77,7 +71,7 @@ public:
         try {
             _load();
         } catch (const std::exception& e) {
-            TRACK_LOG_ERROR("Error initialising config: {}", e.what());
+            PLOGE << "Error initialising config: " << e.what();
         }
     }
 
@@ -99,7 +93,7 @@ public:
 
         auto err = ini.SaveFile(settingsFilePath.c_str());
         if (err != SI_OK) {
-            TRACK_LOG_ERROR("Error creating settings.ini: {}", err);
+            PLOGE << "Error creating settings.ini: " << err;
         }
     }
 
@@ -112,10 +106,10 @@ protected:
 
         if (err != SI_OK) {
             if (err == SI_FILE) {
-                TRACK_LOG_WARNING("Settings.ini file not found, creating it");
+                PLOG_WARNING << "Settings.ini file not found, creating it";
                 save();
             } else {
-                TRACK_LOG_ERROR("Error loading settings.ini: {}", err);
+                PLOG_ERROR << "Error loading settings.ini: " << err;
             }
         }
 

@@ -20,7 +20,7 @@ struct ConnectionInfo {
     std::string lon;
 };
 
-enum ConnectionType { z1, t0, op };
+enum class ConnectionType : std::uint8_t { z1, t0, op };
 
 class RemoteData {
 
@@ -41,7 +41,7 @@ protected:
     // NOLINTNEXTLINE
     bool parseSlurper(const std::string& sluper_data);
 
-    static void updateSessionStatus(std::string previousCallsign, bool isConnected);
+    static void updateSessionStatus(const std::string& previousCallsign, bool isConnected);
 
 private:
     Poco::Timer timer;
@@ -55,11 +55,11 @@ private:
 
     void notifyUserOfSlurperUnavalability();
 
-    //NOLINTNEXTLINE
+    // NOLINTNEXTLINE
     static inline const std::vector<std::string> kk_882_ex = { "_CTR", "_APP", "_TWR", "_GND",
         "_DEP", "_DEL", "_FSS", "_SUP", "_RDO", "_RMP", "_TMU", "_FMP" };
 
-    inline static ConnectionType getPyx_00z(bool x, const std::string& y)
+    static ConnectionType getPyx_00z(bool x, const std::string& y)
     {
         bool pyx = false;
         for (const auto& d_3_ : kk_882_ex) {
@@ -68,6 +68,13 @@ private:
                 break;
             }
         }
-        return pyx ? ConnectionType::z1 : x ? ConnectionType::t0 : ConnectionType::op;
+
+        if (pyx) {
+            return ConnectionType::z1;
+        } else if (x) {
+            return ConnectionType::t0;
+        } else {
+            return ConnectionType::op;
+        }
     }
 };

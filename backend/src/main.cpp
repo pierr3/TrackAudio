@@ -11,9 +11,9 @@
 #include <cstddef>
 #include <httplib.h>
 #include <memory>
-#include <mutex>
 #include <napi.h>
 #include <optional>
+#include <plog/Log.h>
 #include <sago/platform_folders.h>
 #include <semver.hpp>
 #include <string>
@@ -142,6 +142,8 @@ void SetGuardAndUnicomTransceivers()
 
     mClient->SetManualTransceivers(UNICOM_FREQUENCY, guardAndUnicomTransceivers);
     mClient->SetManualTransceivers(GUARD_FREQUENCY, guardAndUnicomTransceivers);
+
+    PLOGV << "SetGuardAndUnicomTransceivers: " << guardAndUnicomTransceivers.size();
 }
 
 void SetAudioSettings(const Napi::CallbackInfo& info)
@@ -172,7 +174,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
     if (!hasBeenAddded) {
         NapiHelpers::sendErrorToElectron("Could not add frequency: it already exists");
-        TRACK_LOG_WARNING("Could not add frequency, it already exists: {} {}", frequency, callsign);
+        PLOGW << "Could not add frequency, it already exists: " << frequency << " " << callsign;
         return Napi::Boolean::New(info.Env(), false);
     }
 
@@ -286,8 +288,8 @@ void SetRadioEffects(const Napi::CallbackInfo& info)
 {
     auto radioEffects = info[0].As<Napi::String>().Utf8Value();
     radioEffects = absl::AsciiStrToLower(radioEffects);
-    bool enableInputFilters;
-    bool enableOutputEffects;
+    bool enableInputFilters = false;
+    bool enableOutputEffects = false;
 
     if (radioEffects == "on") {
         enableInputFilters = true;
@@ -302,7 +304,7 @@ void SetRadioEffects(const Napi::CallbackInfo& info)
         enableInputFilters = false;
         enableOutputEffects = false;
     } else {
-        TRACK_LOG_WARNING("Invalid radioEffects value: {}", radioEffects);
+        PLOGW << "Invalid radioEffects value: " << radioEffects;
         return;
     }
     mClient->SetEnableInputFilters(enableInputFilters);
@@ -378,9 +380,9 @@ Napi::Boolean IsConnected(const Napi::CallbackInfo& info)
 void StartMicTest(const Napi::CallbackInfo& /*info*/)
 {
     if (!mClient || !NapiHelpers::callbackAvailable || MainThreadShared::vuMeterThread != nullptr) {
-        TRACK_LOG_WARNING("Attempted to start mic test without callback or "
-                          "uninitiated client, or already running mic test, this "
-                          "will be useless");
+        PLOGW << "Attempted to start mic test without callback or "
+                 "uninitiated client, or already running mic test, this "
+                 "will be useless";
         return;
     }
 
@@ -429,7 +431,7 @@ void StopMicTest(const Napi::CallbackInfo& /*info*/)
 void StartAudio(const Napi::CallbackInfo& /*info*/)
 {
     if (!mClient || mClient->IsAudioRunning()) {
-        TRACK_LOG_WARNING("Attempted to start audio when audio already running");
+        PLOGW << "Attempted to start audio when audio already running";
         return;
     }
 
@@ -439,7 +441,7 @@ void StartAudio(const Napi::CallbackInfo& /*info*/)
 void StopAudio(const Napi::CallbackInfo& /*info*/)
 {
     if (!mClient || !mClient->IsAudioRunning()) {
-        TRACK_LOG_WARNING("Attempted to stop audio when audio not running");
+        PLOGW << "Attempted to stop audio when audio not running";
         return;
     }
 
@@ -518,8 +520,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         unsigned int frequency = stationData.second;
 
         if (mClient->IsFrequencyActive(frequency)) {
-            TRACK_LOG_WARNING(
-                "StationDataReceived: Frequency {} already active, skipping", frequency);
+            PLOGW << "StationDataReceived: Frequency " << frequency << " already active, skipping";
             return;
         }
 
@@ -541,7 +542,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
             const unsigned int frequency = station.second;
 
             if (mClient->IsFrequencyActive(frequency)) {
-                TRACK_LOG_WARNING("VccsReceived: Frequency {} already active, skipping", frequency);
+                PLOGW << "VccsReceived: Frequency " << frequency << " already active, skipping";
                 continue;
             }
 
@@ -559,7 +560,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
         if (!mClient->IsFrequencyActive(frequency)) {
-            TRACK_LOG_WARNING("FrequencyRxBegin: Frequency {} not active, skipping", frequency);
+            PLOGW << "FrequencyRxBegin: Frequency " << frequency << " not active, skipping";
             return;
         }
 
@@ -576,7 +577,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
         if (!mClient->IsFrequencyActive(frequency)) {
-            TRACK_LOG_WARNING("FrequencyRxEnd: Frequency {} not active, skipping", frequency);
+            PLOGW << "FrequencyRxEnd: Frequency " << frequency << " not active, skipping";
             return;
         }
 
@@ -594,7 +595,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         std::string callsign = *reinterpret_cast<std::string*>(data2);
         if (!mClient->IsFrequencyActive(frequency)) {
-            TRACK_LOG_WARNING("StationRxBegin: Frequency {} not active, skipping", frequency);
+            PLOGW << "StationRxBegin: Frequency " << frequency << " not active, skipping";
             return;
         }
 
@@ -617,7 +618,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         std::string callsign = *reinterpret_cast<std::string*>(data2);
 
         if (!mClient->IsFrequencyActive(frequency)) {
-            TRACK_LOG_WARNING("StationRxEnd: Frequency {} not active, skipping", frequency);
+            PLOGW << "StationRxEnd: Frequency " << frequency << " not active, skipping";
             return;
         }
 
@@ -683,18 +684,17 @@ Napi::String GetStateFolderNapi(const Napi::CallbackInfo& info)
     return Napi::String::New(info.Env(), FileSystem::GetStateFolderPath().string());
 }
 
-void CreateLogFolders()
-{
-    if (!std::filesystem::exists(FileSystem::GetStateFolderPath())) {
-        std::error_code err;
-        if (!std::filesystem::create_directory(FileSystem::GetStateFolderPath(), err)) {
-            TRACK_LOG_ERROR("Could not create state directory at {}: {}",
-                FileSystem::GetStateFolderPath().string(), err.message());
-        }
+struct VersionCheckResponse {
+    VersionCheckResponse(bool succeded, bool update)
+        : success(succeded)
+        , needUpdate(update)
+    {
     }
-}
+    bool success = false;
+    bool needUpdate = false;
+};
 
-bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
+VersionCheckResponse CheckVersionSync(const Napi::CallbackInfo& /*info*/)
 {
     // We force do a mandatory version check, if an update is needed, the
     // programme won't run
@@ -703,9 +703,15 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         httplib::Client client(VERSION_CHECK_BASE_URL);
         auto res = client.Get(VERSION_CHECK_ENDPOINT);
         if (!res || res->status != httplib::StatusCode::OK_200) {
+            std::string errorDetail;
+            if (res) {
+              errorDetail = "HTTP error " + std::to_string(res->status);
+            } else {
+              errorDetail = "Unable to reach server at all or no internet connection";
+            }
+            PLOGE << "Error fetching version: " << errorDetail;
             MainThreadShared::ShouldRun = false;
-            TRACK_LOG_CRITICAL("Error fetching version: {}", res->status);
-            return false;
+            return { false, false };
         }
 
         std::string cleanBody = res->body;
@@ -713,29 +719,40 @@ bool CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         auto mandatoryVersion = semver::version(cleanBody);
         if (VERSION < mandatoryVersion) {
             MainThreadShared::ShouldRun = false;
-            TRACK_LOG_ERROR("Mandatory update required: {} -> {}", VERSION.to_string(),
-                mandatoryVersion.to_string());
-            return false;
+            PLOGE << "Mandatory update required: " << VERSION.to_string() << " -> "
+                  << mandatoryVersion.to_string();
+            return { true, true };
         }
     } catch (const std::exception& e) {
         MainThreadShared::ShouldRun = false;
-        TRACK_LOG_CRITICAL("Error parsing version: {}", e.what());
-        return false;
+        PLOGE << "Error parsing version: " << e.what();
+        return { false, false };
     }
 
-    return true;
+    return { true, false };
 }
 
 Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 {
-    auto outObject = Napi::Object::New(info.Env());
     LogFactory::createLoggers();
+    PLOGI << "Starting TrackAudio...";
+    auto outObject = Napi::Object::New(info.Env());
 
     outObject["version"] = Napi::String::New(info.Env(), VERSION.to_string());
     outObject["canRun"] = Napi::Boolean::New(info.Env(), true);
     outObject["needUpdate"] = Napi::Boolean::New(info.Env(), false);
+    outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), true);
 
-    if (!CheckVersionSync(info)) {
+    PLOGI << "Checking version...";
+    const auto versionCheckResponse = CheckVersionSync(info);
+
+    if (!versionCheckResponse.success) {
+        outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
+        outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), versionCheckResponse.success);
+        return outObject;
+    }
+
+    if (versionCheckResponse.needUpdate) {
         outObject["needUpdate"] = Napi::Boolean::New(info.Env(), true);
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
         return outObject;
@@ -756,7 +773,7 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
         MainThreadShared::inputHandler = std::make_unique<InputHandler>();
     } catch (const std::exception& e) {
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
-        TRACK_LOG_CRITICAL("Error creating input handler: {}", e.what());
+        PLOGE << "Error creating input handler: " << e.what();
     }
 
     UserSettings::load();
@@ -766,10 +783,10 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 
 Napi::Boolean Exit(const Napi::CallbackInfo& info)
 {
-    TRACK_LOG_INFO("Awaiting to exit TrackAudio...");
+    PLOGI << "Awaiting to exit TrackAudio...";
     NapiHelpers::_requestExit.store(true);
     if (mClient->IsVoiceConnected()) {
-        TRACK_LOG_INFO("Forcing disconnect...");
+        PLOGI << "Connection to network detected, forcing disconnect...";
         mClient->Disconnect();
     }
 
@@ -778,7 +795,7 @@ Napi::Boolean Exit(const Napi::CallbackInfo& info)
     MainThreadShared::inputHandler.reset();
 
     mClient.reset();
-    TRACK_LOG_INFO("Exiting TrackAudio...")
+    PLOGI << "Exiting TrackAudio...";
     LogFactory::destroyLoggers();
 
     return Napi::Boolean::New(info.Env(), true);

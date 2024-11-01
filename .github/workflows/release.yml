@@ -28,6 +28,8 @@ jobs:
         run: |
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
+          cd backend/extern/afv-native
+          git checkout unicom2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

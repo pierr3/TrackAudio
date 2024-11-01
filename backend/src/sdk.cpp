@@ -2,6 +2,7 @@
 #include "Helpers.hpp"
 #include "RadioHelper.hpp"
 #include "Shared.hpp"
+#include <plog/Log.h>
 
 SDK::SDK() { this->buildServer(); }
 
@@ -26,7 +27,7 @@ void SDK::buildServer()
                 .request_handler(std::move(this->buildRouter())),
             16U);
     } catch (const std::exception& ex) {
-        TRACK_LOG_ERROR("Error while starting SDK server: {}", ex.what());
+        PLOG_ERROR << "Error while starting SDK server: " << ex.what();
     }
 }
 
@@ -164,7 +165,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
 
     if (event == sdk::types::Event::kStationStateUpdated) {
         if (!frequencyHz.has_value()) {
-            TRACK_LOG_ERROR("kStationStateUpdated requires a frequencyHz");
+            PLOG_ERROR << "kStationStateUpdated requires a frequencyHz";
             return;
         }
 
@@ -181,19 +182,19 @@ std::unique_ptr<restinio::router::express_router_t<>> SDK::buildRouter()
     std::unique_ptr<restinio::router::express_router_t<>> router;
     router = std::make_unique<restinio::router::express_router_t<>>();
     router->http_get(routeMap[sdkCall::kTransmitting],
-        [&](auto req, auto /*params*/) { return SDK::handleTransmittingSDKCall(req); });
+        [&](const auto& req, auto /*params*/) { return SDK::handleTransmittingSDKCall(req); });
 
     router->http_get(routeMap[sdkCall::kRx],
-        [&](auto req, auto /*params*/) { return this->handleRxSDKCall(req); });
+        [&](const auto& req, auto /*params*/) { return this->handleRxSDKCall(req); });
 
     router->http_get(routeMap[sdkCall::kTx],
-        [&](auto req, auto /*params*/) { return this->handleTxSDKCall(req); });
+        [&](const auto& req, auto /*params*/) { return this->handleTxSDKCall(req); });
 
     router->http_get(routeMap[sdkCall::kWebSocket],
-        [&](auto req, auto /*params*/) { return handleWebSocketSDKCall(req); });
+        [&](const auto& req, auto /*params*/) { return handleWebSocketSDKCall(req); });
 
     router->non_matched_request_handler(
-        [](auto req) { return req->create_response().set_body(CLIENT_NAME).done(); });
+        [](const auto& req) { return req->create_response().set_body(CLIENT_NAME).done(); });
 
     auto methodNotAllowed = [](const auto& req, auto) {
         return req->create_response(restinio::status_method_not_allowed())
@@ -251,16 +252,17 @@ restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request
     return req->create_response().set_body(absl::StrJoin(outData, ",")).done();
 }
 
-void SDK::handleSetStationState(const nlohmann::json json)
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+void SDK::handleSetStationState(const nlohmann::json& json)
 {
     if (!json["value"].contains("frequency")) {
-        TRACK_LOG_ERROR("kSetStationState requires a frequency");
+        PLOG_ERROR << "kSetStationState requires a frequency";
         return;
     }
 
-    TRACK_LOG_INFO("handleSetStationState received {}", json.dump(4));
+    PLOG_INFO << "handleSetStationState received " << json.dump(4);
 
-    RadioState radioState;
+    RadioState radioState {};
     auto frequency = json["value"]["frequency"];
 
     radioState.frequency = frequency;
@@ -331,7 +333,8 @@ void SDK::handleGetStationStates()
     auto allRadios = mClient->getRadioState();
     stationStates.reserve(allRadios.size());
     for (const auto& [frequency, state] : allRadios) {
-        stationStates.push_back(this->buildStationStateJson(state.stationName, frequency));
+        stationStates.push_back(
+            this->buildStationStateJson(state.stationName, static_cast<int>(frequency)));
     }
 
     // Send the message
@@ -344,7 +347,7 @@ void SDK::handleGetStationStates()
 void SDK::handleGetStationState(const std::string& callsign)
 {
     if (!mClient->IsVoiceConnected()) {
-        TRACK_LOG_ERROR("kGetStationState requires a voice connection");
+        PLOG_ERROR << "kGetStationState requires a voice connection";
         return;
     }
 
@@ -352,7 +355,8 @@ void SDK::handleGetStationState(const std::string& callsign)
     auto allRadios = mClient->getRadioState();
     for (const auto& [frequency, state] : allRadios) {
         if (state.stationName == callsign) {
-            this->publishStationState(this->buildStationStateJson(callsign, frequency));
+            this->publishStationState(
+                this->buildStationStateJson(callsign, static_cast<int>(frequency)));
             return;
         }
     }
@@ -365,7 +369,7 @@ void SDK::handleGetStationState(const std::string& callsign)
     jsonMessage["value"]["isAvailable"] = false;
     this->publishStationState(jsonMessage);
 
-    TRACK_LOG_ERROR("Station {} not found", callsign);
+    PLOG_ERROR << "Station " << callsign << " not found";
 }
 
 void SDK::publishStationState(const nlohmann::json& state)
@@ -401,7 +405,7 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
         std::string messageType = json["type"];
 
         if (messageType == "kSetStationState") {
-            this->handleSetStationState(std::move(json));
+            this->handleSetStationState(json);
             return;
         }
         if (messageType == "kGetStationStates") {
@@ -426,7 +430,7 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
         }
     } catch (const std::exception& e) {
         // Handle JSON parsing error
-        TRACK_LOG_ERROR("Error parsing incoming message JSON: ", e.what());
+        PLOG_ERROR << "Error parsing incoming message JSON: " << e.what();
     }
 }
 
@@ -476,7 +480,7 @@ void SDK::broadcastOnWebsocket(const std::string& data)
         try {
             ws->send_message(outgoingMessage);
         } catch (const std::exception& ex) {
-            TRACK_LOG_ERROR("Error while sending message to websocket: {}", ex.what());
+            PLOG_ERROR << "Error while sending message to websocket: " << ex.what();
         }
     }
 };

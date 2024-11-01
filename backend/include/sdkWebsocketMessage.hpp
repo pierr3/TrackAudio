@@ -6,7 +6,7 @@
 #include <utility>
 
 namespace sdk::types {
-enum class WebsocketMessageType {
+enum class WebsocketMessageType : std::uint8_t {
     kRxBegin,
     kRxEnd,
     kTxBegin,
@@ -61,15 +61,15 @@ public:
 namespace ns {
 class Station {
 public:
-    [[nodiscard]] inline int getFrequencyHz() const { return pFrequencyHz; }
-    [[nodiscard]] inline const std::string& getCallsign() const { return pCallsign; }
-    [[nodiscard]] inline const std::string& getHumanFrequency() const { return pHumanFreq; }
+    [[nodiscard]] int getFrequencyHz() const { return pFrequencyHz; }
+    [[nodiscard]] const std::string& getCallsign() const { return pCallsign; }
+    [[nodiscard]] const std::string& getHumanFrequency() const { return pHumanFreq; }
 
-    [[nodiscard]] inline int getTransceiverCount() const { return pTransceiverCount; }
-    [[nodiscard]] inline bool hasTransceiver() const { return pTransceiverCount > 0; }
-    inline void setTransceiverCount(int count) { pTransceiverCount = count; }
+    [[nodiscard]] int getTransceiverCount() const { return pTransceiverCount; }
+    [[nodiscard]] bool hasTransceiver() const { return pTransceiverCount > 0; }
+    void setTransceiverCount(int count) { pTransceiverCount = count; }
 
-    inline static Station build(const std::string& callsign, int freqHz)
+    static Station build(const std::string& callsign, int freqHz)
     {
         Station station;
         station.pCallsign = callsign;
