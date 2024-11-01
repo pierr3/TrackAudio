@@ -1,7 +1,7 @@
-type UpdateErrorProps = {
+interface UpdateErrorProps {
   title: string;
   message: string;
-};
+}
 
 const UpdateError = ({ title, message }: UpdateErrorProps) => {
   return (

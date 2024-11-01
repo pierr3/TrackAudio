@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import React, { useRef, useCallback } from 'react';
+import { TitleBarSectionProps } from './TitleBarSection';
 
 interface SectionRef {
   element: HTMLDivElement | null;
@@ -20,13 +22,13 @@ const useTitleBarUtils = (
   const elementRefs = useRef<Record<string, Record<number, HTMLDivElement | null>>>({});
 
   const calculateAvailableSpace = useCallback((): number => {
-    const titleBarWidth = titleBarRef.current?.offsetWidth || 0;
+    const titleBarWidth = titleBarRef.current?.offsetWidth ?? 0;
     const sections = React.Children.toArray(children) as React.ReactElement[];
     const spacing = 15;
 
     return sections.reduce((sum, section) => {
-      const sectionName = section.props.name;
-      const elements = Object.values(elementRefs.current[sectionName] || {}).filter(Boolean);
+      const sectionName = (section.props as TitleBarSectionProps).name;
+      const elements = Object.values(elementRefs.current[sectionName]).filter(Boolean);
 
       const visibleElements = elements.filter(
         (element) => element && element.style.display !== 'none'
