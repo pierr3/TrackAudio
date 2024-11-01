@@ -7,7 +7,7 @@ const TopBarContainer = () => {
   const isWideScreen = useMediaQuery({ minWidth: '790px' });
 
   return (
-    <div className="w-100 my-2 d-flex" style={{ paddingBottom: '10px' }}>
+    <div className="w-100 d-flex">
       {/* Main container with the centered content and right-aligned text */}
       <div className="w-100 d-flex justify-content-between align-items-center">
         {/* Left-aligned element */}

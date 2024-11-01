@@ -204,11 +204,15 @@ button:disabled {
 }
 
 .structure {
-  height: calc(100vh - $navbar-height - $focusbar-height - 1rem);
+  height: calc(100vh - $navbar-height);
 }
 
 .sub-structure {
-  height: calc(100vh - $navbar-height - $focusbar-height - 35px - 3rem);
+  height: calc(100% - $focusbar-height);
+}
+
+.sub-sub-structure {
+  height: calc(100vh - $focusbar-height - $navbar-height - 60px - 1rem);
 }
 
 .text-box-container,

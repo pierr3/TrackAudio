@@ -1,21 +1,33 @@
 import useRadioState from '@renderer/store/radioStore';
 import useSessionStore from '@renderer/store/sessionStore';
+import useUtilStore from '@renderer/store/utilStore';
 import React from 'react';
 import { TrashFill } from 'react-bootstrap-icons';
 
 const DeleteMultipleRadios: React.FC = () => {
   const [isConnected] = useSessionStore((state) => [state.isConnected]);
-  const [radiosToBeDeleted, removeRadio, setPendingDeletion] = useRadioState((state) => [
+  const [radiosToBeDeleted, radios, removeRadio, setPendingDeletion] = useRadioState((state) => [
     state.radiosSelected,
+    state.radios,
     state.removeRadio,
     state.setPendingDeletion
   ]);
 
+  const [setIsEditMode] = useUtilStore((state) => [state.setIsEditMode]);
+
   const handleDeleteRadios = () => {
-    radiosToBeDeleted.forEach((radio) => {
-      setPendingDeletion(radio.frequency, true);
-      awaitEndOfRxForDeletion(radio.frequency);
-    });
+    if (radiosToBeDeleted.length == 0) {
+      radios.forEach((radio) => {
+        setPendingDeletion(radio.frequency, false);
+        awaitEndOfRxForDeletion(radio.frequency);
+      });
+    } else {
+      radiosToBeDeleted.forEach((radio) => {
+        setPendingDeletion(radio.frequency, true);
+        awaitEndOfRxForDeletion(radio.frequency);
+      });
+    }
+    setIsEditMode(false);
   };
 
   const awaitEndOfRxForDeletion = (frequency: number): void => {

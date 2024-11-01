@@ -6,6 +6,8 @@ import useSessionStore from '@renderer/store/sessionStore';
 import useUtilStore from '@renderer/store/utilStore';
 import ExpandedRxInfo from './expanded-rx-info';
 import { useMediaQuery } from 'react-responsive';
+import AddStation from '../sidebar/add-station';
+import AddFrequency from '../sidebar/add-frequency';
 
 const RadioContainer: React.FC = () => {
   const radios = useRadioState((state) => state.radios);
@@ -49,18 +51,30 @@ const RadioContainer: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="h-100 mx-3 d-flex justify-content-center flex-column hide-topbar">
-        <div className="d-flex unicon-overall-container">
-          <TopBarContainer />
-        </div>
+    <div className="h-100 px-4 pt-3 pb-3 d-flex flex-column">
+      <div className="d-flex unicon-overall-container mb-3">
+        <TopBarContainer />
+      </div>
 
-        <div className="d-flex sub-structure w-100 d-flex gap-3">
+      <div className="d-flex flex-column hide-topbar sub-sub-structure">
+        <div className="h-100 d-flex gap-3">
           <div
-            className={`box-container ${showExpandedRxInfo && isWideScreen ? 'radio-list-expanded' : 'w-100'} h-100`}
+            className={`box-container ${showExpandedRxInfo && isWideScreen ? 'radio-list-expanded' : 'w-100'}`}
           >
             {filteredRadios.length === 0 ? (
-              <div className="d-flex justify-content-center radio-text text-muted"></div>
+              <div className="d-flex justify-content-center flex-column radio-text  h-100 w-100">
+                <div
+                  className="container d-flex flex-column justify-content-center  h-100 align-items-center gap-4"
+                  style={{ paddingBottom: '0' }}
+                >
+                  <div className="w-50">
+                    <AddStation />
+                  </div>
+                  <div className="w-50">
+                    <AddFrequency />
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="row mx-1">
                 {filteredRadios.map((radio) => (
@@ -83,8 +97,7 @@ const RadioContainer: React.FC = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
-
 export default RadioContainer;

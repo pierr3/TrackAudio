@@ -3,7 +3,7 @@ import useRadioState, { RadioHelper } from '../../store/radioStore';
 import useSessionStore from '../../store/sessionStore';
 
 export interface AddFrequencyProps {
-  onAddFrequency: () => void;
+  onAddFrequency?: () => void;
 }
 
 const AddFrequency: React.FC<AddFrequencyProps> = ({ onAddFrequency }) => {
@@ -42,7 +42,9 @@ const AddFrequency: React.FC<AddFrequencyProps> = ({ onAddFrequency }) => {
     frequencyInputRef.current.value = '';
     setPreviousValue('');
     setReadyToAdd(false);
-    onAddFrequency();
+    if (onAddFrequency) {
+      onAddFrequency();
+    }
   };
 
   const checkFrequency = (e: React.ChangeEvent<HTMLInputElement>) => {

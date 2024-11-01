@@ -32,8 +32,10 @@ function App() {
       <ErrorDialog />
       <div className="structure">
         <Mini />
-        <RadioContainer />
-        <FocusBar />
+        <div className="sub-structure d-flex flex-column">
+          <RadioContainer />
+          <FocusBar />
+        </div>
         {/* <Sidebar /> */}
       </div>
     </>
