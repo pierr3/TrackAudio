@@ -26,6 +26,11 @@
 #include "Shared.hpp"
 #include "sdk.hpp"
 
+// to obtain proxy settings in Windows
+#ifdef WIN32
+#include <winhttp.h>
+#endif
+
 struct MainThreadShared {
 public:
     inline static std::unique_ptr<RemoteData> mRemoteDataHandler = nullptr;
@@ -694,6 +699,65 @@ struct VersionCheckResponse {
     bool needUpdate = false;
 };
 
+void SetHttpclientProxy(httplib::Client& clt)
+{
+    std::string http_proxy;
+
+    if (std::getenv("https_proxy"))
+        http_proxy = std::string(std::getenv("https_proxy"));
+    else if (std::getenv("http_proxy"))
+        http_proxy = std::string(std::getenv("http_proxy"));
+
+#ifdef WIN32
+    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG proxy_config;
+    if (WinHttpGetIEProxyConfigForCurrentUser(&proxy_config)) {
+        if (proxy_config.lpszProxy) {
+            auto ConvertLPWSTRToString = [](LPWSTR lpwstr) -> std::string {
+                int bufferSize = WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, nullptr, 0, nullptr, nullptr);
+                if (bufferSize <= 0) {
+                    return "";
+                }
+                std::string str(bufferSize, '\0');
+                WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, &str[0], bufferSize, nullptr, nullptr);
+                return str;
+            };
+            http_proxy = ConvertLPWSTRToString(proxy_config.lpszProxy);
+        }
+        if (proxy_config.lpszAutoConfigUrl)
+            GlobalFree(proxy_config.lpszAutoConfigUrl);
+        if (proxy_config.lpszProxy)
+            GlobalFree(proxy_config.lpszProxy);
+        if (proxy_config.lpszProxyBypass)
+            GlobalFree(proxy_config.lpszProxyBypass);
+    }
+#endif
+
+    if (http_proxy.empty())
+        return ;
+
+    try
+    {
+        std::string proxy_host; int proxy_port = 8080;
+        // remove prefix
+        auto pos = http_proxy.find("://");
+        if (pos != std::string::npos) {
+            http_proxy = http_proxy.substr(pos + 3); // Strip protocol
+        }
+
+        pos = http_proxy.find(':');
+        if (pos != std::string::npos) {
+            proxy_host = http_proxy.substr(0, pos);
+            proxy_port = std::stoi(http_proxy.substr(pos + 1));
+        } else {
+            proxy_host = http_proxy;
+        }
+        clt.set_proxy(proxy_host, proxy_port);
+    }
+    catch (std::exception &e) {
+        PLOGE << "Error parsing proxy settings: " << e.what();
+    }
+}
+
 VersionCheckResponse CheckVersionSync(const Napi::CallbackInfo& /*info*/)
 {
     // We force do a mandatory version check, if an update is needed, the
@@ -701,6 +765,7 @@ VersionCheckResponse CheckVersionSync(const Napi::CallbackInfo& /*info*/)
 
     try {
         httplib::Client client(VERSION_CHECK_BASE_URL);
+        SetHttpclientProxy(client);
         auto res = client.Get(VERSION_CHECK_ENDPOINT);
         if (!res || res->status != httplib::StatusCode::OK_200) {
             std::string errorDetail;

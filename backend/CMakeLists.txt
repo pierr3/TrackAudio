@@ -123,6 +123,11 @@ target_link_libraries(trackaudio-afv PRIVATE
     sfml-system sfml-graphics sfml-window
     ${CMAKE_JS_LIB})
 
+if (WIN32)
+    target_link_libraries(trackaudio-afv PRIVATE
+            winhttp)
+endif ()
+
 # Set the output directory for the built executable
 set_target_properties(trackaudio-afv
     PROPERTIES
