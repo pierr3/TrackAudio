@@ -476,6 +476,10 @@ select:disabled {
   cursor: pointer;
 }
 
+.modal-body::-webkit-scrollbar-thumb {
+  background-color: $body-color;
+}
+
 .btn-no-interact {
   border: none;
   outline: none;
