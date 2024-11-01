@@ -185,10 +185,6 @@ const createWindow = (): void => {
   // Create the browser window.
   mainWindow = new BrowserWindow(options);
 
-  if (process.platform === 'darwin') {
-    mainWindow.setWindowButtonVisibility(true);
-  }
-
   setAlwaysOnTop(configManager.config.alwaysOnTop === 'always' || false);
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
