@@ -60,7 +60,7 @@ const RxInfo: React.FC = () => {
       </div>
       <div className="d-flex h-100 align-items-center">
         <button
-          className="btn btn-primary hide-settings-flex"
+          className="btn btn-primary hide-settings-flex rx-info-expand"
           // disabled={isConnected || isConnecting}
           onClick={() => {
             setShowExpandedRxInfo(!showExpandedRxInfo);
