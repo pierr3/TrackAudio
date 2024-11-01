@@ -47,6 +47,7 @@ const AddStation: React.FC<AddStationProps> = ({ className, style, onAddStation 
         onKeyDown={(e) => {
           e.key === 'Enter' && addStation();
         }}
+        autoFocus
       ></input>
 
       <button
