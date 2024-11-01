@@ -215,17 +215,16 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   };
 
   return (
-    <>
-      <div
-        className={clsx(
-          'col-4 radio',
-          isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info'
-        )}
-      >
-        <div style={{ width: '48%', height: '45%', float: 'left' }}>
+    <div
+      className={clsx(
+        'radio',
+        isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info'
+      )}
+    >
+      <div className="radio-content">
+        <div className="radio-left">
           <button
-            className="btn btn-no-interact"
-            style={{ height: '100%', marginBottom: '4%' }}
+            className="btn-no-interact radio-header"
             onClick={clickRadioHeader}
             onKeyDown={(e) => {
               if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -234,69 +233,60 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               }
             }}
           >
-            {radio.humanFrequency}
-            <br />
-            {radio.callsign}
+            <div className="radio-text-container">
+              <span className="frequency">{radio.humanFrequency}</span>
+              <span className="callsign">{radio.callsign}</span>
+            </div>
           </button>
-          <button
-            className={clsx(
-              'btn',
-              !radio.xc && !radio.crossCoupleAcross && 'btn-primary',
-              radio.xc && 'btn-success',
-              radio.crossCoupleAcross && 'btn-warning'
-            )}
-            style={{ width: '45%', height: '100%', marginTop: '4%' }}
-            onClick={clickCrossCoupleAcross}
-            onContextMenu={clickXc}
-            disabled={!isATC}
-          >
-            {radio.xc ? 'XC' : 'XCA'}
-          </button>
-          <button
-            className={clsx(
-              'btn',
-              !radio.onSpeaker && 'btn-primary',
-              radio.onSpeaker && 'btn-success'
-            )}
-            style={{
-              width: '45%',
-              height: '100%',
-              marginTop: '4%',
-              marginLeft: '10%'
-            }}
-            onClick={clickSpK}
-          >
-            SPK
-          </button>
+
+          <div className="radio-controls">
+            <button
+              className={clsx(
+                'btn control-btn',
+                !radio.xc && !radio.crossCoupleAcross && 'btn-primary',
+                radio.xc && 'btn-success',
+                radio.crossCoupleAcross && 'btn-warning'
+              )}
+              onClick={clickCrossCoupleAcross}
+              onContextMenu={clickXc}
+              disabled={!isATC}
+            >
+              {radio.xc ? 'XC' : 'XCA'}
+            </button>
+
+            <button
+              className={clsx(
+                'btn control-btn',
+                !radio.onSpeaker && 'btn-primary',
+                radio.onSpeaker && 'btn-success'
+              )}
+              onClick={clickSpK}
+            >
+              SPK
+            </button>
+          </div>
         </div>
-        <div
-          style={{
-            width: '48%',
-            height: '45%',
-            float: 'right',
-            marginLeft: '4%'
-          }}
-        >
+
+        <div className="radio-right">
           <button
             className={clsx(
-              'btn',
+              'btn radio-button',
               !radio.rx && 'btn-primary',
               radio.rx && radio.currentlyRx && 'btn-warning',
               radio.rx && !radio.currentlyRx && 'btn-success'
             )}
-            style={{ width: '100%', height: '100%' }}
             onClick={clickRx}
           >
             RX
           </button>
+
           <button
             className={clsx(
-              'btn',
+              'btn radio-button',
               !radio.tx && 'btn-primary',
               radio.tx && radio.currentlyTx && 'btn-warning',
               radio.tx && !radio.currentlyTx && 'btn-success'
             )}
-            style={{ width: '100%', height: '100%', marginTop: '8%' }}
             onClick={clickTx}
             disabled={!isATC}
           >
@@ -304,7 +294,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

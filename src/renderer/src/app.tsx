@@ -9,21 +9,21 @@ import Mini from './components/mini';
 import './index.scss';
 import './style/app.scss';
 import FocusBar from './components/focusBar';
-import { useState } from 'react';
-import Updater from './components/updater/Updater';
+// import { useState } from 'react';
+// import Updater from './components/updater/Updater';
 
 function App() {
-  const [updateCheckDone, setUpdateCheckDone] = useState(false);
+  // const [updateCheckDone, setUpdateCheckDone] = useState(false);
 
-  if (!updateCheckDone) {
-    return (
-      <Updater
-        onFinish={() => {
-          setUpdateCheckDone(true);
-        }}
-      />
-    );
-  }
+  // if (!updateCheckDone) {
+  //   return (
+  //     <Updater
+  //       onFinish={() => {
+  //         setUpdateCheckDone(true);
+  //       }}
+  //     />
+  //   );
+  // }
 
   return (
     <>
