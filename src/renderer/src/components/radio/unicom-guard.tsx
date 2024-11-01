@@ -13,10 +13,7 @@ const UnicomGuardBar = () => {
     state.addRadio,
     state.removeRadio
   ]);
-  const [isConnected, isAtc] = useSessionStore((state) => [
-    state.isConnected,
-    state.isAtc
-  ]);
+  const [isConnected, isAtc] = useSessionStore((state) => [state.isConnected, state.isAtc]);
 
   const [localRadioGain, setLocalRadioGain] = useState(50);
 

@@ -9,8 +9,7 @@
 }
 
 .unicom-bar-container {
-  height: 28px;
-  line-height: 25px;
+  height: 29px;
   width: fit-content;
   margin: 10px;
   background-color: lighten($disabled, 10%);
@@ -25,8 +24,7 @@
 }
 
 .rx-bar-container {
-  height: 28px;
-  line-height: 25px;
+  height: 29px;
   width: fit-content;
   margin: 10px 0px;
   background-color: lighten($disabled, 10%);
@@ -41,18 +39,25 @@
 }
 
 .hide-unicom-container {
+  display: flex;
+  align-items: center;
+
   @media screen and (max-width: 465px) {
     display: none;
   }
 }
 
 .unicom-line-item {
+  display: flex;
+  align-items: center;
   margin-right: 10px;
 }
 
 .unicom-text {
   display: inline-block;
   vertical-align: middle;
+  height: 100%;
+  align-items: center;
 }
 
 .rx-text {
@@ -91,5 +96,6 @@
 }
 
 .global-volume-bar {
+  height: 23px;
   width: 100px !important;
 }

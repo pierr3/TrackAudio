@@ -50,25 +50,24 @@ const GlobalRadioGain = () => {
   };
 
   return (
-    <div className="unicom-bar-container d-flex gap-2">
-      <span className="unicom-line-item">
-        <span className="unicom-text" style={{ marginRight: '10px' }}>
-          MAIN
-        </span>
-
-        <span className="hide-unicom-container">
-          <input
-            type="range"
-            className="form-range unicom-text global-volume-bar"
-            min="0"
-            max="100"
-            step="1"
-            onChange={handleRadioGainChange}
-            onWheel={handleRadioGainMouseWheel}
-            value={radioGain}
-          />
-        </span>
-      </span>
+    <div
+      className="unicom-bar-container d-flex gap-2"
+      style={{
+        marginRight: '30px'
+      }}
+    >
+      <div className="unicom-line-item d-flex ">
+        <input
+          type="range"
+          className="form-range unicom-text global-volume-bar"
+          min="0"
+          max="100"
+          step="1"
+          onChange={handleRadioGainChange}
+          onWheel={handleRadioGainMouseWheel}
+          value={radioGain}
+        />
+      </div>
     </div>
   );
 };
