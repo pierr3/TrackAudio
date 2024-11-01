@@ -39,7 +39,12 @@ const RxInfo: React.FC = () => {
         <div className="d-flex justify-content-start">
           <span className="unicom-text">RX:</span>
         </div>
-        <div className="flex-grow-1 d-flex justify-content-center align-items-center">
+        <div
+          className="flex-grow-1 d-flex justify-content-center align-items-center"
+          style={{
+            lineHeight: '29px'
+          }}
+        >
           {displayRadio ? (
             <span className="rx-text">
               <div

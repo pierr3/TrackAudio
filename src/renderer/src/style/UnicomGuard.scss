@@ -9,9 +9,10 @@
 }
 
 .unicom-bar-container {
-  height: 28px;
+  height: 29px;
   width: fit-content;
   // margin: 10px;
+
   background-color: lighten($disabled, 10%);
   border-radius: $card-border-radius;
   border-color: lighten($disabled, 20%);
@@ -23,13 +24,14 @@
 }
 
 .rx-info-expand {
-  height: 28px;
+  height: 29px;
 }
 
 .rx-bar-container {
   height: 29px;
   width: fit-content;
   margin: 10px 0px;
+  line-height: 29px;
   background-color: lighten($disabled, 10%);
   border-radius: $card-border-radius;
   border-color: lighten($disabled, 20%);
