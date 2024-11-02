@@ -5,13 +5,17 @@ import { Fullscreen, FullscreenExit } from 'react-bootstrap-icons';
 
 interface MiniModeToggleButtonProps {
   showRestoreButton: boolean;
+  alwaysEnabled?: boolean;
 }
 
-const MiniModeToggleButton: React.FC<MiniModeToggleButtonProps> = ({ showRestoreButton }) => {
+const MiniModeToggleButton: React.FC<MiniModeToggleButtonProps> = ({
+  showRestoreButton,
+  alwaysEnabled
+}) => {
   const [radios] = useRadioState((state) => [state.radios]);
   const [isConnected] = useSessionStore((state) => [state.isConnected]);
   const toggleMiniMode = useCallback(() => {
-    if (!isConnected) return;
+    if (!isConnected && !alwaysEnabled) return;
     window.api.toggleMiniMode(radios.filter((r) => r.rx).length).catch((error: unknown) => {
       console.error(error);
     });
@@ -22,7 +26,7 @@ const MiniModeToggleButton: React.FC<MiniModeToggleButtonProps> = ({ showRestore
       className="btn btn-primary"
       style={{ lineHeight: 0, fontSize: '14px' }}
       onClick={toggleMiniMode}
-      disabled={!isConnected}
+      disabled={!isConnected && !alwaysEnabled}
     >
       {showRestoreButton ? (
         <Fullscreen

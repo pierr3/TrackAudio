@@ -27,7 +27,7 @@ const Mini: React.FC = () => {
         </div>
         {/* Make only the button container no-drag */}
         <div className={`exit-mini-mode-container no-drag ${isHovered ? 'visible' : 'hidden'}`}>
-          <MiniModeToggleButton showRestoreButton={true} />
+          <MiniModeToggleButton showRestoreButton={true} alwaysEnabled />
         </div>
       </div>
     );
