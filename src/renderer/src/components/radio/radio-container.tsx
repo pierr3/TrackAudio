@@ -76,7 +76,7 @@ const RadioContainer: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="row mx-1">
+              <div className="row mx-1 mt-1 gap-3">
                 {filteredRadios.map((radio) => (
                   <Radio key={radio.frequency} radio={radio} />
                 ))}

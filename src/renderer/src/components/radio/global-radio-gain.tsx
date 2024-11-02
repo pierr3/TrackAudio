@@ -2,11 +2,13 @@ import useSessionStore from '@renderer/store/sessionStore';
 import '../../style/GlobalRadio.scss';
 import { useEffect } from 'react';
 import { Configuration } from 'src/shared/config.type';
+import { useMediaQuery } from 'react-responsive';
 const GlobalRadioGain = () => {
   const [radioGain, setRadioGain] = useSessionStore((state) => [
     state.radioGain,
     state.setRadioGain
   ]);
+  const isWideScreen = useMediaQuery({ minWidth: '895px' });
 
   useEffect(() => {
     window.api
@@ -53,10 +55,22 @@ const GlobalRadioGain = () => {
     <div
       className="unicom-bar-container d-flex gap-2"
       style={{
-        width: '135px',
-        marginRight: '40px'
+        width: isWideScreen ? '175px' : '135px'
+        // marginRight: '40px'
       }}
     >
+      {isWideScreen && (
+        <span className="unicom-text">
+          <div
+            className="text-grey"
+            style={{
+              lineHeight: '29px'
+            }}
+          >
+            MASTER
+          </div>
+        </span>
+      )}
       <div
         className="d-flex w-100 h-100 align-items-center"
         style={{

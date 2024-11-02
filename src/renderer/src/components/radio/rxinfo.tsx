@@ -4,6 +4,7 @@ import type { RadioType } from '@renderer/store/radioStore';
 import { ArrowsAngleExpand } from 'react-bootstrap-icons';
 import useUtilStore from '@renderer/store/utilStore';
 import clsx from 'clsx';
+import { useMediaQuery } from 'react-responsive';
 
 const RxInfo: React.FC = () => {
   const radios = useRadioState((state) => state.radios);
@@ -12,6 +13,8 @@ const RxInfo: React.FC = () => {
     state.showExpandedRxInfo,
     state.setShowExpandedRxInfo
   ]);
+  const isWideScreen = useMediaQuery({ minWidth: '895px' });
+
   useEffect(() => {
     const currentlyReceiving = radios.find(
       (radio) => radio.rx && radio.lastReceivedCallsign && radio.currentlyRx
@@ -63,17 +66,19 @@ const RxInfo: React.FC = () => {
           )}
         </div>
       </div>
-      <div className="d-flex h-100 align-items-center">
-        <button
-          className="btn btn-primary hide-settings-flex rx-info-expand"
-          // disabled={isConnected || isConnecting}
-          onClick={() => {
-            setShowExpandedRxInfo(!showExpandedRxInfo);
-          }}
-        >
-          <ArrowsAngleExpand />
-        </button>
-      </div>
+      {isWideScreen && (
+        <div className="d-flex h-100 align-items-center">
+          <button
+            className="btn btn-primary hide-settings-flex rx-info-expand"
+            // disabled={isConnected || isConnecting}
+            onClick={() => {
+              setShowExpandedRxInfo(!showExpandedRxInfo);
+            }}
+          >
+            <ArrowsAngleExpand />
+          </button>
+        </div>
+      )}
     </div>
   );
 

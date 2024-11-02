@@ -14,6 +14,7 @@ interface UtilStore {
   isEditMode: boolean;
   pendingRestart: boolean;
   transparentMiniMode: boolean;
+  time: Date;
   setIsEditMode: (isEditMode: boolean) => void;
   setPtt1KeyName: (ptt1KeyName: string) => void;
   setPtt2KeyName: (ptt2KeyName: string) => void;
@@ -26,6 +27,7 @@ interface UtilStore {
   setShowExpandedRxInfo: (showExpandedRxInfo: boolean) => void;
   setTransparentMiniMode: (transparentMiniMode: boolean) => void;
   setPendingRestart: (pendingRestart: boolean) => void;
+  setTime: (time: Date) => void;
 }
 
 const useUtilStore = create<UtilStore>((set) => ({
@@ -42,6 +44,7 @@ const useUtilStore = create<UtilStore>((set) => ({
   isEditMode: false,
   transparentMiniMode: false,
   pendingRestart: false,
+  time: new Date(),
   setIsEditMode: (isEditMode: boolean) => {
     set({ isEditMode });
   },
@@ -77,6 +80,9 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   setPendingRestart: (pendingRestart: boolean): void => {
     set({ pendingRestart });
+  },
+  setTime(time: Date): void {
+    set({ time });
   }
 }));
 

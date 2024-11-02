@@ -30,7 +30,7 @@
 .rx-bar-container {
   height: 29px;
   width: fit-content;
-  margin: 10px 0px;
+  margin: 7.5px 0px;
   line-height: 29px;
   background-color: lighten($disabled, 10%);
   border-radius: $card-border-radius;
@@ -96,7 +96,7 @@
 
 .unicom-volume-bar {
   margin-right: 10px;
-  width: 50px !important;
+  width: 80px !important;
 }
 
 .global-volume-bar {

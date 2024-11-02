@@ -218,7 +218,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     <div
       className={clsx(
         'radio',
-        isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info'
+        isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info',
+        (radio.rx || radio.tx) && 'radio-active'
       )}
     >
       <div className="radio-content">
@@ -235,7 +236,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           >
             <div className="radio-text-container">
               <span className="frequency">{radio.humanFrequency}</span>
-              <span className="callsign">{radio.callsign}</span>
+              <span className="callsign text-muted">{radio.callsign}</span>
             </div>
           </button>
 

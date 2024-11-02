@@ -86,7 +86,7 @@ const saveWindowBounds = () => {
  * @param mode The size to restore to: mini or maxi.
  */
 const restoreWindowBounds = (mode: WindowMode, numOfRadios = 0) => {
-  const miniModeHeight = 33 + 24 * (numOfRadios === 0 ? 1 : numOfRadios);
+  const miniModeHeight = (numOfRadios > 1 ? 22 : 33) + 24 * (numOfRadios === 0 ? 1 : numOfRadios);
   const miniModeHeightMin = 22 + 24 * (numOfRadios === 0 ? 1 : numOfRadios);
 
   const savedBounds = mode === 'maxi' ? store.get('bounds') : store.get('miniBounds');
@@ -167,7 +167,7 @@ const createWindow = (): void => {
     height: defaultWindowSize.height,
     width: defaultWindowSize.width,
     minWidth: 250,
-    minHeight: 240,
+    minHeight: 120,
     icon,
     trafficLightPosition: { x: 12, y: 10 },
     titleBarStyle: 'hidden',
@@ -564,6 +564,12 @@ ipcMain.handle('close-me', () => {
 });
 
 ipcMain.handle('restart', () => {
+  if (TrackAudioAfv.IsConnected()) {
+    TrackAudioAfv.Disconnect();
+  }
+
+  TrackAudioAfv.Exit();
+
   mainWindow.close();
   createWindow();
 });

@@ -4,14 +4,15 @@ import UnicomGuardBar from './unicom-guard';
 import { useMediaQuery } from 'react-responsive';
 
 const TopBarContainer = () => {
-  const isWideScreen = useMediaQuery({ minWidth: '790px' });
+  const isMediumScreen = useMediaQuery({ minWidth: '765px' });
+  const isSmallScreen = useMediaQuery({ minWidth: '630px' });
 
   return (
     <div className="w-100 d-flex">
       {/* Main container with the centered content and right-aligned text */}
       <div className="w-100 d-flex justify-content-between align-items-center">
         {/* Left-aligned element */}
-        {isWideScreen && (
+        {isMediumScreen && (
           <div className="d-flex align-items-center">
             <GlobalRadioGain />
           </div>
@@ -23,7 +24,7 @@ const TopBarContainer = () => {
         </div>
 
         {/* Right-aligned element */}
-        {isWideScreen && (
+        {isSmallScreen && (
           <div className="d-flex align-items-center">
             <RxInfo />
           </div>

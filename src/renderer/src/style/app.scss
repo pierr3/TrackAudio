@@ -271,6 +271,7 @@ button:disabled {
   height: $focusbar-height;
   width: 100%;
   position: fixed;
+  padding: 0 4px;
   bottom: 0;
   left: 0;
   z-index: 1000;
@@ -310,10 +311,14 @@ button:disabled {
   width: 100%;
 }
 
+.radio-inactive {
+  background-color: $disabled !important;
+}
+
 .radio {
   width: 205px;
   height: 90px;
-  margin: 5px;
+  // margin: 5px;
   padding: 10px;
   color: $btn-text-color;
   background-color: lighten($disabled, 5%);
@@ -329,7 +334,7 @@ button:disabled {
   .radio-content {
     height: 100%;
     display: flex;
-    gap: 4%;
+    gap: 5%;
   }
 
   // Left side with frequency and controls
@@ -338,7 +343,7 @@ button:disabled {
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 4%;
+    gap: 5%;
   }
 
   // Right side with RX/TX
@@ -347,7 +352,7 @@ button:disabled {
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8%;
+    gap: 10%;
   }
 
   // Header button
@@ -369,6 +374,7 @@ button:disabled {
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 2px;
     }
 
     .frequency {
@@ -501,7 +507,11 @@ select:disabled {
 }
 
 .licenses {
-  font-size: 10px;
+  font-size: 11px;
+}
+
+.elapsed-time {
+  font-size: 13px;
 }
 
 .alert-popup {

@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import useSessionStore from '@renderer/store/sessionStore';
 import useErrorStore from '@renderer/store/errorStore';
 import { GuardFrequency, UnicomFrequency } from '../../../../shared/common';
+import { useMediaQuery } from 'react-responsive';
 
 const UnicomGuardBar = () => {
   const [radios, setRadioState, addRadio, removeRadio] = useRadioState((state) => [
@@ -14,6 +15,8 @@ const UnicomGuardBar = () => {
     state.removeRadio
   ]);
   const [isConnected, isAtc] = useSessionStore((state) => [state.isConnected, state.isAtc]);
+
+  const isReducedSize = useMediaQuery({ maxWidth: '895px' });
 
   const [localRadioGain, setLocalRadioGain] = useState(50);
 
@@ -219,7 +222,7 @@ const UnicomGuardBar = () => {
   return (
     <div className="unicom-bar-container">
       <span className="unicom-line-item">
-        <span className="unicom-text" style={{ marginRight: '5px' }}>
+        <span className="unicom-text " style={{ marginRight: '5px' }}>
           UNICOM
         </span>
         <button
@@ -315,10 +318,23 @@ const UnicomGuardBar = () => {
           </button>
         </span>
       </span>
-      <span className="hide-unicom-container">
+      <span
+        className="hide-unicom-container"
+        style={{
+          lineHeight: '30px'
+        }}
+      >
+        {!isReducedSize && (
+          <span className="unicom-text " style={{ marginRight: '10px', lineHeight: '29px' }}>
+            VOLUME
+          </span>
+        )}
         <input
           type="range"
           className="form-range unicom-text unicom-volume-bar "
+          style={{
+            lineHeight: '30px'
+          }}
           min="0"
           max="100"
           step="1"
