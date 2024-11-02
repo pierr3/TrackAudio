@@ -62,6 +62,9 @@ const FocusBar = () => {
                 'col-12 d-flex align-items-center position-absolute w-100 h-100',
                 isSmallScreen ? 'justify-content-center ' : 'justify-content-start '
               )}
+              style={{
+                lineHeight: 1
+              }}
             >
               <RadioStatus />
             </div>
