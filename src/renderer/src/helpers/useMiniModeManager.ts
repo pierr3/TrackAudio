@@ -19,7 +19,7 @@ const useMiniModeManager = () => {
     wasApproachingMini: false
   });
 
-  const REGULAR_SIZE = { width: 530, height: 240 };
+  // const REGULAR_SIZE = { width: 530, height: 240 };
   const MINI_SIZE = { width: 250, height: 120 };
 
   const calculateMiniModeHeight = () => {
