@@ -5,7 +5,7 @@ import { AlwaysOnTopMode, Configuration, RadioEffects } from '../shared/config.t
 
 // Used to check for older settings that need upgrading. This should get
 // increased any time the Configuration object has a breaking change.
-export const currentSettingsVersion = 2;
+export const currentSettingsVersion = 3;
 
 // Default application configuration. Used as a fallback when any of the properties
 // are missing from the saved configuration.
@@ -136,33 +136,31 @@ class ConfigManager {
    */
   private V1ToV2(config: Configuration) {
     // Don't migrate v2 or newer configs.
-    if (config.version && config.version >= 2) {
-      return config;
+    if (!config.version || config.version < 2) {
+      // If the audio api isn't set then it gets wiped out so the user is forced to reset
+      // the audio settings.
+      if (config.audioApi !== -1) {
+        config.audioApi = defaultConfiguration.audioApi;
+        config.audioInputDeviceId = defaultConfiguration.audioInputDeviceId;
+        config.headsetOutputDeviceId = defaultConfiguration.headsetOutputDeviceId;
+        config.speakerOutputDeviceId = defaultConfiguration.speakerOutputDeviceId;
+
+        dialog.showMessageBoxSync({
+          type: 'warning',
+          message:
+            'Your audio settings have been reset. Please re-configure your audio devices in the settings.',
+          buttons: ['OK']
+        });
+      }
+
+      // Upgrade the alwaysOnTop property from yes/no to the three mode version
+      if (typeof config.alwaysOnTop === 'boolean') {
+        config.alwaysOnTop ? (config.alwaysOnTop = 'always') : (config.alwaysOnTop = 'never');
+      }
+
+      // Migration complete
+      config.version = 2;
     }
-
-    // If the audio api isn't set then it gets wiped out so the user is forced to reset
-    // the audio settings.
-    if (config.audioApi !== -1) {
-      config.audioApi = defaultConfiguration.audioApi;
-      config.audioInputDeviceId = defaultConfiguration.audioInputDeviceId;
-      config.headsetOutputDeviceId = defaultConfiguration.headsetOutputDeviceId;
-      config.speakerOutputDeviceId = defaultConfiguration.speakerOutputDeviceId;
-
-      dialog.showMessageBoxSync({
-        type: 'warning',
-        message:
-          'Your audio settings have been reset. Please re-configure your audio devices in the settings.',
-        buttons: ['OK']
-      });
-    }
-
-    // Upgrade the alwaysOnTop property from yes/no to the three mode version
-    if (typeof config.alwaysOnTop === 'boolean') {
-      config.alwaysOnTop ? (config.alwaysOnTop = 'always') : (config.alwaysOnTop = 'never');
-    }
-
-    // Migration complete
-    config.version = 2;
 
     return config;
   }

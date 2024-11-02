@@ -21,6 +21,5 @@ export interface Configuration {
   radioEffects: RadioEffects;
 
   showExpandedRx: boolean;
-
   transparentMiniMode: boolean;
 }
