@@ -120,6 +120,7 @@ const Bootsrap: React.FC = () => {
     });
 
     window.api.on('VoiceDisconnected', () => {
+      console.log('Voice disconnected');
       useSessionStore.getState().setIsConnecting(false);
       useSessionStore.getState().setIsConnected(false);
       useRadioState.getState().reset();
@@ -137,6 +138,7 @@ const Bootsrap: React.FC = () => {
     });
 
     window.api.on('network-disconnected', () => {
+      console.log('Network connected');
       useSessionStore.getState().setNetworkConnected(false);
       useSessionStore.getState().setCallsign('');
       useSessionStore.getState().setIsAtc(false);

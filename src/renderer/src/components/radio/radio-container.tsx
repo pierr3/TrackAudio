@@ -26,12 +26,11 @@ const RadioContainer: React.FC = () => {
   if (!isNetworkConnected) {
     return (
       <div className="h-100 mx-3 d-flex justify-content-center flex-column gap-0.5 hide-topbar">
-        <div className="d-flex justify-content-center radio-text  text-center">
-          No VATSIM connection found!
+        <div className="d-flex justify-content-center radio-text text-center">
+          No VATSIM connection detected!
         </div>
         <div className="d-flex justify-content-center radio-sub-text text-muted text-center">
-          Ensure you have established a valid connection to the VATSIM network before attempting to
-          connect to AFV.
+          Please ensure your ATC client is running and connected to the VATSIM network.
         </div>
       </div>
     );
@@ -40,11 +39,11 @@ const RadioContainer: React.FC = () => {
   if (!isConnected) {
     return (
       <div className="h-100 mx-3 d-flex justify-content-center flex-column gap-0.5 hide-topbar">
-        <div className="d-flex justify-content-center radio-text  text-center">
-          VATSIM connection found!
+        <div className="d-flex justify-content-center radio-text text-center">
+          VATSIM connection detected!
         </div>
         <div className="d-flex justify-content-center radio-sub-text text-muted text-center">
-          Click the connect button to establish a connection to AFV.
+          Click the connect button to establish a connection to the VATSIM audio network.
         </div>
       </div>
     );

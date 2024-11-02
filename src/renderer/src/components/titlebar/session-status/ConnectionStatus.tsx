@@ -102,7 +102,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ className = '' }) =
           ? 'CONNECTING'
           : callsign
             ? `CONNECT`
-            : 'NO ACTIVE CONNECTION'}
+            : 'CONNECT'}
     </button>
   );
 

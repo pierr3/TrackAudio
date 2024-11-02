@@ -24,7 +24,7 @@ const AddStationModal: React.FC<AddStationModalProps> = ({ closeModal }) => {
         <div className="modal-dialog settingsModal" role="document">
           <div className="modal-content" style={{ border: '0' }}>
             <div className="modal-header">
-              <h5 className="modal-title">AFV Configuration</h5>
+              <h5 className="modal-title">New Ration</h5>
             </div>
             <div
               className="modal-body"
@@ -48,7 +48,7 @@ const AddStationModal: React.FC<AddStationModalProps> = ({ closeModal }) => {
 
             <div className="modal-footer mt-3">
               <button type="button" className="btn btn-danger " onClick={closeHander}>
-                Close
+                Cancel
               </button>
             </div>
           </div>

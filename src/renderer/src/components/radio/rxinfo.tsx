@@ -1,7 +1,12 @@
 import useRadioState from '@renderer/store/radioStore';
 import React, { useMemo, useState, useEffect } from 'react';
 import type { RadioType } from '@renderer/store/radioStore';
-import { ArrowsAngleExpand } from 'react-bootstrap-icons';
+import {
+  ArrowsAngleExpand,
+  LayoutSidebarInset,
+  LayoutSidebarInsetReverse,
+  LayoutSidebarReverse
+} from 'react-bootstrap-icons';
 import useUtilStore from '@renderer/store/utilStore';
 import clsx from 'clsx';
 import { useMediaQuery } from 'react-responsive';
@@ -75,7 +80,7 @@ const RxInfo: React.FC = () => {
               setShowExpandedRxInfo(!showExpandedRxInfo);
             }}
           >
-            <ArrowsAngleExpand />
+            {!showExpandedRxInfo ? <LayoutSidebarInsetReverse /> : <LayoutSidebarReverse />}
           </button>
         </div>
       )}

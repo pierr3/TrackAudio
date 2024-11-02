@@ -67,7 +67,7 @@ const GlobalRadioGain = () => {
               lineHeight: '29px'
             }}
           >
-            MASTER
+            MAIN
           </div>
         </span>
       )}

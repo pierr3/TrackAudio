@@ -73,7 +73,7 @@ const AddFrequency: React.FC<AddFrequencyProps> = ({ onAddFrequency }) => {
 
   return (
     <div className="form-group">
-      <h5>Add a VHF frequency</h5>
+      <h5>Add a VHF Frequency</h5>
       <input
         type="text"
         className="form-control mt-2"

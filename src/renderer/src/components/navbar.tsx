@@ -83,6 +83,22 @@ const Navbar: React.FC = () => {
               <div className="d-flex h-100 align-items-center">
                 <button
                   className="btn btn-primary hide-settings-flex"
+                  disabled={!isConnected}
+                  onClick={() => {
+                    if (showSettingsModal || !isConnected) return;
+                    setShowAddStationModal(true);
+                  }}
+                >
+                  <PlusCircleFill />
+                </button>
+              </div>
+            </TitleBar.Element>
+          )}
+          {!isEditMode && (
+            <TitleBar.Element priority={3}>
+              <div className="d-flex h-100 align-items-center">
+                <button
+                  className="btn btn-primary hide-settings-flex"
                   disabled={isConnected || isConnecting}
                   onClick={() => {
                     if (showAddStationModal) return;
@@ -91,21 +107,6 @@ const Navbar: React.FC = () => {
                 >
                   <GearFill />
                 </button>
-              </div>
-            </TitleBar.Element>
-          )}
-          {!isEditMode && (
-            <TitleBar.Element priority={3}>
-              <div className="d-flex h-100 align-items-center">
-                <MiniModeToggleButton showRestoreButton={false} />
-                {platform === 'linux' && (
-                  <button
-                    className="btn btn-danger m-1 hide-gain-value"
-                    onClick={() => void window.api.CloseMe()}
-                  >
-                    X
-                  </button>
-                )}
               </div>
             </TitleBar.Element>
           )}
@@ -122,27 +123,26 @@ const Navbar: React.FC = () => {
           </TitleBar.Element>
         </TitleBar.Section>
         <TitleBar.Section name="right" priority={0}>
-          {isNetworkConnected && (
-            <TitleBar.Element priority={2}>
-              <div className="d-flex h-100 align-items-center">
+          {/* {isNetworkConnected && ( */}
+          <TitleBar.Element priority={2}>
+            <div className="d-flex h-100 align-items-center">
+              <MiniModeToggleButton showRestoreButton={false} />
+              {platform === 'linux' && (
                 <button
-                  className="btn btn-primary hide-settings-flex"
-                  disabled={!isConnected}
-                  onClick={() => {
-                    if (showSettingsModal || !isConnected) return;
-                    setShowAddStationModal(true);
-                  }}
+                  className="btn btn-danger m-1 hide-gain-value"
+                  onClick={() => void window.api.CloseMe()}
                 >
-                  <PlusCircleFill />
+                  X
                 </button>
-              </div>
-            </TitleBar.Element>
-          )}
-          {isNetworkConnected && (
-            <TitleBar.Element priority={1}>
-              <SessionStatus />
-            </TitleBar.Element>
-          )}
+              )}
+            </div>
+          </TitleBar.Element>
+          {/* )} */}
+          {/* {isNetworkConnected && ( */}
+          <TitleBar.Element priority={1}>
+            <SessionStatus />
+          </TitleBar.Element>
+          {/* )} */}
         </TitleBar.Section>
       </TitleBar>
 
