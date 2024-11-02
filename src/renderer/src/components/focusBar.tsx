@@ -2,6 +2,8 @@ import useSessionStore from '@renderer/store/sessionStore';
 import RadioStatus from './sidebar/radio-status';
 import useUtilStore from '@renderer/store/utilStore';
 import ConnectTimer from './connect-timer';
+import { useMediaQuery } from 'react-responsive';
+import clsx from 'clsx';
 
 const FocusBar = () => {
   const [version, isConnected, connectTimestamp] = useSessionStore((state) => [
@@ -10,6 +12,8 @@ const FocusBar = () => {
     state.connectTimestamp
   ]);
   const [pendingRestart] = useUtilStore((state) => [state.pendingRestart]);
+  const isWideScreen = useMediaQuery({ minWidth: '740px' });
+  const isSmallScreen = useMediaQuery({ maxWidth: '490px' });
 
   const restartApp = () => {
     if (isConnected) {
@@ -34,7 +38,8 @@ const FocusBar = () => {
               </a>
             </div>
           ) : (
-            connectTimestamp && (
+            connectTimestamp &&
+            isWideScreen && (
               <div
                 className="col-12 d-flex justify-content-start align-items-center position-absolute w-100 h-100"
                 style={{ zIndex: 3 }}
@@ -45,28 +50,40 @@ const FocusBar = () => {
           )}
 
           {/* Center Radio Status */}
-          <div className="col-12 d-flex justify-content-center align-items-center position-absolute w-100 h-100">
-            <div className="text-nowrap">
+          {isWideScreen ? (
+            <div className="col-12 d-flex justify-content-center align-items-center position-absolute w-100 h-100">
+              <div className="text-nowrap">
+                <RadioStatus />
+              </div>
+            </div>
+          ) : (
+            <div
+              className={clsx(
+                'col-12 d-flex align-items-center position-absolute w-100 h-100',
+                isSmallScreen ? 'justify-content-center ' : 'justify-content-start '
+              )}
+            >
               <RadioStatus />
             </div>
-          </div>
+          )}
 
-          {/* Right-aligned licenses with z-index to ensure clickability */}
-          <div
-            className="col-12 d-flex justify-content-end align-items-center h-100 position-relative"
-            style={{ zIndex: 1 }}
-          >
-            <div className="licenses text-nowrap">
-              <span className="d-none d-sm-inline">{version} |&nbsp;</span>
-              <a
-                href="https://github.com/pierr3/TrackAudio/blob/main/LICENSES_COMPILED.md"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Licenses
-              </a>
+          {!isSmallScreen && (
+            <div
+              className="col-12 d-flex justify-content-end align-items-center h-100 position-relative"
+              style={{ zIndex: 3 }}
+            >
+              <div className="licenses text-nowrap text-muted">
+                <span className="d-none d-sm-inline">{version} |&nbsp;</span>
+                <a
+                  href="https://github.com/pierr3/TrackAudio/blob/main/LICENSES_COMPILED.md"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Licenses
+                </a>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

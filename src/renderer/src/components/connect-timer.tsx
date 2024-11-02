@@ -32,7 +32,7 @@ const ConnectTimer = () => {
     return;
   }
 
-  return <span className="text-muted elapsed-time">{elapsedTime}</span>;
+  return <span className="text-muted elapsed-time">Connected: {elapsedTime}</span>;
 };
 
 export default ConnectTimer;
