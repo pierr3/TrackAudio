@@ -172,7 +172,6 @@ const UnicomGuardBar = () => {
           console.error('Failed to add UNICOM frequency');
           return;
         }
-        console.log('Adding unicom frequency');
         addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
         void window.api.SetFrequencyRadioGain(UnicomFrequency, localRadioGain / 100);
       });
@@ -181,7 +180,6 @@ const UnicomGuardBar = () => {
           console.error('Failed to add GUARD frequency');
           return;
         }
-        console.log('Adding guard frequency');
         addRadio(GuardFrequency, 'GUARD', 'GUARD');
         void window.api.SetFrequencyRadioGain(GuardFrequency, localRadioGain / 100);
       });

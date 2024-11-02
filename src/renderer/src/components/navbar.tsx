@@ -22,10 +22,9 @@ const Navbar: React.FC = () => {
     state.isEditMode,
     state.setIsEditMode
   ]);
-  const [callsign, isConnected, isNetworkConnected, isConnecting] = useSessionStore((state) => [
+  const [callsign, isConnected, isConnecting] = useSessionStore((state) => [
     state.callsign,
     state.isConnected,
-    state.isNetworkConnected,
     state.isConnecting
   ]);
 
