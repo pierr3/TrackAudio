@@ -40,9 +40,10 @@ add_definitions(-DNAPI_VERSION=7)
 set(AFV_STATIC 1)
 
 add_subdirectory(extern/afv-native)
+add_subdirectory(extern/libuiohook)
 include_directories(extern/afv-native/include)
 include_directories(extern/afv-native/extern)
-
+include_directories(extern/libuiohook/include)
 if(WIN32)
     # set(BUILD_SHARED_LIBS OFF)
     add_compile_options(
@@ -59,6 +60,7 @@ set(SOURCE
   src/sdk.cpp
   src/RemoteData.cpp
   src/InputHandler.cpp
+  src/UIOHookWrapper.cpp
   src/win32_key_util.cpp)
 
 add_library(trackaudio-afv SHARED
@@ -121,6 +123,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     plog::plog
     sago::platform_folders
     sfml-system sfml-graphics sfml-window
+    uiohook
     ${CMAKE_JS_LIB})
 
 # Set the output directory for the built executable
