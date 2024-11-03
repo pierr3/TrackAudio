@@ -64,7 +64,9 @@ bool InputHandler::handlePttSetup(const uiohook_event* event)
         return false;
     }
 
-    PLOGI << "PTT setup running, updating PTT key " << pttSetupIndex;
+    PLOGI << "Setting PTT " << pttSetupIndex << " Key code: " << event->data.keyboard.keycode
+          << " Key name " << KeycodeLookup::getKeyName(event->data.keyboard.keycode);
+
     updatePttKey(pttSetupIndex, event->data.keyboard.keycode, false);
     isPttSetupRunning = false;
     pttSetupIndex = 0;
@@ -197,9 +199,9 @@ std::string InputHandler::lookupPttKeyName(int key, bool isJoystickButton, int j
     //         static_cast<sf::Keyboard::Scancode>(key));
     // #endif
 
-    return sf::Keyboard::getDescription(static_cast<sf::Keyboard::Scancode>(key)).toAnsiString();
+    // return sf::Keyboard::getDescription(static_cast<sf::Keyboard::Scancode>(key)).toAnsiString();
 
-    // return KeycodeLookup::getKeyName(key);
+    return KeycodeLookup::getKeyName(key);
 }
 
 std::string InputHandler::getPttKeyName(int pttIndex)
