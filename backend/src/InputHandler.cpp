@@ -115,7 +115,7 @@ void InputHandler::checkJoystickPtt(int pttIndex, int key, int joystickId)
 void InputHandler::onTimer(Poco::Timer& /*timer*/)
 {
     sf::Joystick::update();
-    sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Unknown); // Required for SFML stability
+    // sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Unknown); // Required for SFML stability
 
     std::lock_guard<std::mutex> lock(m);
 
@@ -192,7 +192,14 @@ std::string InputHandler::lookupPttKeyName(int key, bool isJoystickButton, int j
         return sf::Joystick::getIdentification(joystickId).name + " " + std::to_string(key);
     }
 
-    return KeycodeLookup::getKeyName(key);
+    // #ifdef _WIN32
+    //     return vector_audio::native::win32::get_key_description(
+    //         static_cast<sf::Keyboard::Scancode>(key));
+    // #endif
+
+    return sf::Keyboard::getDescription(static_cast<sf::Keyboard::Scancode>(key)).toAnsiString();
+
+    // return KeycodeLookup::getKeyName(key);
 }
 
 std::string InputHandler::getPttKeyName(int pttIndex)
