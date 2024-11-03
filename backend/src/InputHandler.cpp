@@ -1,19 +1,18 @@
+// InputHandler.cpp
 #include "InputHandler.hpp"
 #include "Helpers.hpp"
 #include "Shared.hpp"
-#include <SFML/Window/Joystick.hpp>
-#include <SFML/Window/Keyboard.hpp>
 #include <plog/Log.h>
 #include <string>
 
-#ifdef _WIN32
-#include "win32_key_util.h"
-#endif
-
 InputHandler::InputHandler()
-    : isPttSetupRunning(false)
-    , timer(0, 35)
+    : timer(0, 35)
+    , uioHookWrapper_(std::make_unique<UIOHookWrapper>())
 {
+    uioHookWrapper_->setEventCallback(
+        [this](const uiohook_event* event) { handleKeyEvent(event); });
+
+    uioHookWrapper_->run();
     timer.start(Poco::TimerCallback<InputHandler>(*this, &InputHandler::onTimer));
 }
 
@@ -33,7 +32,133 @@ void InputHandler::stopPttSetup()
     pttSetupIndex = 0;
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+void InputHandler::handleKeyEvent(const uiohook_event* event)
+{
+    if (UserSettings::PttKey1 == -1) {
+        return;
+    }
+
+    if (handlePttSetup(event)) {
+        return;
+    }
+
+    bool isKeyPressed = event->type == EVENT_KEY_PRESSED;
+    bool isKeyReleased = event->type == EVENT_KEY_RELEASED;
+
+    if (!isKeyPressed && !isKeyReleased) {
+        return;
+    }
+
+    int keycode = event->data.keyboard.keycode;
+
+    checkKeyboardPtt(
+        1, UserSettings::PttKey1, UserSettings::isJoystickButton1, isKeyPressed, keycode);
+    checkKeyboardPtt(
+        2, UserSettings::PttKey2, UserSettings::isJoystickButton2, isKeyPressed, keycode);
+}
+
+bool InputHandler::handlePttSetup(const uiohook_event* event)
+{
+    if (!isPttSetupRunning || event->type != EVENT_KEY_PRESSED) {
+        return false;
+    }
+
+    PLOGI << "PTT setup running, updating PTT key " << pttSetupIndex;
+    updatePttKey(pttSetupIndex, event->data.keyboard.keycode, false);
+    isPttSetupRunning = false;
+    pttSetupIndex = 0;
+    return true;
+}
+
+void InputHandler::checkKeyboardPtt(
+    int pttIndex, int pttKey, bool isJoystickButton, bool isKeyPressed, int keycode)
+{
+    if (isJoystickButton || (activePtt != 0 && activePtt != pttIndex)) {
+        return;
+    }
+
+    bool isPttKey = keycode == pttKey;
+    if (!isPttKey) {
+        return;
+    }
+
+    if (isKeyPressed && !isPttOpen) {
+        mClient->SetPtt(true);
+        isPttOpen = true;
+        activePtt = pttIndex;
+    } else if (!isKeyPressed && isPttOpen) {
+        mClient->SetPtt(false);
+        isPttOpen = false;
+        activePtt = 0;
+    }
+}
+
+void InputHandler::checkJoystickPtt(int pttIndex, int key, int joystickId)
+{
+    if ((activePtt != 0 && activePtt != pttIndex) || !sf::Joystick::isConnected(joystickId)) {
+        return;
+    }
+
+    bool isButtonPressed = sf::Joystick::isButtonPressed(joystickId, key);
+    if (isButtonPressed && !isPttOpen) {
+        mClient->SetPtt(true);
+        isPttOpen = true;
+        activePtt = pttIndex;
+    } else if (!isButtonPressed && isPttOpen) {
+        mClient->SetPtt(false);
+        isPttOpen = false;
+        activePtt = 0;
+    }
+}
+
+void InputHandler::onTimer(Poco::Timer& /*timer*/)
+{
+    sf::Joystick::update();
+    sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Unknown); // Required for SFML stability
+
+    std::lock_guard<std::mutex> lock(m);
+
+    if (handleJoystickSetup()) {
+        return;
+    }
+
+    if (UserSettings::PttKey1 == -1) {
+        return;
+    }
+
+    if (UserSettings::isJoystickButton1) {
+        checkJoystickPtt(1, UserSettings::PttKey1, UserSettings::JoystickId1);
+    }
+    if (UserSettings::isJoystickButton2) {
+        checkJoystickPtt(2, UserSettings::PttKey2, UserSettings::JoystickId2);
+    }
+}
+
+bool InputHandler::handleJoystickSetup()
+{
+    if (!isPttSetupRunning) {
+        return false;
+    }
+
+    for (int i = 0; i < sf::Joystick::Count; i++) {
+        if (!sf::Joystick::isConnected(i)) {
+            continue;
+        }
+
+        for (int j = 0; j < sf::Joystick::getButtonCount(i); j++) {
+            if (sf::Joystick::isButtonPressed(i, j)) {
+                PLOGE << "Joystick PTT " << pttSetupIndex << " Key set: " << j << " on Joystick "
+                      << i;
+                updatePttKey(pttSetupIndex, j, true, i);
+                isPttSetupRunning = false;
+                pttSetupIndex = 0;
+                return true;
+            }
+        }
+    }
+    return true;
+}
+
 void InputHandler::updatePttKey(int pttIndex, int key, bool isJoystickButton, int joystickId)
 {
     if (pttIndex == 1) {
@@ -50,114 +175,12 @@ void InputHandler::updatePttKey(int pttIndex, int key, bool isJoystickButton, in
     InputHandler::forwardPttKeyName(pttIndex);
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-void InputHandler::checkForPtt(int pttIndex, int key, bool isJoystickButton, int joystickId)
-{
-    // Check and see if another PTT key is currently in use. If so, don't check for PTT
-    // state.
-    if ((activePtt != 0) && activePtt != pttIndex) {
-        return;
-    }
-
-    if (isJoystickButton) {
-        if (!sf::Joystick::isConnected(joystickId)) {
-            return;
-        }
-
-        auto isButtonPressed = sf::Joystick::isButtonPressed(joystickId, key);
-        if (isButtonPressed && !isPttOpen) {
-            mClient->SetPtt(true);
-            isPttOpen = true;
-            activePtt = pttIndex;
-        } else if (!isButtonPressed && isPttOpen) {
-            mClient->SetPtt(false);
-            isPttOpen = false;
-            activePtt = 0;
-        }
-    } else {
-        auto isKeyPressed = sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Scancode>(key));
-        if (isKeyPressed && !isPttOpen) {
-            mClient->SetPtt(true);
-            isPttOpen = true;
-            activePtt = pttIndex;
-        } else if (!isKeyPressed && isPttOpen) {
-            mClient->SetPtt(false);
-            isPttOpen = false;
-            activePtt = 0;
-        }
-    }
-}
-
-// NOLINTNEXTLINE
-void InputHandler::onTimer(Poco::Timer& /*timer*/)
-{
-    sf::Joystick::update();
-
-    // Strangely, if you don't call this every time, SFML will just crash?
-    sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Unknown);
-
-    std::lock_guard<std::mutex> lock(m);
-    if (isPttSetupRunning) {
-
-        // Check for Key presses
-        for (int i = sf::Keyboard::Scancode::A; i < sf::Keyboard::Scancode::ScancodeCount; i++) {
-            if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Scancode>(i))) {
-                updatePttKey(pttSetupIndex, i, false);
-
-                isPttSetupRunning = false;
-                pttSetupIndex = 0;
-                return;
-            }
-        }
-
-        // Check for Joystick presses
-        for (int i = 0; i < sf::Joystick::Count; i++) {
-            if (!sf::Joystick::isConnected(i)) {
-                continue;
-            }
-
-            for (int j = 0; j < sf::Joystick::getButtonCount(i); j++) {
-                if (sf::Joystick::isButtonPressed(i, j)) {
-                    PLOGE << "Joystick Ptt " << std::to_string(pttSetupIndex) << " Key set: " << j
-                          << " on Joystick " << i;
-                    updatePttKey(pttSetupIndex, j, true, i);
-
-                    isPttSetupRunning = false;
-                    pttSetupIndex = 0;
-                    return;
-                }
-            }
-        }
-
-        return;
-    }
-
-    if (UserSettings::PttKey1 == -1) {
-        return;
-    }
-
-    checkForPtt(
-        1, UserSettings::PttKey1, UserSettings::isJoystickButton1, UserSettings::JoystickId1);
-    checkForPtt(
-        2, UserSettings::PttKey2, UserSettings::isJoystickButton2, UserSettings::JoystickId2);
-}
-
 void InputHandler::forwardPttKeyName(int pttIndex)
 {
-    PLOGI << "Forwarding Ptt Key Name " << getPttKeyName(pttIndex) << " for PTT " << pttIndex;
-
-    auto pttKeyName = getPttKeyName(pttIndex);
-    NapiHelpers::callElectron("UpdatePttKeyName", std::to_string(pttIndex), pttKeyName);
+    NapiHelpers::callElectron(
+        "UpdatePttKeyName", std::to_string(pttIndex), getPttKeyName(pttIndex));
 }
 
-/**
- * @brief Looks up the name for a PTT key.
- *
- * @param key The key ID to look up
- * @param isJoystickButton True if the key is a joystick
- * @param joystickId The ID of the joystick
- * @return std::string The name of the PTT key.
- */
 std::string InputHandler::lookupPttKeyName(int key, bool isJoystickButton, int joystickId)
 {
     if (key == -1) {
@@ -168,21 +191,9 @@ std::string InputHandler::lookupPttKeyName(int key, bool isJoystickButton, int j
         return sf::Joystick::getIdentification(joystickId).name + " " + std::to_string(key);
     }
 
-#ifdef _WIN32
-    return vector_audio::native::win32::get_key_description(
-        static_cast<sf::Keyboard::Scancode>(key));
-#endif
-
-    return sf::Keyboard::getDescription(static_cast<sf::Keyboard::Scancode>(key)).toAnsiString();
+    return KeycodeLookup::getKeyName(key);
 }
 
-/**
- * @brief Gets the name for the PTT key at the specified index
- *
- * @param pttIndex The index of the PTT key to look up, either 1 or 2.
- * @return std::string The name for the specified PTT key or an empty string of the pttIndex was
- * invalid.
- */
 std::string InputHandler::getPttKeyName(int pttIndex)
 {
     if (pttIndex == 1) {
@@ -191,7 +202,6 @@ std::string InputHandler::getPttKeyName(int pttIndex)
     } else if (pttIndex == 2) {
         return InputHandler::lookupPttKeyName(
             UserSettings::PttKey2, UserSettings::isJoystickButton2, UserSettings::JoystickId2);
-    } else {
-        return "";
     }
+    return "";
 }

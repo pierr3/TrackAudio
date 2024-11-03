@@ -9,6 +9,10 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "files.associations": {
-    "xstring": "cpp"
+    "xstring": "cpp",
+    "valarray": "cpp",
+    "*.ipp": "cpp",
+    "mutex": "cpp",
+    "string": "cpp"
   }
 }
