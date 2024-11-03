@@ -236,7 +236,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       )}
     >
       {radio.humanFrequencyAlias && radio.humanFrequency && (
-        <div className="radio-alias-freq" title="This radio has a paired frequency" />
+        <div
+          className={clsx(
+            'radio-alias-freq'
+            // isHoveringFrequency && 'bg-info' // Not sure what I think of this
+          )}
+          title="This radio has a paired frequency"
+        />
       )}
       <div className="radio-content">
         <div className="radio-left">
