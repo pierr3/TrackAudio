@@ -706,9 +706,6 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.VoiceDisconnected) {
-    if (isInMiniMode()) {
-      toggleMiniMode();
-    }
     mainWindow.webContents.send('VoiceDisconnected');
   }
 
@@ -717,10 +714,6 @@ TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.NetworkDisconnected) {
-    if (isInMiniMode()) {
-      toggleMiniMode();
-    }
-
     mainWindow.webContents.send('network-disconnected');
   }
 
