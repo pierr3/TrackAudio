@@ -58,7 +58,8 @@ VolumeControls.displayName = 'VolumeControls';
 
 const Radio: React.FC<RadioProps> = ({ radio }) => {
   const postError = useErrorStore((state) => state.postError);
-  // Optimize Zustand selectors to prevent unnecessary re-renders
+  const [isHoveringFrequency, setIsHoveringFrequency] = useState(false);
+
   const [
     setRadioState,
     selectRadio,
@@ -239,6 +240,16 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         console.error(err);
       });
   }, [radio, setRadioState, removeRadio, postError]);
+
+  const handleMouseEnterFrequency = () => {
+    if (radio.humanFrequencyAlias) {
+      setIsHoveringFrequency(true);
+    }
+  };
+
+  const handleMouseLeaveFrequency = () => {
+    setIsHoveringFrequency(false);
+  };
 
   const clickRx = () => {
     clickRadioHeader();
@@ -444,7 +455,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     <div
       style={{ position: 'relative' }}
       className={clsx(
-        'radio',
+        'radio relative',
         isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info',
         (radio.rx || radio.tx) && 'radio-active'
       )}
@@ -475,6 +486,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           />
         )}
       </div>
+      {radio.humanFrequencyAlias && radio.humanFrequency && (
+        <div className="radio-alias-freq" title="This radio has a paired frequency" />
+      )}
       <div className="radio-content">
         <div className="radio-left">
           <button
@@ -488,7 +502,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             }}
           >
             <div className="radio-text-container">
-              <span className="frequency">{radio.humanFrequency}</span>
+              <span
+                className="frequency"
+                onMouseEnter={handleMouseEnterFrequency}
+                onMouseLeave={handleMouseLeaveFrequency}
+              >
+                {isHoveringFrequency ? radio.humanFrequencyAlias : radio.humanFrequency}
+              </span>
               <span className="callsign text-muted">{radio.callsign}</span>
             </div>
           </button>

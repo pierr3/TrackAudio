@@ -361,6 +361,17 @@ button:disabled {
   }
 }
 
+.radio-alias-freq {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: $primary;
+  z-index: 1000;
+}
+
 .radio {
   width: 205px;
   height: 90px;
