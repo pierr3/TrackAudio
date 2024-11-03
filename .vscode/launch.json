@@ -29,7 +29,7 @@
     {
       "type": "lldb",
       "request": "attach",
-      "name": "Debug Electron Renderer",
+      "name": "Debug NAPI Backend",
       "pid": "${command:pickProcess}"
     }
   ],
