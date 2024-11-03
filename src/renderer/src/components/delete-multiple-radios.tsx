@@ -18,8 +18,10 @@ const DeleteMultipleRadios: React.FC = () => {
   const handleDeleteRadios = () => {
     if (radiosToBeDeleted.length == 0) {
       radios.forEach((radio) => {
-        setPendingDeletion(radio.frequency, false);
-        awaitEndOfRxForDeletion(radio.frequency);
+        if (radio.callsign !== 'UNICOM' && radio.callsign !== 'GUARD') {
+          setPendingDeletion(radio.frequency, false);
+          awaitEndOfRxForDeletion(radio.frequency);
+        }
       });
     } else {
       radiosToBeDeleted.forEach((radio) => {
@@ -60,6 +62,7 @@ const DeleteMultipleRadios: React.FC = () => {
       <button
         className="btn btn-danger hide-settings-flex"
         disabled={!isConnected}
+        title="Delete all or selected radios"
         onClick={() => {
           handleDeleteRadios();
         }}
