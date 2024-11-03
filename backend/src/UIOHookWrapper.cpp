@@ -74,7 +74,7 @@ void UIOHookWrapper::loggerProc(
 
     switch (level) {
     // case LOG_LEVEL_DEBUG:
-    //     PLOGD << buffer;
+    //     PLOGI << buffer;
     //     break;
     case LOG_LEVEL_INFO:
         PLOGI << buffer;
