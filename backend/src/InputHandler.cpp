@@ -10,7 +10,7 @@ InputHandler::InputHandler()
     , uioHookWrapper_(std::make_unique<UIOHookWrapper>())
 {
     uioHookWrapper_->setEventCallback(
-        [this](const uiohook_event* event) { handleKeyEvent(event); });
+        [this](const uiohook_event* event) { this->handleKeyEvent(event); });
 
     uioHookWrapper_->run();
     timer.start(Poco::TimerCallback<InputHandler>(*this, &InputHandler::onTimer));
@@ -34,11 +34,12 @@ void InputHandler::stopPttSetup()
 
 void InputHandler::handleKeyEvent(const uiohook_event* event)
 {
-    if (UserSettings::PttKey1 == -1) {
+
+    if (handlePttSetup(event)) {
         return;
     }
 
-    if (handlePttSetup(event)) {
+    if (UserSettings::PttKey1 == -1) {
         return;
     }
 

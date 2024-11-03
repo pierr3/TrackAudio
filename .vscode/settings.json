@@ -13,6 +13,7 @@
     "valarray": "cpp",
     "*.ipp": "cpp",
     "mutex": "cpp",
-    "string": "cpp"
+    "string": "cpp",
+    "logger.h": "c"
   }
 }
