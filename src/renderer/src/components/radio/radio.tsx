@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useRadioState, { RadioType } from '../../store/radioStore';
 import clsx from 'clsx';
 import useErrorStore from '../../store/errorStore';
@@ -11,6 +11,8 @@ export interface RadioProps {
 
 const Radio: React.FC<RadioProps> = ({ radio }) => {
   const postError = useErrorStore((state) => state.postError);
+  const [isHoveringFrequency, setIsHoveringFrequency] = useState(false);
+
   const [
     setRadioState,
     selectRadio,
@@ -37,6 +39,16 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     if (radio.transceiverCount === 0 && radio.callsign !== 'MANUAL') {
       void window.api.RefreshStation(radio.callsign);
     }
+  };
+
+  const handleMouseEnterFrequency = () => {
+    if (radio.humanFrequencyAlias) {
+      setIsHoveringFrequency(true);
+    }
+  };
+
+  const handleMouseLeaveFrequency = () => {
+    setIsHoveringFrequency(false);
   };
 
   const clickRx = () => {
@@ -216,12 +228,16 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
 
   return (
     <div
+      style={{ position: 'relative' }} // Added inline style to ensure relative positioning
       className={clsx(
-        'radio',
+        'radio relative',
         isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info',
         (radio.rx || radio.tx) && 'radio-active'
       )}
     >
+      {radio.humanFrequencyAlias && radio.humanFrequency && (
+        <div className="radio-alias-freq" title="This radio has a paired frequency" />
+      )}
       <div className="radio-content">
         <div className="radio-left">
           <button
@@ -235,7 +251,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             }}
           >
             <div className="radio-text-container">
-              <span className="frequency">{radio.humanFrequency}</span>
+              <span
+                className="frequency"
+                onMouseEnter={handleMouseEnterFrequency}
+                onMouseLeave={handleMouseLeaveFrequency}
+              >
+                {isHoveringFrequency ? radio.humanFrequencyAlias : radio.humanFrequency}
+              </span>
               <span className="callsign text-muted">{radio.callsign}</span>
             </div>
           </button>

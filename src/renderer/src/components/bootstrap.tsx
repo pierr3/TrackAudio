@@ -5,6 +5,7 @@ import useSessionStore from '../store/sessionStore';
 import useUtilStore from '../store/utilStore';
 import { StationStateUpdate } from '../interfaces/StationStateUpdate';
 import { Configuration } from 'src/shared/config.type';
+import { Station } from '@renderer/interfaces/Station';
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
@@ -35,18 +36,18 @@ const Bootsrap: React.FC = () => {
       useRadioState.getState().setTransceiverCountForStationCallsign(station, parseInt(count));
     });
 
-    window.api.on('station-data-received', (station: string, frequency: string) => {
-      const freq = parseInt(frequency);
+    window.api.on('station-data-received', (station: string, data: string) => {
+      const radio = JSON.parse(data) as Station;
       window.api
-        .addFrequency(freq, station)
+        .addFrequency(radio.frequency, station)
         .then((ret) => {
           if (!ret) {
-            console.error('Failed to add frequency', freq, station);
+            console.error('Failed to add frequency', radio.frequency, station);
             return;
           }
           useRadioState
             .getState()
-            .addRadio(freq, station, useSessionStore.getState().getStationCallsign());
+            .addRadioByStation(radio, useSessionStore.getState().getStationCallsign());
           void window.api.SetRadioGain(useSessionStore.getState().radioGain / 100);
         })
         .catch((err: unknown) => {

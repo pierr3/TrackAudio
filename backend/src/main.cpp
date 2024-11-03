@@ -1,4 +1,5 @@
 #include "LogFactory.h"
+#include "afv-native/afv/dto/Station.h"
 #include "afv-native/afv/dto/StationTransceiver.h"
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
@@ -515,16 +516,19 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
             return;
         }
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto stationData = *reinterpret_cast<std::pair<std::string, unsigned int>*>(data2);
+        auto stationData
+            = *reinterpret_cast<std::pair<std::string, afv_native::afv::dto::Station>*>(data2);
         std::string callsign = stationData.first;
-        unsigned int frequency = stationData.second;
+        unsigned int frequency = stationData.second.Frequency;
 
         if (mClient->IsFrequencyActive(frequency)) {
             PLOGW << "StationDataReceived: Frequency " << frequency << " already active, skipping";
             return;
         }
 
-        NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
+        nlohmann::json stationDataJson = stationData.second;
+
+        NapiHelpers::callElectron("StationDataReceived", callsign, stationDataJson.dump());
         MainThreadShared::mApiServer->publishStationAdded(callsign, static_cast<int>(frequency));
     }
 
@@ -533,20 +537,22 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
             return;
         }
 
-        std::map<std::string, unsigned int> stations
+        std::map<std::string, afv_native::afv::dto::Station> stations
             // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            = *reinterpret_cast<std::map<std::string, unsigned int>*>(data2);
+            = *reinterpret_cast<std::map<std::string, afv_native::afv::dto::Station>*>(data2);
 
         for (const auto& station : stations) {
             const std::string& callsign = station.first;
-            const unsigned int frequency = station.second;
+            const unsigned int frequency = station.second.Frequency;
 
             if (mClient->IsFrequencyActive(frequency)) {
                 PLOGW << "VccsReceived: Frequency " << frequency << " already active, skipping";
                 continue;
             }
 
-            NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
+            nlohmann::json stationData = station.second;
+
+            NapiHelpers::callElectron("StationDataReceived", callsign, stationData.dump());
             MainThreadShared::mApiServer->publishStationAdded(
                 callsign, static_cast<int>(frequency));
         }
@@ -705,9 +711,9 @@ VersionCheckResponse CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         if (!res || res->status != httplib::StatusCode::OK_200) {
             std::string errorDetail;
             if (res) {
-              errorDetail = "HTTP error " + std::to_string(res->status);
+                errorDetail = "HTTP error " + std::to_string(res->status);
             } else {
-              errorDetail = "Unable to reach server at all or no internet connection";
+                errorDetail = "Unable to reach server at all or no internet connection";
             }
             PLOGE << "Error fetching version: " << errorDetail;
             MainThreadShared::ShouldRun = false;
