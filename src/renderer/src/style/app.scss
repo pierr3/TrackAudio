@@ -363,12 +363,14 @@ button:disabled {
 
 .radio-alias-freq {
   position: absolute;
-  top: 5px;
+  top: 0px;
   left: 5px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: $primary;
+  font-size: 11px;
+  font-weight: 600;
+  // width: 7px;
+  // height: 7px;
+  // border-radius: 50%;
+  // background-color: $primary;
   z-index: 1000;
 }
 

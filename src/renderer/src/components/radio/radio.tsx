@@ -59,6 +59,7 @@ VolumeControls.displayName = 'VolumeControls';
 const Radio: React.FC<RadioProps> = ({ radio }) => {
   const postError = useErrorStore((state) => state.postError);
   const [isHoveringFrequency, setIsHoveringFrequency] = useState(false);
+  const [showAliasFrequency, setShowAliasFrequency] = useState(false);
 
   const [
     setRadioState,
@@ -152,6 +153,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       }
     }
   }, [localVolume, radio.frequency, radio.isOutputMuted]);
+  const [canToggleOnHover, setCanToggleOnHover] = useState(true);
 
   useEffect(() => {
     if (!isInternalUpdate.current && radio.outputVolume !== localVolume) {
@@ -200,6 +202,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   const clickRadioHeader = useCallback(() => {
     if (isEditMode) {
       addOrRemoveRadioToBeDeleted(radio);
+    } else if (radio.humanFrequencyAlias) {
+      setShowAliasFrequency(!showAliasFrequency);
+      setCanToggleOnHover(false);
     }
     selectRadio(radio.frequency);
     if (radio.transceiverCount === 0 && radio.callsign !== 'MANUAL') {
@@ -248,9 +253,33 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   };
 
   const handleMouseLeaveFrequency = () => {
+    setCanToggleOnHover(true);
     setIsHoveringFrequency(false);
   };
 
+  const getDisplayFrequency = (): string => {
+    if (!radio.humanFrequencyAlias) {
+      return radio.humanFrequency;
+    }
+
+    if (isHoveringFrequency && canToggleOnHover) {
+      return showAliasFrequency ? radio.humanFrequency : radio.humanFrequencyAlias;
+    }
+
+    return showAliasFrequency ? radio.humanFrequencyAlias : radio.humanFrequency;
+  };
+
+  const showFrequencyTypeIndicator = radio.humanFrequencyAlias != null;
+
+  const getFrequencyTypeDisplay = () => {
+    if (!showFrequencyTypeIndicator) return null;
+
+    if (isHoveringFrequency && canToggleOnHover) {
+      return showAliasFrequency ? 'VHF' : 'HF';
+    }
+
+    return showAliasFrequency ? 'HF' : 'VHF';
+  };
   const clickRx = () => {
     clickRadioHeader();
     const newState = !radio.rx;
@@ -455,7 +484,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     <div
       style={{ position: 'relative' }}
       className={clsx(
-        'radio relative',
+        'radio ',
         isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info',
         (radio.rx || radio.tx) && 'radio-active'
       )}
@@ -486,14 +515,11 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           />
         )}
       </div>
-      {radio.humanFrequencyAlias && radio.humanFrequency && (
-        <div
-          className={clsx(
-            'radio-alias-freq'
-            // isHoveringFrequency && 'bg-info' // Not sure what I think of this
-          )}
-          title="This radio has a paired frequency"
-        />
+
+      {showFrequencyTypeIndicator && (
+        <div className="radio-alias-freq text-muted" title="This radio has a paired frequency">
+          {getFrequencyTypeDisplay()}
+        </div>
       )}
       <div className="radio-content">
         <div className="radio-left">
@@ -513,7 +539,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
                 onMouseEnter={handleMouseEnterFrequency}
                 onMouseLeave={handleMouseLeaveFrequency}
               >
-                {isHoveringFrequency ? radio.humanFrequencyAlias : radio.humanFrequency}
+                {getDisplayFrequency()}
               </span>
               <span className="callsign text-muted">{radio.callsign}</span>
             </div>
