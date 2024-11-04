@@ -1,5 +1,7 @@
 import { RadioType } from '../store/radioStore';
 
+const endStations = ['GUARD', 'UNICOM'];
+
 /**
  * Compares two radios to determine sort order. The currently connected station
  * will always sort to the front of the list. The remaining stations will sort
@@ -18,6 +20,13 @@ export const radioCompare = (
   // The connected station always get sorted to the front of the list.
   if (a.callsign === connectedStationCallsign) return -1;
   if (b.callsign === connectedStationCallsign) return 1;
+
+  // Always push "GUARD" and "UNICOM" to the end of the list
+  const aIsEndStation = endStations.includes(a.station);
+  const bIsEndStation = endStations.includes(b.station);
+
+  if (aIsEndStation && !bIsEndStation) return 1;
+  if (!aIsEndStation && bIsEndStation) return -1;
 
   // The station name takes sort priority
   const stationComparison = a.station.localeCompare(b.station);
