@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Radio from './radio';
 import useRadioState from '../../store/radioStore';
 import TopBarContainer from './top-bar-container';
@@ -9,19 +9,53 @@ import { useMediaQuery } from 'react-responsive';
 import AddStation from '../sidebar/add-station';
 import AddFrequency from '../sidebar/add-frequency';
 
+const LOADING_DELAY = 500;
+const EXCLUDED_FREQUENCIES = [0, 122.8e6, 121.5e6];
+
 const RadioContainer: React.FC = () => {
   const radios = useRadioState((state) => state.radios);
-  const [isConnected, isNetworkConnected] = useSessionStore((state) => [
+  const [isConnected, isNetworkConnected, isAtc] = useSessionStore((state) => [
     state.isConnected,
-    state.isNetworkConnected
+    state.isNetworkConnected,
+    state.isAtc
   ]);
   const isWideScreen = useMediaQuery({ minWidth: '790px' });
-  const filteredRadios = useMemo(() => {
-    return radios.filter(
-      (radio) => radio.frequency !== 0 && radio.frequency !== 122.8e6 && radio.frequency !== 121.5e6
-    );
-  }, [radios]);
   const [showExpandedRxInfo] = useUtilStore((state) => [state.showExpandedRxInfo]);
+
+  const [uiState, setUiState] = useState<null | 'add-station' | 'show-radios'>();
+
+  // Filter radios once when the array changes
+  const filteredRadios = useMemo(() => {
+    return radios.filter((radio) => !EXCLUDED_FREQUENCIES.includes(radio.frequency));
+  }, [radios]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (!isConnected) {
+      setUiState(null);
+      return;
+    }
+
+    if (!isAtc) {
+      setUiState('add-station');
+      return;
+    }
+
+    if (filteredRadios.length === 0) {
+      timer = setTimeout(() => {
+        if (filteredRadios.length === 0) {
+          setUiState('add-station');
+        }
+      }, LOADING_DELAY);
+    } else {
+      setUiState('show-radios');
+    }
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [filteredRadios, isAtc]);
 
   if (!isNetworkConnected) {
     return (
@@ -60,10 +94,10 @@ const RadioContainer: React.FC = () => {
           <div
             className={`box-container ${showExpandedRxInfo && isWideScreen ? 'radio-list-expanded' : 'w-100'}`}
           >
-            {filteredRadios.length === 0 ? (
-              <div className="d-flex justify-content-center flex-column radio-text  h-100 w-100">
+            {uiState === 'add-station' && (
+              <div className="d-flex justify-content-center flex-column radio-text h-100 w-100">
                 <div
-                  className="container d-flex flex-column justify-content-center  h-100 align-items-center gap-4"
+                  className="container d-flex flex-column justify-content-center h-100 align-items-center gap-4"
                   style={{ paddingBottom: '0' }}
                 >
                   <div className="w-50">
@@ -74,7 +108,9 @@ const RadioContainer: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ) : (
+            )}
+
+            {uiState === 'show-radios' && (
               <div className="row mx-1 mt-1 gap-3">
                 {filteredRadios.map((radio) => (
                   <Radio key={radio.frequency} radio={radio} />
@@ -99,4 +135,5 @@ const RadioContainer: React.FC = () => {
     </div>
   );
 };
+
 export default RadioContainer;

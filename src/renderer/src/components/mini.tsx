@@ -21,7 +21,7 @@ const Mini: React.FC = () => {
         }}
       >
         <div className="container radio-list">
-          <div className="d-flex gap-1 justify-content-between">
+          <div className="d-flex gap-1 justify-content-center">
             <span style={{ color: 'red' }}>Disconnected</span>
           </div>
         </div>
