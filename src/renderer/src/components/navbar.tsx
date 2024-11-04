@@ -1,43 +1,34 @@
 import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
-import { checkIfCallsignIsRelief, getCleanCallsign } from '../helpers/CallsignHelper';
-import useErrorStore from '../store/errorStore';
 import useSessionStore from '../store/sessionStore';
-import useUtilStore from '../store/utilStore';
 import '../style/navbar.scss';
 import Clock from './clock';
 import MiniModeToggleButton from './MiniModeToggleButton';
 import SettingsModal from './settings-modal/settings-modal';
-import { Configuration } from 'src/shared/config.type';
+import TitleBar from './titlebar/TitleBar';
+import { GearFill, PencilSquare, PlusCircleFill } from 'react-bootstrap-icons';
+import SessionStatus from './titlebar/session-status/SessionStatus';
+import useUtilStore from '@renderer/store/utilStore';
+import AddStationModal from './add-station-model/station-modal';
+import DeleteMultipleRadios from './delete-multiple-radios';
+import useRadioState from '@renderer/store/radioStore';
+import RefreshMultipleRadios from './refresh-multiple-radios';
 
 const Navbar: React.FC = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [platform] = useUtilStore((state) => [state.platform]);
-
-  const postError = useErrorStore((state) => state.postError);
-  const [
-    isConnected,
-    isConnecting,
-    setIsConnecting,
-    setIsConnected,
-    callsign,
-    isNetworkConnected,
-    radioGain,
-    setRadioGain,
-    isAtc,
-    setStationCallsign
-  ] = useSessionStore((state) => [
-    state.isConnected,
-    state.isConnecting,
-    state.setIsConnecting,
-    state.setIsConnected,
-    state.callsign,
-    state.isNetworkConnected,
-    state.radioGain,
-    state.setRadioGain,
-    state.isAtc,
-    state.setStationCallsign
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAddStationModal, setShowAddStationModal] = useState(false);
+  const [platform, isEditMode, setIsEditMode] = useUtilStore((state) => [
+    state.platform,
+    state.isEditMode,
+    state.setIsEditMode
   ]);
+  const [callsign, isConnected, isConnecting] = useSessionStore((state) => [
+    state.callsign,
+    state.isConnected,
+    state.isConnecting
+  ]);
+
+  const [clearRadiosToBeDeleted] = useRadioState((state) => [state.clearRadiosToBeDeleted]);
 
   // Handles letting the main process know settings can be triggered
   // remotely, and responds to requests to open the settings dialog.
@@ -47,174 +38,125 @@ const Navbar: React.FC = () => {
     });
 
     window.electron.ipcRenderer.on('show-settings', () => {
-      setShowModal(true);
+      if (showAddStationModal) return;
+      setShowSettingsModal(true);
     });
   }, []);
 
-  useEffect(() => {
-    window.api
-      .getConfig()
-      .then((config: Configuration) => {
-        const gain = config.radioGain || 0.5;
-        const UiGain = gain * 100 || 50;
-
-        window.api
-          .SetRadioGain(gain)
-          .then(() => {
-            setRadioGain(UiGain);
-          })
-          .catch((err: unknown) => {
-            console.error(err);
-          });
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, [setRadioGain]);
-
-  const doConnect = () => {
-    setIsConnecting(true);
-    window.api
-      .connect()
-      .then((ret) => {
-        if (!ret) {
-          postError('Error connecting to AFV, check your configuration and credentials.');
-          setIsConnecting(false);
-          setIsConnected(false);
-        }
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  };
-
-  const handleConnectDisconnect = () => {
-    if (isConnected) {
-      void window.api.disconnect();
-      return;
-    }
-
-    if (!isNetworkConnected) {
-      return;
-    }
-
-    if (checkIfCallsignIsRelief(callsign) && isAtc) {
-      const reliefCallsign = getCleanCallsign(callsign);
-      window.api
-        .dialog(
-          'question',
-          'Relief callsign detected',
-          'You might be using a relief callsign, please select which callsign you want to use.',
-          [callsign, reliefCallsign]
-        )
-        .then((ret) => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          if (ret.response === 0) {
-            setStationCallsign(callsign);
-          } else {
-            setStationCallsign(reliefCallsign);
-          }
-        })
-        .then(() => {
-          doConnect();
-        })
-        .catch((err: unknown) => {
-          console.error(err);
-        });
-    } else {
-      setStationCallsign(callsign);
-      doConnect();
-    }
-  };
-
-  const updateRadioGainValue = (newGain: number) => {
-    window.api
-      .SetRadioGain(newGain / 100)
-      .then(() => {
-        setRadioGain(newGain);
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  };
-
-  const handleRadioGainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateRadioGainValue(event.target.valueAsNumber);
-  };
-
-  const handleRadioGainMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
-    const newValue = Math.min(Math.max(radioGain + (event.deltaY > 0 ? -1 : 1), 0), 100);
-
-    updateRadioGainValue(newValue);
-  };
-
   return (
     <>
-      <div className="d-flex flex-md-row align-items-center p-3 px-md-4 mb-3 custom-navbar hide-topbar">
-        <Clock />
-        <span
-          className={clsx(
-            'btn text-box-container m-2',
-            isNetworkConnected && !isAtc && 'color-warning'
+      <TitleBar className="d-flex flex-md-row align-items-center custom-navbar hide-topbar">
+        <TitleBar.Section name="left" priority={1}>
+          <TitleBar.Element priority={4}>
+            <Clock />
+          </TitleBar.Element>
+          <TitleBar.Element priority={1}>
+            <div className="d-flex h-100 align-items-center">
+              <button
+                className={clsx(
+                  'btn hide-settings-flex',
+                  isEditMode ? 'btn-warning' : 'btn-primary'
+                )}
+                disabled={!isConnected}
+                onClick={() => {
+                  setIsEditMode(!isEditMode);
+                  clearRadiosToBeDeleted();
+                }}
+              >
+                <PencilSquare />
+              </button>
+            </div>
+          </TitleBar.Element>
+          {isEditMode && (
+            <TitleBar.Element priority={2}>
+              <DeleteMultipleRadios />
+            </TitleBar.Element>
           )}
-        >
-          {isNetworkConnected ? callsign : 'Not Connected'}
-        </span>
-        <button
-          className={clsx(
-            'btn m-2 hide-connect-flex',
-            !isConnected && 'btn-info',
-            isConnecting && 'loading-button',
-            isConnected && 'btn-danger'
+          {isEditMode && (
+            <TitleBar.Element priority={3}>
+              <RefreshMultipleRadios />
+            </TitleBar.Element>
           )}
-          onClick={() => {
-            handleConnectDisconnect();
-          }}
-          disabled={isConnecting || !isNetworkConnected}
-        >
-          {isConnected ? 'Disconnect' : isConnecting ? 'Connecting...' : 'Connect'}
-        </button>
-        <button
-          className="btn btn-info m-2 hide-settings-flex"
-          disabled={isConnected || isConnecting}
-          onClick={() => {
-            setShowModal(true);
-          }}
-        >
-          Settings
-        </button>
+          {!isEditMode && (
+            <TitleBar.Element priority={2}>
+              <div className="d-flex h-100 align-items-center">
+                <button
+                  className="btn btn-primary hide-settings-flex"
+                  disabled={!isConnected}
+                  onClick={() => {
+                    if (showSettingsModal || !isConnected) return;
+                    setShowAddStationModal(true);
+                  }}
+                >
+                  <PlusCircleFill />
+                </button>
+              </div>
+            </TitleBar.Element>
+          )}
+          {!isEditMode && (
+            <TitleBar.Element priority={3}>
+              <div className="d-flex h-100 align-items-center">
+                <button
+                  className="btn btn-primary hide-settings-flex"
+                  disabled={isConnected || isConnecting}
+                  onClick={() => {
+                    if (showAddStationModal) return;
+                    setShowSettingsModal(true);
+                  }}
+                >
+                  <GearFill />
+                </button>
+              </div>
+            </TitleBar.Element>
+          )}
+        </TitleBar.Section>
+        <TitleBar.Section name="center" priority={2}>
+          <TitleBar.Element priority={0}>
+            <span className={clsx('d-flex h-100 align-items-center draggable package-text')}>
+              {isConnected && callsign
+                ? `Connected as ${callsign}`
+                : callsign
+                  ? callsign
+                  : 'Track Audio'}
+            </span>
+          </TitleBar.Element>
+        </TitleBar.Section>
+        <TitleBar.Section name="right" priority={0}>
+          {/* {isNetworkConnected && ( */}
+          <TitleBar.Element priority={2}>
+            <div className="d-flex h-100 align-items-center">
+              <MiniModeToggleButton showRestoreButton={false} />
+              {platform === 'linux' && (
+                <button
+                  className="btn btn-danger m-1 hide-gain-value"
+                  onClick={() => void window.api.CloseMe()}
+                >
+                  X
+                </button>
+              )}
+            </div>
+          </TitleBar.Element>
+          {/* )} */}
+          {/* {isNetworkConnected && ( */}
+          <TitleBar.Element priority={1}>
+            <SessionStatus />
+          </TitleBar.Element>
+          {/* )} */}
+        </TitleBar.Section>
+      </TitleBar>
 
-        <span
-          className="btn text-box-container m-2 hide-gain-value"
-          style={{ width: '88px' }}
-          onWheel={handleRadioGainMouseWheel}
-        >
-          Gain: {radioGain.toFixed(0).padStart(3, '0')}%
-        </span>
-        <input
-          type="range"
-          className="form-range m-2 gain-slider"
-          min="0"
-          max="100"
-          step="1"
-          onChange={handleRadioGainChange}
-          onWheel={handleRadioGainMouseWheel}
-          value={radioGain}
-        ></input>
-        <MiniModeToggleButton showRestoreButton={false} />
-        {platform === 'linux' && (
-          <button
-            className="btn btn-danger m-2 hide-gain-value"
-            onClick={() => void window.api.CloseMe()}
-          >
-            X
-          </button>
-        )}
-      </div>
-      {showModal && (
+      {showSettingsModal && (
         <SettingsModal
           closeModal={() => {
-            setShowModal(false);
+            setShowSettingsModal(false);
+          }}
+        />
+      )}
+
+      {showAddStationModal && (
+        <AddStationModal
+          closeModal={() => {
+            setShowAddStationModal(false);
           }}
         />
       )}

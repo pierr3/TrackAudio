@@ -1,7 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import Navbar from './components/navbar';
 import RadioContainer from './components/radio/radio-container';
-import Sidebar from './components/sidebar/sidebar';
 
 import ErrorDialog from './components/error';
 import Bootstrap from './components/bootstrap';
@@ -9,8 +8,23 @@ import Mini from './components/mini';
 
 import './index.scss';
 import './style/app.scss';
+import FocusBar from './components/focusBar';
+// import { useState } from 'react';
+// import Updater from './components/updater/Updater';
 
 function App() {
+  // const [updateCheckDone, setUpdateCheckDone] = useState(false);
+
+  // if (!updateCheckDone) {
+  //   return (
+  //     <Updater
+  //       onFinish={() => {
+  //         setUpdateCheckDone(true);
+  //       }}
+  //     />
+  //   );
+  // }
+
   return (
     <>
       <Bootstrap />
@@ -18,8 +32,11 @@ function App() {
       <ErrorDialog />
       <div className="structure">
         <Mini />
-        <RadioContainer />
-        <Sidebar />
+        <div className="sub-structure d-flex flex-column">
+          <RadioContainer />
+          <FocusBar />
+        </div>
+        {/* <Sidebar /> */}
       </div>
     </>
   );

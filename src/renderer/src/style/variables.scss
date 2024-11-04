@@ -116,8 +116,8 @@ $sub-font-size: 11px;
 $modal-border: 2px solid $dark-border;
 $modal-border-danger: 2px solid $dark-border;
 $sidebar-width: 250px;
-$navbar-height: 46px;
-$focusbar-height: 30px;
+$navbar-height: 36px;
+$focusbar-height: 28px;
 
 /* buttons */
 $btn-padding-x: 7px;
@@ -132,4 +132,4 @@ $progress-bar-transition: width 0.1s ease;
 
 /* mini mode */
 $mini-font-size: 16px;
-$mini-mode-width-break-point: 330px; // When changing this also update the miniModeWidthBreakPoint constant in index.ts
+$mini-mode-width-break-point: 455px; // When changing this also update the miniModeWidthBreakPoint constant in index.ts
