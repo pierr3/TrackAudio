@@ -346,17 +346,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       <option value="true">Always</option>
                       <option value="false">Never</option>
                     </select>
-
-                    <label className="mt-2">Transparent mini mode</label>
-                    <select
-                      id=""
-                      className="form-control mt-1"
-                      onChange={handleTransparentMiniMode}
-                      value={transparentMiniMode.toString()}
-                    >
-                      <option value="true">Always</option>
-                      <option value="false">Never</option>
-                    </select>
                   </div>
                 </div>
               </div>
@@ -397,6 +386,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     }}
                   />
                 </div>
+                <label className="mt-2">Transparent mini mode</label>
+                    <select
+                      id=""
+                      className="form-control mt-1"
+                      onChange={handleTransparentMiniMode}
+                      value={transparentMiniMode.toString()}
+                    >
+                      <option value="true">Always</option>
+                      <option value="false">Never</option>
+                    </select>
               </div>
             </div>
             <div className="modal-body" style={{ paddingTop: '0' }}>
