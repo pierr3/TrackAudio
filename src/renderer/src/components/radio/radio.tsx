@@ -33,17 +33,29 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   const isATC = useSessionStore((state) => state.isAtc);
   const [canToggleOnHover, setCanToggleOnHover] = useState(true);
 
-  const clickRadioHeader = () => {
-    if (isEditMode) {
-      addOrRemoveRadioToBeDeleted(radio);
-    } else if (radio.humanFrequencyAlias) {
-      setShowAliasFrequency(!showAliasFrequency);
-      setCanToggleOnHover(false);
+  const getDisplayFrequencyInfo = () => {
+    if (!radio.humanFrequencyAlias) {
+      return {
+        displayValue: radio.humanFrequency,
+        isShowingAlias: false
+      };
     }
-    selectRadio(radio.frequency);
-    if (radio.transceiverCount === 0 && radio.callsign !== 'MANUAL') {
-      void window.api.RefreshStation(radio.callsign);
+
+    if (isHoveringFrequency && canToggleOnHover) {
+      return {
+        displayValue: showAliasFrequency
+          ? radio.humanFrequency
+          : (radio.humanFrequencyAlias as string),
+        isShowingAlias: !showAliasFrequency
+      };
     }
+
+    return {
+      displayValue: showAliasFrequency
+        ? (radio.humanFrequencyAlias as string)
+        : radio.humanFrequency,
+      isShowingAlias: showAliasFrequency
+    };
   };
 
   const handleMouseEnterFrequency = () => {
@@ -57,28 +69,29 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     setIsHoveringFrequency(false);
   };
 
-  const getDisplayFrequency = (): string => {
-    if (!radio.humanFrequencyAlias) {
-      return radio.humanFrequency;
+  const clickRadioHeader = () => {
+    if (isEditMode) {
+      addOrRemoveRadioToBeDeleted(radio);
+    } else if (radio.humanFrequencyAlias) {
+      setShowAliasFrequency(!showAliasFrequency);
+      setCanToggleOnHover(false);
     }
-
-    if (isHoveringFrequency && canToggleOnHover) {
-      return showAliasFrequency ? radio.humanFrequency : (radio.humanFrequencyAlias as string);
+    selectRadio(radio.frequency);
+    if (radio.transceiverCount === 0 && radio.callsign !== 'MANUAL') {
+      void window.api.RefreshStation(radio.callsign);
     }
-
-    return showAliasFrequency ? (radio.humanFrequencyAlias as string) : radio.humanFrequency;
   };
 
-  const showFrequencyTypeIndicator = radio.humanFrequencyAlias != null;
+  const { displayValue } = getDisplayFrequencyInfo();
 
   const getFrequencyTypeDisplay = () => {
-    if (!showFrequencyTypeIndicator) return null;
+    if (!radio.humanFrequencyAlias) return null;
 
     if (isHoveringFrequency && canToggleOnHover) {
-      return showAliasFrequency ? 'VHF' : 'HF';
+      return showAliasFrequency ? 'HF' : 'VHF';
     }
 
-    return showAliasFrequency ? 'HF' : 'VHF';
+    return showAliasFrequency ? 'VHF' : 'HF';
   };
   const clickRx = () => {
     clickRadioHeader();
@@ -264,8 +277,11 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         (radio.rx || radio.tx) && 'radio-active'
       )}
     >
-      {showFrequencyTypeIndicator && (
-        <div className="radio-alias-freq text-muted" title="This radio has a paired frequency">
+      {radio.humanFrequencyAlias && (
+        <div
+          className={clsx('radio-alias-freq text-muted')}
+          title="This radio has a paired frequency"
+        >
           {getFrequencyTypeDisplay()}
         </div>
       )}
@@ -287,7 +303,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
                 onMouseEnter={handleMouseEnterFrequency}
                 onMouseLeave={handleMouseLeaveFrequency}
               >
-                {getDisplayFrequency()}
+                {displayValue}
               </span>
               <span className="callsign text-muted">{radio.callsign}</span>
             </div>
