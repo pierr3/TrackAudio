@@ -198,6 +198,26 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     },
     [localVolume, radio.isOutputMuted, radio.callsign]
   );
+  const getDisplayFrequencyInfo = () => {
+    if (!radio.humanFrequencyAlias) {
+      return {
+        displayValue: radio.humanFrequency,
+        isShowingAlias: false
+      };
+    }
+
+    if (isHoveringFrequency && canToggleOnHover) {
+      return {
+        displayValue: showAliasFrequency ? radio.humanFrequency : radio.humanFrequencyAlias,
+        isShowingAlias: !showAliasFrequency
+      };
+    }
+
+    return {
+      displayValue: showAliasFrequency ? radio.humanFrequencyAlias : radio.humanFrequency,
+      isShowingAlias: showAliasFrequency
+    };
+  };
 
   const clickRadioHeader = useCallback(() => {
     if (isEditMode) {
@@ -257,28 +277,16 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     setIsHoveringFrequency(false);
   };
 
-  const getDisplayFrequency = (): string => {
-    if (!radio.humanFrequencyAlias) {
-      return radio.humanFrequency;
-    }
-
-    if (isHoveringFrequency && canToggleOnHover) {
-      return showAliasFrequency ? radio.humanFrequency : radio.humanFrequencyAlias;
-    }
-
-    return showAliasFrequency ? radio.humanFrequencyAlias : radio.humanFrequency;
-  };
-
-  const showFrequencyTypeIndicator = radio.humanFrequencyAlias != null;
+  const { displayValue } = getDisplayFrequencyInfo();
 
   const getFrequencyTypeDisplay = () => {
-    if (!showFrequencyTypeIndicator) return null;
+    if (!radio.humanFrequencyAlias) return null;
 
     if (isHoveringFrequency && canToggleOnHover) {
-      return showAliasFrequency ? 'VHF' : 'HF';
+      return showAliasFrequency ? 'HF' : 'VHF';
     }
 
-    return showAliasFrequency ? 'HF' : 'VHF';
+    return showAliasFrequency ? 'VHF' : 'HF';
   };
   const clickRx = () => {
     clickRadioHeader();
@@ -516,8 +524,11 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         )}
       </div>
 
-      {showFrequencyTypeIndicator && (
-        <div className="radio-alias-freq text-muted" title="This radio has a paired frequency">
+      {radio.humanFrequencyAlias && (
+        <div
+          className={clsx('radio-alias-freq text-muted')}
+          title="This radio has a paired frequency"
+        >
           {getFrequencyTypeDisplay()}
         </div>
       )}
@@ -539,7 +550,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
                 onMouseEnter={handleMouseEnterFrequency}
                 onMouseLeave={handleMouseLeaveFrequency}
               >
-                {getDisplayFrequency()}
+                {displayValue}
               </span>
               <span className="callsign text-muted">{radio.callsign}</span>
             </div>
