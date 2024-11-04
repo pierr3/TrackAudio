@@ -37,12 +37,11 @@ const RadioContainer: React.FC = () => {
       return;
     }
 
-    if (!isAtc) {
-      setUiState('add-station');
-      return;
-    }
-
     if (filteredRadios.length === 0) {
+      if (!isAtc) {
+        setUiState('add-station');
+        return;
+      }
       timer = setTimeout(() => {
         if (filteredRadios.length === 0) {
           setUiState('add-station');
