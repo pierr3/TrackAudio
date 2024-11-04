@@ -1,7 +1,7 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
-
+import { ProgressInfo, UpdateDownloadedEvent, UpdateInfo } from 'electron-updater';
 
 export const api = {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
@@ -12,12 +12,30 @@ export const api = {
       listener(...args);
     });
   },
+
+  onIpc<T>(channel: string, func: (data: T) => void): () => void {
+    const subscription = (_event: IpcRendererEvent, args: unknown): void => {
+      func(args as T);
+    };
+
+    ipcRenderer.on(channel, subscription);
+
+    return () => {
+      ipcRenderer.removeListener(channel, subscription);
+    };
+  },
   removeAllListeners: (channel: string) => {
     ipcRenderer.removeAllListeners(channel);
   },
 
   setAlwaysOnTop: (state: AlwaysOnTopMode) => {
     ipcRenderer.send('set-always-on-top', state);
+  },
+  setShowExpandedRx: (state: boolean) => {
+    ipcRenderer.send('set-show-expanded-rx', state);
+  },
+  setTransparentMiniMode: (state: boolean) => {
+    ipcRenderer.send('set-transparent-mini-mode', state);
   },
   getAudioApis: () => ipcRenderer.invoke('audio-get-apis'),
   getAudioInputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-input-devices', apiId),
@@ -83,10 +101,12 @@ export const api = {
   UpdatePlatform: () => ipcRenderer.invoke('update-platform'),
 
   CloseMe: () => ipcRenderer.invoke('close-me'),
+  Restart: () => ipcRenderer.invoke('restart'),
 
   RequestPttKeyName: (pttIndex: number) => ipcRenderer.invoke('request-ptt-key-name', pttIndex),
 
-  toggleMiniMode: () => ipcRenderer.invoke('toggle-mini-mode'),
+  toggleMiniMode: (numberOfRadios: number) =>
+    ipcRenderer.invoke('toggle-mini-mode', numberOfRadios),
 
   dialog: (
     type: 'none' | 'info' | 'error' | 'question' | 'warning',
@@ -95,7 +115,102 @@ export const api = {
     buttons: string[]
   ) => ipcRenderer.invoke('dialog', type, title, message, buttons),
 
-  settingsReady: () => ipcRenderer.invoke('settings-ready')
+  settingsReady: () => ipcRenderer.invoke('settings-ready'),
+
+  isTrustedAccessibility(): Promise<boolean> {
+    return ipcRenderer.invoke('is-trusted-accessibility') as Promise<boolean>;
+  },
+
+  updater: {
+    checkForUpdates(): Promise<void> {
+      return new Promise<void>((resolve) => {
+        ipcRenderer.once('check-for-updates', () => {
+          resolve();
+        });
+        ipcRenderer.send('check-for-updates');
+      });
+    },
+
+    onCheckingForUpdate(callback: () => void): () => void {
+      return api.onIpc('check-for-updates', () => {
+        callback();
+      });
+    },
+
+    quitAndInstall(): void {
+      ipcRenderer.send('quit-and-install');
+    },
+
+    onUpdateAvailable(): Promise<UpdateInfo> {
+      return new Promise<UpdateInfo>((resolve) => {
+        ipcRenderer.once('update-available', (_event, info: UpdateInfo) => {
+          resolve(info);
+        });
+      });
+    },
+
+    onUpdateNotAvailable(): Promise<void> {
+      return new Promise<void>((resolve) => {
+        ipcRenderer.once('update-not-available', () => {
+          resolve();
+        });
+      });
+    },
+
+    onUpdateError(callback: (error: Error) => void): () => void {
+      return api.onIpc<Error>('update-error', (error) => {
+        callback(error);
+      });
+    },
+
+    onUpdateDownloadProgress(callback: (progressObj: ProgressInfo) => void): () => void {
+      return api.onIpc<ProgressInfo>('update-download-progress', (info) => {
+        callback(info);
+      });
+    },
+
+    onUpdateDownloaded(): Promise<UpdateDownloadedEvent> {
+      return new Promise<UpdateDownloadedEvent>((resolve) => {
+        ipcRenderer.once('update-downloaded', (_event, info: UpdateDownloadedEvent) => {
+          resolve(info);
+        });
+      });
+    }
+  },
+
+  window: {
+    checkIsFullscreen(): void {
+      ipcRenderer.send('is-window-fullscreen');
+    },
+    minimise: (): void => {
+      ipcRenderer.send('minimise-window');
+    },
+    maximise: (): void => {
+      ipcRenderer.send('maximise-window');
+    },
+    unmaximise: (): void => {
+      ipcRenderer.send('unmaximise-window');
+    },
+    close: (): void => {
+      ipcRenderer.send('close-window');
+    },
+    isFullScreen: (callback: (status: boolean) => void): (() => void) => {
+      return api.onIpc<boolean>('is-window-fullscreen', (data) => {
+        callback(data);
+      });
+    },
+    isMaximised: (callback: (status: boolean) => void): (() => void) => {
+      return api.onIpc<boolean>('is-window-maximised', (data) => {
+        callback(data);
+      });
+    },
+    setMinimumSize: (width: number, height: number): void => {
+      ipcRenderer.send('set-minimum-size', width, height);
+    },
+    setWindowButtonVisibility: (status: boolean): void => {
+      ipcRenderer.send('set-window-button-visibility', status);
+    }
+  }
 };
 
 export type API = typeof api;

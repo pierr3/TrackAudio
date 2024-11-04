@@ -204,7 +204,15 @@ button:disabled {
 }
 
 .structure {
-  height: calc(100vh - $navbar-height - $focusbar-height);
+  height: calc(100vh - $navbar-height);
+}
+
+.sub-structure {
+  height: calc(100% - $focusbar-height);
+}
+
+.sub-sub-structure {
+  height: calc(100vh - $focusbar-height - $navbar-height - 60px - 1rem);
 }
 
 .text-box-container,
@@ -224,6 +232,29 @@ button:disabled {
   outline: lighten($disabled, 15%) solid 3px;
   padding: 10px;
   border-radius: 0.375rem;
+  overflow: auto;
+}
+
+.box-container-blank {
+  color: $btn-text-color;
+  // border-color: lighten($disabled, 20%);
+  // outline: lighten($disabled, 15%) solid 3px;
+  padding: 10px;
+  border-radius: 0.375rem;
+  overflow: auto;
+}
+
+.box-container::-webkit-scrollbar-track {
+  padding: 0px 0;
+  background-color: $dark;
+}
+
+.box-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.box-container::-webkit-scrollbar-thumb {
+  background-color: $body-color;
 }
 
 .freq-box {
@@ -234,6 +265,16 @@ button:disabled {
   height: 100%;
   width: 65%;
   padding: 0;
+}
+
+.focusbar-container {
+  height: $focusbar-height;
+  width: 100%;
+  position: fixed;
+  padding: 0 4px;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
 }
 
 // When changing the max-width property make sure to update the miniModeWidthBreakpoint constant in
@@ -266,27 +307,129 @@ button:disabled {
   }
 }
 
+.radio-list-expanded {
+  width: 100%;
+}
+
+.radio-inactive {
+  background-color: $disabled !important;
+}
+
 .radio {
-  margin-right: 10px;
-  margin-top: 10px;
+  width: 205px;
+  height: 90px;
+  // margin: 5px;
+  padding: 10px;
   color: $btn-text-color;
   background-color: lighten($disabled, 5%);
-  border-color: lighten($disabled, 20%);
-  outline: lighten($disabled, 25%) solid 2px;
-  padding: 10px;
   border-radius: 0.375rem;
-  height: 90px;
-  width: 205px;
+  outline: lighten($disabled, 25%) solid 2px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: lighten($disabled, 10%);
+  }
+
+  // Main layout container
+  .radio-content {
+    height: 100%;
+    display: flex;
+    gap: 5%;
+  }
+
+  // Left side with frequency and controls
+  .radio-left {
+    width: 48%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5%;
+  }
+
+  // Right side with RX/TX
+  .radio-right {
+    width: 48%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10%;
+  }
+
+  // Header button
+  .radio-header {
+    width: 100%;
+    height: 45%;
+    margin-bottom: 4%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+
+    .radio-text-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      // gap: 1px;
+    }
+
+    .frequency {
+      font-size: 15px;
+      line-height: 1;
+      font-weight: 500;
+    }
+
+    .callsign {
+      font-size: 14px;
+      line-height: 1;
+      font-weight: normal;
+    }
+  }
+
+  .radio-controls {
+    height: 45%;
+    display: flex;
+    gap: 10%;
+
+    .control-btn {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  .radio-button {
+    width: 100%;
+    height: 45%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
-.radio:hover {
-  background-color: lighten($disabled, 10%);
+// Grid container for multiple radios
+.radio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+  gap: 10px;
+  padding: 10px;
 }
 
-.radio-btn {
-  margin: 5px;
-  width: 100%;
-  height: 100%;
+// Media queries
+@media (max-width: $mini-mode-width-break-point) {
+  .radio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .radio {
+    width: 100%;
+  }
 }
 
 select:disabled {
@@ -343,8 +486,33 @@ select:disabled {
   cursor: pointer;
 }
 
+.modal-body::-webkit-scrollbar-thumb {
+  background-color: $body-color;
+}
+
+.btn-no-interact {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  background: transparent;
+  width: 100%;
+  padding: 0.25rem;
+
+  &:focus,
+  &:hover,
+  &:active {
+    border: none;
+    outline: none;
+  }
+}
+
 .licenses {
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.elapsed-time {
+  font-size: 13px;
 }
 
 .alert-popup {
@@ -373,12 +541,12 @@ select:disabled {
 
 .mini {
   display: none;
-  height: calc(100vh - 14px) !important;
-  width: calc(100% - 14px);
-  margin-right: 7px;
-  margin-left: 7px;
-  margin-top: 7px;
-  margin-bottom: 7px;
+  // height: calc(100vh - 14px) !important;
+  // width: calc(100% - 14px);
+  // margin-right: 7px;
+  // margin-left: 7px;
+  margin-top: 1px;
+  // margin-bottom: 7px;
   float: left;
   font-size: $mini-font-size;
 }
@@ -434,5 +602,29 @@ select:disabled {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: lighten(rgb(50, 50, 58), 10%) /* Color of the scrollbar thumb on hover */
+  background: lighten(rgb(50, 50, 58), 10%); /* Color of the scrollbar thumb on hover */
+}
+
+.radio-text {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.radio-sub-text {
+  font-size: 13px;
+}
+
+.connection-status {
+  min-width: 90px;
+}
+
+.cursor {
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+}
+
+* {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }

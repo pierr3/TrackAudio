@@ -4,11 +4,24 @@ import useErrorStore from '../store/errorStore';
 import useSessionStore from '../store/sessionStore';
 import useUtilStore from '../store/utilStore';
 import { StationStateUpdate } from '../interfaces/StationStateUpdate';
+import { Configuration } from 'src/shared/config.type';
 
 const Bootsrap: React.FC = () => {
   useEffect(() => {
     void window.api.RequestPttKeyName(1);
     void window.api.RequestPttKeyName(2);
+
+    window.api.window.checkIsFullscreen();
+
+    window.api
+      .getConfig()
+      .then((config: Configuration) => {
+        useUtilStore.getState().setShowExpandedRxInfo(config.showExpandedRx);
+        useUtilStore.getState().setTransparentMiniMode(config.transparentMiniMode);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
 
     window.api.on('VuMeter', (vu: string, peakVu: string) => {
       const vuFloat = Math.abs(parseFloat(vu));
@@ -110,6 +123,7 @@ const Bootsrap: React.FC = () => {
       useSessionStore.getState().setIsConnecting(false);
       useSessionStore.getState().setIsConnected(false);
       useRadioState.getState().reset();
+      useUtilStore.getState().setIsEditMode(false);
     });
 
     window.api.on('network-connected', (callsign: string, dataString: string) => {

@@ -25,6 +25,12 @@
       "presentation": {
         "hidden": true
       }
+    },
+    {
+      "type": "lldb",
+      "request": "attach",
+      "name": "Debug Electron Renderer",
+      "pid": "${command:pickProcess}"
     }
   ],
   "compounds": [

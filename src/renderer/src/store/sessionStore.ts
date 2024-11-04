@@ -10,6 +10,8 @@ interface sessionStore {
   frequency: number;
   radioGain: number;
   stationCallsign: string;
+  connectTimestamp: number | null;
+
   setCallsign: (callsign: string) => void;
   setIsAtc: (isAtc: boolean) => void;
   setIsConnected: (isConnected: boolean) => void;
@@ -34,6 +36,8 @@ const useSessionStore = create<sessionStore>((set) => ({
   pttKeyName: '',
   radioGain: 50,
   stationCallsign: '',
+  connectTimestamp: null,
+
   setCallsign: (callsign) => {
     set({ callsign });
   },
@@ -42,6 +46,7 @@ const useSessionStore = create<sessionStore>((set) => ({
   },
   setIsConnected: (isConnected) => {
     set({ isConnected });
+    set({ connectTimestamp: isConnected ? Date.now() : null });
   },
   setIsConnecting: (isConnecting) => {
     set({ isConnecting });

@@ -6,14 +6,28 @@ interface UtilStore {
   platform: string;
   ptt1KeyName: string;
   ptt2KeyName: string;
+  isWindowFullscreen: boolean;
+  isWindowMaximised: boolean;
+  showExpandedRxInfo: boolean;
   hasPtt1BeenSetDuringSetup: boolean;
   hasPtt2BeenSetDuringSetup: boolean;
+  isEditMode: boolean;
+  pendingRestart: boolean;
+  transparentMiniMode: boolean;
+  time: Date;
+  setIsEditMode: (isEditMode: boolean) => void;
   setPtt1KeyName: (ptt1KeyName: string) => void;
   setPtt2KeyName: (ptt2KeyName: string) => void;
   updateVu: (vu: number, peakVu: number) => void;
   updatePlatform: (platform: string) => void;
   updatePtt1KeySet: (hasPtt1BeenSetDuringSetup: boolean) => void;
   updatePtt2KeySet: (hasPtt2BeenSetDuringSetup: boolean) => void;
+  setWindowFullscreen: (fullscreen: boolean) => void;
+  setWindowMaximised: (maximised: boolean) => void;
+  setShowExpandedRxInfo: (showExpandedRxInfo: boolean) => void;
+  setTransparentMiniMode: (transparentMiniMode: boolean) => void;
+  setPendingRestart: (pendingRestart: boolean) => void;
+  setTime: (time: Date) => void;
 }
 
 const useUtilStore = create<UtilStore>((set) => ({
@@ -24,6 +38,16 @@ const useUtilStore = create<UtilStore>((set) => ({
   ptt2KeyName: '',
   hasPtt1BeenSetDuringSetup: false,
   hasPtt2BeenSetDuringSetup: false,
+  isWindowFullscreen: false,
+  isWindowMaximised: false,
+  showExpandedRxInfo: false,
+  isEditMode: false,
+  transparentMiniMode: false,
+  pendingRestart: false,
+  time: new Date(),
+  setIsEditMode: (isEditMode: boolean) => {
+    set({ isEditMode });
+  },
   setPtt1KeyName: (ptt1KeyName: string) => {
     set({ ptt1KeyName });
   },
@@ -41,6 +65,24 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   updatePtt2KeySet: (hasPtt2BeenSetDuringSetup: boolean) => {
     set({ hasPtt2BeenSetDuringSetup });
+  },
+  setWindowFullscreen: (fullscreen: boolean): void => {
+    set({ isWindowFullscreen: fullscreen });
+  },
+  setWindowMaximised: (maximised: boolean): void => {
+    set({ isWindowMaximised: maximised });
+  },
+  setShowExpandedRxInfo: (showExpandedRxInfo: boolean): void => {
+    set({ showExpandedRxInfo });
+  },
+  setTransparentMiniMode: (transparentMiniMode: boolean): void => {
+    set({ transparentMiniMode });
+  },
+  setPendingRestart: (pendingRestart: boolean): void => {
+    set({ pendingRestart });
+  },
+  setTime(time: Date): void {
+    set({ time });
   }
 }));
 

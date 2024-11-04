@@ -1,0 +1,113 @@
+@use './../../style/variables.scss' as Bootstrap;
+
+.pkg-content {
+  font-family: 'RobotoMono-Bold' !important;
+  overflow: auto;
+}
+
+.checking-for-update-text {
+  font-weight: 400;
+  font-size: 11px;
+  color: #5c5f75;
+  min-width: 152px;
+}
+
+.refresh-icon {
+  -webkit-app-region: no-drag;
+  color: #a4a9b0;
+  font-size: 11px;
+}
+
+.global-text {
+  font-size: 13px;
+}
+
+.description-text {
+  font-size: 11px;
+}
+
+.max-height-scroll {
+  height: 250px;
+}
+
+.list-group {
+  max-height: 330px;
+  width: 100%;
+  overflow: auto;
+}
+
+.list-group-item {
+  background-color: #2c2f45;
+  padding-bottom: 8px;
+  min-height: 82px;
+  color: Bootstrap.$body-color !important;
+}
+
+.list-group-item:hover {
+  background-color: #2c2f45;
+  color: Bootstrap.$body-color !important;
+}
+
+.list-group-item:focus {
+  background-color: #2c2f45;
+  color: Bootstrap.$body-color !important;
+}
+
+.version-text {
+  font-size: large;
+}
+
+.button-text {
+  font-size: 11px;
+  line-height: 10px;
+}
+
+.packages-list {
+  max-height: 244px;
+  overflow: auto;
+}
+
+.custom-btn:hover.btn-success {
+  color: white;
+  background-color: #2ebf4f;
+}
+
+.custom-btn:hover.btn-danger {
+  color: white;
+  background-color: #df4958;
+}
+
+.package-row-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.list-group-item {
+  background-color: #2c2f45;
+  padding-bottom: 8px;
+  /* min-height: 82px; */
+}
+
+.list-group-item:hover {
+  background-color: #0d6efd !important;
+}
+
+.list-group-item:focus {
+  background-color: #0d6efd !important;
+}
+
+.name-text {
+  font-size: 17px;
+}
+
+.structure-top {
+  height: calc(100vh - Bootstrap.$navbar-height);
+}
+
+.updater-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}

@@ -9,34 +9,65 @@
 }
 
 .unicom-bar-container {
-  height: 28px;
-  line-height: 25px;
+  height: 29px;
   width: fit-content;
-  margin: 10px;
+  // margin: 10px;
+
   background-color: lighten($disabled, 10%);
   border-radius: $card-border-radius;
   border-color: lighten($disabled, 20%);
   outline: lighten($disabled, 25%) solid 2px;
   padding-left: 10px;
-  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center; // Added to center items horizontally
+}
 
+.rx-info-expand {
+  height: 29px;
+}
+
+.rx-bar-container {
+  height: 29px;
+  width: fit-content;
+  margin: 7.5px 0px;
+  line-height: 29px;
+  background-color: lighten($disabled, 10%);
+  border-radius: $card-border-radius;
+  border-color: lighten($disabled, 20%);
+  outline: lighten($disabled, 25%) solid 2px;
+  padding: 0px 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center; // Added to center items horizontally
 }
 
 .hide-unicom-container {
+  display: flex;
+  align-items: center;
+
   @media screen and (max-width: 465px) {
     display: none;
   }
 }
 
 .unicom-line-item {
+  display: flex;
+  align-items: center;
   margin-right: 10px;
 }
 
 .unicom-text {
   display: inline-block;
+  vertical-align: middle;
+  height: 100%;
+  align-items: center;
+}
+
+.rx-text {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 600;
   vertical-align: middle;
 }
 
@@ -65,5 +96,9 @@
 
 .unicom-volume-bar {
   margin-right: 10px;
-  width: 50px !important;
+  width: 80px !important;
+}
+
+.global-volume-bar {
+  height: 23px;
 }

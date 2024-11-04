@@ -4,6 +4,11 @@ module.exports = {
   directories: {
     buildResources: 'build'
   },
+  publish: {
+    provider: 's3',
+    bucket: 'trackaudio',
+    region: 'eu-west-2'
+  },
   files: [
     '!**/.vscode/*',
     '!src/*',

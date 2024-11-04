@@ -1,9 +1,19 @@
-import { app, BrowserWindow, dialog, ipcMain, Rectangle, screen, shell } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Rectangle,
+  screen,
+  shell,
+  systemPreferences
+} from 'electron';
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import Store from 'electron-store';
 import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
+import updater from 'electron-updater';
 
 import configManager from './config';
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
@@ -14,8 +24,8 @@ let version: string;
 let mainWindow: BrowserWindow;
 
 const defaultWindowSize = { width: 800, height: 660 };
-const miniModeWidthBreakpoint = 330; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
-const defaultMiniModeWidth = 300; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
+const miniModeWidthBreakpoint = 455; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
+const defaultMiniModeWidth = 250; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
 
 // This flag is set to true if the settings dialog should be shown automatically on launch.
 // This happens when either there's no prior saved config, or the saved config had its audio
@@ -75,11 +85,21 @@ const saveWindowBounds = () => {
  * mode requested.
  * @param mode The size to restore to: mini or maxi.
  */
-const restoreWindowBounds = (mode: WindowMode) => {
+const restoreWindowBounds = (mode: WindowMode, numOfRadios = 0) => {
+  const miniModeHeight = (numOfRadios > 1 ? 22 : 33) + 24 * (numOfRadios === 0 ? 1 : numOfRadios);
+  const miniModeHeightMin = 22 + 24 * (numOfRadios === 0 ? 1 : numOfRadios);
+
   const savedBounds = mode === 'maxi' ? store.get('bounds') : store.get('miniBounds');
   const boundsRectangle = savedBounds as Rectangle;
+  if (mode === 'mini') {
+    mainWindow.setMinimumSize(250, miniModeHeightMin);
+  } else {
+    mainWindow.setMinimumSize(250, 120);
+  }
+
   if (savedBounds !== undefined && savedBounds !== null) {
     const screenArea = screen.getDisplayMatching(boundsRectangle).workArea;
+
     if (
       boundsRectangle.x > screenArea.x + screenArea.width ||
       boundsRectangle.x < screenArea.x ||
@@ -87,26 +107,32 @@ const restoreWindowBounds = (mode: WindowMode) => {
       boundsRectangle.y > screenArea.y + screenArea.height
     ) {
       // Reset window into existing screenarea
+      const computedHeight = mode === 'mini' ? miniModeHeight : defaultWindowSize.height;
       mainWindow.setBounds({
         x: 0,
         y: 0,
         width: defaultWindowSize.width,
-        height: defaultWindowSize.height
+        height: computedHeight
       });
     } else {
-      mainWindow.setBounds(boundsRectangle);
+      const computedHeight = mode === 'mini' ? miniModeHeight : boundsRectangle.height;
+      mainWindow.setBounds({
+        x: boundsRectangle.x,
+        y: boundsRectangle.y,
+        width: boundsRectangle.width,
+        height: computedHeight
+      });
+
+      mainWindow.setSize(boundsRectangle.width, computedHeight);
     }
-  }
-  // Covers the case where the window has never been put in mini-mode before
-  // and the request came from an explicit "enter mini mode action". In that
-  // situation just set the window size to the default mini-mode size but
-  // don't move it.
-  else if (mode === 'mini') {
-    mainWindow.setSize(defaultMiniModeWidth, 1);
+  } else if (mode === 'mini') {
+    // Handle first-time mini mode
+    mainWindow.setSize(defaultMiniModeWidth, miniModeHeight);
+    mainWindow.setMinimumSize(250, 42); // Set minimum size after setting initial size
   }
 };
 
-const toggleMiniMode = () => {
+const toggleMiniMode = (numOfRadios = 0) => {
   // Issue 84: If the window is maximized it has to be unmaximized before
   // setting the window size to mini-mode otherwise nothing happens.
   if (mainWindow.isMaximized()) {
@@ -119,8 +145,16 @@ const toggleMiniMode = () => {
 
   if (isInMiniMode()) {
     restoreWindowBounds('maxi');
+    if (process.platform === 'darwin') {
+      mainWindow.setWindowButtonVisibility(true);
+    }
   } else {
-    restoreWindowBounds('mini');
+    restoreWindowBounds('mini', numOfRadios);
+    mainWindow.setVibrancy('fullscreen-ui');
+    mainWindow.setBackgroundMaterial('mica');
+    if (process.platform === 'darwin') {
+      mainWindow.setWindowButtonVisibility(false);
+    }
   }
 };
 
@@ -129,18 +163,27 @@ const createWindow = (): void => {
   TrackAudioAfv.SetCid(configManager.config.cid || '');
   TrackAudioAfv.SetRadioGain(configManager.config.radioGain || 0.5);
 
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
+  const options: Electron.BrowserWindowConstructorOptions = {
     height: defaultWindowSize.height,
     width: defaultWindowSize.width,
-    minWidth: 210,
+    minWidth: 250,
     minHeight: 120,
     icon,
+    trafficLightPosition: { x: 12, y: 10 },
+    titleBarStyle: 'hidden',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
-  });
+  };
+
+  if (configManager.config.transparentMiniMode) {
+    options.vibrancy = 'fullscreen-ui';
+    options.backgroundMaterial = 'acrylic';
+  }
+
+  // Create the browser window.
+  mainWindow = new BrowserWindow(options);
 
   setAlwaysOnTop(configManager.config.alwaysOnTop === 'always' || false);
 
@@ -220,6 +263,41 @@ const createWindow = (): void => {
         setAlwaysOnTop(false);
       }
     }
+  });
+
+  mainWindow.on('enter-full-screen', () => {
+    mainWindow.webContents.send('is-window-fullscreen', true);
+  });
+
+  mainWindow.on('leave-full-screen', () => {
+    mainWindow.webContents.send('is-window-fullscreen', false);
+  });
+
+  mainWindow.on('maximize', () => {
+    mainWindow.webContents.send('is-window-maximised', true);
+  });
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow.webContents.send('is-window-maximised', false);
+  });
+
+  updater.autoUpdater.on('checking-for-update', () => {
+    mainWindow.webContents.send('check-for-updates');
+  });
+  updater.autoUpdater.on('update-available', (info) => {
+    mainWindow.webContents.send('update-available', info);
+  });
+  updater.autoUpdater.on('update-not-available', () => {
+    mainWindow.webContents.send('update-not-available');
+  });
+  updater.autoUpdater.on('error', (err) => {
+    mainWindow.webContents.send('update-error', err);
+  });
+  updater.autoUpdater.on('download-progress', (progressObj) => {
+    mainWindow.webContents.send('update-download-progress', progressObj);
+  });
+  updater.autoUpdater.on('update-downloaded', (info) => {
+    mainWindow.webContents.send('update-downloaded', info);
   });
 };
 
@@ -319,6 +397,16 @@ ipcMain.on('set-always-on-top', (_, alwaysOnTop: AlwaysOnTopMode) => {
   configManager.updateConfig({ alwaysOnTop });
 });
 
+ipcMain.on('set-show-expanded-rx', (_, showExpandedRx: boolean) => {
+  configManager.updateConfig({ showExpandedRx });
+});
+
+ipcMain.on('set-transparent-mini-mode', (_, transparentMiniMode: boolean) => {
+  configManager.updateConfig({ transparentMiniMode });
+  mainWindow.setVibrancy(transparentMiniMode ? 'fullscreen-ui' : null);
+  mainWindow.setBackgroundMaterial('none');
+});
+
 ipcMain.handle('audio-get-apis', () => {
   return TrackAudioAfv.GetAudioApis();
 });
@@ -363,8 +451,8 @@ ipcMain.handle('set-audio-api', (_, audioApi: number) => {
   configManager.updateConfig({ audioApi });
 });
 
-ipcMain.handle('toggle-mini-mode', () => {
-  toggleMiniMode();
+ipcMain.handle('toggle-mini-mode', (_, numberOfRadios: number) => {
+  toggleMiniMode(numberOfRadios);
 });
 
 //
@@ -475,6 +563,46 @@ ipcMain.handle('close-me', () => {
   mainWindow.close();
 });
 
+ipcMain.handle('restart', () => {
+  if (TrackAudioAfv.IsConnected()) {
+    TrackAudioAfv.Disconnect();
+  }
+
+  TrackAudioAfv.Exit();
+
+  mainWindow.close();
+  createWindow();
+});
+
+ipcMain.on('check-for-updates', (event) => {
+  if (process.platform === 'win32') {
+    event.reply('update-not-available');
+    return;
+  }
+
+  if (app.isPackaged) {
+    updater.autoUpdater.autoInstallOnAppQuit = false;
+    updater.autoUpdater.checkForUpdatesAndNotify().catch(() => {
+      console.error(`Error checking for updates`);
+    });
+  } else {
+    event.reply('update-not-available');
+  }
+});
+
+ipcMain.on('quit-and-install', () => {
+  // First disconnect TrackAudioAfv if connected
+  if (TrackAudioAfv.IsConnected()) {
+    TrackAudioAfv.Disconnect();
+  }
+
+  // Call Exit to clean up resources
+  TrackAudioAfv.Exit();
+
+  // Then perform the update
+  updater.autoUpdater.quitAndInstall();
+});
+
 ipcMain.handle(
   'dialog',
   (
@@ -495,6 +623,38 @@ ipcMain.handle(
 
 ipcMain.handle('get-version', () => {
   return version;
+});
+
+ipcMain.on('maximise-window', () => {
+  mainWindow.maximize();
+});
+
+ipcMain.on('unmaximise-window', () => {
+  mainWindow.unmaximize();
+});
+
+ipcMain.on('minimise-window', () => {
+  mainWindow.minimize();
+});
+
+ipcMain.on('set-minimum-size', (_, width: number, height: number) => {
+  mainWindow.setMinimumSize(width, height);
+});
+
+ipcMain.on('set-window-button-visibility', (_, status: boolean) => {
+  mainWindow.setWindowButtonVisibility(status);
+});
+
+ipcMain.on('close-window', () => {
+  mainWindow.close();
+});
+
+ipcMain.on('is-window-fullscreen', () => {
+  mainWindow.webContents.send('is-window-fullscreen', mainWindow.isFullScreen());
+});
+
+ipcMain.handle('is-trusted-accessibility', () => {
+  return systemPreferences.isTrustedAccessibilityClient(true);
 });
 
 //

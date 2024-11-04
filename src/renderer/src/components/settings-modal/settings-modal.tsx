@@ -25,11 +25,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [audioApis, setAudioApis] = useState(Array<AudioApi>);
   const [audioOutputDevices, setAudioOutputDevices] = useState(Array<AudioDevice>);
   const [audioInputDevices, setAudioInputDevices] = useState(Array<AudioDevice>);
-  const [radioEffects, setRadioEffects] = useState<RadioEffects>("on");
+  const [radioEffects, setRadioEffects] = useState<RadioEffects>('on');
   const [hardwareType, setHardwareType] = useState(0);
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
-
+  const [transparentMiniMode, setLocalTransparentMiniMode] = useState(false);
   const [cid, setCid] = useState('');
   const [password, setPassword] = useState('');
 
@@ -44,7 +44,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     hasPtt1BeenSetDuringSetup,
     hasPtt2BeenSetDuringSetup,
     updatePtt1KeySet,
-    updatePtt2KeySet
+    updatePtt2KeySet,
+    showExpandedRxInfo,
+    setShowExpandedRxInfo,
+    setTransparentMiniMode,
+    setPendingRestart
   ] = useUtilStore((state) => [
     state.vu,
     state.peakVu,
@@ -54,7 +58,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     state.hasPtt1BeenSetDuringSetup,
     state.hasPtt2BeenSetDuringSetup,
     state.updatePtt1KeySet,
-    state.updatePtt2KeySet
+    state.updatePtt2KeySet,
+    state.showExpandedRxInfo,
+    state.setShowExpandedRxInfo,
+    state.setTransparentMiniMode,
+    state.setPendingRestart
   ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
@@ -68,6 +76,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setRadioEffects(config.radioEffects);
         setHardwareType(config.hardwareType);
         setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode); // Type assertion since the config will never be a boolean at this point
+        setShowExpandedRxInfo(config.showExpandedRx);
+        setTransparentMiniMode(config.transparentMiniMode);
+        setLocalTransparentMiniMode(config.transparentMiniMode);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -172,6 +183,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saved);
   };
 
+  const handleShowExpandedRxChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    if (e.target.value === 'true') {
+      setShowExpandedRxInfo(true);
+      window.api.setShowExpandedRx(true);
+    } else {
+      setShowExpandedRxInfo(false);
+      window.api.setShowExpandedRx(false);
+    }
+    setChangesSaved(SaveStatus.Saved);
+  };
+
+  const handleTransparentMiniMode = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    if (e.target.value === 'true') {
+      window.api.setTransparentMiniMode(true);
+      setLocalTransparentMiniMode(true);
+    } else {
+      window.api.setTransparentMiniMode(false);
+      setLocalTransparentMiniMode(false);
+    }
+    setPendingRestart(true);
+    setChangesSaved(SaveStatus.Saved);
+  };
+
   const handleSetPtt = (pttIndex: number) => {
     if (pttIndex === 1) {
       updatePtt1KeySet(false);
@@ -199,7 +235,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     const radioEffects = e.target.value as RadioEffects;
     void window.api.SetRadioEffects(radioEffects);
     setRadioEffects(radioEffects);
-    setConfig({ ...config, radioEffects: radioEffects});
+    setConfig({ ...config, radioEffects: radioEffects });
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -221,75 +257,110 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   return (
     <>
       <div className="modal settingsModalBackground" role="dialog">
-        <div className="modal-dialog settingsModal" role="document">
-          <div className="modal-content" style={{ border: '0' }}>
+        <div className="modal-dialog" role="document">
+          <div
+            className="modal-content"
+            style={{
+              border: '0',
+              height: '90vh',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
             <div className="modal-header">
               <h5 className="modal-title">Settings</h5>
             </div>
-            <div className="modal-body" style={{ paddingBottom: '0' }}>
-              <div className="col-5" style={{ float: 'left' }}>
+            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              <div className="col-6" style={{ float: 'left' }}>
                 <div className="form-group" style={{ width: '90%' }}>
                   <h5>VATSIM Details</h5>
-                  <label className="mt-2">CID</label>
-                  <input
-                    className="form-control mt-1"
-                    id="cidInput"
-                    placeholder="99999"
-                    value={cid}
-                    onChange={(e) => {
-                      // Issue #127: Strip non-digit characters instead of using type="number".
-                      const cleanCid = e.target.value.replace(/\D/g, ''); // Remove non-digit characters
-                      setCid(cleanCid);
-                      debouncedCid(cleanCid);
-                    }}
-                  ></input>
-                  <label className="mt-2">Password</label>
-                  <input
-                    type="password"
-                    className="form-control mt-1"
-                    id="passwordInput"
-                    placeholder="*******"
-                    defaultValue={password}
-                    onChange={(e) => debouncedPassword(e.target.value)}
-                  ></input>
+                  <div className="col-lg">
+                    <label className="mt-2">CID</label>
+                    <input
+                      className="form-control mt-1"
+                      id="cidInput"
+                      placeholder="99999"
+                      value={cid}
+                      onChange={(e) => {
+                        // Issue #127: Strip non-digit characters instead of using type="number".
+                        const cleanCid = e.target.value.replace(/\D/g, ''); // Remove non-digit characters
+                        setCid(cleanCid);
+                        debouncedCid(cleanCid);
+                      }}
+                    ></input>
+                    <label className="mt-2">Password</label>
+                    <input
+                      type="password"
+                      className="form-control mt-1"
+                      id="passwordInput"
+                      placeholder="*******"
+                      defaultValue={password}
+                      onChange={(e) => debouncedPassword(e.target.value)}
+                    ></input>
 
-                  <label className="mt-1">Radio Effects</label>
-                  <select id=""
-                    className="form-control mt-1"
-                    value={radioEffects}
-                    onChange={handleRadioEffectsChange}>
-                    <option value="on">On</option>
-                    <option value="input">Input only</option>
-                    <option value="output">Output only</option>
-                    <option value="off">Off</option>
-                  </select>
+                    <label className="mt-1">Radio Effects</label>
+                    <select
+                      id=""
+                      className="form-control mt-1"
+                      value={radioEffects}
+                      onChange={handleRadioEffectsChange}
+                    >
+                      <option value="on">On</option>
+                      <option value="input">Input only</option>
+                      <option value="output">Output only</option>
+                      <option value="off">Off</option>
+                    </select>
 
-                  <label className="mt-2">Radio Hardware</label>
-                  <select
-                    id=""
-                    className="form-control mt-1"
-                    value={hardwareType}
-                    onChange={handleHardwareTypeChange}
-                  >
-                    <option value="0">Schmid ED-137B</option>
-                    <option value="1">Rockwell Collins 2100</option>
-                    <option value="2">Garex 220</option>
-                  </select>
+                    <label className="mt-2">Radio Hardware</label>
+                    <select
+                      id=""
+                      className="form-control mt-1"
+                      value={hardwareType}
+                      onChange={handleHardwareTypeChange}
+                    >
+                      <option value="0">Schmid ED-137B</option>
+                      <option value="1">Rockwell Collins 2100</option>
+                      <option value="2">Garex 220</option>
+                    </select>
+                  </div>
+                  <div className="col-lg">
+                    <label className="mt-2">Keep window on top</label>
+                    <select
+                      id=""
+                      className="form-control mt-1"
+                      onChange={handleAlwaysOnTop}
+                      value={alwaysOnTop}
+                    >
+                      <option value="always">Always</option>
+                      <option value="inMiniMode">In mini mode</option>
+                      <option value="never">Never</option>
+                    </select>
 
-                  <label className="mt-2">Keep window on top</label>
-                  <select
-                    id=""
-                    className="form-control mt-1"
-                    onChange={handleAlwaysOnTop}
-                    value={alwaysOnTop}
-                  >
-                    <option value="always">Always</option>
-                    <option value="inMiniMode">In mini mode</option>
-                    <option value="never">Never</option>
-                  </select>
+                    <label className="mt-2">Always show expanded RX</label>
+                    <select
+                      id=""
+                      className="form-control mt-1"
+                      onChange={handleShowExpandedRxChange}
+                      value={showExpandedRxInfo.toString()}
+                    >
+                      <option value="true">Always</option>
+                      <option value="false">Never</option>
+                    </select>
+
+                    <label className="mt-2">Transparent mini mode</label>
+                    <select
+                      id=""
+                      className="form-control mt-1"
+                      onChange={handleTransparentMiniMode}
+                      value={transparentMiniMode.toString()}
+                    >
+                      <option value="true">Always</option>
+                      <option value="false">Never</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-              <div className="col-7" style={{ float: 'right' }}>
+              <div className="col-6" style={{ float: 'right' }}>
                 <div className="form-group">
                   <h5>Audio configuration</h5>
 
