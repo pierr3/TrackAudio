@@ -298,7 +298,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       onChange={(e) => debouncedPassword(e.target.value)}
                     ></input>
 
-                    <label className="mt-1">Radio Effects</label>
+                    <label className="mt-1">Radio effects</label>
                     <select
                       id=""
                       className="form-control mt-1"
@@ -311,7 +311,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       <option value="off">Off</option>
                     </select>
 
-                    <label className="mt-2">Radio Hardware</label>
+                    <label className="mt-2">Radio hardware</label>
                     <select
                       id=""
                       className="form-control mt-1"
