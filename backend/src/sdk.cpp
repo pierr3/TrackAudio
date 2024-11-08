@@ -428,6 +428,10 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleVoiceConnectedEventForWebsocket(mClient->IsVoiceConnected());
             return;
         }
+        if (messageType == "kAddStation") {
+            this->handleAddStation(json);
+            return;
+        }
     } catch (const std::exception& e) {
         // Handle JSON parsing error
         PLOG_ERROR << "Error parsing incoming message JSON: " << e.what();
@@ -484,3 +488,42 @@ void SDK::broadcastOnWebsocket(const std::string& data)
         }
     }
 };
+
+void SDK::handleAddStation(const nlohmann::json& json)
+{
+    std::optional<std::string> callsign;
+    std::optional<int> frequency;
+
+    if (json["value"].contains("callsign")) {
+        callsign = json["value"]["callsign"];
+    }
+    if (json["value"].contains("frequency")) {
+        frequency = json["value"]["frequency"];
+    }
+
+    if (callsign.has_value() && frequency.has_value()) {
+        PLOG_ERROR << "Both callsign and frequency specified. Only one should be specified.";
+        return;
+    }
+
+    if (!callsign.has_value() && !frequency.has_value()) {
+        PLOG_ERROR << "Neither callsign nor frequency specified. One must be specified.";
+        return;
+    }
+
+    auto allRadios = mClient->getRadioState();
+    for (const auto& [freq, state] : allRadios) {
+        if ((callsign.has_value() && state.stationName == callsign.value())
+            || (frequency.has_value() && freq == frequency.value())) {
+            this->publishStationState(
+                this->buildStationStateJson(state.stationName, static_cast<int>(freq)));
+            return;
+        }
+    }
+
+    if (callsign.has_value()) {
+        mClient->GetStation(callsign.value());
+    } else if (frequency.has_value()) {
+        mClient->AddFrequency(frequency.value(), "");
+    }
+}

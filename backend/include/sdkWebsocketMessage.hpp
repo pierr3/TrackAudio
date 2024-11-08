@@ -16,7 +16,8 @@ enum class WebsocketMessageType : std::uint8_t {
     kStationStates,
     kVoiceConnectedState,
     kFrequencyRemoved,
-    kStationAdded
+    kStationAdded,
+    kAddStation
 };
 
 inline const std::map<WebsocketMessageType, std::string>& getWebsocketMessageTypeMap()
@@ -32,6 +33,7 @@ inline const std::map<WebsocketMessageType, std::string>& getWebsocketMessageTyp
         { WebsocketMessageType::kVoiceConnectedState, "kVoiceConnectedState" },
         { WebsocketMessageType::kFrequencyRemoved, "kFrequencyRemoved" },
         { WebsocketMessageType::kStationAdded, "kStationAdded" },
+        { WebsocketMessageType::kAddStation, "kAddStation" },
     };
     return kWebsocketMessageTypeMap;
 }
