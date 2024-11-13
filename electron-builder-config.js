@@ -39,7 +39,8 @@ module.exports = {
     artifactName: '${name}-${version}-${arch}-setup.${ext}',
     shortcutName: '${productName}',
     uninstallDisplayName: '${productName}',
-    createDesktopShortcut: 'always'
+    createDesktopShortcut: 'always',
+    include: 'build/installer.nsh',
   },
   mac: {
     entitlementsInherit: 'build/entitlements.mac.plist',
