@@ -36,6 +36,20 @@ struct FileSystem {
     }
 };
 
+struct UserAudioSetting {
+public:
+    inline static int apiId = 0;
+    inline static std::string inputDeviceId;
+    inline static std::string headsetOutputDeviceId;
+    inline static std::string speakersOutputDeviceId;
+
+    inline static bool CheckAudioSettings()
+    {
+        return !inputDeviceId.empty() && !headsetOutputDeviceId.empty()
+            && !speakersOutputDeviceId.empty() && apiId >= 0;
+    }
+};
+
 struct UserSession {
 public:
     inline static std::string cid;

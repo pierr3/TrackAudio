@@ -104,6 +104,13 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info)
         return Napi::Boolean::New(info.Env(), false);
     }
 
+    if (!UserAudioSetting::CheckAudioSettings()) {
+        NapiHelpers::sendErrorToElectron(
+            "Audio settings not set, please set all your audio devices correctly (Speakers, "
+            "Microphone, Headset and API)");
+        return Napi::Boolean::New(env, false);
+    }
+
     auto password = info[0].As<Napi::String>().Utf8Value();
 
     mClient->SetCallsign(UserSession::callsign);
@@ -155,6 +162,11 @@ void SetAudioSettings(const Napi::CallbackInfo& info)
     auto inputDeviceId = info[1].As<Napi::String>().Utf8Value();
     auto headsetOutputDeviceId = info[2].As<Napi::String>().Utf8Value();
     auto speakersOutputDeviceId = info[3].As<Napi::String>().Utf8Value();
+
+    UserAudioSetting::apiId = apiId;
+    UserAudioSetting::inputDeviceId = inputDeviceId;
+    UserAudioSetting::headsetOutputDeviceId = headsetOutputDeviceId;
+    UserAudioSetting::speakersOutputDeviceId = speakersOutputDeviceId;
 
     mClient->SetAudioApi(apiId);
     mClient->SetAudioInputDevice(inputDeviceId);
@@ -705,9 +717,9 @@ VersionCheckResponse CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         if (!res || res->status != httplib::StatusCode::OK_200) {
             std::string errorDetail;
             if (res) {
-              errorDetail = "HTTP error " + std::to_string(res->status);
+                errorDetail = "HTTP error " + std::to_string(res->status);
             } else {
-              errorDetail = "Unable to reach server at all or no internet connection";
+                errorDetail = "Unable to reach server at all or no internet connection";
             }
             PLOGE << "Error fetching version: " << errorDetail;
             MainThreadShared::ShouldRun = false;
