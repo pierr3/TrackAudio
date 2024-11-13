@@ -7,5 +7,5 @@
 [submodule "backend/extern/libuiohook"]
 	path = backend/extern/libuiohook
 	url = https://github.com/GeorgeBarlow/libuiohook
-  branch = unregister-hook-when-debugging
+	branch = unregister-hook-when-debugging
 
