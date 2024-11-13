@@ -120,3 +120,8 @@ temp.sh
 
 extern/backend/afv-native/vcpkg
 extern/backend/afv-native/build
+
+# Ignore electron builder intermediate files on Windows
+build/win-unpacked
+build/builder-debug.yml
+build/builder-effective-config.yaml
