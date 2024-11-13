@@ -20,6 +20,8 @@
 #define UNICOM_FREQUENCY 122800000 // 122.800
 #define GUARD_FREQUENCY 121500000 // 121.500
 
+#define CONFIG_VERSION 1
+
 #define API_SERVER_PORT 49080
 
 constexpr semver::version VERSION = semver::version { 1, 3, 0, semver::prerelease::beta, 4 };
@@ -69,6 +71,8 @@ public:
 
 struct UserSettings {
 public:
+    inline static int configVersion = 0;
+
     inline static int PttKey1 = -1;
     inline static int JoystickId1 = 0;
     inline static bool isJoystickButton1 = false;
@@ -96,6 +100,7 @@ public:
         // Remove the legacy "Ptt" section. Its values were migrated to the "Ptt1" section
         // when the file was loaded.
         ini.Delete("Ptt", nullptr);
+        ini.SetLongValue("General", "Version", CONFIG_VERSION);
 
         ini.SetLongValue("Ptt1", "PttKey", UserSettings::PttKey1);
         ini.SetLongValue("Ptt1", "JoystickId", UserSettings::JoystickId1);
@@ -126,7 +131,13 @@ protected:
                 PLOG_ERROR << "Error loading settings.ini: " << err;
             }
         }
-
+        UserSettings::configVersion = static_cast<int>(ini.GetLongValue("General", "Version", 0));
+        if (UserSettings::configVersion != CONFIG_VERSION) {
+            UserSettings::configVersion = CONFIG_VERSION;
+            PLOG_WARNING << "Settings.ini version mismatch, recreating it";
+            save();
+            return;
+        }
         // Handle upgrading from prior versions that only supported one PTT key.
         // Those values were stored in the "Ptt" section, so try and read them. If they
         // aren't there the defaults will be used.
