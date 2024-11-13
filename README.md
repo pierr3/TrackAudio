@@ -117,6 +117,8 @@ Depending on your system, the cask will install the ARM version or the x86_64 ve
 
 ### Windows
 
+Download and install the [Visual Studio c++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe), which is a requirement for TrackAudio to run on
+
 Download the latest release on the [release page](https://github.com/pierr3/TrackAudio/releases) and run the executable. This should install TrackAudio.
 
 ## Build
