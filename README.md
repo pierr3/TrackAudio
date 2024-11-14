@@ -22,6 +22,10 @@ macOS has strict permissioning around background keyboard inputs. TrackAudio sho
 
 This issue arises because the PTT system could not determine the name of the key you attempted to bind. The key will still function as a normal push-to-talk. However, to enable us to support the key you selected, please open a GitHub issue. Include the operating system you are using, a copy of your `trackaudio.log` file (refer to the FAQ below for the file location), and the actual name of the key you intended to bind.
 
+### I'm unable to set a PTT because it automatically assigns to my Joystick
+
+This issue occurs because some joysticks send a constant key down command. To address this, we have implemented a method to temporarily disable joystick key presses while you select a PTT key on your keyboard. To use this feature, right-click on the 'Set new PTT' button in the settings dialog instead of left-clicking it. This will prevent the key listener from registering joystick inputs while you set your PTT key.
+
 ### Where are the log and config files stored?
 
 On macOS: `~/Library/Application\ Support/trackaudio`
