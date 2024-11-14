@@ -125,3 +125,9 @@ extern/backend/afv-native/build
 build/win-unpacked
 build/builder-debug.yml
 build/builder-effective-config.yaml
+
+# Ignore other build files on Windows
+build/vcpkg_installed
+build/.cmake
+build/CMakeFiles
+build/CMakeCache.txt
