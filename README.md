@@ -18,6 +18,10 @@ TrackAudio is simply the next iteration of VectorAudio, using a different set of
 
 macOS has strict permissioning around background keyboard inputs. TrackAudio should prompt you on first launch to request input monitoring permissions. Sometimes, upon updating the app, this setting will undo itself. In that case, please go to your Settings -> Privacy & Security -> Input Monitoring and add TrackAudio in the list (remove it if it was already there). This is required purely because otherwise, your Push to Talk would not work when the window is not in focus (if you use a keyboard push to talk, a Joystick push to talk does not require this permission)
 
+### I attempted to set a PTT, but it displays the name 'Unknown (XXX)'
+
+This issue arises because the PTT system could not determine the name of the key you attempted to bind. The key will still function as a normal push-to-talk. However, to enable us to support the key you selected, please open a GitHub issue. Include the operating system you are using, a copy of your `trackaudio.log` file (refer to the FAQ below for the file location), and the actual name of the key you intended to bind.
+
 ### Where are the log and config files stored?
 
 On macOS: `~/Library/Application\ Support/trackaudio`
