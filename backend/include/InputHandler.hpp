@@ -23,8 +23,10 @@ public:
     InputHandler& operator=(const InputHandler&) = delete;
     InputHandler& operator=(InputHandler&&) = delete;
 
-    void startPttSetup(int pttIndex);
+    void startPttSetup(int pttIndex, bool listenForJoysticks = true);
     void stopPttSetup();
+
+    void clearPtt(int pttIndex);
 
     static void forwardPttKeyName(int pttIndex);
     static std::string getPttKeyName(int pttIndex);
@@ -48,6 +50,7 @@ private:
 
     std::atomic<bool> isPttSetupRunning { false };
     std::atomic<int> pttSetupIndex { 0 };
+    std::atomic<bool> listenForJoysticks { true };
     int activePtt { 0 };
     bool isPttOpen { false };
 };

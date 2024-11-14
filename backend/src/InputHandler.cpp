@@ -18,17 +18,26 @@ InputHandler::InputHandler()
 
 InputHandler::~InputHandler() { timer.stop(); }
 
-void InputHandler::startPttSetup(int pttIndex)
+void InputHandler::startPttSetup(int pttIndex, bool listenForJoysticks)
 {
     std::lock_guard<std::mutex> lock(m);
     isPttSetupRunning = true;
+    this->listenForJoysticks = listenForJoysticks;
     pttSetupIndex = pttIndex;
+}
+
+void InputHandler::clearPtt(int pttIndex)
+{
+    std::lock_guard<std::mutex> lock(m);
+    updatePttKey(pttIndex, -1, false);
+    forwardPttKeyName(pttIndex);
 }
 
 void InputHandler::stopPttSetup()
 {
     std::lock_guard<std::mutex> lock(m);
     isPttSetupRunning = false;
+    this->listenForJoysticks = true;
     pttSetupIndex = 0;
 }
 
@@ -139,7 +148,7 @@ void InputHandler::onTimer(Poco::Timer& /*timer*/)
 
 bool InputHandler::handleJoystickSetup()
 {
-    if (!isPttSetupRunning) {
+    if (!isPttSetupRunning || !listenForJoysticks) {
         return false;
     }
 

@@ -463,8 +463,20 @@ void StopAudio(const Napi::CallbackInfo& /*info*/)
 void SetupPttBegin(const Napi::CallbackInfo& info)
 {
     int pttIndex = info[0].As<Napi::Number>().Int32Value();
+    bool shouldListenForJoysticks = true;
 
-    MainThreadShared::inputHandler->startPttSetup(pttIndex);
+    if (info.Length() > 1 && info[1].IsBoolean()) {
+        shouldListenForJoysticks = info[1].As<Napi::Boolean>().Value();
+    }
+
+    MainThreadShared::inputHandler->startPttSetup(pttIndex, shouldListenForJoysticks);
+}
+
+void ClearPtt(const Napi::CallbackInfo& info)
+{
+    int pttIndex = info[0].As<Napi::Number>().Int32Value();
+
+    MainThreadShared::inputHandler->clearPtt(pttIndex);
 }
 
 void SetupPttEnd(const Napi::CallbackInfo& /*info*/)
@@ -889,6 +901,8 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "SetupPttBegin"), Napi::Function::New(env, SetupPttBegin));
 
     exports.Set(Napi::String::New(env, "SetupPttEnd"), Napi::Function::New(env, SetupPttEnd));
+
+    exports.Set(Napi::String::New(env, "ClearPtt"), Napi::Function::New(env, ClearPtt));
 
     exports.Set(
         Napi::String::New(env, "RequestPttKeyName"), Napi::Function::New(env, RequestPttKeyName));

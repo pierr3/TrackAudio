@@ -543,8 +543,12 @@ ipcMain.handle('refresh-station', (_, callsign: string) => {
   TrackAudioAfv.RefreshStation(callsign);
 });
 
-ipcMain.handle('setup-ptt', (_, pttIndex: number) => {
-  TrackAudioAfv.SetupPttBegin(pttIndex);
+ipcMain.handle('setup-ptt', (_, pttIndex: number, shouldListenForJoysticks: boolean) => {
+  TrackAudioAfv.SetupPttBegin(pttIndex, shouldListenForJoysticks);
+});
+
+ipcMain.handle('clear-ptt', (_, pttIndex: number) => {
+  TrackAudioAfv.ClearPtt(pttIndex);
 });
 
 ipcMain.handle('set-radio-gain', (_, radioGain: number) => {
