@@ -501,7 +501,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         }
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string station = *reinterpret_cast<std::string*>(data);
+        std::string station = static_cast<const char*>(data);
         auto transceiverCount = mClient->GetTransceiverCountForStation(station);
         auto states = mClient->getRadioState();
         for (const auto& state : states) {
@@ -521,7 +521,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         }
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        bool found = *reinterpret_cast<bool*>(data);
+        bool found = static_cast<bool>(data);
         if (!found) {
             NapiHelpers::sendErrorToElectron("Station not found");
             return;
@@ -605,7 +605,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string callsign = *reinterpret_cast<std::string*>(data2);
+        std::string callsign = static_cast<const char*>(data2);
         if (!mClient->IsFrequencyActive(frequency)) {
             PLOGW << "StationRxBegin: Frequency " << frequency << " not active, skipping";
             return;
@@ -627,7 +627,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string callsign = *reinterpret_cast<std::string*>(data2);
+        std::string callsign = static_cast<const char*>(data2);;
 
         if (!mClient->IsFrequencyActive(frequency)) {
             PLOGW << "StationRxEnd: Frequency " << frequency << " not active, skipping";
