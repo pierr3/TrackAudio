@@ -41,7 +41,10 @@ configManager.setStore(store);
  * @param onTop True if the window should be always on top. False otherwise.
  */
 const setAlwaysOnTop = (onTop: boolean) => {
-  if (process.platform === 'win32') {
+  // Issue 207: Always on top wasn't working on Arch Linux in some situations, and some random old posts
+  //  online seemed to indicate that explicitly specifying a level would fix it. That's how it was
+  // set up for Windows anyway, so do that on every platform except MacOS.
+  if (process.platform !== 'darwin') {
     mainWindow.setAlwaysOnTop(onTop, 'normal');
   } else {
     mainWindow.setAlwaysOnTop(onTop);
