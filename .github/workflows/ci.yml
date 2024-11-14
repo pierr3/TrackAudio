@@ -35,6 +35,7 @@ jobs:
         run: |
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
+          git submodule update --init --remote backend/extern/libuiohook
           cd backend/extern/afv-native
           git checkout unicom2
 

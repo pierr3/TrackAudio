@@ -14,4 +14,5 @@ exports.AfvEventTypes = {
   NetworkDisconnected: "network-disconnected",
   PttKeySet: "UpdatePttKeyName",
   StationStateUpdate: "station-state-update",
+  OpenSettingsModal: "open-settings-modal",
 };

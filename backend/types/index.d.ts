@@ -25,6 +25,7 @@ export declare const AfvEventTypes: {
   PttKeySet: string;
   FrequencyStateUpdate: string;
   StationStateUpdate: string;
+  OpenSettingsModal: string;
 };
 
 declare namespace TrackAudioAfv {

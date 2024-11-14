@@ -60,6 +60,7 @@ set(SOURCE
   src/sdk.cpp
   src/RemoteData.cpp
   src/InputHandler.cpp
+  src/Shared.cpp
   src/UIOHookWrapper.cpp
   src/win32_key_util.cpp)
 

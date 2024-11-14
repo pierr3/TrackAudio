@@ -73,9 +73,9 @@ void UIOHookWrapper::loggerProc(
     vsnprintf(buffer, sizeof(buffer), format, args);
 
     switch (level) {
-    // case LOG_LEVEL_DEBUG:
-    //     PLOGI << buffer;
-    //     break;
+    case LOG_LEVEL_DEBUG:
+        PLOGV << buffer;
+        break;
     case LOG_LEVEL_INFO:
         PLOGI << buffer;
         break;

@@ -21,7 +21,9 @@ import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
 type WindowMode = 'mini' | 'maxi';
 
 let version: string;
-let mainWindow: BrowserWindow;
+let mainWindow: BrowserWindow | null;
+
+let isAppReady = false;
 
 const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 455; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
@@ -35,6 +37,8 @@ let autoOpenSettings = false;
 const store = new Store({ clearInvalidConfig: true });
 configManager.setStore(store);
 
+const eventQueue: [string, string, string][] = [];
+
 /**
  * Sets the always on top state for the main window, with different
  * options depending on the platform the app is running on.
@@ -42,9 +46,9 @@ configManager.setStore(store);
  */
 const setAlwaysOnTop = (onTop: boolean) => {
   if (process.platform === 'win32') {
-    mainWindow.setAlwaysOnTop(onTop, 'normal');
+    mainWindow?.setAlwaysOnTop(onTop, 'normal');
   } else {
-    mainWindow.setAlwaysOnTop(onTop);
+    mainWindow?.setAlwaysOnTop(onTop);
   }
 };
 
@@ -57,6 +61,11 @@ const isInMiniMode = () => {
   // to determine whether the window is in mini-mode. This solves an issue where
   // getSize() was returning a width value off by one f5rom the getMinSize()
   // call.
+
+  if (!mainWindow) {
+    return false;
+  }
+
   return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint;
 };
 
@@ -77,7 +86,7 @@ const setAudioSettings = () => {
  * one saved is selected based on the value of isInMiniMode().
  */
 const saveWindowBounds = () => {
-  store.set(isInMiniMode() ? 'miniBounds' : 'bounds', mainWindow.getBounds());
+  store.set(isInMiniMode() ? 'miniBounds' : 'bounds', mainWindow?.getBounds());
 };
 
 /**
@@ -92,9 +101,9 @@ const restoreWindowBounds = (mode: WindowMode, numOfRadios = 0) => {
   const savedBounds = mode === 'maxi' ? store.get('bounds') : store.get('miniBounds');
   const boundsRectangle = savedBounds as Rectangle;
   if (mode === 'mini') {
-    mainWindow.setMinimumSize(250, miniModeHeightMin);
+    mainWindow?.setMinimumSize(250, miniModeHeightMin);
   } else {
-    mainWindow.setMinimumSize(250, 120);
+    mainWindow?.setMinimumSize(250, 120);
   }
 
   if (savedBounds !== undefined && savedBounds !== null) {
@@ -108,7 +117,7 @@ const restoreWindowBounds = (mode: WindowMode, numOfRadios = 0) => {
     ) {
       // Reset window into existing screenarea
       const computedHeight = mode === 'mini' ? miniModeHeight : defaultWindowSize.height;
-      mainWindow.setBounds({
+      mainWindow?.setBounds({
         x: 0,
         y: 0,
         width: defaultWindowSize.width,
@@ -116,26 +125,26 @@ const restoreWindowBounds = (mode: WindowMode, numOfRadios = 0) => {
       });
     } else {
       const computedHeight = mode === 'mini' ? miniModeHeight : boundsRectangle.height;
-      mainWindow.setBounds({
+      mainWindow?.setBounds({
         x: boundsRectangle.x,
         y: boundsRectangle.y,
         width: boundsRectangle.width,
         height: computedHeight
       });
 
-      mainWindow.setSize(boundsRectangle.width, computedHeight);
+      mainWindow?.setSize(boundsRectangle.width, computedHeight);
     }
   } else if (mode === 'mini') {
     // Handle first-time mini mode
-    mainWindow.setSize(defaultMiniModeWidth, miniModeHeight);
-    mainWindow.setMinimumSize(250, 42); // Set minimum size after setting initial size
+    mainWindow?.setSize(defaultMiniModeWidth, miniModeHeight);
+    mainWindow?.setMinimumSize(250, 42); // Set minimum size after setting initial size
   }
 };
 
 const toggleMiniMode = (numOfRadios = 0) => {
   // Issue 84: If the window is maximized it has to be unmaximized before
   // setting the window size to mini-mode otherwise nothing happens.
-  if (mainWindow.isMaximized()) {
+  if (mainWindow?.isMaximized()) {
     mainWindow.unmaximize();
   }
 
@@ -146,14 +155,14 @@ const toggleMiniMode = (numOfRadios = 0) => {
   if (isInMiniMode()) {
     restoreWindowBounds('maxi');
     if (process.platform === 'darwin') {
-      mainWindow.setWindowButtonVisibility(true);
+      mainWindow?.setWindowButtonVisibility(true);
     }
   } else {
     restoreWindowBounds('mini', numOfRadios);
-    mainWindow.setVibrancy('fullscreen-ui');
-    mainWindow.setBackgroundMaterial('mica');
+    mainWindow?.setVibrancy('fullscreen-ui');
+    mainWindow?.setBackgroundMaterial('mica');
     if (process.platform === 'darwin') {
-      mainWindow.setWindowButtonVisibility(false);
+      mainWindow?.setWindowButtonVisibility(false);
     }
   }
 };
@@ -222,6 +231,9 @@ const createWindow = (): void => {
   }
 
   mainWindow.on('close', (e) => {
+    if (!mainWindow) {
+      return;
+    }
     if (TrackAudioAfv.IsConnected()) {
       const response = dialog.showMessageBoxSync(mainWindow, {
         type: 'question',
@@ -266,38 +278,38 @@ const createWindow = (): void => {
   });
 
   mainWindow.on('enter-full-screen', () => {
-    mainWindow.webContents.send('is-window-fullscreen', true);
+    mainWindow?.webContents.send('is-window-fullscreen', true);
   });
 
   mainWindow.on('leave-full-screen', () => {
-    mainWindow.webContents.send('is-window-fullscreen', false);
+    mainWindow?.webContents.send('is-window-fullscreen', false);
   });
 
   mainWindow.on('maximize', () => {
-    mainWindow.webContents.send('is-window-maximised', true);
+    mainWindow?.webContents.send('is-window-maximised', true);
   });
 
   mainWindow.on('unmaximize', () => {
-    mainWindow.webContents.send('is-window-maximised', false);
+    mainWindow?.webContents.send('is-window-maximised', false);
   });
 
   updater.autoUpdater.on('checking-for-update', () => {
-    mainWindow.webContents.send('check-for-updates');
+    mainWindow?.webContents.send('check-for-updates');
   });
   updater.autoUpdater.on('update-available', (info) => {
-    mainWindow.webContents.send('update-available', info);
+    mainWindow?.webContents.send('update-available', info);
   });
   updater.autoUpdater.on('update-not-available', () => {
-    mainWindow.webContents.send('update-not-available');
+    mainWindow?.webContents.send('update-not-available');
   });
   updater.autoUpdater.on('error', (err) => {
-    mainWindow.webContents.send('update-error', err);
+    mainWindow?.webContents.send('update-error', err);
   });
   updater.autoUpdater.on('download-progress', (progressObj) => {
-    mainWindow.webContents.send('update-download-progress', progressObj);
+    mainWindow?.webContents.send('update-download-progress', progressObj);
   });
   updater.autoUpdater.on('update-downloaded', (info) => {
-    mainWindow.webContents.send('update-downloaded', info);
+    mainWindow?.webContents.send('update-downloaded', info);
   });
 };
 
@@ -375,10 +387,18 @@ app.on('quit', () => {
  * dialog can be triggered via IPC.
  */
 ipcMain.handle('settings-ready', () => {
+  isAppReady = true;
+  while (eventQueue.length > 0) {
+    const event = eventQueue.shift();
+    if (!event) return;
+    const [arg, arg2, arg3] = event;
+    handleEvent(arg, arg2, arg3);
+  }
+
   // Automatically show the settings dialog if the flag was set during
   // config load.
   if (autoOpenSettings) {
-    mainWindow.webContents.send('show-settings');
+    mainWindow?.webContents.send('show-settings');
     autoOpenSettings = false;
   }
 });
@@ -403,8 +423,8 @@ ipcMain.on('set-show-expanded-rx', (_, showExpandedRx: boolean) => {
 
 ipcMain.on('set-transparent-mini-mode', (_, transparentMiniMode: boolean) => {
   configManager.updateConfig({ transparentMiniMode });
-  mainWindow.setVibrancy(transparentMiniMode ? 'fullscreen-ui' : null);
-  mainWindow.setBackgroundMaterial('none');
+  mainWindow?.setVibrancy(transparentMiniMode ? 'fullscreen-ui' : null);
+  mainWindow?.setBackgroundMaterial('none');
 });
 
 ipcMain.handle('audio-get-apis', () => {
@@ -428,7 +448,7 @@ ipcMain.handle('request-ptt-key-name', (_, pttIndex: number) => {
 });
 
 ipcMain.handle('flashFrame', () => {
-  mainWindow.flashFrame(true);
+  mainWindow?.flashFrame(true);
 });
 
 //
@@ -551,7 +571,7 @@ ipcMain.handle('start-mic-test', () => {
 });
 
 ipcMain.handle('stop-mic-test', () => {
-  mainWindow.webContents.send('MicTest', '0.0', '0.0');
+  mainWindow?.webContents.send('MicTest', '0.0', '0.0');
   TrackAudioAfv.StopMicTest();
 });
 
@@ -560,7 +580,7 @@ ipcMain.handle('update-platform', () => {
 });
 
 ipcMain.handle('close-me', () => {
-  mainWindow.close();
+  mainWindow?.close();
 });
 
 ipcMain.handle('restart', () => {
@@ -570,7 +590,7 @@ ipcMain.handle('restart', () => {
 
   TrackAudioAfv.Exit();
 
-  mainWindow.close();
+  mainWindow?.close();
   createWindow();
 });
 
@@ -612,6 +632,10 @@ ipcMain.handle(
     message: string,
     buttons: string[]
   ) => {
+    if (!mainWindow) {
+      return;
+    }
+
     return dialog.showMessageBox(mainWindow, {
       type,
       title,
@@ -626,31 +650,31 @@ ipcMain.handle('get-version', () => {
 });
 
 ipcMain.on('maximise-window', () => {
-  mainWindow.maximize();
+  mainWindow?.maximize();
 });
 
 ipcMain.on('unmaximise-window', () => {
-  mainWindow.unmaximize();
+  mainWindow?.unmaximize();
 });
 
 ipcMain.on('minimise-window', () => {
-  mainWindow.minimize();
+  mainWindow?.minimize();
 });
 
 ipcMain.on('set-minimum-size', (_, width: number, height: number) => {
-  mainWindow.setMinimumSize(width, height);
+  mainWindow?.setMinimumSize(width, height);
 });
 
 ipcMain.on('set-window-button-visibility', (_, status: boolean) => {
-  mainWindow.setWindowButtonVisibility(status);
+  mainWindow?.setWindowButtonVisibility(status);
 });
 
 ipcMain.on('close-window', () => {
-  mainWindow.close();
+  mainWindow?.close();
 });
 
 ipcMain.on('is-window-fullscreen', () => {
-  mainWindow.webContents.send('is-window-fullscreen', mainWindow.isFullScreen());
+  mainWindow?.webContents.send('is-window-fullscreen', mainWindow.isFullScreen());
 });
 
 ipcMain.handle('is-trusted-accessibility', () => {
@@ -660,64 +684,78 @@ ipcMain.handle('is-trusted-accessibility', () => {
 //
 // Callbacks
 //
-TrackAudioAfv.RegisterCallback((arg: string, arg2: string, arg3: string) => {
-  if (!arg) {
+
+const handleEvent = (arg: string, arg2: string, arg3: string) => {
+  if (!arg) return;
+
+  if (!isAppReady) {
+    eventQueue.push([arg, arg2, arg3]);
     return;
   }
 
+  // Your existing event handling logic
   if (arg === AfvEventTypes.VuMeter) {
-    mainWindow.webContents.send('VuMeter', arg2, arg3);
+    mainWindow?.webContents.send('VuMeter', arg2, arg3);
+  }
+  if (arg === AfvEventTypes.VuMeter) {
+    mainWindow?.webContents.send('VuMeter', arg2, arg3);
   }
 
   if (arg === AfvEventTypes.FrequencyRxBegin) {
-    mainWindow.webContents.send('FrequencyRxBegin', arg2);
+    mainWindow?.webContents.send('FrequencyRxBegin', arg2);
   }
 
   if (arg === AfvEventTypes.FrequencyRxEnd) {
-    mainWindow.webContents.send('FrequencyRxEnd', arg2);
+    mainWindow?.webContents.send('FrequencyRxEnd', arg2);
   }
 
   if (arg == AfvEventTypes.StationRxBegin) {
-    mainWindow.webContents.send('StationRxBegin', arg2, arg3);
+    mainWindow?.webContents.send('StationRxBegin', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.StationTransceiversUpdated) {
-    mainWindow.webContents.send('station-transceivers-updated', arg2, arg3);
+    mainWindow?.webContents.send('station-transceivers-updated', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.StationStateUpdate) {
-    mainWindow.webContents.send('station-state-update', arg2, arg3);
+    mainWindow?.webContents.send('station-state-update', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {
-    mainWindow.webContents.send('station-data-received', arg2, arg3);
+    mainWindow?.webContents.send('station-data-received', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.PttState) {
-    mainWindow.webContents.send('PttState', arg2);
+    mainWindow?.webContents.send('PttState', arg2);
   }
 
   if (arg == AfvEventTypes.Error) {
-    mainWindow.webContents.send('error', arg2);
+    mainWindow?.webContents.send('error', arg2);
   }
 
   if (arg == AfvEventTypes.VoiceConnected) {
-    mainWindow.webContents.send('VoiceConnected');
+    mainWindow?.webContents.send('VoiceConnected');
   }
 
   if (arg == AfvEventTypes.VoiceDisconnected) {
-    mainWindow.webContents.send('VoiceDisconnected');
+    mainWindow?.webContents.send('VoiceDisconnected');
   }
 
   if (arg == AfvEventTypes.NetworkConnected) {
-    mainWindow.webContents.send('network-connected', arg2, arg3);
+    mainWindow?.webContents.send('network-connected', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.NetworkDisconnected) {
-    mainWindow.webContents.send('network-disconnected');
+    mainWindow?.webContents.send('network-disconnected');
   }
 
   if (arg == AfvEventTypes.PttKeySet) {
-    mainWindow.webContents.send('ptt-key-set', arg2, arg3);
+    mainWindow?.webContents.send('ptt-key-set', arg2, arg3);
   }
-});
+
+  if (arg == AfvEventTypes.OpenSettingsModal) {
+    mainWindow?.webContents.send('show-settings');
+  }
+};
+
+TrackAudioAfv.RegisterCallback(handleEvent);

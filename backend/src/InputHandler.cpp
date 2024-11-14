@@ -150,7 +150,7 @@ bool InputHandler::handleJoystickSetup()
 
         for (int j = 0; j < sf::Joystick::getButtonCount(i); j++) {
             if (sf::Joystick::isButtonPressed(i, j)) {
-                PLOGE << "Joystick PTT " << pttSetupIndex << " Key set: " << j << " on Joystick "
+                PLOGV << "Joystick PTT " << pttSetupIndex << " Key set: " << j << " on Joystick "
                       << i;
                 updatePttKey(pttSetupIndex, j, true, i);
                 isPttSetupRunning = false;
