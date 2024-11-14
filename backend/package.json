@@ -12,16 +12,17 @@
     },
     "types": "types/index.d.ts",
     "scripts": {
-        "build": "cmake-js compile -B Release --parallel 2 && node custom_build.mjs && npm pack",
-        "build-fast": "cmake-js compile -B Release --parallel 8 && node custom_build.mjs && npm pack",
+        "build:node": "cmake-js build --out=build",
+        "build:debug": "node ./scripts/build-napi.js --debug && node custom_build.mjs && npm pack",
+        "build:release": "node ./scripts/build-napi.js && node custom_build.mjs && npm pack",
+        "build:release-fast": "node ./scripts/build-napi.js --fast && node custom_build.mjs && npm pack",
         "format": "clang-format -i include/**.hpp && clang-format -i include/**.h && clang-format -i src/**.cpp"
     },
     "cmake-js": {
         "runtime": "electron"
     },
     "files": [
-        "build/Release/trackaudio-afv.node",
-        "build/Release/*.dll",
+        "build/{Release,Debug}/**/*.{node,dylib,dll,so}",
         "js/bindings.js",
         "types/index.d.ts"
     ],
