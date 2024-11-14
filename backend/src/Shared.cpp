@@ -95,7 +95,7 @@ void UserSettings::_load()
         save();
         NapiHelpers::callElectron("open-settings-modal");
         NapiHelpers::sendErrorToElectron(
-            "Settings file is outdated. Please reconfigure your settings.");
+            "Settings file is outdated. Please reconfigure your PTT settings.");
         return;
     }
 
