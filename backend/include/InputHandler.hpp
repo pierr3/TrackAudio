@@ -1,49 +1,56 @@
 #pragma once
 
+#include "KeycodeLookup.h"
+#include "Shared.hpp"
+#include "UIOHookWrapper.h"
+
 #include <Poco/Timer.h>
-#include <SFML/Graphics.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Window.hpp>
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
+
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <string>
 
-#include <Shared.hpp>
-
 class InputHandler {
-
 public:
     InputHandler();
+    ~InputHandler();
 
     InputHandler(const InputHandler&) = delete;
     InputHandler(InputHandler&&) = delete;
     InputHandler& operator=(const InputHandler&) = delete;
     InputHandler& operator=(InputHandler&&) = delete;
 
-    ~InputHandler();
-
-    void startPttSetup(int pttIndex);
+    void startPttSetup(int pttIndex, bool listenForJoysticks = true);
     void stopPttSetup();
 
-    static void forwardPttKeyName(int pttIndex);
+    void clearPtt(int pttIndex);
 
+    static void forwardPttKeyName(int pttIndex);
     static std::string getPttKeyName(int pttIndex);
 
 private:
-    std::mutex m;
-    Poco::Timer timer;
-    std::atomic<bool> isPttSetupRunning = true;
-    std::atomic<int> pttSetupIndex = 0;
-    int activePtt = 0;
-
-    bool isPttOpen = false;
+    void handleKeyEvent(const uiohook_event* event);
+    bool handlePttSetup(const uiohook_event* event);
+    void checkKeyboardPtt(
+        int pttIndex, int pttKey, bool isJoystickButton, bool isKeyPressed, int keycode);
+    void checkJoystickPtt(int pttIndex, int key, int joystickId);
+    bool handleJoystickSetup();
+    void onTimer(Poco::Timer& timer);
 
     static void updatePttKey(int pttIndex, int key, bool isJoystickButton, int joystickId = 0);
     static std::string lookupPttKeyName(int key, bool isJoystickButton, int joystickId);
 
-    // NOLINTNEXTLINE
-    void onTimer(Poco::Timer& /*timer*/);
-    void checkForPtt(int pttIndex, int key, bool isJoystickButton, int joystickId);
+    // Member variables
+    std::mutex m;
+    Poco::Timer timer;
+    std::unique_ptr<UIOHookWrapper> uioHookWrapper_;
+
+    std::atomic<bool> isPttSetupRunning { false };
+    std::atomic<int> pttSetupIndex { 0 };
+    std::atomic<bool> listenForJoysticks { true };
+    int activePtt { 0 };
+    bool isPttOpen { false };
 };

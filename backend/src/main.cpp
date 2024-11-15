@@ -104,6 +104,13 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info)
         return Napi::Boolean::New(info.Env(), false);
     }
 
+    if (!UserAudioSetting::CheckAudioSettings()) {
+        NapiHelpers::sendErrorToElectron(
+            "Audio settings not set, please set all your audio devices correctly (Speakers, "
+            "Microphone, Headset and API)");
+        return Napi::Boolean::New(env, false);
+    }
+
     auto password = info[0].As<Napi::String>().Utf8Value();
 
     mClient->SetCallsign(UserSession::callsign);
@@ -155,6 +162,11 @@ void SetAudioSettings(const Napi::CallbackInfo& info)
     auto inputDeviceId = info[1].As<Napi::String>().Utf8Value();
     auto headsetOutputDeviceId = info[2].As<Napi::String>().Utf8Value();
     auto speakersOutputDeviceId = info[3].As<Napi::String>().Utf8Value();
+
+    UserAudioSetting::apiId = apiId;
+    UserAudioSetting::inputDeviceId = inputDeviceId;
+    UserAudioSetting::headsetOutputDeviceId = headsetOutputDeviceId;
+    UserAudioSetting::speakersOutputDeviceId = speakersOutputDeviceId;
 
     mClient->SetAudioApi(apiId);
     mClient->SetAudioInputDevice(inputDeviceId);
@@ -451,8 +463,20 @@ void StopAudio(const Napi::CallbackInfo& /*info*/)
 void SetupPttBegin(const Napi::CallbackInfo& info)
 {
     int pttIndex = info[0].As<Napi::Number>().Int32Value();
+    bool shouldListenForJoysticks = true;
 
-    MainThreadShared::inputHandler->startPttSetup(pttIndex);
+    if (info.Length() > 1 && info[1].IsBoolean()) {
+        shouldListenForJoysticks = info[1].As<Napi::Boolean>().Value();
+    }
+
+    MainThreadShared::inputHandler->startPttSetup(pttIndex, shouldListenForJoysticks);
+}
+
+void ClearPtt(const Napi::CallbackInfo& info)
+{
+    int pttIndex = info[0].As<Napi::Number>().Int32Value();
+
+    MainThreadShared::inputHandler->clearPtt(pttIndex);
 }
 
 void SetupPttEnd(const Napi::CallbackInfo& /*info*/)
@@ -489,7 +513,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         }
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string station = *reinterpret_cast<std::string*>(data);
+        std::string station = static_cast<const char*>(data);
         auto transceiverCount = mClient->GetTransceiverCountForStation(station);
         auto states = mClient->getRadioState();
         for (const auto& state : states) {
@@ -509,7 +533,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         }
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        bool found = *reinterpret_cast<bool*>(data);
+        bool found = static_cast<bool>(data);
         if (!found) {
             NapiHelpers::sendErrorToElectron("Station not found");
             return;
@@ -593,7 +617,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string callsign = *reinterpret_cast<std::string*>(data2);
+        std::string callsign = static_cast<const char*>(data2);
         if (!mClient->IsFrequencyActive(frequency)) {
             PLOGW << "StationRxBegin: Frequency " << frequency << " not active, skipping";
             return;
@@ -615,7 +639,7 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string callsign = *reinterpret_cast<std::string*>(data2);
+        std::string callsign = static_cast<const char*>(data2);;
 
         if (!mClient->IsFrequencyActive(frequency)) {
             PLOGW << "StationRxEnd: Frequency " << frequency << " not active, skipping";
@@ -705,9 +729,9 @@ VersionCheckResponse CheckVersionSync(const Napi::CallbackInfo& /*info*/)
         if (!res || res->status != httplib::StatusCode::OK_200) {
             std::string errorDetail;
             if (res) {
-              errorDetail = "HTTP error " + std::to_string(res->status);
+                errorDetail = "HTTP error " + std::to_string(res->status);
             } else {
-              errorDetail = "Unable to reach server at all or no internet connection";
+                errorDetail = "Unable to reach server at all or no internet connection";
             }
             PLOGE << "Error fetching version: " << errorDetail;
             MainThreadShared::ShouldRun = false;
@@ -877,6 +901,8 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "SetupPttBegin"), Napi::Function::New(env, SetupPttBegin));
 
     exports.Set(Napi::String::New(env, "SetupPttEnd"), Napi::Function::New(env, SetupPttEnd));
+
+    exports.Set(Napi::String::New(env, "ClearPtt"), Napi::Function::New(env, ClearPtt));
 
     exports.Set(
         Napi::String::New(env, "RequestPttKeyName"), Napi::Function::New(env, RequestPttKeyName));

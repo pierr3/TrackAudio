@@ -83,7 +83,10 @@ export const api = {
   getFrequencyState: (frequency: number) =>
     ipcRenderer.invoke('audio-get-frequency-state', frequency),
 
-  SetupPtt: (pttIndex: number) => ipcRenderer.invoke('setup-ptt', pttIndex),
+  SetupPtt: (pttIndex: number, shouldListenForJoysticks: boolean) =>
+    ipcRenderer.invoke('setup-ptt', pttIndex, shouldListenForJoysticks),
+
+  ClearPtt: (pttIndex: number) => ipcRenderer.invoke('clear-ptt', pttIndex),
 
   SetFrequencyRadioGain: (frequency: number, gain: number) =>
     ipcRenderer.invoke('set-frequency-radio-gain', frequency, gain),

@@ -208,7 +208,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saved);
   };
 
-  const handleSetPtt = (pttIndex: number) => {
+  const handleSetPtt = (pttIndex: number, shouldListenForJoysticks: boolean) => {
     if (pttIndex === 1) {
       updatePtt1KeySet(false);
     } else if (pttIndex === 2) {
@@ -216,7 +216,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     }
 
     setChangesSaved(SaveStatus.Saved);
-    void window.api.SetupPtt(pttIndex);
+    void window.api.SetupPtt(pttIndex, shouldListenForJoysticks);
+  };
+
+  const handleClearPtt = (pttIndex: number) => {
+    if (pttIndex === 1 && ptt2KeyName !== 'Not Set') {
+      return;
+    }
+
+    if (pttIndex === 1) {
+      updatePtt1KeySet(false);
+    } else if (pttIndex === 2) {
+      updatePtt2KeySet(false);
+    }
+
+    setChangesSaved(SaveStatus.Saved);
+    void window.api.ClearPtt(pttIndex);
   };
 
   const handleMicTest = () => {
@@ -298,7 +313,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       onChange={(e) => debouncedPassword(e.target.value)}
                     ></input>
 
-                    <label className="mt-1">Radio Effects</label>
+                    <label className="mt-1">Radio effects</label>
                     <select
                       id=""
                       className="form-control mt-1"
@@ -311,7 +326,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       <option value="off">Off</option>
                     </select>
 
-                    <label className="mt-2">Radio Hardware</label>
+                    <label className="mt-2">Radio hardware</label>
                     <select
                       id=""
                       className="form-control mt-1"
@@ -342,17 +357,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       className="form-control mt-1"
                       onChange={handleShowExpandedRxChange}
                       value={showExpandedRxInfo.toString()}
-                    >
-                      <option value="true">Always</option>
-                      <option value="false">Never</option>
-                    </select>
-
-                    <label className="mt-2">Transparent mini mode</label>
-                    <select
-                      id=""
-                      className="form-control mt-1"
-                      onChange={handleTransparentMiniMode}
-                      value={transparentMiniMode.toString()}
                     >
                       <option value="true">Always</option>
                       <option value="false">Never</option>
@@ -397,6 +401,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     }}
                   />
                 </div>
+                <label className="mt-2">Transparent mini mode</label>
+                <select
+                  id=""
+                  className="form-control mt-1"
+                  onChange={handleTransparentMiniMode}
+                  value={transparentMiniMode.toString()}
+                >
+                  <option value="true">Always</option>
+                  <option value="false">Never</option>
+                </select>
               </div>
             </div>
             <div className="modal-body" style={{ paddingTop: '0' }}>
@@ -432,7 +446,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
               </div>
               <div className="col-6" style={{ float: 'left', paddingRight: '10px' }}>
                 <div className="form-group">
-                  <button className="btn text-box-container mt-3 w-100">
+                  <button
+                    className="btn text-box-container mt-3 w-100"
+                    onClick={() => {
+                      handleClearPtt(1);
+                    }}
+                  >
                     {`Ptt 1: ${!hasPtt1BeenSetDuringSetup ? 'Press any key/button' : ptt1KeyName}`}
                   </button>
                   <button
@@ -442,7 +461,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       pttIsOn && 'btn-warning'
                     )}
                     onClick={() => {
-                      handleSetPtt(1);
+                      handleSetPtt(1, true);
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      handleSetPtt(1, false);
                     }}
                   >
                     Set new PTT 1
@@ -451,7 +474,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
               </div>
               <div className="col-6" style={{ float: 'right', paddingLeft: '10px' }}>
                 <div className="form-group">
-                  <button className="btn text-box-container mt-3 w-100">
+                  <button
+                    className="btn text-box-container mt-3 w-100"
+                    onClick={() => {
+                      handleClearPtt(2);
+                    }}
+                  >
                     {`Ptt 2: ${!hasPtt2BeenSetDuringSetup ? 'Press any key/button' : ptt2KeyName}`}
                   </button>
                   <button
@@ -461,7 +489,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       pttIsOn && 'btn-warning'
                     )}
                     onClick={() => {
-                      handleSetPtt(2);
+                      handleSetPtt(2, true);
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      handleSetPtt(2, false);
                     }}
                   >
                     Set new PTT 2

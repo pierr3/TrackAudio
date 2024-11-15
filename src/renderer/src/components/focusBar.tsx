@@ -34,7 +34,7 @@ const FocusBar = () => {
               style={{ zIndex: 3 }}
             >
               <a className="small font-weight-bold text-danger cursor" onClick={restartApp}>
-                Fast reload required to apply changes
+                Click here to reload to apply changes
               </a>
             </div>
           ) : (
