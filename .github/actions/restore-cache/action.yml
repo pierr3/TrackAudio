@@ -8,9 +8,6 @@ inputs:
     default: 'false'
 
 outputs:
-  afv-native:
-    description: True if afv-native was restored from cache
-    value: ${{ steps.afv-native.outputs.cache-hit }}
   backend:
     description: True if backend was restored from cache
     value: ${{ steps.backend.outputs.cache-hit }}
