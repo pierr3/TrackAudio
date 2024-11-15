@@ -8,15 +8,21 @@ inputs:
     default: 'false'
 
 outputs:
+  afv-native:
+    description: True if afv-native was restored from cache
+    value: ${{ steps.afv-native.outputs.cache-hit }}
   backend:
     description: True if backend was restored from cache
     value: ${{ steps.backend.outputs.cache-hit }}
-  vcpkg:
-    description: True if vcpkg was restored from cache
-    value: ${{ steps.vcpkg.outputs.cache-hit }}
+  afv-native:
+    description: True if libuiohook was restored from cache
+    value: ${{ steps.libuiohook.outputs.cache-hit }}
   electron-builder:
     description: True if electron-builder was restored from cache
     value: ${{ steps.electron-builder.outputs.cache-hit }}
+  vcpkg:
+    description: True if vcpkg was restored from cache
+    value: ${{ steps.vcpkg.outputs.cache-hit }}
 
 runs:
   using: 'composite'
@@ -45,18 +51,8 @@ runs:
         echo "ELECTRON_CACHE_DIR=$Env:LOCALAPPDATA\electron\Cache" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
         echo "ELECTRON_BUILDER_CACHE_DIR=$Env:LOCALAPPDATA\electron-builder\Cache" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
-    # Since Windows doesn't have bash, use separate steps to get the afv-native submodule
-    # revision on Windows vs. macos and linux.
-    - name: Get afv-native submodule revision (windows)
-      if: matrix.os == 'windows-2019'
-      shell: pwsh
-      run: |
-        $AFVNATIVE_REV = & git rev-parse HEAD:./backend/extern/afv-native
-        echo "AFVNATIVE_REV=$AFVNATIVE_REV" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        echo "afv-native submodule revision $AFVNATIVE_REV"
-
-    - name: Get afv-native submodule revision (macos and linux)
-      if: matrix.os != 'windows-2019'
+    # Get the afv-native submodule revision to use as the cache key for restoring afv-native.
+    - name: Get afv-native submodule revision
       shell: bash
       run: |
         AFVNATIVE_REV=$(git rev-parse HEAD:./backend/extern/afv-native)
@@ -70,6 +66,14 @@ runs:
         VCPKG_REV=$(git rev-parse HEAD:./backend/vcpkg)
         echo "VCPKG_REV=$VCPKG_REV" >> $GITHUB_ENV
         echo "vcpkg submodule revision $VCPKG_REV"
+
+    # Get the libuiohook submodule revision to use as the cache key for restoring libuiohook.
+    - name: Get libuiohook submodule revision
+      shell: bash
+      run: |
+        LIBUIOHOOK_REV=$(git rev-parse HEAD:./backend/extern/libuiohook)
+        echo "LIBUIOHOOK_REV=$LIBUIOHOOK_REV" >> $GITHUB_ENV
+        echo "libuiohook submodule revision $LIBUIOHOOK_REV"
 
     # The cache key for backend has to be constructed differently on windows vs
     # macos/linux because hashFiles doesn't work on windows if you specify `backend/**`.
@@ -85,6 +89,15 @@ runs:
       shell: bash
       run: echo "BACKEND_CACHE_KEY=${{ runner.os }}-backend-${{ hashFiles('backend/**') }}-${{ env.AFVNATIVE_REV }}" >> $GITHUB_ENV
 
+    - name: Restore electron-builder cache
+      id: electron-builder
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ env.ELECTRON_CACHE_DIR }}
+          ${{ env.ELECTRON_BUILDER_CACHE_DIR }}
+        key: ${{ runner.os }}-electron-builder-${{ hashFiles('package-lock.json') }}
+
     # The backend only gets cached if backend is set to 'true' when calling this composite
     # action, currently only in the ci.yml flow. release.yml does not cache backend.
     - name: Restore backend from cache
@@ -96,12 +109,20 @@ runs:
           backend/trackaudio-afv-1.0.0.tgz
         key: ${{ env.BACKEND_CACHE_KEY }}
 
-    # vcpkg only gets restored from cache if the backend cache *wasn't* found.
-    # That's because if the backend cache is found there's no native build at all
-    # and no need to spend all the time restoring the vcpkg cache, which while
-    # way faster than installing all the vcpkg stuff from scratch, still takes
-    # a while.
+    # The remaining native components (afv-native, vcpkg, and libuiohook) only get restored
+    # if the backend cache wasn't found. That's because if the backend cache is found there's
+    # no native build at all, so no need to restore the caches for the native components.
+    - name: Restore afv-native from cache
+      id: afv-native
+      uses: actions/cache@v4
+      if: steps.backend.outputs.cache-hit != 'true'
+      with:
+        path: |
+          backend/extern/afv-native
+        key: ${{ runner.os }}-afv-native-${{ env.VCPKG_REV }}
+
     - name: Restore vcpkg from cache
+      id: vcpkg
       uses: actions/cache@v4
       if: steps.backend.outputs.cache-hit != 'true'
       with:
@@ -110,11 +131,11 @@ runs:
           backend/build/vcpkg_installed
         key: ${{ runner.os }}-vcpkg-${{ hashFiles('backend/vcpkg.json')}}-${{ env.VCPKG_REV }}
 
-    - name: Restore electron-builder cache
-      id: electron-builder
+    - name: Restore libuiohook from cache
+      id: libuiohook
       uses: actions/cache@v4
+      if: steps.backend.outputs.cache-hit != 'true'
       with:
         path: |
-          ${{ env.ELECTRON_CACHE_DIR }}
-          ${{ env.ELECTRON_BUILDER_CACHE_DIR }}
-        key: ${{ runner.os }}-electron-builder-${{ hashFiles('package-lock.json') }}
+          backend/extern/libuiohook
+        key: ${{ runner.os }}-libuiohook-${{ env.LIBUIOHOOK_REV }}
