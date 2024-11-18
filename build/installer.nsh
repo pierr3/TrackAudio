@@ -18,20 +18,21 @@ Page custom EuroScopePage EuroScopePageLeave
   File /oname=$PLUGINSDIR\vc_redist.x64.exe "${BUILD_RESOURCES_DIR}\vc_redist.x64.exe"
   ExecWait '"$PLUGINSDIR\vc_redist.x64.exe" /install /norestart /passive'
 
-    # Reset variables
-    StrCpy $euroscopePath ""
-    StrCpy $euroscopeFound "false"
-    StrCpy $euroscopeDir ""
 
-    # Check common installation paths for EuroScope
-    ${If} ${FileExists} "$PROGRAMFILES32\EuroScope\EuroScope.exe"
-        StrCpy $euroscopePath "$PROGRAMFILES32\EuroScope\EuroScope.exe"
-        StrCpy $euroscopeFound "true"
-        StrCpy $euroscopeDir "$PROGRAMFILES32\EuroScope"
-    ${ElseIf} ${FileExists} "$PROGRAMFILES64\EuroScope\EuroScope.exe"
-        StrCpy $euroscopePath "$PROGRAMFILES64\EuroScope\EuroScope.exe"
-        StrCpy $euroscopeFound "true"
-        StrCpy $euroscopeDir "$PROGRAMFILES64\EuroScope"
+  # Reset variables
+  StrCpy $euroscopePath ""
+  StrCpy $euroscopeFound "false"
+  StrCpy $euroscopeDir ""
+
+  # Check common installation paths for EuroScope
+  ${If} ${FileExists} "$PROGRAMFILES32\EuroScope\EuroScope.exe"
+      StrCpy $euroscopePath "$PROGRAMFILES32\EuroScope\EuroScope.exe"
+      StrCpy $euroscopeFound "true"
+      StrCpy $euroscopeDir "$PROGRAMFILES32\EuroScope"
+  ${ElseIf} ${FileExists} "$PROGRAMFILES64\EuroScope\EuroScope.exe"
+      StrCpy $euroscopePath "$PROGRAMFILES64\EuroScope\EuroScope.exe"
+      StrCpy $euroscopeFound "true"
+      StrCpy $euroscopeDir "$PROGRAMFILES64\EuroScope"
     ${EndIf}
 !macroend
 
@@ -82,6 +83,8 @@ Function EuroScopePageLeave
 FunctionEnd
 
 !macro customInstall
+  CreateShortCut "$SMPROGRAMS\TrackAudio (Auto Connect).lnk" "$INSTDIR\TrackAudio.exe" "--auto-connect"
+
     ${If} $euroscopeFound == "true"
         ${If} ${FileExists} "$INSTDIR\EuroScopeWithTrackAudio.exe"
             CreateShortcut "$SMPROGRAMS\TrackAudio\EuroScope with TrackAudio.lnk" \

@@ -42,7 +42,7 @@ export const api = {
   getAudioOutputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-output-devices', apiId),
 
   getConfig: () => ipcRenderer.invoke('get-configuration'),
-
+  isAutoConnectMode: () => ipcRenderer.invoke('is-auto-connect-mode'),
   setAudioApi: (apiId: number) => ipcRenderer.invoke('set-audio-api', apiId),
   setAudioInputDevice: (deviceId: string) => ipcRenderer.invoke('set-audio-input-device', deviceId),
   setHeadsetOutputDevice: (deviceId: string) =>
@@ -58,8 +58,8 @@ export const api = {
   GetStation: (callsign: string) => ipcRenderer.invoke('get-station', callsign),
   RefreshStation: (callsign: string) => ipcRenderer.invoke('refresh-station', callsign),
 
-  addFrequency: (frequency: number, callsign: string) =>
-    ipcRenderer.invoke('audio-add-frequency', frequency, callsign),
+  addFrequency: (frequency: number, callsign: string, rx = false, tx = false) =>
+    ipcRenderer.invoke('audio-add-frequency', frequency, callsign, rx, tx),
   removeFrequency: (frequency: number) => ipcRenderer.invoke('audio-remove-frequency', frequency),
   IsFrequencyActive: (frequency: number) =>
     ipcRenderer.invoke('audio-is-frequency-active', frequency),

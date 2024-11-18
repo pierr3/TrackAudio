@@ -61,7 +61,6 @@ module.exports = {
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
     include: 'build/installer.nsh',
-    menuCategory: true,
     displayLanguageSelector: false
   },
   mac: {
