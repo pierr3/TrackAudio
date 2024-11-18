@@ -491,6 +491,11 @@ void SDK::broadcastOnWebsocket(const std::string& data)
 
 void SDK::handleAddStation(const nlohmann::json& json)
 {
+    if (!mClient->IsVoiceConnected()) {
+        PLOG_ERROR << "Voice must be connected before adding a station.";
+        return;
+    }
+
     std::optional<std::string> callsign;
     std::optional<int> frequency;
 
@@ -512,6 +517,9 @@ void SDK::handleAddStation(const nlohmann::json& json)
     }
 
     auto allRadios = mClient->getRadioState();
+
+    // See if the station or frequency is already added. if yes, just publish the current
+    // state and return.
     for (const auto& [freq, state] : allRadios) {
         if ((callsign.has_value() && state.stationName == callsign.value())
             || (frequency.has_value() && freq == frequency.value())) {
@@ -521,9 +529,12 @@ void SDK::handleAddStation(const nlohmann::json& json)
         }
     }
 
+    // Add via callsign if that's what was specified.
     if (callsign.has_value()) {
         mClient->GetStation(callsign.value());
-    } else if (frequency.has_value()) {
-        mClient->AddFrequency(frequency.value(), "");
+    }
+    // Otherwise add via frequency.
+    else if (frequency.has_value()) {
+        mClient->AddFrequency(frequency.value(), "MANUAL");
     }
 }
