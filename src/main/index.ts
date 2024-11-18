@@ -26,6 +26,8 @@ let mainWindow: BrowserWindow | null;
 
 let isAppReady = false;
 
+let shouldAutoConnect = false;
+let isConnected = false;
 const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 455; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
 const defaultMiniModeWidth = 250; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
@@ -54,6 +56,17 @@ const setAlwaysOnTop = (onTop: boolean) => {
   } else {
     mainWindow?.setAlwaysOnTop(onTop);
   }
+};
+
+const hasRequiredConfig = () => {
+  return (
+    configManager.config.cid &&
+    configManager.config.password &&
+    configManager.config.audioInputDeviceId &&
+    configManager.config.headsetOutputDeviceId &&
+    configManager.config.speakerOutputDeviceId &&
+    configManager.config.audioApi !== -1
+  );
 };
 
 /**
@@ -179,16 +192,17 @@ const createWindow = (): void => {
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
 
-  // We can't log to the same file as the C++ backend since PLOGI holds a lock on the file.
-  // log.transports.file.resolvePathFn = (): string => {
-  //   return TrackAudioAfv.GetLoggerFilePath();
-  // };
+  shouldAutoConnect =
+    Boolean(process.argv.includes(app.isPackaged ? '--auto-connect' : 'auto-connect')) &&
+    Boolean(hasRequiredConfig());
+  const miniModeHeight = 39 + 24 * 1;
+  const miniModeHeightMin = 22 + 24 * 1;
 
   const options: Electron.BrowserWindowConstructorOptions = {
-    height: defaultWindowSize.height,
-    width: defaultWindowSize.width,
+    height: shouldAutoConnect ? miniModeHeight : defaultWindowSize.height,
+    width: shouldAutoConnect ? defaultMiniModeWidth : defaultWindowSize.width,
     minWidth: 250,
-    minHeight: 120,
+    minHeight: shouldAutoConnect ? miniModeHeightMin : 120,
     icon,
     trafficLightPosition: { x: 12, y: 10 },
     titleBarStyle: 'hidden',
@@ -198,7 +212,7 @@ const createWindow = (): void => {
     }
   };
 
-  if (configManager.config.transparentMiniMode) {
+  if (configManager.config.transparentMiniMode && shouldAutoConnect) {
     options.vibrancy = 'fullscreen-ui';
     options.backgroundMaterial = 'acrylic';
   }
@@ -220,8 +234,16 @@ const createWindow = (): void => {
     mainWindow.setMenu(null);
   }
 
-  // Always restore to maxi mode on app launch.
-  restoreWindowBounds('maxi');
+  // Only restore bounds if not auto-connecting
+  if (!shouldAutoConnect) {
+    restoreWindowBounds('maxi');
+  } else {
+    // If auto-connecting, set minimum size for mini mode
+    mainWindow.setMinimumSize(250, 42);
+    if (process.platform === 'darwin') {
+      mainWindow.setWindowButtonVisibility(false);
+    }
+  }
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
@@ -533,9 +555,18 @@ ipcMain.handle(
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean
+    crossCoupleAcross: boolean,
+    radioGain: number | null
   ) => {
-    return TrackAudioAfv.SetFrequencyState(frequency, rx, tx, xc, onSpeaker, crossCoupleAcross);
+    return TrackAudioAfv.SetFrequencyState(
+      frequency,
+      rx,
+      tx,
+      xc,
+      onSpeaker,
+      crossCoupleAcross,
+      radioGain
+    );
   }
 );
 
@@ -767,14 +798,22 @@ const handleEvent = (arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.VoiceConnected) {
+    isConnected = true;
     mainWindow?.webContents.send('VoiceConnected');
   }
 
   if (arg == AfvEventTypes.VoiceDisconnected) {
+    isConnected = false;
     mainWindow?.webContents.send('VoiceDisconnected');
   }
 
   if (arg == AfvEventTypes.NetworkConnected) {
+    if (shouldAutoConnect && !isConnected) {
+      setAudioSettings();
+      TrackAudioAfv.Connect(configManager.config.password).catch(() => {
+        console.log('Failed to auto-connect to network');
+      });
+    }
     mainWindow?.webContents.send('network-connected', arg2, arg3);
   }
 

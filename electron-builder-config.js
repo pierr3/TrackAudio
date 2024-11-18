@@ -1,8 +1,13 @@
+/**
+ * @type {import('electron-builder').Configuration}
+ * @see https://www.electron.build/configuration/configuration
+ */
 module.exports = {
   appId: 'com.vatsim.trackaudio',
   productName: 'TrackAudio',
   directories: {
-    buildResources: 'build'
+    buildResources: 'build',
+    output: 'release'
   },
   publish: {
     provider: 's3',
@@ -22,6 +27,12 @@ module.exports = {
   asarUnpack: ['resources/**', './src/renderer/src/assets/md80_error.mp3'],
   win: {
     executableName: 'trackaudio',
+    target: [
+      {
+        target: 'nsis',
+        arch: ['x64']
+      }
+    ],
     extraFiles: [
       {
         from: 'backend/build/Release/',
@@ -32,15 +43,26 @@ module.exports = {
         from: 'resources/',
         to: 'resources/',
         filter: ['*.wav']
+      },
+      {
+        from: 'euroscope-launcher/build/bin/',
+        to: '.',
+        filter: ['EuroScopeWithTrackAudio.exe']
       }
     ]
   },
   nsis: {
+    oneClick: false,
+    perMachine: false,
+    allowToChangeInstallationDirectory: true,
     artifactName: '${name}-${version}-${arch}-setup.${ext}',
     shortcutName: '${productName}',
     uninstallDisplayName: '${productName}',
-    createDesktopShortcut: 'always',
+    createDesktopShortcut: true,
+    createStartMenuShortcut: true,
     include: 'build/installer.nsh',
+    menuCategory: true,
+    displayLanguageSelector: false
   },
   mac: {
     entitlementsInherit: 'build/entitlements.mac.plist',
