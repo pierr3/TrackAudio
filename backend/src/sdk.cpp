@@ -404,6 +404,7 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
         auto json = nlohmann::json::parse(payload);
         std::string messageType = json["type"];
 
+        PLOGI << "Received message: " << json.dump();
         if (messageType == "kSetStationState") {
             this->handleSetStationState(json);
             return;

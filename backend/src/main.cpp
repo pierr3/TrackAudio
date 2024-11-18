@@ -88,20 +88,31 @@ Napi::Array GetAudioOutputDevices(const Napi::CallbackInfo& info)
     return arr;
 }
 
-Napi::Boolean Connect(const Napi::CallbackInfo& info)
+Napi::Value Connect(const Napi::CallbackInfo& info)
 {
+    Napi::Env env = info.Env();
+    auto deferred = Napi::Promise::Deferred::New(env);
+
     if (!MainThreadShared::ShouldRun) {
-        return Napi::Boolean::New(info.Env(), false);
+        deferred.Resolve(Napi::Boolean::New(env, false));
+        return deferred.Promise();
     }
 
-    Napi::Env env = info.Env();
-
     if (!UserSession::isConnectedToTheNetwork) {
-        return Napi::Boolean::New(env, false);
+        deferred.Resolve(Napi::Boolean::New(env, false));
+        return deferred.Promise();
     }
 
     if (mClient->IsVoiceConnected()) {
-        return Napi::Boolean::New(info.Env(), false);
+        deferred.Resolve(Napi::Boolean::New(env, false));
+        return deferred.Promise();
+    }
+
+    if (!UserAudioSetting::CheckAudioSettings()) {
+        NapiHelpers::sendErrorToElectron(
+            "Audio settings not set, please set all your audio devices correctly (Speakers, "
+            "Microphone, Headset and API)");
+        return Napi::Boolean::New(env, false);
     }
 
     if (!UserAudioSetting::CheckAudioSettings()) {
@@ -116,7 +127,8 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info)
     mClient->SetCallsign(UserSession::callsign);
     mClient->SetCredentials(UserSession::cid, password);
     mClient->SetClientPosition(UserSession::lat, UserSession::lon, 150, 150);
-    return Napi::Boolean::New(env, mClient->Connect());
+    deferred.Resolve(Napi::Boolean::New(env, mClient->Connect()));
+    return deferred.Promise();
 }
 
 void Disconnect(const Napi::CallbackInfo& /*info*/)
@@ -639,7 +651,8 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         int frequency = *reinterpret_cast<int*>(data);
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string callsign = static_cast<const char*>(data2);;
+        std::string callsign = static_cast<const char*>(data2);
+        ;
 
         if (!mClient->IsFrequencyActive(frequency)) {
             PLOGW << "StationRxEnd: Frequency " << frequency << " not active, skipping";
