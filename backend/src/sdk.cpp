@@ -496,45 +496,32 @@ void SDK::handleAddStation(const nlohmann::json& json)
         return;
     }
 
-    std::optional<std::string> callsign;
-    std::optional<int> frequency;
-
-    if (json["value"].contains("callsign")) {
-        callsign = json["value"]["callsign"];
-    }
-    if (json["value"].contains("frequency")) {
-        frequency = json["value"]["frequency"];
-    }
-
-    if (callsign.has_value() && frequency.has_value()) {
-        PLOG_ERROR << "Both callsign and frequency specified. Only one should be specified.";
+    if (!json.contains("value") || !json["value"].contains("callsign")) {
+        PLOG_ERROR << "Callsign must be specified.";
         return;
     }
 
-    if (!callsign.has_value() && !frequency.has_value()) {
-        PLOG_ERROR << "Neither callsign nor frequency specified. One must be specified.";
-        return;
-    }
+    try {
 
-    auto allRadios = mClient->getRadioState();
+        auto callsign = json["value"]["callsign"].get<std::string>();
 
-    // See if the station or frequency is already added. if yes, just publish the current
-    // state and return.
-    for (const auto& [freq, state] : allRadios) {
-        if ((callsign.has_value() && state.stationName == callsign.value())
-            || (frequency.has_value() && freq == frequency.value())) {
-            this->publishStationState(
-                this->buildStationStateJson(state.stationName, static_cast<int>(freq)));
-            return;
+        auto allRadios = mClient->getRadioState();
+
+        PLOG_INFO << "Adding callsign: " << callsign;
+
+        // See if the station or frequency is already added. if yes, just publish the current
+        // state and return.
+        for (const auto& [freq, state] : allRadios) {
+            if (state.stationName == callsign) {
+                this->publishStationState(
+                    this->buildStationStateJson(state.stationName, static_cast<int>(freq)));
+                return;
+            }
         }
-    }
 
-    // Add via callsign if that's what was specified.
-    if (callsign.has_value()) {
-        mClient->GetStation(callsign.value());
-    }
-    // Otherwise add via frequency.
-    else if (frequency.has_value()) {
-        mClient->AddFrequency(frequency.value(), "MANUAL");
+        // Since it wasn't already added, add it.
+        mClient->GetStation(callsign);
+    } catch (const nlohmann::json::exception& e) {
+        PLOG_ERROR << "Failed to read the callsign: " << e.what();
     }
 }
