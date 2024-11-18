@@ -477,6 +477,10 @@ ipcMain.handle('get-configuration', () => {
   return configManager.config;
 });
 
+ipcMain.handle('is-auto-connect-mode', () => {
+  return shouldAutoConnect;
+});
+
 ipcMain.handle('request-ptt-key-name', (_, pttIndex: number) => {
   TrackAudioAfv.RequestPttKeyName(pttIndex);
 });
@@ -538,9 +542,12 @@ ipcMain.handle('disconnect', () => {
   TrackAudioAfv.Disconnect();
 });
 
-ipcMain.handle('audio-add-frequency', (_, frequency: number, callsign: string) => {
-  return TrackAudioAfv.AddFrequency(frequency, callsign);
-});
+ipcMain.handle(
+  'audio-add-frequency',
+  (_, frequency: number, callsign: string, rx: boolean, tx: boolean) => {
+    return TrackAudioAfv.AddFrequency(frequency, callsign, rx, tx);
+  }
+);
 
 ipcMain.handle('audio-remove-frequency', (_, frequency: number) => {
   TrackAudioAfv.RemoveFrequency(frequency);

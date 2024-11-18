@@ -199,6 +199,17 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     int frequency = info[0].As<Napi::Number>().Int32Value();
     auto callsign = info[1].As<Napi::String>().Utf8Value();
 
+    auto rx = false;
+    auto tx = false;
+
+    if (info.Length() > 2 && info[2].IsBoolean()) {
+        rx = info[2].As<Napi::Boolean>().Value();
+    }
+
+    if (info.Length() > 3 && info[3].IsBoolean()) {
+        tx = info[3].As<Napi::Boolean>().Value();
+    }
+
     auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
     if (!hasBeenAddded) {
         NapiHelpers::sendErrorToElectron("Could not add frequency: it already exists");
@@ -209,8 +220,8 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     RadioState newState {};
 
     newState.frequency = frequency;
-    newState.rx = false;
-    newState.tx = false;
+    newState.rx = rx;
+    newState.tx = tx;
     newState.xc = false;
     newState.headset = true;
     newState.xca = false;

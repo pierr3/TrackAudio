@@ -14,6 +14,7 @@ interface UtilStore {
   isEditMode: boolean;
   pendingRestart: boolean;
   transparentMiniMode: boolean;
+  isAutoConnectMode: boolean;
   time: Date;
   setIsEditMode: (isEditMode: boolean) => void;
   setPtt1KeyName: (ptt1KeyName: string) => void;
@@ -28,6 +29,7 @@ interface UtilStore {
   setTransparentMiniMode: (transparentMiniMode: boolean) => void;
   setPendingRestart: (pendingRestart: boolean) => void;
   setTime: (time: Date) => void;
+  setIsAutoConnectMode: (isAutoConnectMode: boolean) => void;
 }
 
 const useUtilStore = create<UtilStore>((set) => ({
@@ -40,6 +42,7 @@ const useUtilStore = create<UtilStore>((set) => ({
   hasPtt2BeenSetDuringSetup: false,
   isWindowFullscreen: false,
   isWindowMaximised: false,
+  isAutoConnectMode: false,
   showExpandedRxInfo: false,
   isEditMode: false,
   transparentMiniMode: false,
@@ -83,6 +86,9 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   setTime(time: Date): void {
     set({ time });
+  },
+  setIsAutoConnectMode: (isAutoConnectMode: boolean): void => {
+    set({ isAutoConnectMode });
   }
 }));
 
