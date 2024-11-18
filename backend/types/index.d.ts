@@ -25,6 +25,7 @@ export declare const AfvEventTypes: {
   PttKeySet: string;
   FrequencyStateUpdate: string;
   StationStateUpdate: string;
+  OpenSettingsModal: string;
 };
 
 declare namespace TrackAudioAfv {
@@ -79,6 +80,8 @@ declare namespace TrackAudioAfv {
   export function SetFrequencyRadioGain(frequency: number, gain: number): void;
   export function SetPtt(activate: boolean): void;
 
+  export function ClearPtt(pttIndex: number): void;
+
   export function SetRadioEffects(type: string): void;
 
   export function SetHardwareType(type: number): void;
@@ -90,7 +93,7 @@ declare namespace TrackAudioAfv {
     func: (arg: string, arg2: string, arg3: string) => void
   ): void;
 
-  export function SetupPttBegin(pttIndex: number): void;
+  export function SetupPttBegin(pttIndex: number, shouldListenForJoysticks?: boolean): void;
   export function SetupPttEnd(): void;
 
   export function RequestPttKeyName(pttIndex: number): void;

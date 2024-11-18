@@ -10,11 +10,11 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-2019]
+        os: [ubuntu-latest, macos-latest, windows-2022]
         arch: [x64, arm64]
         node-version: [20.x]
         exclude:
-          - os: windows-2019
+          - os: windows-2022
             arch: arm64
           - os: ubuntu-latest
             arch: arm64
@@ -131,7 +131,7 @@ jobs:
           npm install
 
       - name: Package app
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-2022'
         shell: bash
         run: npm run build:win
         env:
@@ -179,7 +179,7 @@ jobs:
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-2022'
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
           files: |
