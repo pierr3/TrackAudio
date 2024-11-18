@@ -7,6 +7,23 @@ import { StationStateUpdate } from '../interfaces/StationStateUpdate';
 import { Configuration } from 'src/shared/config.type';
 
 const Bootsrap: React.FC = () => {
+  const addFrequency = (frequency: number, callsign: string, rx = false, tx = false) => {
+    window.api
+      .addFrequency(frequency, callsign, rx, tx)
+      .then((ret) => {
+        if (!ret) {
+          return;
+        }
+        useRadioState
+          .getState()
+          .addRadio(frequency, callsign, useSessionStore.getState().getStationCallsign());
+        void window.api.SetRadioGain(useSessionStore.getState().radioGain / 100);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+  };
+
   useEffect(() => {
     void window.api.RequestPttKeyName(1);
     void window.api.RequestPttKeyName(2);
@@ -18,6 +35,15 @@ const Bootsrap: React.FC = () => {
       .then((config: Configuration) => {
         useUtilStore.getState().setShowExpandedRxInfo(config.showExpandedRx);
         useUtilStore.getState().setTransparentMiniMode(config.transparentMiniMode);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+
+    window.api
+      .isAutoConnectMode()
+      .then((isAutoConnect: boolean) => {
+        useUtilStore.getState().setIsAutoConnectMode(isAutoConnect);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -37,21 +63,7 @@ const Bootsrap: React.FC = () => {
 
     window.api.on('station-data-received', (station: string, frequency: string) => {
       const freq = parseInt(frequency);
-      window.api
-        .addFrequency(freq, station)
-        .then((ret) => {
-          if (!ret) {
-            console.error('Failed to add frequency', freq, station);
-            return;
-          }
-          useRadioState
-            .getState()
-            .addRadio(freq, station, useSessionStore.getState().getStationCallsign());
-          void window.api.SetRadioGain(useSessionStore.getState().radioGain / 100);
-        })
-        .catch((err: unknown) => {
-          console.error(err);
-        });
+      addFrequency(freq, station);
     });
 
     // Received when a station's state is updated externally, typically
@@ -114,7 +126,25 @@ const Bootsrap: React.FC = () => {
     window.api.on('VoiceConnected', () => {
       useSessionStore.getState().setIsConnecting(false);
       useSessionStore.getState().setIsConnected(true);
+
+      if (useUtilStore.getState().isAutoConnectMode) {
+        addFrequency(
+          useSessionStore.getState().frequency,
+          useSessionStore.getState().callsign,
+          true,
+          true
+        );
+      }
       if (useSessionStore.getState().isAtc) {
+        if (useUtilStore.getState().isAutoConnectMode) {
+          addFrequency(
+            useSessionStore.getState().frequency,
+            useSessionStore.getState().callsign,
+            true,
+            true
+          );
+        }
+
         void window.api.GetStation(useSessionStore.getState().stationCallsign);
       }
     });
