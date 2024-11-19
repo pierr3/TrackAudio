@@ -502,9 +502,7 @@ void SDK::handleAddStation(const nlohmann::json& json)
     }
 
     try {
-
         auto callsign = json["value"]["callsign"].get<std::string>();
-
         auto allRadios = mClient->getRadioState();
 
         PLOG_INFO << "Adding callsign: " << callsign;
