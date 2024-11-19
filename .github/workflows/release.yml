@@ -33,7 +33,7 @@ jobs:
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
           cd backend/extern/afv-native
-          git checkout unicom2
+          git checkout modern-chained-callback
 
       - name: Restore cache
         id: restore-cache
