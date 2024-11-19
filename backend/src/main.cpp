@@ -491,7 +491,9 @@ void RequestPttKeyName(const Napi::CallbackInfo& info)
 }
 
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,readability-function-cognitive-complexity)
-void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
+void HandleAfvEvents(afv_native::ClientEventType eventType, std::optional<std::string> string1,
+    std::optional<int> int1, std::optional<std::pair<std::string, unsigned int>> stationData,
+    std::optional<std::map<std::string, unsigned int>> vccsData)
 {
     if (!NapiHelpers::callbackAvailable) {
         return;
@@ -508,12 +510,11 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
     }
 
     if (eventType == afv_native::ClientEventType::StationTransceiversUpdated) {
-        if (data == nullptr) {
+        if (!string1) {
             return;
         }
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string station = static_cast<const char*>(data);
+        std::string station = string1.value();
         auto transceiverCount = mClient->GetTransceiverCountForStation(station);
         auto states = mClient->getRadioState();
         for (const auto& state : states) {
@@ -528,20 +529,18 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
     }
 
     if (eventType == afv_native::ClientEventType::StationDataReceived) {
-        if (data == nullptr || data2 == nullptr) {
+        if (!stationData || !int1) {
             return;
         }
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        bool found = static_cast<bool>(data);
+        bool found = static_cast<bool>(int1);
         if (!found) {
             NapiHelpers::sendErrorToElectron("Station not found");
             return;
         }
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto stationData = *reinterpret_cast<std::pair<std::string, unsigned int>*>(data2);
-        std::string callsign = stationData.first;
-        unsigned int frequency = stationData.second;
+
+        std::string callsign = stationData->first;
+        unsigned int frequency = stationData->second;
 
         if (mClient->IsFrequencyActive(frequency)) {
             PLOGW << "StationDataReceived: Frequency " << frequency << " already active, skipping";
@@ -553,13 +552,11 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
     }
 
     if (eventType == afv_native::ClientEventType::VccsReceived) {
-        if (data == nullptr || data2 == nullptr) {
+        if (!vccsData) {
             return;
         }
 
-        std::map<std::string, unsigned int> stations
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            = *reinterpret_cast<std::map<std::string, unsigned int>*>(data2);
+        std::map<std::string, unsigned int> stations = vccsData.value();
 
         for (const auto& station : stations) {
             const std::string& callsign = station.first;
@@ -570,19 +567,19 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
                 continue;
             }
 
-            NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
-            MainThreadShared::mApiServer->publishStationAdded(
+            NapiHelpers::callElectron("StationDataReceived", callsign,
+            std::to_string(frequency)); MainThreadShared::mApiServer->publishStationAdded(
                 callsign, static_cast<int>(frequency));
         }
     }
 
     if (eventType == afv_native::ClientEventType::FrequencyRxBegin) {
-        if (data == nullptr) {
+        if (!int1) {
             return;
         }
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        int frequency = *reinterpret_cast<int*>(data);
+        int frequency = int1.value();
         if (!mClient->IsFrequencyActive(frequency)) {
             PLOGW << "FrequencyRxBegin: Frequency " << frequency << " not active, skipping";
             return;
@@ -594,12 +591,11 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
     }
 
     if (eventType == afv_native::ClientEventType::FrequencyRxEnd) {
-        if (data == nullptr) {
+        if (!int1) {
             return;
         }
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        int frequency = *reinterpret_cast<int*>(data);
+        int frequency = int1.value();
         if (!mClient->IsFrequencyActive(frequency)) {
             PLOGW << "FrequencyRxEnd: Frequency " << frequency << " not active, skipping";
             return;
@@ -610,14 +606,14 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
     }
 
     if (eventType == afv_native::ClientEventType::StationRxBegin) {
-        if (data == nullptr || data2 == nullptr) {
+        if (!int1 || !string1) {
             return;
         }
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        int frequency = *reinterpret_cast<int*>(data);
+        int frequency = int1.value();
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string callsign = static_cast<const char*>(data2);
+        std::string callsign = string1.value();
         if (!mClient->IsFrequencyActive(frequency)) {
             PLOGW << "StationRxBegin: Frequency " << frequency << " not active, skipping";
             return;
@@ -632,14 +628,12 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
     }
 
     if (eventType == afv_native::ClientEventType::StationRxEnd) {
-        if (data == nullptr || data2 == nullptr) {
+        if (!int1 || !string1) {
             return;
         }
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        int frequency = *reinterpret_cast<int*>(data);
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string callsign = static_cast<const char*>(data2);;
+        int frequency = int1.value();
+        std::string callsign = string1.value();
 
         if (!mClient->IsFrequencyActive(frequency)) {
             PLOGW << "StationRxEnd: Frequency " << frequency << " not active, skipping";
@@ -667,12 +661,11 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* da
     }
 
     if (eventType == afv_native::ClientEventType::APIServerError) {
-        if (data == nullptr) {
+        if (!int1) {
             return;
         }
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto err = *reinterpret_cast<afv_native::afv::APISessionError*>(data);
+        auto err = static_cast<afv_native::afv::APISessionError>(int1.value());
 
         if (err == afv_native::afv::APISessionError::BadPassword
             || err == afv_native::afv::APISessionError::RejectedCredentials) {
@@ -787,9 +780,7 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     MainThreadShared::mRemoteDataHandler = std::make_unique<RemoteData>();
 
     // Setup afv
-    mClient->RaiseClientEvent([](afv_native::ClientEventType eventType, void* data1, void* data2) {
-        HandleAfvEvents(eventType, data1, data2);
-    });
+    mClient->RaiseModernClientEvent(std::function(&HandleAfvEvents));
 
     MainThreadShared::mApiServer = std::make_shared<SDK>();
 
