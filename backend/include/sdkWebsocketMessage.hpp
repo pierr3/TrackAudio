@@ -76,7 +76,11 @@ public:
         station.pFrequencyHz = freqHz;
 
         std::string temp = std::to_string(freqHz / 1000);
-        station.pHumanFreq = temp.substr(0, 3) + "." + temp.substr(3, 7);
+        if (temp.length() >= 7) {
+            station.pHumanFreq = temp.substr(0, 3) + "." + temp.substr(3, 7);
+        } else {
+            station.pHumanFreq = "199.998";
+        }
 
         return station;
     }
