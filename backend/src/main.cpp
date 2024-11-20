@@ -182,7 +182,6 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
 
     int frequency = info[0].As<Napi::Number>().Int32Value();
     auto callsign = info[1].As<Napi::String>().Utf8Value();
-
     auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
     if (!hasBeenAddded) {
         NapiHelpers::sendErrorToElectron("Could not add frequency: it already exists");
@@ -270,6 +269,7 @@ void GetStation(const Napi::CallbackInfo& info)
     if (!mClient->IsVoiceConnected()) {
         return;
     }
+
     auto callsign = info[0].As<Napi::String>().Utf8Value();
     mClient->GetStation(callsign);
     mClient->FetchStationVccs(callsign);
@@ -529,11 +529,11 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, std::optional<std::s
     }
 
     if (eventType == afv_native::ClientEventType::StationDataReceived) {
-        if (!stationData || !int1) {
+        if (!stationData || !int1.has_value()) {
             return;
         }
+        bool found = int1.value();
 
-        bool found = static_cast<bool>(int1);
         if (!found) {
             NapiHelpers::sendErrorToElectron("Station not found");
             return;
@@ -567,8 +567,8 @@ void HandleAfvEvents(afv_native::ClientEventType eventType, std::optional<std::s
                 continue;
             }
 
-            NapiHelpers::callElectron("StationDataReceived", callsign,
-            std::to_string(frequency)); MainThreadShared::mApiServer->publishStationAdded(
+            NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
+            MainThreadShared::mApiServer->publishStationAdded(
                 callsign, static_cast<int>(frequency));
         }
     }
