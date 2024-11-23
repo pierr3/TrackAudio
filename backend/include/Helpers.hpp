@@ -40,6 +40,9 @@ public:
     static std::string ConvertHzToHumanString(unsigned int frequencyHz)
     {
         std::string temp = std::to_string(frequencyHz / 1000);
+        if (temp.size() < 6) {
+            return "199.998";
+        }
         return temp.substr(0, 3) + "." + temp.substr(3, 7);
     }
 

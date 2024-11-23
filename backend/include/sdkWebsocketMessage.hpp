@@ -1,4 +1,5 @@
 #pragma once
+#include "Helpers.hpp"
 #include <map>
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
@@ -75,12 +76,7 @@ public:
         station.pCallsign = callsign;
         station.pFrequencyHz = freqHz;
 
-        std::string temp = std::to_string(freqHz / 1000);
-        if (temp.length() >= 7) {
-            station.pHumanFreq = temp.substr(0, 3) + "." + temp.substr(3, 7);
-        } else {
-            station.pHumanFreq = "199.998";
-        }
+        station.pHumanFreq = Helpers::ConvertHzToHumanString(freqHz);
 
         return station;
     }
