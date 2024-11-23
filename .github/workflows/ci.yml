@@ -38,6 +38,8 @@ jobs:
           git submodule update --init --remote backend/extern/libuiohook
           cd backend/extern/afv-native
           git checkout modern-chained-callback
+          cd backend/extern/libuiohook
+          git checkout unregister-hook-when-debugging
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
