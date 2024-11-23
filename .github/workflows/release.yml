@@ -68,7 +68,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y desktop-file-utils libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
+          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config libxtst-dev libxinerama-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev libxkbfile-dev
 
       - name: Replace repositories with amd64 and arm64 repositories
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'
