@@ -205,4 +205,11 @@ private:
      *
      */
     void handleGetStationState(const std::string& callsign);
+
+    /**
+     * Handles the SDK call to add a station.
+     *
+     * @param json The incoming JSON with the station information.
+     */
+    void handleAddStation(const nlohmann::json& json);
 };
