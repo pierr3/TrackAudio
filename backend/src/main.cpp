@@ -198,6 +198,9 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     newState.headset = true;
     newState.xca = false;
 
+    // Issue 227: Make sure to publish the frequency was added to any connected clients.
+    MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
+
     auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, callsign);
     return Napi::Boolean::New(info.Env(), result);
 }
