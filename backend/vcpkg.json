@@ -17,11 +17,10 @@
         "opus",
         "speexdsp",
         "cpp-jwt",
-        "utf8proc",
         {
           "name": "msgpack",
           "features": ["boost"]
-      },
+        },
         "curl",
         "nlohmann-json",
         "openssl",

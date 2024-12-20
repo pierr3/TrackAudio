@@ -41,6 +41,7 @@ set(AFV_STATIC 1)
 
 add_subdirectory(extern/afv-native)
 add_subdirectory(extern/libuiohook)
+add_subdirectory(extern/utf8proc)
 include_directories(extern/afv-native/include)
 include_directories(extern/afv-native/extern)
 include_directories(extern/libuiohook/include)
@@ -100,7 +101,6 @@ find_package(plog CONFIG REQUIRED)
 find_package(platform_folders CONFIG REQUIRED)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 find_path(SIMPLEINI_INCLUDE_DIRS "SimpleIni.h")
-find_package(utf8proc REQUIRED)
 
 if(WIN32 AND CMAKE_JS_NODELIB_DEF AND CMAKE_JS_NODELIB_TARGET)
   # Generate node.lib
@@ -125,7 +125,7 @@ target_link_libraries(trackaudio-afv PRIVATE
     plog::plog
     sago::platform_folders
     sfml-system sfml-graphics sfml-window
-    utf8proc::utf8proc
+    utf8proc
     uiohook
     ${CMAKE_JS_LIB})
 
