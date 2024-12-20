@@ -711,7 +711,7 @@ struct VersionCheckResponse {
     bool needUpdate = false;
 };
 
-VersionCheckResponse CheckVersionSync(const Napi::CallbackInfo& /*info*/)
+VersionCheckResponse CheckVersionSync()
 {
     // We force do a mandatory version check, if an update is needed, the
     // programme won't run
@@ -761,19 +761,24 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), true);
 
     PLOGI << "Checking version...";
-    const auto versionCheckResponse = CheckVersionSync(info);
+    const auto versionCheckResponse = CheckVersionSync();
+    PLOGI << "Version check response obtained, verifying...";
 
     if (!versionCheckResponse.success) {
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
         outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), versionCheckResponse.success);
+        PLOGE << "Version check failed, cannot run TrackAudio";
         return outObject;
     }
 
     if (versionCheckResponse.needUpdate) {
         outObject["needUpdate"] = Napi::Boolean::New(info.Env(), true);
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
+        PLOGE << "Mandatory update required, cannot run TrackAudio";
         return outObject;
     }
+
+    PLOGI << "Version check successful, continuing...";
 
     std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
     mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath);
