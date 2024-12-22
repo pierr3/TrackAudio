@@ -105,5 +105,8 @@ declare namespace TrackAudioAfv {
     version: string;
     checkSuccessful: boolean;
   };
+
+  export function GetLoggerFilePath(): string;
+
   export function Exit(): boolean;
 }

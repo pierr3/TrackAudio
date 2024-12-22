@@ -213,6 +213,12 @@ export const api = {
     setWindowButtonVisibility: (status: boolean): void => {
       ipcRenderer.send('set-window-button-visibility', status);
     }
+  },
+
+  log: {
+    info: (message: string) => { ipcRenderer.send('log-info', message); },
+    warn: (message: string) => { ipcRenderer.send('log-warn', message); },
+    error: (message: string) => { ipcRenderer.send('log-error', message); }
   }
 };
 

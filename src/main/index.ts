@@ -14,6 +14,7 @@ import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
 import updater from 'electron-updater';
+import log from 'electron-log/main';
 
 import configManager from './config';
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
@@ -174,6 +175,14 @@ const createWindow = (): void => {
   // Set the store CID
   TrackAudioAfv.SetCid(configManager.config.cid || '');
   TrackAudioAfv.SetRadioGain(configManager.config.radioGain || 0.5);
+
+  // Set the logger file path
+  log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
+  log.transports.file.resolvePathFn = (): string => {
+    const logFilePath: string = TrackAudioAfv.GetLoggerFilePath();
+    console.log(`Log file path: ${logFilePath}`);
+    return logFilePath;
+  };
 
   const options: Electron.BrowserWindowConstructorOptions = {
     height: defaultWindowSize.height,
@@ -686,6 +695,19 @@ ipcMain.on('is-window-fullscreen', () => {
 
 ipcMain.handle('is-trusted-accessibility', () => {
   return systemPreferences.isTrustedAccessibilityClient(true);
+});
+
+// Logger
+ipcMain.on('log-info', (_, message: string) => {
+  log.info(message);
+});
+
+ipcMain.on('log-warn', (_, message: string) => {
+  log.warn(message);
+});
+
+ipcMain.on('log-error', (_, message: string) => {
+  log.error(message);
 });
 
 //

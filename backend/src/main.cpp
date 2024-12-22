@@ -824,6 +824,11 @@ Napi::Boolean Exit(const Napi::CallbackInfo& info)
     return Napi::Boolean::New(info.Env(), true);
 }
 
+Napi::String GetLoggerFilePath(const Napi::CallbackInfo& info)
+{
+    return Napi::String::New(info.Env(), LogFactory::getLoggerFilePath());
+}
+
 Napi::Object Init(Napi::Env env, Napi::Object exports)
 {
 
@@ -905,6 +910,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     exports.Set(
         Napi::String::New(env, "RequestPttKeyName"), Napi::Function::New(env, RequestPttKeyName));
+
+    exports.Set(
+        Napi::String::New(env, "GetLoggerFilePath"), Napi::Function::New(env, GetLoggerFilePath));
 
     exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 

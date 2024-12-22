@@ -11,9 +11,9 @@ public:
     LogFactory()
     {
         CreateLogFolders();
-        auto fileName = FileSystem::GetStateFolderPath() / "trackaudio.log";
+        auto fileName = LogFactory::getLoggerFilePath();
 
-        plog::init(plog::info, fileName.string().c_str(), max_size, max_files);
+        plog::init(plog::info, fileName.c_str(), max_size, max_files);
 
         // Detect whether we should enable verbose logging
         try {
@@ -37,6 +37,12 @@ public:
 
     static void createLoggers() { m_instance = std::make_unique<LogFactory>(); }
     static void destroyLoggers() { m_instance.reset(); }
+
+    static std::string getLoggerFilePath()
+    {
+        auto fileName = FileSystem::GetStateFolderPath() / "trackaudio.log";
+        return fileName.string();
+    }
 
 private:
     static void CreateLogFolders()
