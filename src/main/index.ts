@@ -179,9 +179,7 @@ const createWindow = (): void => {
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
   log.transports.file.resolvePathFn = (): string => {
-    const logFilePath: string = TrackAudioAfv.GetLoggerFilePath();
-    console.log(`Log file path: ${logFilePath}`);
-    return logFilePath;
+    return TrackAudioAfv.GetLoggerFilePath() as string;
   };
 
   const options: Electron.BrowserWindowConstructorOptions = {
@@ -747,7 +745,7 @@ const handleEvent = (arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.StationStateUpdate) {
-    mainWindow?.webContents.send('station-state-update', arg2, arg3);
+    mainWindow?.webContents.send('station-state-update', arg2);
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {

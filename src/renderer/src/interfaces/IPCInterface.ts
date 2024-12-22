@@ -45,11 +45,12 @@ class IPCInterface {
         .addFrequency(freq, station)
         .then((ret) => {
           if (!ret) {
-            window.api.log.error(`Failed to add frequency ${freq.toString()} for station ${station}`);
+            window.api.log.error(
+              `Failed to add frequency ${freq.toString()} for station ${station}`
+            );
             return;
           }
-          radioStoreState
-            .addRadio(freq, station, sessionStoreState.getStationCallsign());
+          radioStoreState.addRadio(freq, station, sessionStoreState.getStationCallsign());
           void window.api.SetRadioGain(sessionStoreState.radioGain / 100);
         })
         .catch((err: unknown) => {
@@ -64,15 +65,21 @@ class IPCInterface {
     window.api.on('station-state-update', (data: string) => {
       const update = JSON.parse(data) as StationStateUpdate;
 
-      const radio = radioStoreState
-        .radios.find((radio) => radio.frequency === update.value.frequency);
+      const radio = radioStoreState.getRadioByFrequency(update.value.frequency);
 
       if (!radio) {
-        window.api.log.warn(`Failed to find radio with frequency ${update.value.frequency.toString()}`);
-        return;
+        // We received an update for a frequency that we don't have a radio for, so we create one
+        radioStoreState.addRadio(
+          update.value.frequency,
+          update.value.callsign ?? 'MANUAL',
+          update.value.callsign ?? 'MANUAL'
+        );
+        window.api.log.warn(
+          `Failed to find radio with frequency ${update.value.frequency.toString()}, creating one`
+        );
       }
 
-      radioStoreState.setRadioState(radio.frequency, {
+      radioStoreState.setRadioState(update.value.frequency, {
         rx: update.value.rx,
         tx: update.value.tx,
         xc: update.value.xc,
@@ -83,7 +90,6 @@ class IPCInterface {
 
     window.api.on('FrequencyRxBegin', (frequency: string) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
-        window.api.log.warn(`Received FrequencyRxBegin for inactive frequency ${frequency}`);
         return;
       }
 
@@ -92,7 +98,6 @@ class IPCInterface {
 
     window.api.on('StationRxBegin', (frequency: string, callsign: string) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
-        window.api.log.warn(`Received StationRxBegin for inactive frequency ${frequency}`);
         return;
       }
 
@@ -101,7 +106,6 @@ class IPCInterface {
 
     window.api.on('FrequencyRxEnd', (frequency: string) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
-        window.api.log.warn(`Received FrequencyRxEnd for inactive frequency ${frequency}`);
         return;
       }
 
@@ -194,6 +198,7 @@ class IPCInterface {
     window.api.removeAllListeners('network-connected');
     window.api.removeAllListeners('network-disconnected');
     window.api.removeAllListeners('ptt-key-set');
+    window.api.removeAllListeners('station-state-update');
   }
 }
 

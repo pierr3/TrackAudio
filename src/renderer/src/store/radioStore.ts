@@ -52,6 +52,7 @@ interface RadioState {
   reset: () => void;
   addOrRemoveRadioToBeDeleted: (radio: RadioType) => void;
   clearRadiosToBeDeleted: () => void;
+  getRadioByFrequency: (frequency: number) => RadioType | undefined;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -77,12 +78,12 @@ export class RadioHelper {
   }
 }
 
-const useRadioState = create<RadioState>((set) => ({
+const useRadioState = create<RadioState>((set, get) => ({
   radios: [],
   radiosSelected: [],
   pttIsOn: false,
   addRadio: (frequency, callsign, stationCallsign) => {
-    if (RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)) {
+    if (get().getRadioByFrequency(frequency)) {
       if (frequency !== UnicomFrequency && frequency !== GuardFrequency) {
         postMessage(
           'Frequency already exists in local client, but maybe not in AFV, delete it and try again'
@@ -208,6 +209,9 @@ const useRadioState = create<RadioState>((set) => ({
         radio.frequency === frequency ? { ...radio, currentlyRx: value } : radio
       )
     }));
+  },
+  getRadioByFrequency: (frequency) => {
+    return get().radios.find((radio) => radio.frequency === frequency);
   },
   setRadioState: (frequency, frequencyState) => {
     set((state) => ({
