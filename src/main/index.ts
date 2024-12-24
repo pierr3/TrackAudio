@@ -179,7 +179,7 @@ const createWindow = (): void => {
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
   log.transports.file.resolvePathFn = (): string => {
-    return TrackAudioAfv.GetLoggerFilePath() as string;
+    return TrackAudioAfv.GetLoggerFilePath();
   };
 
   const options: Electron.BrowserWindowConstructorOptions = {
@@ -348,7 +348,7 @@ app
       dialog.showMessageBoxSync({
         type: 'error',
         message:
-          'An error occured during the version check, either your internet connection is down or the server (raw.githubusercontent.com) is unreachable.',
+          'An error occured during the version check, either your internet connection is down or the server (raw.githubusercontent.com or cdn.jsdelivr.net) is unreachable.',
         buttons: ['OK']
       });
       app.quit();
