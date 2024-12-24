@@ -179,7 +179,7 @@ const createWindow = (): void => {
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
   log.transports.file.resolvePathFn = (): string => {
-    return TrackAudioAfv.GetLoggerFilePath();
+    return TrackAudioAfv.GetLoggerFilePath() as string;
   };
 
   const options: Electron.BrowserWindowConstructorOptions = {
