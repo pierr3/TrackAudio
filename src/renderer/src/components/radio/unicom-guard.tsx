@@ -20,6 +20,8 @@ const UnicomGuardBar = () => {
 
   const [localRadioGain, setLocalRadioGain] = useState(50);
 
+  const [setShowingUnicomBar] = useRadioState((state) => [state.setShowingUnicomBar]);
+
   const postError = useErrorStore((state) => state.postError);
 
   const unicom = useMemo(() => {
@@ -29,6 +31,13 @@ const UnicomGuardBar = () => {
   const guard = useMemo(() => {
     return radios.find((radio) => radio.frequency === GuardFrequency);
   }, [radios, isConnected]);
+
+  useEffect(() => {
+    setShowingUnicomBar(true);
+    return () => {
+      setShowingUnicomBar(false);
+    };
+  }, []);
 
   const reAddRadio = (radio: RadioType, eventType: 'RX' | 'TX' | 'SPK') => {
     const radioName =

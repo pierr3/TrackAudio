@@ -37,6 +37,7 @@ interface RadioState {
   radios: RadioType[];
   radiosSelected: RadioType[];
   pttIsOn: boolean;
+  showingUnicomBar: boolean;
   addRadio: (frequency: number, callsign: string, stationCallsign: string) => void;
   removeRadio: (frequency: number) => void;
   setRadioState: (frequency: number, frequencyState: FrequencyState) => void;
@@ -53,6 +54,7 @@ interface RadioState {
   addOrRemoveRadioToBeDeleted: (radio: RadioType) => void;
   clearRadiosToBeDeleted: () => void;
   getRadioByFrequency: (frequency: number) => RadioType | undefined;
+  setShowingUnicomBar: (value: boolean) => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -82,6 +84,13 @@ const useRadioState = create<RadioState>((set, get) => ({
   radios: [],
   radiosSelected: [],
   pttIsOn: false,
+  showingUnicomBar: true,
+
+  setShowingUnicomBar: (value) => {
+    set(() => ({
+      showingUnicomBar: value
+    }));
+  },
   addRadio: (frequency, callsign, stationCallsign) => {
     if (get().getRadioByFrequency(frequency)) {
       if (frequency !== UnicomFrequency && frequency !== GuardFrequency) {
