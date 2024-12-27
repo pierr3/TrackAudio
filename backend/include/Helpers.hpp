@@ -2,6 +2,7 @@
 #include "RadioSimulation.h"
 #include "Shared.hpp"
 
+#include "afv-native/types.h"
 #include <cmath>
 #include <mutex>
 #include <nlohmann/json.hpp>

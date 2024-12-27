@@ -4,6 +4,7 @@ import useUtilStore from '@renderer/store/utilStore';
 import { Configuration } from 'src/shared/config.type';
 import { StationStateUpdate } from './StationStateUpdate';
 import useErrorStore from '@renderer/store/errorStore';
+import { Station } from './Station';
 
 class IPCInterface {
   public init() {
@@ -39,22 +40,22 @@ class IPCInterface {
       radioStoreState.setTransceiverCountForStationCallsign(station, parseInt(count));
     });
 
-    window.api.on('station-data-received', (station: string, frequency: string) => {
-      const freq = parseInt(frequency);
+    window.api.on('station-data-received', (station: string, data: string) => {
+      const radio = JSON.parse(data) as Station;
       window.api
-        .addFrequency(freq, station)
+        .addFrequency(radio.frequency, station)
         .then((ret) => {
           if (!ret) {
-            window.api.log.error(
-              `Failed to add frequency ${freq.toString()} for station ${station}`
-            );
+            console.error('Failed to add frequency', radio.frequency, station);
             return;
           }
-          radioStoreState.addRadio(freq, station, sessionStoreState.getStationCallsign());
-          void window.api.SetRadioGain(sessionStoreState.radioGain / 100);
+          useRadioState
+            .getState()
+            .addRadioByStation(radio, useSessionStore.getState().getStationCallsign());
+          void window.api.SetRadioGain(useSessionStore.getState().radioGain / 100);
         })
         .catch((err: unknown) => {
-          window.api.log.error(err as string);
+          console.error(err);
         });
     });
 
