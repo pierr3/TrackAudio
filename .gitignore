@@ -131,3 +131,6 @@ build/vcpkg_installed
 build/.cmake
 build/CMakeFiles
 build/CMakeCache.txt
+
+# IntelliJ
+.idea
