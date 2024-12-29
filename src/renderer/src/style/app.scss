@@ -451,13 +451,13 @@ select:disabled {
 }
 
 @media only screen and (max-width: 670px) {
-  .gain-slider {
+  .volume-slider {
     display: none;
   }
 }
 
 @media only screen and (max-width: 550px) {
-  .hide-gain-value {
+  .hide-volume-value {
     display: none;
   }
 }
@@ -531,7 +531,7 @@ select:disabled {
   line-height: 10px;
 }
 
-.gain-slider {
+.volume-slider {
   width: 15%;
 }
 

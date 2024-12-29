@@ -18,7 +18,7 @@ const UnicomGuardBar = () => {
 
   const isReducedSize = useMediaQuery({ maxWidth: '895px' });
 
-  const [localRadioGain, setLocalRadioGain] = useState(50);
+  const [localUnicomStationVolume, setLocalUnicomStationVolume] = useState(50);
 
   const [setShowingUnicomBar] = useRadioState((state) => [state.setShowingUnicomBar]);
 
@@ -182,7 +182,7 @@ const UnicomGuardBar = () => {
           return;
         }
         addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
-        void window.api.SetFrequencyRadioGain(UnicomFrequency, localRadioGain / 100);
+        void window.api.SetFrequencyRadioVolume(UnicomFrequency, localUnicomStationVolume);
       });
       void window.api.addFrequency(GuardFrequency, 'GUARD').then((ret) => {
         if (!ret) {
@@ -190,40 +190,40 @@ const UnicomGuardBar = () => {
           return;
         }
         addRadio(GuardFrequency, 'GUARD', 'GUARD');
-        void window.api.SetFrequencyRadioGain(GuardFrequency, localRadioGain / 100);
+        void window.api.SetFrequencyRadioVolume(GuardFrequency, localUnicomStationVolume);
       });
     }
   }, [isConnected]);
 
   useEffect(() => {
-    const storedGain = window.localStorage.getItem('unicomRadioGain');
-    const gainToSet = storedGain?.length ? parseInt(storedGain) : 50;
-    setLocalRadioGain(gainToSet);
+    const storedStationVolume = window.localStorage.getItem('unicomRadioGain');
+    const stationVolumeToSet = storedStationVolume?.length ? parseInt(storedStationVolume) : 50;
+    setLocalUnicomStationVolume(stationVolumeToSet);
   }, []);
 
-  const updateRadioGainValue = (newGain: number) => {
+  const updateStationVolumeValue = (newStationVolume: number) => {
     if (!unicom || !guard) return;
     window.api
-      .SetFrequencyRadioGain(unicom.frequency, newGain / 100)
+      .SetFrequencyRadioVolume(unicom.frequency, newStationVolume)
       .then(() => {
-        void window.api.SetFrequencyRadioGain(guard.frequency, newGain / 100);
-        setLocalRadioGain(newGain);
+        void window.api.SetFrequencyRadioVolume(guard.frequency, newStationVolume);
+        setLocalUnicomStationVolume(newStationVolume);
       })
       .catch((err: unknown) => {
         console.error(err);
       });
 
-    window.localStorage.setItem('unicomRadioGain', newGain.toString());
+    window.localStorage.setItem('unicomRadioGain', newStationVolume.toString());
   };
 
-  const handleRadioGainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateRadioGainValue(event.target.valueAsNumber);
+  const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updateStationVolumeValue(event.target.valueAsNumber);
   };
 
-  const handleRadioGainMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
-    const newValue = Math.min(Math.max(localRadioGain + (event.deltaY > 0 ? -1 : 1), 0), 100);
+  const handleStationVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
+    const newValue = Math.min(Math.max(localUnicomStationVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
 
-    updateRadioGainValue(newValue);
+    updateStationVolumeValue(newValue);
   };
 
   return (
@@ -345,9 +345,9 @@ const UnicomGuardBar = () => {
           min="0"
           max="100"
           step="1"
-          value={localRadioGain}
-          onChange={handleRadioGainChange}
-          onWheel={handleRadioGainMouseWheel}
+          value={localUnicomStationVolume}
+          onChange={handleStationVolumeChange}
+          onWheel={handleStationVolumeMouseWheel}
         ></input>
       </span>
     </div>

@@ -1,5 +1,5 @@
 import RxInfo from './rxinfo';
-import GlobalRadioGain from './global-radio-gain';
+import MainRadioVolume from './main-radio-volume';
 import UnicomGuardBar from './unicom-guard';
 import { useMediaQuery } from 'react-responsive';
 
@@ -12,7 +12,7 @@ const TopBarContainer = () => {
       <div className="w-100 d-flex justify-content-between align-items-center">
         {/* Left-aligned element */}
         <div className="d-flex align-items-center">
-          <GlobalRadioGain />
+          <MainRadioVolume />
         </div>
 
         {/* Center element */}

@@ -369,7 +369,7 @@ void SetPtt(const Napi::CallbackInfo& info)
     mClient->SetPtt(state);
 }
 
-void SetRadioGain(const Napi::CallbackInfo& info)
+void SetMainRadioVolume(const Napi::CallbackInfo& info)
 {
     float gain = info[0].As<Napi::Number>().FloatValue();
     UserSession::currentRadioVolume = Helpers::ConvertGainToVolume(gain);
@@ -380,16 +380,17 @@ void SetRadioGain(const Napi::CallbackInfo& info)
             || state.second.Frequency == GUARD_FREQUENCY) {
             continue;
         }
-        mClient->SetRadioGain(state.first, gain);
+        mClient->SetRadioGain(state.first, volume / 100);
     }
 }
 
-void SetFrequencyRadioGain(const Napi::CallbackInfo& info)
+void SetFrequencyRadioVolume(const Napi::CallbackInfo& info)
 {
     int frequency = info[0].As<Napi::Number>().Int32Value();
-    float gain = info[1].As<Napi::Number>().FloatValue();
+    float stationVolume = info[1].As<Napi::Number>().FloatValue();
 
-    mClient->SetRadioGain(frequency, gain);
+    // Frequency Radio Volume = Main Volume * Frequency Station Volume
+    mClient->SetRadioGain(frequency, stationVolume / 100);
 }
 
 Napi::String Version(const Napi::CallbackInfo& info)
@@ -878,10 +879,11 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     exports.Set(Napi::String::New(env, "SetPtt"), Napi::Function::New(env, SetPtt));
 
-    exports.Set(Napi::String::New(env, "SetFrequencyRadioGain"),
-        Napi::Function::New(env, SetFrequencyRadioGain));
+    exports.Set(Napi::String::New(env, "SetFrequencyRadioVolume"),
+        Napi::Function::New(env, SetFrequencyRadioVolume));
 
-    exports.Set(Napi::String::New(env, "SetRadioGain"), Napi::Function::New(env, SetRadioGain));
+    exports.Set(
+        Napi::String::New(env, "SetMainRadioVolume"), Napi::Function::New(env, SetMainRadioVolume));
 
     exports.Set(
         Napi::String::New(env, "SetRadioEffects"), Napi::Function::New(env, SetRadioEffects));
