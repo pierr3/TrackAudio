@@ -174,7 +174,7 @@ const toggleMiniMode = (numOfRadios = 0) => {
 const createWindow = (): void => {
   // Set the store CID
   TrackAudioAfv.SetCid(configManager.config.cid || '');
-  TrackAudioAfv.SetMainRadioVolume(configManager.config.radioGain || 0.5);
+  TrackAudioAfv.SetMainRadioVolume(configManager.config.mainRadioVolume || 0.5);
 
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
@@ -562,7 +562,7 @@ ipcMain.handle('clear-ptt', (_, pttIndex: number) => {
 });
 
 ipcMain.handle('set-main-radio-volume', (_, mainRadioVolume: number) => {
-  configManager.updateConfig({ radioGain: mainRadioVolume });
+  configManager.updateConfig({ mainRadioVolume });
   TrackAudioAfv.SetMainRadioVolume(mainRadioVolume);
 });
 
