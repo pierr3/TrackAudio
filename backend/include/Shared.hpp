@@ -48,7 +48,8 @@ public:
     static double lon;
     static bool xy;
     static bool isConnectedToTheNetwork;
-    static float currentRadioGain;
+    static float currentMainRadioVolume;
+    static std::map<unsigned int, float> stationVolumes;
 };
 
 struct RemoteDataStatus {

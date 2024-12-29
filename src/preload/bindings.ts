@@ -88,9 +88,9 @@ export const api = {
 
   ClearPtt: (pttIndex: number) => ipcRenderer.invoke('clear-ptt', pttIndex),
 
-  SetFrequencyRadioGain: (frequency: number, gain: number) =>
-    ipcRenderer.invoke('set-frequency-radio-gain', frequency, gain),
-  SetRadioGain: (gain: number) => ipcRenderer.invoke('set-radio-gain', gain),
+  SetFrequencyRadioVolume: (frequency: number, stationVolume: number) =>
+    ipcRenderer.invoke('set-frequency-radio-volume', frequency, stationVolume),
+  SetMainRadioVolume: (mainRadioVolume: number) => ipcRenderer.invoke('set-main-radio-volume', mainRadioVolume),
 
   SetRadioEffects: (type: RadioEffects) => ipcRenderer.invoke('set-radio-effects', type),
 
