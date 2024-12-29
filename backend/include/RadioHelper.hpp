@@ -86,5 +86,26 @@ public:
 
         return true;
     }
+
+    static void setAllRadioVolumes()
+    {
+
+        auto states = mClient->getRadioState();
+        for (const auto& state : states) {
+            setRadioVolume(state.first);
+        }
+    }
+
+    static void setRadioVolume(const unsigned int frequency)
+    {
+
+        auto stationVolumeIterator = UserSession::stationVolumes.find(frequency);
+        float stationVolume = 100;
+        if (stationVolumeIterator != UserSession::stationVolumes.end()) {
+            stationVolume = stationVolumeIterator->second;
+        }
+        mClient->SetRadioGain(
+            frequency, UserSession::currentRadioVolume / 100 * stationVolume / 100);
+    }
 };
 ;
