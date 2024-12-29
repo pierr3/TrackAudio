@@ -20,6 +20,7 @@ bool UserSession::xy = false;
 bool UserSession::isConnectedToTheNetwork = false;
 float UserSession::currentRadioVolume = 100;
 bool UserSession::isDebug = false;
+std::map<unsigned int, float> UserSession::stationVolumes = {};
 
 bool RemoteDataStatus::isSlurperAvailable = false;
 

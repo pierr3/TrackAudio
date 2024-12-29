@@ -50,6 +50,7 @@ public:
     static bool isConnectedToTheNetwork;
     static float currentRadioVolume;
     static bool isDebug;
+    static std::map<unsigned int, float> stationVolumes;
 };
 
 struct RemoteDataStatus {
