@@ -96,12 +96,20 @@ class IPCInterface {
       radioStoreState.setCurrentlyRx(parseInt(frequency), true);
     });
 
-    window.api.on('StationRxBegin', (frequency: string, callsign: string) => {
+    window.api.on('StationRxBegin', (frequency: string, lastRx: string) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
         return;
       }
 
-      radioStoreState.setLastReceivedCallsign(parseInt(frequency), callsign);
+      radioStoreState.setLastReceivedCallsign(parseInt(frequency), lastRx);
+    });
+
+    window.api.on('StationRxEnd', (frequency: string, lastRx: string) => {
+      if (radioStoreState.isInactive(parseInt(frequency))) {
+        return;
+      }
+
+      radioStoreState.setLastReceivedCallsign(parseInt(frequency), lastRx);
     });
 
     window.api.on('FrequencyRxEnd', (frequency: string) => {
