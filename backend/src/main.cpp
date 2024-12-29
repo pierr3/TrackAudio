@@ -379,7 +379,7 @@ void SetFrequencyRadioVolume(const Napi::CallbackInfo& info)
     float stationVolume = info[1].As<Napi::Number>().FloatValue();
 
     // Frequency Radio Volume = Main Volume * Frequency Station Volume
-    mClient->SetRadioGain(frequency, stationVolume / 100);
+    mClient->SetRadioGain(frequency, UserSession::currentMainRadioVolume / 100 * stationVolume / 100);
 }
 
 Napi::String Version(const Napi::CallbackInfo& info)
