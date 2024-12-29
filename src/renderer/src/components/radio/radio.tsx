@@ -30,7 +30,6 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   const [isEditMode] = useUtilStore((state) => [state.isEditMode]);
   const isATC = useSessionStore((state) => state.isAtc);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
   const [localStationVolume, setLocalStationVolume] = useState(100);
 
   const updateStationVolumeValue = (newStationVolume: number) => {
@@ -43,14 +42,33 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         console.error(err);
       });
 
-    window.localStorage.setItem(radio.callsign + 'StationVolume', newStationVolume.toString());
+    if (!radio.tx) {
+      window.localStorage.setItem(radio.callsign + 'StationVolume', newStationVolume.toString());
+    }
   };
 
   useEffect(() => {
+    if (radio.tx) {
+      forceToMainVolume();
+    } else {
+      setStoredStationVolume();
+    }
+  }, [radio.tx]);
+
+  useEffect(() => {
+    setStoredStationVolume();
+  }, []);
+
+  const forceToMainVolume = () => {
+    setLocalStationVolume(radio.frequency);
+    updateStationVolumeValue(100);
+  };
+
+  const setStoredStationVolume = () => {
     const storedStationVolume = window.localStorage.getItem(radio.callsign + 'StationVolume');
     const stationVolumeToSet = storedStationVolume?.length ? parseInt(storedStationVolume) : 100;
     setLocalStationVolume(stationVolumeToSet);
-  }, []);
+  };
 
   const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateStationVolumeValue(event.target.valueAsNumber);
@@ -284,6 +302,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           <input
             type="range"
             className="form-range radio-text station-volume-bar "
+            disabled={radio.tx}
             style={{
               lineHeight: '30px'
             }}
