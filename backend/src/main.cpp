@@ -249,7 +249,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     }
     // SetGuardAndUnicomTransceivers();
 
-    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, "", radioGain);
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, "");
     return Napi::Boolean::New(info.Env(), result);
 }
 
