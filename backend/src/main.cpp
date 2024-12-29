@@ -363,23 +363,17 @@ void SetMainRadioVolume(const Napi::CallbackInfo& info)
     float volume = info[0].As<Napi::Number>().FloatValue();
     UserSession::currentMainRadioVolume = volume;
 
-    auto states = mClient->getRadioState();
-    for (const auto& state : states) {
-        if (state.second.Frequency == UNICOM_FREQUENCY
-            || state.second.Frequency == GUARD_FREQUENCY) {
-            continue;
-        }
-        mClient->SetRadioGain(state.first, volume / 100);
-    }
+    RadioHelper::setAllRadioVolumes();
 }
 
 void SetFrequencyRadioVolume(const Napi::CallbackInfo& info)
 {
     int frequency = info[0].As<Napi::Number>().Int32Value();
     float stationVolume = info[1].As<Napi::Number>().FloatValue();
+    UserSession::stationVolumes.insert_or_assign(frequency, stationVolume);
 
     // Frequency Radio Volume = Main Volume * Frequency Station Volume
-    mClient->SetRadioGain(frequency, UserSession::currentMainRadioVolume / 100 * stationVolume / 100);
+    RadioHelper::setRadioVolume(frequency);
 }
 
 Napi::String Version(const Napi::CallbackInfo& info)

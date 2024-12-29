@@ -19,6 +19,7 @@ double UserSession::lon = 0.0;
 bool UserSession::xy = false;
 bool UserSession::isConnectedToTheNetwork = false;
 float UserSession::currentMainRadioVolume = 0.5;
+std::map<unsigned int, float> UserSession::stationVolumes = {};
 
 bool RemoteDataStatus::isSlurperAvailable = false;
 
