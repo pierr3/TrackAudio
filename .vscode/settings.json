@@ -109,6 +109,22 @@
     "xtr1common": "cpp",
     "xtree": "cpp",
     "xutility": "cpp",
-    "resumable": "cpp"
-  }
+    "resumable": "cpp",
+    "barrier": "cpp",
+    "cfenv": "cpp",
+    "csetjmp": "cpp",
+    "cuchar": "cpp",
+    "cwctype": "cpp",
+    "latch": "cpp",
+    "numbers": "cpp",
+    "scoped_allocator": "cpp",
+    "semaphore": "cpp",
+    "spanstream": "cpp",
+    "stacktrace": "cpp",
+    "syncstream": "cpp",
+    "*.tcc": "cpp",
+    "string_view": "cpp",
+    "C_Cpp.default.compileCommands": "backend/build/compile_commands.json"
+  },
+  "C_Cpp.default.compileCommands": "backend/build/compile_commands.json"
 }
