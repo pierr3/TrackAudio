@@ -128,7 +128,7 @@ const Navbar: React.FC = () => {
               <MiniModeToggleButton showRestoreButton={false} />
               {platform === 'linux' && (
                 <button
-                  className="btn btn-danger m-1 hide-gain-value"
+                  className="btn btn-danger m-1 hide-volume-value"
                   onClick={() => void window.api.CloseMe()}
                 >
                   X

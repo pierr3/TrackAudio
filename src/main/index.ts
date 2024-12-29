@@ -174,12 +174,12 @@ const toggleMiniMode = (numOfRadios = 0) => {
 const createWindow = (): void => {
   // Set the store CID
   TrackAudioAfv.SetCid(configManager.config.cid || '');
-  TrackAudioAfv.SetRadioGain(configManager.config.radioGain || 0.5);
+  TrackAudioAfv.SetMainRadioVolume(configManager.config.radioGain || 0.5);
 
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
   log.transports.file.resolvePathFn = (): string => {
-    return TrackAudioAfv.GetLoggerFilePath() as string;
+    return TrackAudioAfv.GetLoggerFilePath();
   };
 
   const options: Electron.BrowserWindowConstructorOptions = {
@@ -561,13 +561,13 @@ ipcMain.handle('clear-ptt', (_, pttIndex: number) => {
   TrackAudioAfv.ClearPtt(pttIndex);
 });
 
-ipcMain.handle('set-radio-gain', (_, radioGain: number) => {
-  configManager.updateConfig({ radioGain });
-  TrackAudioAfv.SetRadioGain(radioGain);
+ipcMain.handle('set-main-radio-volume', (_, mainRadioVolume: number) => {
+  configManager.updateConfig({ radioGain: mainRadioVolume });
+  TrackAudioAfv.SetMainRadioVolume(mainRadioVolume);
 });
 
-ipcMain.handle('set-frequency-radio-gain', (_, frequency: number, radioGain: number) => {
-  TrackAudioAfv.SetFrequencyRadioGain(frequency, radioGain);
+ipcMain.handle('set-frequency-radio-volume', (_, frequency: number, stationVolume: number) => {
+  TrackAudioAfv.SetFrequencyRadioVolume(frequency, stationVolume);
 });
 ipcMain.handle('set-radio-effects', (_, radioEffects: RadioEffects) => {
   configManager.updateConfig({ radioEffects });

@@ -44,7 +44,7 @@ public:
 
         bool oldRxValue = mClient->GetRxState(newState.frequency);
         mClient->SetRx(newState.frequency, newState.rx);
-        mClient->SetRadioGainAll(UserSession::currentRadioGain);
+        mClient->SetRadioGainAll(UserSession::currentMainRadioVolume);
 
         if (UserSession::xy) {
             mClient->SetTx(newState.frequency, newState.tx);

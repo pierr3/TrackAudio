@@ -19,7 +19,7 @@ interface sessionStore {
   setVersion: (version: string) => void;
   setNetworkConnected: (isConnected: boolean) => void;
   setFrequency: (frequency: number) => void;
-  setRadioGain: (radioGain: number) => void;
+  setMainRadioVolume: (mainRadioVolume: number) => void;
   setStationCallsign: (stationCallsign: string) => void;
   getStationCallsign: () => string;
   getIsAtc: () => boolean;
@@ -60,8 +60,8 @@ const useSessionStore = create<sessionStore>((set) => ({
   setFrequency: (frequency) => {
     set({ frequency });
   },
-  setRadioGain: (radioGain) => {
-    set({ radioGain });
+  setMainRadioVolume: (mainRadioVolume) => {
+    set({ radioGain: mainRadioVolume });
   },
   setStationCallsign: (stationCallsign) => {
     set({ stationCallsign });

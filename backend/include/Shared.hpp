@@ -48,7 +48,7 @@ public:
     static double lon;
     static bool xy;
     static bool isConnectedToTheNetwork;
-    static float currentRadioGain;
+    static float currentMainRadioVolume;
 };
 
 struct RemoteDataStatus {
