@@ -20,7 +20,7 @@
         {
           "name": "msgpack",
           "features": ["boost"]
-      },
+        },
         "curl",
         "nlohmann-json",
         "openssl",

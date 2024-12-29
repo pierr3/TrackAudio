@@ -1,62 +1,54 @@
 import useSessionStore from '@renderer/store/sessionStore';
 import '../../style/GlobalRadio.scss';
-import { useEffect } from 'react';
-import { Configuration } from 'src/shared/config.type';
+import { useCallback, useEffect } from 'react';
 import { useMediaQuery } from 'react-responsive';
+
 const GlobalRadioGain = () => {
-  const [radioGain, setRadioGain] = useSessionStore((state) => [
+  const [masterGain, setMasterGain] = useSessionStore((state) => [
     state.radioGain,
     state.setRadioGain
   ]);
+
   const isWideScreen = useMediaQuery({ minWidth: '895px' });
 
+  const setStoredGain = () => {
+    const storedGain = window.localStorage.getItem('MainRadioGain');
+    if (storedGain) {
+      const gainValue = parseInt(storedGain);
+      if (!isNaN(gainValue)) {
+        {
+          setMasterGain(gainValue);
+        }
+      }
+    }
+  };
+
   useEffect(() => {
-    window.api
-      .getConfig()
-      .then((config: Configuration) => {
-        const gain = config.radioGain || 0.5;
-        const UiGain = gain * 100 || 50;
+    setStoredGain();
+  }, []);
 
-        window.api
-          .SetRadioGain(gain)
-          .then(() => {
-            setRadioGain(UiGain);
-          })
-          .catch((err: unknown) => {
-            console.error(err);
-          });
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, [setRadioGain]);
+  const handleRadioGainChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setMasterGain(event.target.valueAsNumber);
+      window.localStorage.setItem('MainRadioGain', event.target.value);
+    },
+    [setMasterGain]
+  );
 
-  const updateRadioGainValue = (newGain: number) => {
-    window.api
-      .SetRadioGain(newGain / 100)
-      .then(() => {
-        setRadioGain(newGain);
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  };
-
-  const handleRadioGainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateRadioGainValue(event.target.valueAsNumber);
-  };
-
-  const handleRadioGainMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
-    const newValue = Math.min(Math.max(radioGain + (event.deltaY > 0 ? -1 : 1), 0), 100);
-    updateRadioGainValue(newValue);
-  };
+  const handleRadioGainMouseWheel = useCallback(
+    (event: React.WheelEvent<HTMLInputElement>) => {
+      const newValue = Math.min(Math.max(masterGain + (event.deltaY > 0 ? -1 : 1), 0), 100);
+      setMasterGain(newValue);
+      window.localStorage.setItem('MainRadioGain', newValue.toString());
+    },
+    [masterGain, setMasterGain]
+  );
 
   return (
     <div
       className="unicom-bar-container d-flex gap-2"
       style={{
         width: isWideScreen ? '175px' : '135px'
-        // marginRight: '40px'
       }}
     >
       {isWideScreen && (
@@ -85,10 +77,12 @@ const GlobalRadioGain = () => {
           step="1"
           onChange={handleRadioGainChange}
           onWheel={handleRadioGainMouseWheel}
-          value={radioGain}
+          value={masterGain}
+          title={`Master Volume: ${masterGain.toString()}%`}
         />
       </div>
     </div>
   );
 };
+
 export default GlobalRadioGain;

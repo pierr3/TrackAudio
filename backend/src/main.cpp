@@ -1,7 +1,9 @@
 #include "LogFactory.h"
+#include "afv-native/afv/dto/Station.h"
 #include "afv-native/afv/dto/StationTransceiver.h"
 #include "afv-native/atcClientWrapper.h"
 #include "afv-native/event.h"
+#include "afv-native/event/EventBus.h"
 #include "afv-native/hardwareType.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/match.h>
@@ -25,6 +27,8 @@
 #include "RemoteData.hpp"
 #include "Shared.hpp"
 #include "sdk.hpp"
+
+using namespace afv_native::event;
 
 struct MainThreadShared {
 public:
@@ -222,6 +226,9 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     newState.headset = true;
     newState.xca = false;
 
+    // Issue 227: Make sure to publish the frequency was added to any connected clients.
+    MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
+
     auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, callsign);
     return Napi::Boolean::New(info.Env(), result);
 }
@@ -257,9 +264,15 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     newState.headset = !info[4].As<Napi::Boolean>().Value();
     newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
 
+    std::optional<float> radioGain = std::nullopt;
+    if (info.Length() > 6) {
+        if (!info[6].IsNull()) {
+            radioGain = info[6].As<Napi::Number>().FloatValue();
+        }
+    }
     // SetGuardAndUnicomTransceivers();
 
-    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, "", radioGain);
     return Napi::Boolean::New(info.Env(), result);
 }
 
@@ -293,6 +306,7 @@ void GetStation(const Napi::CallbackInfo& info)
     if (!mClient->IsVoiceConnected()) {
         return;
     }
+
     auto callsign = info[0].As<Napi::String>().Utf8Value();
     mClient->GetStation(callsign);
     mClient->FetchStationVccs(callsign);
@@ -513,218 +527,184 @@ void RequestPttKeyName(const Napi::CallbackInfo& info)
     InputHandler::forwardPttKeyName(pttIndex);
 }
 
-// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,readability-function-cognitive-complexity)
-void HandleAfvEvents(afv_native::ClientEventType eventType, void* data, void* data2)
+void HandleAfvEvents()
 {
-    if (!NapiHelpers::callbackAvailable) {
-        return;
-    }
 
-    if (eventType == afv_native::ClientEventType::VoiceServerConnected) {
-        NapiHelpers::callElectron("VoiceConnected");
-        MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(true);
-    }
+    afv_native::event::EventBus& event = afv_native::api::getEventBus();
+    event.AddHandler<afv_native::VoiceServerConnectedEvent>(
+        [&](const afv_native::VoiceServerConnectedEvent& event) {
+            NapiHelpers::callElectron("VoiceConnected");
+            MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(true);
+        });
 
-    if (eventType == afv_native::ClientEventType::VoiceServerDisconnected) {
-        NapiHelpers::callElectron("VoiceDisconnected");
-        MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(false);
-    }
+    event.AddHandler<afv_native::VoiceServerDisconnectedEvent>(
+        [&](const afv_native::VoiceServerDisconnectedEvent& event) {
+            NapiHelpers::callElectron("VoiceDisconnected");
+            MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(false);
+        });
 
-    if (eventType == afv_native::ClientEventType::StationTransceiversUpdated) {
-        if (data == nullptr) {
-            return;
-        }
-
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string station = static_cast<const char*>(data);
-        auto transceiverCount = mClient->GetTransceiverCountForStation(station);
-        auto states = mClient->getRadioState();
-        for (const auto& state : states) {
-            if (state.second.stationName == station) {
-                mClient->UseTransceiversFromStation(station, static_cast<int>(state.first));
-                break;
+    event.AddHandler<afv_native::StationTransceiversUpdatedEvent>(
+        [&](const afv_native::StationTransceiversUpdatedEvent& event) {
+            std::string station = event.stationName;
+            auto transceiverCount = mClient->GetTransceiverCountForStation(station);
+            auto states = mClient->getRadioState();
+            for (const auto& state : states) {
+                if (state.second.stationName == station) {
+                    mClient->UseTransceiversFromStation(station, static_cast<int>(state.first));
+                    break;
+                }
             }
-        }
-        SetGuardAndUnicomTransceivers();
-        NapiHelpers::callElectron(
-            "StationTransceiversUpdated", station, std::to_string(transceiverCount));
-    }
+            SetGuardAndUnicomTransceivers();
+            NapiHelpers::callElectron(
+                "StationTransceiversUpdated", station, std::to_string(transceiverCount));
+        });
 
-    if (eventType == afv_native::ClientEventType::StationDataReceived) {
-        if (data == nullptr || data2 == nullptr) {
-            return;
-        }
+    event.AddHandler<afv_native::StationDataReceivedEvent>(
+        [&](const afv_native::StationDataReceivedEvent& event) {
+            if (!event.found || !event.stationData.has_value()) {
+                NapiHelpers::sendErrorToElectron("Station not found");
+                return;
+            }
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        bool found = static_cast<bool>(data);
-        if (!found) {
-            NapiHelpers::sendErrorToElectron("Station not found");
-            return;
-        }
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto stationData = *reinterpret_cast<std::pair<std::string, unsigned int>*>(data2);
-        std::string callsign = stationData.first;
-        unsigned int frequency = stationData.second;
-
-        if (mClient->IsFrequencyActive(frequency)) {
-            PLOGW << "StationDataReceived: Frequency " << frequency << " already active, skipping";
-            return;
-        }
-
-        NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
-        MainThreadShared::mApiServer->publishStationAdded(callsign, static_cast<int>(frequency));
-    }
-
-    if (eventType == afv_native::ClientEventType::VccsReceived) {
-        if (data == nullptr || data2 == nullptr) {
-            return;
-        }
-
-        std::map<std::string, unsigned int> stations
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            = *reinterpret_cast<std::map<std::string, unsigned int>*>(data2);
-
-        for (const auto& station : stations) {
-            const std::string& callsign = station.first;
-            const unsigned int frequency = station.second;
+            const auto& [callsign, station] = event.stationData.value();
+            const auto frequency = station.frequency;
 
             if (mClient->IsFrequencyActive(frequency)) {
-                PLOGW << "VccsReceived: Frequency " << frequency << " already active, skipping";
-                continue;
+                PLOGW << "StationDataReceived: Frequency " << frequency
+                      << " already active, skipping";
+                return;
             }
 
-            NapiHelpers::callElectron("StationDataReceived", callsign, std::to_string(frequency));
+            // Create a JSON object with the station data
+            nlohmann::json stationJson;
+            stationJson["name"] = station.name;
+            stationJson["frequency"] = station.frequency;
+            stationJson["frequencyAlias"] = station.frequencyAlias;
+
+            NapiHelpers::callElectron("StationDataReceived", callsign, stationJson.dump());
             MainThreadShared::mApiServer->publishStationAdded(
                 callsign, static_cast<int>(frequency));
-        }
-    }
+        });
 
-    if (eventType == afv_native::ClientEventType::FrequencyRxBegin) {
-        if (data == nullptr) {
-            return;
-        }
+    event.AddHandler<afv_native::VccsReceivedEvent>(
+        [&](const afv_native::VccsReceivedEvent& event) {
+            const auto& stations = event.vccsData;
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        int frequency = *reinterpret_cast<int*>(data);
-        if (!mClient->IsFrequencyActive(frequency)) {
-            PLOGW << "FrequencyRxBegin: Frequency " << frequency << " not active, skipping";
-            return;
-        }
+            for (const auto& [callsign, station] : stations) {
 
-        NapiHelpers::callElectron("FrequencyRxBegin", std::to_string(frequency));
+                const auto frequency = station.frequency;
 
-        return;
-    }
+                if (mClient->IsFrequencyActive(frequency)) {
+                    PLOGW << "VccsReceived: Frequency " << frequency << " already active, skipping";
+                    continue;
+                }
 
-    if (eventType == afv_native::ClientEventType::FrequencyRxEnd) {
-        if (data == nullptr) {
-            return;
-        }
+                // Create a JSON object with the station data
+                nlohmann::json stationJson;
+                stationJson["name"] = station.name;
+                stationJson["frequency"] = station.frequency;
+                stationJson["frequencyAlias"] = station.frequencyAlias;
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        int frequency = *reinterpret_cast<int*>(data);
-        if (!mClient->IsFrequencyActive(frequency)) {
-            PLOGW << "FrequencyRxEnd: Frequency " << frequency << " not active, skipping";
-            return;
-        }
+                NapiHelpers::callElectron("StationDataReceived", callsign, stationJson.dump());
+                MainThreadShared::mApiServer->publishStationAdded(
+                    callsign, static_cast<int>(frequency));
+            }
+        });
 
-        NapiHelpers::callElectron("FrequencyRxEnd", std::to_string(frequency));
-        return;
-    }
+    event.AddHandler<afv_native::FrequencyRxBeginEvent>(
+        [&](const afv_native::FrequencyRxBeginEvent& event) {
+            if (!mClient->IsFrequencyActive(event.frequency)) {
+                PLOGW << "FrequencyRxBegin: Frequency " << event.frequency
+                      << " not active, skipping";
+                return;
+            }
 
-    if (eventType == afv_native::ClientEventType::StationRxBegin) {
-        if (data == nullptr || data2 == nullptr) {
-            return;
-        }
+            NapiHelpers::callElectron("FrequencyRxBegin", std::to_string(event.frequency));
+        });
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        int frequency = *reinterpret_cast<int*>(data);
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string callsign = static_cast<const char*>(data2);
-        if (!mClient->IsFrequencyActive(frequency)) {
-            PLOGW << "StationRxBegin: Frequency " << frequency << " not active, skipping";
-            return;
-        }
+    event.AddHandler<afv_native::FrequencyRxEndEvent>(
+        [&](const afv_native::FrequencyRxEndEvent& event) {
+            if (!mClient->IsFrequencyActive(event.frequency)) {
+                PLOGW << "FrequencyRxEnd: Frequency " << event.frequency << " not active, skipping";
+                return;
+            }
 
-        NapiHelpers::callElectron("StationRxBegin", std::to_string(frequency), callsign);
+            NapiHelpers::callElectron("FrequencyRxEnd", std::to_string(event.frequency));
+        });
 
-        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-            sdk::types::Event::kRxBegin, callsign, frequency);
+    event.AddHandler<afv_native::StationRxBeginEvent>(
+        [&](const afv_native::StationRxBeginEvent& event) {
+            if (!mClient->IsFrequencyActive(event.frequency)) {
+                PLOGW << "StationRxBegin: Frequency " << event.frequency << " not active, skipping";
+                return;
+            }
 
-        return;
-    }
+            NapiHelpers::callElectron(
+                "StationRxBegin", std::to_string(event.frequency), event.lastRx);
+            MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+                sdk::types::Event::kRxBegin, event.callsign, event.frequency);
+        });
 
-    if (eventType == afv_native::ClientEventType::StationRxEnd) {
-        if (data == nullptr || data2 == nullptr) {
-            return;
-        }
+    event.AddHandler<afv_native::StationRxEndEvent>(
+        [&](const afv_native::StationRxEndEvent& event) {
+            if (!mClient->IsFrequencyActive(event.frequency)) {
+                PLOGW << "StationRxEnd: Frequency " << event.frequency << " not active, skipping";
+                return;
+            }
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        int frequency = *reinterpret_cast<int*>(data);
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        std::string callsign = static_cast<const char*>(data2);
-        ;
+            NapiHelpers::callElectron(
+                "StationRxEnd", std::to_string(event.frequency), event.lastRx);
+            MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+                sdk::types::Event::kRxEnd, event.callsign, event.frequency);
+        });
 
-        if (!mClient->IsFrequencyActive(frequency)) {
-            PLOGW << "StationRxEnd: Frequency " << frequency << " not active, skipping";
-            return;
-        }
-
-        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-            sdk::types::Event::kRxEnd, callsign, frequency);
-    }
-
-    if (eventType == afv_native::ClientEventType::PttOpen) {
+    event.AddHandler<afv_native::PttOpenEvent>([&](const afv_native::PttOpenEvent& event) {
         NapiHelpers::callElectron("PttState", "1");
         MainThreadShared::mApiServer->handleAFVEventForWebsocket(
             sdk::types::Event::kTxBegin, std::nullopt, std::nullopt);
-    }
+    });
 
-    if (eventType == afv_native::ClientEventType::PttClosed) {
+    event.AddHandler<afv_native::PttClosedEvent>([&](const afv_native::PttClosedEvent& event) {
         NapiHelpers::callElectron("PttState", "0");
         MainThreadShared::mApiServer->handleAFVEventForWebsocket(
             sdk::types::Event::kTxEnd, std::nullopt, std::nullopt);
-    }
+    });
 
-    if (eventType == afv_native::ClientEventType::AudioError) {
+    event.AddHandler<afv_native::AudioErrorEvent>([&](const afv_native::AudioErrorEvent& event) {
         NapiHelpers::sendErrorToElectron("Error stating audio devices, check your configuration.");
-    }
+    });
 
-    if (eventType == afv_native::ClientEventType::APIServerError) {
-        if (data == nullptr) {
-            return;
-        }
+    event.AddHandler<afv_native::APIServerErrorEvent>(
+        [&](const afv_native::APIServerErrorEvent& event) {
+            auto err = static_cast<afv_native::afv::APISessionError>(event.errorCode);
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto err = *reinterpret_cast<afv_native::afv::APISessionError*>(data);
+            if (err == afv_native::afv::APISessionError::BadPassword
+                || err == afv_native::afv::APISessionError::RejectedCredentials) {
+                NapiHelpers::sendErrorToElectron("Invalid Credentials");
+            }
 
-        if (err == afv_native::afv::APISessionError::BadPassword
-            || err == afv_native::afv::APISessionError::RejectedCredentials) {
-            NapiHelpers::sendErrorToElectron("Invalid Credentials");
-        }
+            if (err == afv_native::afv::APISessionError::ConnectionError) {
+                NapiHelpers::sendErrorToElectron(
+                    "API Connection Error, check your internet connection.");
+            }
 
-        if (err == afv_native::afv::APISessionError::ConnectionError) {
-            NapiHelpers::sendErrorToElectron(
-                "API Connection Error, check your internet connection.");
-        }
+            if (err == afv_native::afv::APISessionError::BadRequestOrClientIncompatible) {
+                NapiHelpers::sendErrorToElectron("Bad Request or Client Incompatible");
+            }
 
-        if (err == afv_native::afv::APISessionError::BadRequestOrClientIncompatible) {
-            NapiHelpers::sendErrorToElectron("Bad Request or Client Incompatible");
-        }
+            if (err == afv_native::afv::APISessionError::InvalidAuthToken) {
+                NapiHelpers::sendErrorToElectron("Invalid Auth Token.");
+            }
 
-        if (err == afv_native::afv::APISessionError::InvalidAuthToken) {
-            NapiHelpers::sendErrorToElectron("Invalid Auth Token.");
-        }
+            if (err == afv_native::afv::APISessionError::AuthTokenExpiryTimeInPast) {
+                NapiHelpers::sendErrorToElectron(
+                    "Auth Token has expired, check if your system time is correct.");
+            }
 
-        if (err == afv_native::afv::APISessionError::AuthTokenExpiryTimeInPast) {
-            NapiHelpers::sendErrorToElectron(
-                "Auth Token has expired, check if your system time is correct.");
-        }
-
-        if (err == afv_native::afv::APISessionError::OtherRequestError) {
-            NapiHelpers::sendErrorToElectron("Unknown Error with AFV API");
-        }
-    }
+            if (err == afv_native::afv::APISessionError::OtherRequestError) {
+                NapiHelpers::sendErrorToElectron("Unknown Error with AFV API");
+            }
+        });
 }
 
 Napi::String GetStateFolderNapi(const Napi::CallbackInfo& info)
@@ -742,7 +722,7 @@ struct VersionCheckResponse {
     bool needUpdate = false;
 };
 
-VersionCheckResponse CheckVersionSync(const Napi::CallbackInfo& /*info*/)
+VersionCheckResponse CheckVersionSync()
 {
     // We force do a mandatory version check, if an update is needed, the
     // programme won't run
@@ -792,28 +772,32 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), true);
 
     PLOGI << "Checking version...";
-    const auto versionCheckResponse = CheckVersionSync(info);
+    const auto versionCheckResponse = CheckVersionSync();
+    PLOGI << "Version check response obtained, verifying...";
 
     if (!versionCheckResponse.success) {
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
         outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), versionCheckResponse.success);
+        PLOGE << "Version check failed, cannot run TrackAudio";
         return outObject;
     }
 
     if (versionCheckResponse.needUpdate) {
         outObject["needUpdate"] = Napi::Boolean::New(info.Env(), true);
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
+        PLOGE << "Mandatory update required, cannot run TrackAudio";
         return outObject;
     }
+
+    PLOGI << "Version check successful, continuing...";
 
     std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
     mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath);
     MainThreadShared::mRemoteDataHandler = std::make_unique<RemoteData>();
 
     // Setup afv
-    mClient->RaiseClientEvent([](afv_native::ClientEventType eventType, void* data1, void* data2) {
-        HandleAfvEvents(eventType, data1, data2);
-    });
+
+    HandleAfvEvents();
 
     MainThreadShared::mApiServer = std::make_shared<SDK>();
 
@@ -847,6 +831,11 @@ Napi::Boolean Exit(const Napi::CallbackInfo& info)
     LogFactory::destroyLoggers();
 
     return Napi::Boolean::New(info.Env(), true);
+}
+
+Napi::String GetLoggerFilePath(const Napi::CallbackInfo& info)
+{
+    return Napi::String::New(info.Env(), LogFactory::getLoggerFilePath());
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports)
@@ -930,6 +919,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     exports.Set(
         Napi::String::New(env, "RequestPttKeyName"), Napi::Function::New(env, RequestPttKeyName));
+
+    exports.Set(
+        Napi::String::New(env, "GetLoggerFilePath"), Napi::Function::New(env, GetLoggerFilePath));
 
     exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 

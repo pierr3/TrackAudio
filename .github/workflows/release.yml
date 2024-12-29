@@ -28,8 +28,11 @@ jobs:
         run: |
           git submodule update --init --remote backend/vcpkg
           git submodule update --init --remote backend/extern/afv-native
+          git submodule update --init --remote backend/extern/libuiohook
           cd backend/extern/afv-native
-          git checkout unicom2
+          git checkout modern-chained-callback
+          cd ../libuiohook
+          git checkout unregister-hook-when-debugging
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -65,7 +68,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y desktop-file-utils libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config
+          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config libxtst-dev libxinerama-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev libxkbfile-dev
 
       - name: Replace repositories with amd64 and arm64 repositories
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'

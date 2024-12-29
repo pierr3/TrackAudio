@@ -3,31 +3,27 @@ import Navbar from './components/navbar';
 import RadioContainer from './components/radio/radio-container';
 
 import ErrorDialog from './components/error';
-import Bootstrap from './components/bootstrap';
 import Mini from './components/mini';
 
 import './index.scss';
 import './style/app.scss';
 import FocusBar from './components/focusBar';
-// import { useState } from 'react';
-// import Updater from './components/updater/Updater';
+import { useEffect } from 'react';
+import IPCInterface from './interfaces/IPCInterface';
 
 function App() {
-  // const [updateCheckDone, setUpdateCheckDone] = useState(false);
+  useEffect(() => {
+    IPCInterface.init();
+    window.api.log.info('IPCInterface initialized');
 
-  // if (!updateCheckDone) {
-  //   return (
-  //     <Updater
-  //       onFinish={() => {
-  //         setUpdateCheckDone(true);
-  //       }}
-  //     />
-  //   );
-  // }
+    return () => {
+      window.api.log.info('IPCInterface destroyed');
+      IPCInterface.destroy();
+    };
+  }, []);
 
   return (
     <>
-      <Bootstrap />
       <Navbar />
       <ErrorDialog />
       <div className="structure">

@@ -1,4 +1,5 @@
 #pragma once
+#include "Helpers.hpp"
 #include <map>
 #include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
@@ -16,7 +17,8 @@ enum class WebsocketMessageType : std::uint8_t {
     kStationStates,
     kVoiceConnectedState,
     kFrequencyRemoved,
-    kStationAdded
+    kStationAdded,
+    kAddStation
 };
 
 inline const std::map<WebsocketMessageType, std::string>& getWebsocketMessageTypeMap()
@@ -32,6 +34,7 @@ inline const std::map<WebsocketMessageType, std::string>& getWebsocketMessageTyp
         { WebsocketMessageType::kVoiceConnectedState, "kVoiceConnectedState" },
         { WebsocketMessageType::kFrequencyRemoved, "kFrequencyRemoved" },
         { WebsocketMessageType::kStationAdded, "kStationAdded" },
+        { WebsocketMessageType::kAddStation, "kAddStation" },
     };
     return kWebsocketMessageTypeMap;
 }
@@ -75,8 +78,7 @@ public:
         station.pCallsign = callsign;
         station.pFrequencyHz = freqHz;
 
-        std::string temp = std::to_string(freqHz / 1000);
-        station.pHumanFreq = temp.substr(0, 3) + "." + temp.substr(3, 7);
+        station.pHumanFreq = Helpers::ConvertHzToHumanString(freqHz);
 
         return station;
     }

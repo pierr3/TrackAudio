@@ -26,7 +26,7 @@ public:
      * @return false The state was not set successfully
      */
     static bool SetRadioState(const std::shared_ptr<SDK>& mApiServer, const RadioState& newState,
-        const std::string& stationCallsign = "")
+        const std::string& stationCallsign = "", std::optional<float> radioGain = std::nullopt)
     {
         if (!mClient->IsVoiceConnected()) {
             PLOGV << "Voice is not connected, not setting radio state";
@@ -44,7 +44,8 @@ public:
 
         bool oldRxValue = mClient->GetRxState(newState.frequency);
         mClient->SetRx(newState.frequency, newState.rx);
-        mClient->SetRadioGainAll(UserSession::currentRadioGain);
+        mClient->SetRadioGain(newState.frequency,
+            radioGain.has_value() ? radioGain.value() : UserSession::currentRadioGain);
 
         if (UserSession::xy) {
             mClient->SetTx(newState.frequency, newState.tx);

@@ -26,7 +26,6 @@ const AddFrequency: React.FC<AddFrequencyProps> = ({ onAddFrequency }) => {
     }
 
     const frequencyInHz = RadioHelper.convertMHzToHz(parseFloat(frequency));
-
     window.api
       .addFrequency(frequencyInHz, '')
       .then((ret) => {

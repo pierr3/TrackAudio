@@ -315,6 +315,80 @@ button:disabled {
   background-color: $disabled !important;
 }
 
+.radio-settings-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 0.375rem;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+
+  &.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.radio-sidebar {
+  all: unset;
+  position: absolute;
+  top: 0px;
+  left: 5px;
+  font-weight: 600;
+  // width: 7px;
+  // height: 7px;
+  // border-radius: 50%;
+  // background-color: $primary;
+  z-index: 1000;
+}
+
+.radio-settings {
+  all: unset;
+  font-size: 11px;
+  font-weight: 600;
+  height: 11px;
+
+  :hover {
+    color: white;
+  }
+}
+
+.radio-reset-gain {
+  all: unset;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: red;
+
+  &:disabled {
+    background-color: transparent !important;
+    outline: none !important;
+    cursor: default;
+    color: $secondary;
+  }
+  &:not(:disabled):hover {
+    color: $danger;
+  }
+}
+
+.radio-alias-freq {
+  font-size: 11px;
+  font-weight: 600;
+  // width: 7px;
+  // height: 7px;
+  // border-radius: 50%;
+  // background-color: $primary;
+  z-index: 1000;
+}
+
 .radio {
   width: 205px;
   height: 90px;
@@ -374,6 +448,7 @@ button:disabled {
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      // margin-top: 2px;
       // gap: 1px;
     }
 
@@ -381,6 +456,7 @@ button:disabled {
       font-size: 15px;
       line-height: 1;
       font-weight: 500;
+      width: 55px;
     }
 
     .callsign {

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import useRadioState, { RadioType } from '../../store/radioStore';
 import clsx from 'clsx';
 import useErrorStore from '../../store/errorStore';
 import useSessionStore from '../../store/sessionStore';
 import useUtilStore from '../../store/utilStore';
+import { Sliders2, XCircle } from 'react-bootstrap-icons';
 
 export interface RadioProps {
   radio: RadioType;
@@ -11,8 +12,14 @@ export interface RadioProps {
 
 const Radio: React.FC<RadioProps> = ({ radio }) => {
   const postError = useErrorStore((state) => state.postError);
+  const [isHoveringFrequency, setIsHoveringFrequency] = useState(false);
+  const [showAliasFrequency, setShowAliasFrequency] = useState(false);
+  const [radioGain] = useSessionStore((state) => [state.radioGain]);
+
   const [
     setRadioState,
+    setIndividualRadioGain,
+    resetIndividualRadioGain,
     selectRadio,
     removeRadio,
     setPendingDeletion,
@@ -20,6 +27,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     radiosToBeDeleted
   ] = useRadioState((state) => [
     state.setRadioState,
+    state.setIndividualRadioGain,
+    state.resetIndividualRadioGain,
     state.selectRadio,
     state.removeRadio,
     state.setPendingDeletion,
@@ -28,10 +37,115 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   ]);
   const [isEditMode] = useUtilStore((state) => [state.isEditMode]);
   const isATC = useSessionStore((state) => state.isAtc);
+  const [canToggleOnHover, setCanToggleOnHover] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Individual radio's gain changes
+  const updateRadioGainValue = (newRelativeGain: number, isManualMode = true, store = true) => {
+    // Update the relative gain in state
+    setIndividualRadioGain(radio.frequency, newRelativeGain, isManualMode);
+
+    // Calculate and update actual output gain
+    const absoluteGain = (newRelativeGain * radioGain) / 10000;
+    void window.api.SetFrequencyRadioGain(radio.frequency, absoluteGain);
+
+    if (store) {
+      window.localStorage.setItem(radio.callsign + 'RadioGain', newRelativeGain.toString());
+    }
+  };
+
+  useEffect(() => {
+    if (radio.radioGain) {
+      const absoluteGain = (radio.radioGain * radioGain) / 10000;
+      void window.api.SetFrequencyRadioGain(radio.frequency, absoluteGain);
+    }
+  }, [radioGain]); // Only depend on master gain changes
+
+  const setStoredGain = () => {
+    const storedGain = window.localStorage.getItem(radio.callsign + 'RadioGain');
+    if (storedGain) {
+      const gainValue = parseInt(storedGain);
+      if (isNaN(gainValue)) {
+        resetToMainGain();
+      } else {
+        updateRadioGainValue(gainValue, true, false);
+      }
+    } else {
+      resetToMainGain();
+    }
+  };
+
+  useEffect(() => {
+    setStoredGain();
+  }, []);
+
+  useEffect(() => {
+    if (radio.tx && radio.radioGain && radioGain > radio.radioGain) {
+      resetToMainGain();
+    }
+  }, [radio.tx]);
+
+  useEffect(() => {
+    const storedGain = window.localStorage.getItem(radio.callsign + 'RadioGain');
+    const gainToSet = storedGain?.length ? parseInt(storedGain) : radioGain;
+    if (storedGain) {
+      updateRadioGainValue(gainToSet, false);
+    }
+  }, []);
+
+  const resetToMainGain = () => {
+    resetIndividualRadioGain(radio.frequency);
+    updateRadioGainValue(100, false);
+    window.localStorage.removeItem(radio.callsign + 'RadioGain');
+  };
+
+  const handleRadioGainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updateRadioGainValue(event.target.valueAsNumber);
+  };
+
+  const handleRadioGainMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
+    const newValue = Math.min(Math.max(radio.radioGain + (event.deltaY > 0 ? -1 : 1), 0), 100);
+    updateRadioGainValue(newValue);
+  };
+
+  const getDisplayFrequencyInfo = () => {
+    if (!radio.humanFrequencyAlias) {
+      return {
+        displayValue: radio.humanFrequency,
+        isShowingAlias: false
+      };
+    }
+
+    if (isHoveringFrequency && canToggleOnHover) {
+      return {
+        displayValue: showAliasFrequency ? radio.humanFrequency : radio.humanFrequencyAlias,
+        isShowingAlias: !showAliasFrequency
+      };
+    }
+
+    return {
+      displayValue: showAliasFrequency ? radio.humanFrequencyAlias : radio.humanFrequency,
+      isShowingAlias: showAliasFrequency
+    };
+  };
+
+  const handleMouseEnterFrequency = () => {
+    if (radio.humanFrequencyAlias) {
+      setIsHoveringFrequency(true);
+    }
+  };
+
+  const handleMouseLeaveFrequency = () => {
+    setCanToggleOnHover(true);
+    setIsHoveringFrequency(false);
+  };
 
   const clickRadioHeader = () => {
     if (isEditMode) {
       addOrRemoveRadioToBeDeleted(radio);
+    } else if (radio.humanFrequencyAlias) {
+      setShowAliasFrequency(!showAliasFrequency);
+      setCanToggleOnHover(false);
     }
     selectRadio(radio.frequency);
     if (radio.transceiverCount === 0 && radio.callsign !== 'MANUAL') {
@@ -39,6 +153,17 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     }
   };
 
+  const { displayValue } = getDisplayFrequencyInfo();
+
+  const getFrequencyTypeDisplay = () => {
+    if (!radio.humanFrequencyAlias) return null;
+
+    if (isHoveringFrequency && canToggleOnHover) {
+      return showAliasFrequency ? 'HF' : 'VHF';
+    }
+
+    return showAliasFrequency ? 'VHF' : 'HF';
+  };
   const clickRx = () => {
     clickRadioHeader();
     const newState = !radio.rx;
@@ -50,7 +175,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? radio.tx : false,
         newState ? radio.xc : false,
         radio.onSpeaker,
-        newState ? radio.crossCoupleAcross : false
+        newState ? radio.crossCoupleAcross : false,
+        (radio.radioGain * radioGain) / 10000
       )
       .then((ret) => {
         if (!ret) {
@@ -81,7 +207,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState,
         !newState ? false : radio.xc, // If tx is false, xc must be false
         radio.onSpeaker,
-        !newState ? false : radio.crossCoupleAcross // If tx is false, crossCoupleAcross must be false
+        !newState ? false : radio.crossCoupleAcross, // If tx is false, crossCoupleAcross must be false,
+        (radio.radioGain * radioGain) / 10000
       )
       .then((ret) => {
         if (!ret) {
@@ -110,7 +237,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? true : radio.tx, // If xc is true, tx must be true
         newState,
         radio.onSpeaker,
-        false // If xc is true, crossCoupleAcross must be false
+        false, // If xc is true, crossCoupleAcross must be false
+        (radio.radioGain * radioGain) / 10000
       )
       .then((ret) => {
         if (!ret) {
@@ -139,7 +267,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? true : radio.tx, // If crossCoupleAcross is true, tx must be true
         false, // If crossCoupleAcross is true, xc must be false
         radio.onSpeaker,
-        newState
+        newState,
+        (radio.radioGain * radioGain) / 10000
       )
       .then((ret) => {
         if (!ret) {
@@ -168,7 +297,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         radio.tx,
         radio.xc,
         newState,
-        radio.crossCoupleAcross
+        radio.crossCoupleAcross,
+        (radio.radioGain * radioGain) / 10000
       )
       .then((ret) => {
         if (!ret) {
@@ -214,14 +344,80 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     }, 10000);
   };
 
+  const toggleSettings = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up
+    setIsSettingsOpen(!isSettingsOpen);
+  };
+
   return (
     <div
+      style={{ position: 'relative' }}
       className={clsx(
-        'radio',
+        'radio ',
         isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info',
         (radio.rx || radio.tx) && 'radio-active'
       )}
     >
+      <div className="d-flex flex-column radio-sidebar">
+        <button
+          type="button"
+          className={clsx(
+            'radio-settings',
+            isSettingsOpen && 'active',
+            !isSettingsOpen && 'text-muted'
+          )}
+          onClick={toggleSettings}
+          title="Adjust individual radio volume"
+        >
+          <Sliders2 />
+        </button>
+
+        {!isSettingsOpen && radio.humanFrequencyAlias && (
+          <div
+            className={clsx('radio-alias-freq text-muted')}
+            title="This radio has a paired frequency"
+          >
+            {getFrequencyTypeDisplay()}
+          </div>
+        )}
+      </div>
+
+      <div className={clsx('radio-settings-overlay', isSettingsOpen && 'active')}>
+        <div className="d-flex flex-row align-items-center px-3 gap-2">
+          <div
+          // className={clsx({
+          //   'text-white': radio.manualGain,
+          //   'text-muted': !radio.manualGain
+          // })}
+          >
+            VOLUME
+          </div>
+
+          <input
+            type="range"
+            className="form-range radio-text radio-volume-bar"
+            style={{
+              lineHeight: '30px',
+              width: '100px'
+            }}
+            min="0"
+            max="100"
+            step="1"
+            value={radio.radioGain}
+            onChange={handleRadioGainChange}
+            onWheel={handleRadioGainMouseWheel}
+          />
+          <button
+            type="button"
+            className="radio-reset-gain"
+            onClick={resetToMainGain}
+            title="Reset Volume"
+            disabled={!radio.manualGain}
+          >
+            <XCircle size={13} />
+          </button>
+        </div>
+      </div>
       <div className="radio-content">
         <div className="radio-left">
           <button
@@ -235,7 +431,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             }}
           >
             <div className="radio-text-container">
-              <span className="frequency">{radio.humanFrequency}</span>
+              <span
+                className="frequency"
+                onMouseEnter={handleMouseEnterFrequency}
+                onMouseLeave={handleMouseLeaveFrequency}
+              >
+                {displayValue}
+              </span>
               <span className="callsign text-muted">{radio.callsign}</span>
             </div>
           </button>

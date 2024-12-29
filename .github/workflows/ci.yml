@@ -37,7 +37,9 @@ jobs:
           git submodule update --init --remote backend/extern/afv-native
           git submodule update --init --remote backend/extern/libuiohook
           cd backend/extern/afv-native
-          git checkout unicom2
+          git checkout modern-chained-callback
+          cd ../libuiohook
+          git checkout unregister-hook-when-debugging
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -60,13 +62,14 @@ jobs:
         run: |
           brew update
           brew upgrade cmake
+          brew install utf8proc
           cmake --version
 
       - name: Install SFML native dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config libxtst-dev libxinerama-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev libxkbfile-dev
+          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config libxtst-dev libxinerama-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev libxkbfile-dev libutf8proc-dev
 
       - name: Install dependencies
         run: |

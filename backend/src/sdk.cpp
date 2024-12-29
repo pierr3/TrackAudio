@@ -429,6 +429,10 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleVoiceConnectedEventForWebsocket(mClient->IsVoiceConnected());
             return;
         }
+        if (messageType == "kAddStation") {
+            this->handleAddStation(json);
+            return;
+        }
     } catch (const std::exception& e) {
         // Handle JSON parsing error
         PLOG_ERROR << "Error parsing incoming message JSON: " << e.what();
@@ -485,3 +489,38 @@ void SDK::broadcastOnWebsocket(const std::string& data)
         }
     }
 };
+
+void SDK::handleAddStation(const nlohmann::json& json)
+{
+    if (!mClient->IsVoiceConnected()) {
+        PLOG_ERROR << "Voice must be connected before adding a station.";
+        return;
+    }
+
+    if (!json.contains("value") || !json["value"].contains("callsign")) {
+        PLOG_ERROR << "Callsign must be specified.";
+        return;
+    }
+
+    try {
+        auto callsign = json["value"]["callsign"].get<std::string>();
+        auto allRadios = mClient->getRadioState();
+
+        PLOG_INFO << "Adding callsign: " << callsign;
+
+        // See if the station or frequency is already added. if yes, just publish the current
+        // state and return.
+        for (const auto& [freq, state] : allRadios) {
+            if (state.stationName == callsign) {
+                this->publishStationState(
+                    this->buildStationStateJson(state.stationName, static_cast<int>(freq)));
+                return;
+            }
+        }
+
+        // Since it wasn't already added, add it.
+        mClient->GetStation(callsign);
+    } catch (const nlohmann::json::exception& e) {
+        PLOG_ERROR << "Failed to read the callsign: " << e.what();
+    }
+}

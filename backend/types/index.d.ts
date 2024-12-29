@@ -18,6 +18,7 @@ export declare const AfvEventTypes: {
   FrequencyRxBegin: string;
   FrequencyRxEnd: string;
   StationRxBegin: string;
+  StationRxEnd: string;
   PttState: string;
   NetworkConnected: string;
   NetworkDisconnected: string;
@@ -51,8 +52,6 @@ declare namespace TrackAudioAfv {
   export function AddFrequency(
     frequency: number,
     callign: string,
-    rx?: boolean,
-    tx?: boolean
   ): Promise<boolean>;
   export function RemoveFrequency(frequency: number): void;
   export function IsFrequencyActive(frequency: number): boolean;
@@ -66,7 +65,8 @@ declare namespace TrackAudioAfv {
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean
+    crossCoupleAcross: boolean,
+    radioGain: number | null,
   ): Promise<boolean>;
 
   export function GetFrequencyState(frequency: number): Promise<{
@@ -107,5 +107,8 @@ declare namespace TrackAudioAfv {
     version: string;
     checkSuccessful: boolean;
   };
+
+  export function GetLoggerFilePath(): string;
+
   export function Exit(): boolean;
 }

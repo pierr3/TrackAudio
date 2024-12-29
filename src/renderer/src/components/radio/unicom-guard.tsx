@@ -8,17 +8,24 @@ import { GuardFrequency, UnicomFrequency } from '../../../../shared/common';
 import { useMediaQuery } from 'react-responsive';
 
 const UnicomGuardBar = () => {
-  const [radios, setRadioState, addRadio, removeRadio] = useRadioState((state) => [
-    state.radios,
-    state.setRadioState,
-    state.addRadio,
-    state.removeRadio
+  const [radios, setRadioState, addRadio, removeRadio, setIndividualRadioGain] = useRadioState(
+    (state) => [
+      state.radios,
+      state.setRadioState,
+      state.addRadio,
+      state.removeRadio,
+      state.setIndividualRadioGain
+    ]
+  );
+  const [isConnected, isAtc, masterGain] = useSessionStore((state) => [
+    state.isConnected,
+    state.isAtc,
+    state.radioGain
   ]);
-  const [isConnected, isAtc] = useSessionStore((state) => [state.isConnected, state.isAtc]);
 
   const isReducedSize = useMediaQuery({ maxWidth: '895px' });
 
-  const [localRadioGain, setLocalRadioGain] = useState(50);
+  const [localRadioGain, setLocalRadioGain] = useState(100);
 
   const postError = useErrorStore((state) => state.postError);
 
@@ -71,7 +78,8 @@ const UnicomGuardBar = () => {
         newState ? radio.tx : false,
         false,
         radio.onSpeaker,
-        false
+        false,
+        null
       )
       .then((ret) => {
         if (!ret && !noError) {
@@ -102,7 +110,8 @@ const UnicomGuardBar = () => {
         newState,
         false,
         radio.onSpeaker,
-        false
+        false,
+        localRadioGain
       )
       .then((ret) => {
         if (!ret && !noError) {
@@ -132,7 +141,8 @@ const UnicomGuardBar = () => {
         radio.tx,
         radio.xc,
         newState,
-        radio.crossCoupleAcross
+        radio.crossCoupleAcross,
+        localRadioGain
       )
       .then((ret) => {
         if (!ret && !noError) {
@@ -188,16 +198,34 @@ const UnicomGuardBar = () => {
 
   useEffect(() => {
     const storedGain = window.localStorage.getItem('unicomRadioGain');
-    const gainToSet = storedGain?.length ? parseInt(storedGain) : 50;
+    const gainToSet = storedGain?.length ? parseInt(storedGain) : 100;
     setLocalRadioGain(gainToSet);
   }, []);
 
+  useEffect(() => {
+    if (!isConnected || !unicom || !guard) return;
+
+    const absoluteGain = (unicom.radioGain * masterGain) / 10000;
+
+    void Promise.all([
+      window.api.SetFrequencyRadioGain(UnicomFrequency, absoluteGain),
+      window.api.SetFrequencyRadioGain(GuardFrequency, absoluteGain)
+    ]).catch((err: unknown) => {
+      console.error('Failed to update UNICOM/GUARD gains:', err);
+    });
+  }, [masterGain, isConnected]); // Only depend on master gain and connection state
+
   const updateRadioGainValue = (newGain: number) => {
     if (!unicom || !guard) return;
+    const absoluteGain = (newGain * masterGain) / 10000;
+
     window.api
-      .SetFrequencyRadioGain(unicom.frequency, newGain / 100)
+      .SetFrequencyRadioGain(unicom.frequency, absoluteGain)
       .then(() => {
-        void window.api.SetFrequencyRadioGain(guard.frequency, newGain / 100);
+        void window.api.SetFrequencyRadioGain(guard.frequency, absoluteGain);
+
+        setIndividualRadioGain(unicom.frequency, absoluteGain, true);
+        setIndividualRadioGain(guard.frequency, absoluteGain, true);
         setLocalRadioGain(newGain);
       })
       .catch((err: unknown) => {

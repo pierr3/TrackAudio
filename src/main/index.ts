@@ -14,6 +14,7 @@ import { join } from 'path';
 import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
 import updater from 'electron-updater';
+import log from 'electron-log/main';
 
 import configManager from './config';
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
@@ -193,6 +194,11 @@ const createWindow = (): void => {
     Boolean(hasRequiredConfig());
   const miniModeHeight = 39 + 24 * 1;
   const miniModeHeightMin = 22 + 24 * 1;
+  // Set the logger file path
+  log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
+  log.transports.file.resolvePathFn = (): string => {
+    return TrackAudioAfv.GetLoggerFilePath();
+  };
 
   const options: Electron.BrowserWindowConstructorOptions = {
     height: shouldAutoConnect ? miniModeHeight : defaultWindowSize.height,
@@ -538,12 +544,9 @@ ipcMain.handle('disconnect', () => {
   TrackAudioAfv.Disconnect();
 });
 
-ipcMain.handle(
-  'audio-add-frequency',
-  (_, frequency: number, callsign: string, rx: boolean, tx: boolean) => {
-    return TrackAudioAfv.AddFrequency(frequency, callsign, rx, tx);
-  }
-);
+ipcMain.handle('audio-add-frequency', (_, frequency: number, callsign: string) => {
+  return TrackAudioAfv.AddFrequency(frequency, callsign);
+});
 
 ipcMain.handle('audio-remove-frequency', (_, frequency: number) => {
   TrackAudioAfv.RemoveFrequency(frequency);
@@ -558,9 +561,18 @@ ipcMain.handle(
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean
+    crossCoupleAcross: boolean,
+    radioGain: number | null
   ) => {
-    return TrackAudioAfv.SetFrequencyState(frequency, rx, tx, xc, onSpeaker, crossCoupleAcross);
+    return TrackAudioAfv.SetFrequencyState(
+      frequency,
+      rx,
+      tx,
+      xc,
+      onSpeaker,
+      crossCoupleAcross,
+      radioGain
+    );
   }
 );
 
@@ -722,6 +734,19 @@ ipcMain.handle('is-trusted-accessibility', () => {
   return systemPreferences.isTrustedAccessibilityClient(true);
 });
 
+// Logger
+ipcMain.on('log-info', (_, message: string) => {
+  log.info(message);
+});
+
+ipcMain.on('log-warn', (_, message: string) => {
+  log.warn(message);
+});
+
+ipcMain.on('log-error', (_, message: string) => {
+  log.error(message);
+});
+
 //
 // Callbacks
 //
@@ -754,12 +779,16 @@ const handleEvent = (arg: string, arg2: string, arg3: string) => {
     mainWindow?.webContents.send('StationRxBegin', arg2, arg3);
   }
 
+  if (arg == AfvEventTypes.StationRxEnd) {
+    mainWindow?.webContents.send('StationRxEnd', arg2, arg3);
+  }
+
   if (arg == AfvEventTypes.StationTransceiversUpdated) {
     mainWindow?.webContents.send('station-transceivers-updated', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.StationStateUpdate) {
-    mainWindow?.webContents.send('station-state-update', arg2, arg3);
+    mainWindow?.webContents.send('station-state-update', arg2);
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {

@@ -12,8 +12,10 @@ const FocusBar = () => {
     state.connectTimestamp
   ]);
   const [pendingRestart] = useUtilStore((state) => [state.pendingRestart]);
-  const isWideScreen = useMediaQuery({ minWidth: '740px' });
-  const isSmallScreen = useMediaQuery({ maxWidth: '490px' });
+  // const isWideScreen = useMediaQuery({ minWidth: '800px' });
+  // const isSmallScreen = useMediaQuery({ maxWidth: '490px' });
+  const isWideScreen = useMediaQuery({ minWidth: '755px' });
+  const isSmallScreen = useMediaQuery({ maxWidth: '615px' });
 
   const restartApp = () => {
     if (isConnected) {
@@ -28,54 +30,44 @@ const FocusBar = () => {
     <div className="focusbar-container bg-dark hide-topbar">
       <div className="container-fluid h-100">
         <div className="h-100 position-relative">
-          {pendingRestart && !isConnected ? (
-            <div
-              className="col-12 d-flex justify-content-start align-items-center position-absolute w-100 h-100"
-              style={{ zIndex: 3 }}
-            >
+          <div
+            className="position-absolute h-100 d-flex align-items-center"
+            style={{ left: 0, width: '300px' }}
+          >
+            {pendingRestart && !isConnected ? (
               <a className="small font-weight-bold text-danger cursor" onClick={restartApp}>
                 Click here to reload to apply changes
               </a>
-            </div>
-          ) : (
-            connectTimestamp &&
-            isWideScreen && (
-              <div
-                className="col-12 d-flex justify-content-start align-items-center position-absolute w-100 h-100"
-                style={{ zIndex: 3 }}
-              >
-                <ConnectTimer />
-              </div>
-            )
-          )}
+            ) : (
+              connectTimestamp && isWideScreen && <ConnectTimer />
+            )}
+          </div>
 
-          {/* Center Radio Status */}
-          {isWideScreen ? (
-            <div className="col-12 d-flex justify-content-center align-items-center position-absolute w-100 h-100">
-              <div className="text-nowrap">
-                <RadioStatus />
-              </div>
-            </div>
-          ) : (
-            <div
-              className={clsx(
-                'col-12 d-flex align-items-center position-absolute w-100 h-100',
-                isSmallScreen ? 'justify-content-center ' : 'justify-content-start '
-              )}
-              style={{
-                lineHeight: 1
-              }}
-            >
+          <div
+            className={clsx(
+              'position-absolute d-flex align-items-center h-100 w-100',
+              isWideScreen
+                ? 'justify-content-center'
+                : isSmallScreen
+                  ? 'justify-content-center'
+                  : 'justify-content-start'
+            )}
+            style={{
+              lineHeight: 1,
+              pointerEvents: 'none'
+            }}
+          >
+            <div className="text-nowrap" style={{ pointerEvents: 'auto' }}>
               <RadioStatus />
             </div>
-          )}
+          </div>
 
           {!isSmallScreen && (
             <div
-              className="col-12 d-flex justify-content-end align-items-center h-100 position-relative"
-              style={{ zIndex: 3 }}
+              className="position-absolute h-100 d-flex align-items-center"
+              style={{ right: 0, width: '200px' }}
             >
-              <div className="licenses text-nowrap text-muted">
+              <div className="licenses text-nowrap text-muted ms-auto">
                 <span className="d-none d-sm-inline">{version} |&nbsp;</span>
                 <a
                   href="https://github.com/pierr3/TrackAudio/blob/main/LICENSES_COMPILED.md"

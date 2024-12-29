@@ -150,6 +150,7 @@ If `cmake-js` isn't already installed run `npm install -g cmake-js`. For the fir
 ```sh
 git submodule update --init --remote backend/vcpkg
 git submodule update --init --remote backend/extern/afv-native
+git submodule update --init --remote backend/extern/libuiohook
 npm run build:backend
 npm install
 npm run dev
