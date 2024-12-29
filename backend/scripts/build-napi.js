@@ -40,7 +40,7 @@ async function build() {
     const isWindows = /^win/.test(process.platform);
 
     if (isWindows) {
-      const cmakeJsCommand = `npm run build:node --`;
+      const cmakeJsCommand = `cmake-js -G Ninja --out=build`;
 
       let  buildCommand = isDebug ? `${cmakeJsCommand} -D` : cmakeJsCommand;
       if (!isFast) {
