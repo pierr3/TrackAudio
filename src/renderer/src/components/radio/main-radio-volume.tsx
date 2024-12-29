@@ -14,13 +14,11 @@ const MainRadioVolume = () => {
     window.api
       .getConfig()
       .then((config: Configuration) => {
-        const volume = config.mainRadioVolume || 0.5;
-        const UiVolume = volume * 100 || 50;
-
+        const mainRadioVolume = config.mainRadioVolume || 50;
         window.api
-          .SetMainRadioVolume(volume)
+          .SetMainRadioVolume(mainRadioVolume)
           .then(() => {
-            setMainRadioVolume(UiVolume);
+            setMainRadioVolume(mainRadioVolume);
           })
           .catch((err: unknown) => {
             console.error(err);
