@@ -3,10 +3,10 @@ import '../../style/GlobalRadio.scss';
 import { useEffect } from 'react';
 import { Configuration } from 'src/shared/config.type';
 import { useMediaQuery } from 'react-responsive';
-const GlobalRadioGain = () => {
-  const [radioGain, setRadioGain] = useSessionStore((state) => [
+const MainRadioVolume = () => {
+  const [radioGain, setMainRadioVolume] = useSessionStore((state) => [
     state.radioGain,
-    state.setRadioGain
+    state.setMainRadioVolume
   ]);
   const isWideScreen = useMediaQuery({ minWidth: '895px' });
 
@@ -14,13 +14,13 @@ const GlobalRadioGain = () => {
     window.api
       .getConfig()
       .then((config: Configuration) => {
-        const gain = config.radioGain || 0.5;
-        const UiGain = gain * 100 || 50;
+        const volume = config.radioGain || 0.5;
+        const UiVolume = volume * 100 || 50;
 
         window.api
-          .SetRadioGain(gain)
+          .SetMainRadioVolume(volume)
           .then(() => {
-            setRadioGain(UiGain);
+            setMainRadioVolume(UiVolume);
           })
           .catch((err: unknown) => {
             console.error(err);
@@ -29,26 +29,26 @@ const GlobalRadioGain = () => {
       .catch((err: unknown) => {
         console.error(err);
       });
-  }, [setRadioGain]);
+  }, [setMainRadioVolume]);
 
-  const updateRadioGainValue = (newGain: number) => {
+  const updateRadioVolumeValue = (newVolume: number) => {
     window.api
-      .SetRadioGain(newGain / 100)
+      .SetMainRadioVolume(newVolume)
       .then(() => {
-        setRadioGain(newGain);
+        setMainRadioVolume(newVolume);
       })
       .catch((err: unknown) => {
         console.error(err);
       });
   };
 
-  const handleRadioGainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateRadioGainValue(event.target.valueAsNumber);
+  const handleRadioVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updateRadioVolumeValue(event.target.valueAsNumber);
   };
 
-  const handleRadioGainMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
+  const handleRadioVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
     const newValue = Math.min(Math.max(radioGain + (event.deltaY > 0 ? -1 : 1), 0), 100);
-    updateRadioGainValue(newValue);
+    updateRadioVolumeValue(newValue);
   };
 
   return (
@@ -79,16 +79,16 @@ const GlobalRadioGain = () => {
       >
         <input
           type="range"
-          className="form-range unicom-text global-volume-bar"
+          className="form-range unicom-text main-volume-bar"
           min="0"
           max="100"
           step="1"
-          onChange={handleRadioGainChange}
-          onWheel={handleRadioGainMouseWheel}
+          onChange={handleRadioVolumeChange}
+          onWheel={handleRadioVolumeMouseWheel}
           value={radioGain}
         />
       </div>
     </div>
   );
 };
-export default GlobalRadioGain;
+export default MainRadioVolume;

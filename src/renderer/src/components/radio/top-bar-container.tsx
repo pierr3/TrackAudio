@@ -1,5 +1,5 @@
 import RxInfo from './rxinfo';
-import GlobalRadioGain from './global-radio-gain';
+import MainRadioVolume from './main-radio-volume';
 import UnicomGuardBar from './unicom-guard';
 import { useMediaQuery } from 'react-responsive';
 
@@ -14,7 +14,7 @@ const TopBarContainer = () => {
         {/* Left-aligned element */}
         {isMediumScreen && (
           <div className="d-flex align-items-center">
-            <GlobalRadioGain />
+            <MainRadioVolume />
           </div>
         )}
 

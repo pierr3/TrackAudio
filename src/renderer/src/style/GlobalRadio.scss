@@ -8,7 +8,7 @@
   justify-content: center;
 }
 
-.gain-bar-container {
+.volume-bar-container {
   height: 28px;
   line-height: 25px;
   width: fit-content;
@@ -24,17 +24,17 @@
   justify-content: center; // Added to center items horizontally
 }
 
-.hide-gain-container {
+.hide-volume-container {
   @media screen and (max-width: 465px) {
     display: none;
   }
 }
 
-.gain-line-item {
+.volume-line-item {
   margin-right: 10px;
 }
 
-.gain-text {
+.volume-text {
   display: inline-block;
   vertical-align: middle;
 }
