@@ -3,8 +3,8 @@ import '../../style/GlobalRadio.scss';
 import { useEffect } from 'react';
 import { Configuration } from 'src/shared/config.type';
 const MainRadioVolume = () => {
-  const [radioGain, setMainRadioVolume] = useSessionStore((state) => [
-    state.radioGain,
+  const [mainRadioVolume, setMainRadioVolume] = useSessionStore((state) => [
+    state.mainRadioVolume,
     state.setMainRadioVolume
   ]);
 
@@ -12,7 +12,7 @@ const MainRadioVolume = () => {
     window.api
       .getConfig()
       .then((config: Configuration) => {
-        const volume = config.radioGain || 0.5;
+        const volume = config.mainRadioVolume || 0.5;
         const UiVolume = volume * 100 || 50;
 
         window.api
@@ -45,7 +45,7 @@ const MainRadioVolume = () => {
   };
 
   const handleRadioVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
-    const newValue = Math.min(Math.max(radioGain + (event.deltaY > 0 ? -1 : 1), 0), 100);
+    const newValue = Math.min(Math.max(mainRadioVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
     updateRadioVolumeValue(newValue);
   };
 
@@ -81,7 +81,7 @@ const MainRadioVolume = () => {
           step="1"
           onChange={handleRadioVolumeChange}
           onWheel={handleRadioVolumeMouseWheel}
-          value={radioGain}
+          value={mainRadioVolume}
         />
       </div>
     </div>

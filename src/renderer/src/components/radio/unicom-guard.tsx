@@ -196,7 +196,7 @@ const UnicomGuardBar = () => {
   }, [isConnected]);
 
   useEffect(() => {
-    const storedStationVolume = window.localStorage.getItem('unicomRadioGain');
+    const storedStationVolume = window.localStorage.getItem('unicomStationVolume');
     const stationVolumeToSet = storedStationVolume?.length ? parseInt(storedStationVolume) : 50;
     setLocalUnicomStationVolume(stationVolumeToSet);
   }, []);
@@ -213,7 +213,7 @@ const UnicomGuardBar = () => {
         console.error(err);
       });
 
-    window.localStorage.setItem('unicomRadioGain', newStationVolume.toString());
+    window.localStorage.setItem('unicomStationVolume', newStationVolume.toString());
   };
 
   const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
