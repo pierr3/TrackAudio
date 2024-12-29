@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import useRadioState, { RadioType } from '../../store/radioStore';
 import clsx from 'clsx';
 import useErrorStore from '../../store/errorStore';
 import useSessionStore from '../../store/sessionStore';
 import useUtilStore from '../../store/utilStore';
+import { Sliders2 } from 'react-bootstrap-icons';
 
 export interface RadioProps {
   radio: RadioType;
@@ -28,6 +29,38 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   ]);
   const [isEditMode] = useUtilStore((state) => [state.isEditMode]);
   const isATC = useSessionStore((state) => state.isAtc);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const [localStationVolume, setLocalStationVolume] = useState(100);
+
+  const updateStationVolumeValue = (newStationVolume: number) => {
+    window.api
+      .SetFrequencyRadioVolume(radio.frequency, newStationVolume)
+      .then(() => {
+        setLocalStationVolume(newStationVolume);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+
+    window.localStorage.setItem(radio.callsign + 'StationVolume', newStationVolume.toString());
+  };
+
+  useEffect(() => {
+    const storedStationVolume = window.localStorage.getItem(radio.callsign + 'StationVolume');
+    const stationVolumeToSet = storedStationVolume?.length ? parseInt(storedStationVolume) : 100;
+    setLocalStationVolume(stationVolumeToSet);
+  }, []);
+
+  const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updateStationVolumeValue(event.target.valueAsNumber);
+  };
+
+  const handleStationVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
+    const newValue = Math.min(Math.max(localStationVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
+
+    updateStationVolumeValue(newValue);
+  };
 
   const clickRadioHeader = () => {
     if (isEditMode) {
@@ -214,14 +247,55 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     }, 10000);
   };
 
+  const toggleSettings = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up
+    setIsSettingsOpen(!isSettingsOpen);
+  };
+
   return (
     <div
+      style={{ position: 'relative' }}
       className={clsx(
         'radio',
         isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency) && 'bg-info',
         (radio.rx || radio.tx) && 'radio-active'
       )}
     >
+      <div className="d-flex flex-column radio-sidebar">
+        <button
+          type="button"
+          className={clsx(
+            'radio-settings',
+            isSettingsOpen && 'active',
+            !isSettingsOpen && 'text-muted'
+          )}
+          onClick={toggleSettings}
+          title="Adjust individual radio volume"
+        >
+          <Sliders2 />
+        </button>
+      </div>
+
+      <div className={clsx('radio-settings-overlay', isSettingsOpen && 'active')}>
+        {/* Add your settings content here */}
+        <div className="d-flex flex-row align-items-center px-3">
+          <div className="p-3 text-white">VOLUME</div>
+
+          <input
+            type="range"
+            className="form-range radio-text station-volume-bar "
+            style={{
+              lineHeight: '30px'
+            }}
+            min="0"
+            max="100"
+            step="1"
+            value={localStationVolume}
+            onChange={handleStationVolumeChange}
+            onWheel={handleStationVolumeMouseWheel}
+          ></input>
+        </div>
+      </div>
       <div className="radio-content">
         <div className="radio-left">
           <button
