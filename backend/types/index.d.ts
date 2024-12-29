@@ -18,6 +18,7 @@ export declare const AfvEventTypes: {
   FrequencyRxBegin: string;
   FrequencyRxEnd: string;
   StationRxBegin: string;
+  StationRxEnd: string;
   PttState: string;
   NetworkConnected: string;
   NetworkDisconnected: string;

@@ -773,6 +773,10 @@ const handleEvent = (arg: string, arg2: string, arg3: string) => {
     mainWindow?.webContents.send('StationRxBegin', arg2, arg3);
   }
 
+  if (arg == AfvEventTypes.StationRxEnd) {
+    mainWindow?.webContents.send('StationRxEnd', arg2, arg3);
+  }
+
   if (arg == AfvEventTypes.StationTransceiversUpdated) {
     mainWindow?.webContents.send('station-transceivers-updated', arg2, arg3);
   }
