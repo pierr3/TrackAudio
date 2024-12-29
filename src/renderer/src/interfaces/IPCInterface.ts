@@ -51,7 +51,7 @@ class IPCInterface {
             return;
           }
           radioStoreState.addRadio(freq, station, sessionStoreState.getStationCallsign());
-          void window.api.SetMainRadioVolume(sessionStoreState.radioGain);
+          void window.api.SetMainRadioVolume(sessionStoreState.mainRadioVolume);
         })
         .catch((err: unknown) => {
           window.api.log.error(err as string);

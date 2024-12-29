@@ -14,7 +14,7 @@ export interface Configuration {
   callsign: string;
 
   hardwareType: number;
-  radioGain: number;
+  mainRadioVolume: number;
 
   // Boolean is the prior type for this property, AlwaysOnTopMode is the updated type.
   alwaysOnTop: boolean | AlwaysOnTopMode;

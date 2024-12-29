@@ -380,7 +380,7 @@ void SetMainRadioVolume(const Napi::CallbackInfo& info)
             || state.second.Frequency == GUARD_FREQUENCY) {
             continue;
         }
-        mClient->SetRadioGain(state.first, volume / 100);
+        mClient->SetRadioGain(state.first, gain / 100);
     }
 }
 
@@ -882,8 +882,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "SetFrequencyRadioVolume"),
         Napi::Function::New(env, SetFrequencyRadioVolume));
 
-    exports.Set(
-        Napi::String::New(env, "SetMainRadioVolume"), Napi::Function::New(env, SetMainRadioVolume));
+    exports.Set(Napi::String::New(env, "SetMainRadioVolume"), Napi::Function::New(env, SetMainRadioVolume));
 
     exports.Set(
         Napi::String::New(env, "SetRadioEffects"), Napi::Function::New(env, SetRadioEffects));
