@@ -348,10 +348,9 @@ app
       dialog.showMessageBoxSync({
         type: 'error',
         message:
-          'An error occured during the version check, either your internet connection is down or the server (raw.githubusercontent.com or cdn.jsdelivr.net) is unreachable.',
+          'An error occured during the version check, either your internet connection is down or both servers (raw.githubusercontent.com and cdn.jsdelivr.net) are unreachable.',
         buttons: ['OK']
       });
-      app.quit();
     }
 
     if (bootstrapOutput.needUpdate) {

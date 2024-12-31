@@ -705,8 +705,8 @@ Napi::String GetStateFolderNapi(const Napi::CallbackInfo& info)
 }
 
 struct VersionCheckResponse {
-    VersionCheckResponse(bool succeded, bool update)
-        : success(succeded)
+    VersionCheckResponse(bool succeeded, bool update)
+        : success(succeeded)
         , needUpdate(update)
     {
     }
@@ -751,20 +751,20 @@ VersionCheckResponse CheckVersionSync()
 
         if (versionResponses.empty()) {
             PLOGE << "Error fetching version!";
-            MainThreadShared::ShouldRun = false;
+            MainThreadShared::ShouldRun = true;
             return { false, false };
         }
 
         auto mandatoryVersion = semver::version(versionResponses.front());
         if (VERSION < mandatoryVersion) {
-            MainThreadShared::ShouldRun = false;
             PLOGE << "Mandatory update required: " << VERSION.to_string() << " -> "
                   << mandatoryVersion.to_string();
+            MainThreadShared::ShouldRun = false;
             return { true, true };
         }
     } catch (const std::exception& e) {
-        MainThreadShared::ShouldRun = false;
         PLOGE << "Error parsing version: " << e.what();
+        MainThreadShared::ShouldRun = true;
         return { false, false };
     }
 
@@ -779,28 +779,26 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 
     outObject["version"] = Napi::String::New(info.Env(), VERSION.to_string());
     outObject["canRun"] = Napi::Boolean::New(info.Env(), true);
-    outObject["needUpdate"] = Napi::Boolean::New(info.Env(), false);
-    outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), true);
 
     PLOGI << "Checking version...";
     const auto versionCheckResponse = CheckVersionSync();
-    PLOGI << "Version check response obtained, verifying...";
 
-    if (!versionCheckResponse.success) {
-        outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
-        outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), versionCheckResponse.success);
-        PLOGE << "Version check failed, cannot run TrackAudio";
-        return outObject;
+    outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), true);
+    outObject["needUpdate"] = Napi::Boolean::New(info.Env(), false);
+
+    if (versionCheckResponse.success) {
+        PLOGI << "Version check response obtained, verifying...";
+        if (versionCheckResponse.needUpdate) {
+            outObject["needUpdate"] = Napi::Boolean::New(info.Env(), true);
+            PLOGE << "Mandatory update required, cannot run TrackAudio";
+            return outObject;
+        } else {
+            PLOGI << "Version is up-to-date, continuing...";
+        }
+    } else {
+        outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), false);
+        PLOGE << "Version check failed, running TrackAudio with error message";
     }
-
-    if (versionCheckResponse.needUpdate) {
-        outObject["needUpdate"] = Napi::Boolean::New(info.Env(), true);
-        outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
-        PLOGE << "Mandatory update required, cannot run TrackAudio";
-        return outObject;
-    }
-
-    PLOGI << "Version check successful, continuing...";
 
     std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
     mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath);
