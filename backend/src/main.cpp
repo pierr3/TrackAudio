@@ -716,14 +716,16 @@ struct VersionCheckResponse {
 
 VersionCheckResponse CheckVersionSync()
 {
-    // We force do a mandatory version check, if an update is needed, the
-    // programme won't run
+    // We force do a mandatory version check,
+    // if version check is succesful and update is needed,
+    // the programme won't run
 
     try {
         std::vector<std::string> versionResponses;
 
         auto fetchVersion = [&](const std::string& url, const std::string& endpoint) {
             httplib::Client client(url);
+            client.set_connection_timeout(5); // 5 seconds of timeout to minimalize waiting
             auto res = client.Get(endpoint);
             if (res && res->status == httplib::StatusCode::OK_200) {
                 std::string cleanBody = res->body;
@@ -741,7 +743,11 @@ VersionCheckResponse CheckVersionSync()
         std::thread thread2(fetchVersion, VERSION_CHECK_BASE_URL_CDN, VERSION_CHECK_ENDPOINT_CDN);
 
         thread1.join();
-        thread2.join();
+        if (!versionResponses.empty()) {
+            thread2.detach();
+        } else {
+            thread2.join();
+        }
 
         if (versionResponses.empty()) {
             PLOGE << "Error fetching version!";
