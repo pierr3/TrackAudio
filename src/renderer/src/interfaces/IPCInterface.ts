@@ -19,6 +19,32 @@ class IPCInterface {
     window.api.window.checkIsFullscreen();
 
     window.api
+      .isAutoConnectMode()
+      .then((isAutoConnect: boolean) => {
+        useUtilStore.getState().setIsAutoConnectMode(isAutoConnect);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+
+    const addFrequency = (frequency: number, callsign: string, rx = false, tx = false) => {
+      window.api
+        .addFrequency(frequency, callsign, rx, tx)
+        .then((ret) => {
+          if (!ret) {
+            return;
+          }
+          useRadioState
+            .getState()
+            .addRadio(frequency, callsign, useSessionStore.getState().getStationCallsign());
+          void window.api.SetRadioGain(useSessionStore.getState().radioGain / 100);
+        })
+        .catch((err: unknown) => {
+          console.error(err);
+        });
+    };
+
+    window.api
       .getConfig()
       .then((config: Configuration) => {
         utilStoreState.setShowExpandedRxInfo(config.showExpandedRx);
@@ -42,21 +68,7 @@ class IPCInterface {
 
     window.api.on('station-data-received', (station: string, data: string) => {
       const radio = JSON.parse(data) as Station;
-      window.api
-        .addFrequency(radio.frequency, station)
-        .then((ret) => {
-          if (!ret) {
-            console.error('Failed to add frequency', radio.frequency, station);
-            return;
-          }
-          useRadioState
-            .getState()
-            .addRadioByStation(radio, useSessionStore.getState().getStationCallsign());
-          void window.api.SetRadioGain(useSessionStore.getState().radioGain / 100);
-        })
-        .catch((err: unknown) => {
-          console.error(err);
-        });
+      addFrequency(radio.frequency, station);
     });
 
     // Received when a station's state is updated externally, typically
@@ -134,15 +146,16 @@ class IPCInterface {
       sessionStoreState.setIsConnecting(false);
       sessionStoreState.setIsConnected(true);
       if (sessionStoreState.getIsAtc()) {
-        void window.api.GetStation(sessionStoreState.getStationCallsign());
+        if (useUtilStore.getState().isAutoConnectMode) {
+          addFrequency(
+            useSessionStore.getState().frequency,
+            useSessionStore.getState().callsign,
+            true,
+            true
+          );
+        }
+        void window.api.GetStation(useSessionStore.getState().getStationCallsign());
       }
-    });
-
-    window.api.on('VoiceDisconnected', () => {
-      sessionStoreState.setIsConnecting(false);
-      sessionStoreState.setIsConnected(false);
-      radioStoreState.reset();
-      utilStoreState.setIsEditMode(false);
     });
 
     window.api.on('network-connected', (callsign: string, dataString: string) => {
