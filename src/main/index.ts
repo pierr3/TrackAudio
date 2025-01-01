@@ -15,7 +15,7 @@ import { AfvEventTypes, TrackAudioAfv } from 'trackaudio-afv';
 import icon from '../../resources/AppIcon/icon.png?asset';
 import updater from 'electron-updater';
 import log from 'electron-log/main';
-
+import { ENV } from './env';
 import configManager from './config';
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
 
@@ -26,7 +26,6 @@ let mainWindow: BrowserWindow | null;
 
 let isAppReady = false;
 
-let customAfvUrl: string | null = null;
 const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 455; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
 const defaultMiniModeWidth = 250; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
@@ -352,16 +351,9 @@ app
       canRun: boolean;
     };
 
-    const customAfvUrlValue = process.argv.find(
-      (arg) => arg.startsWith('--custom-afv-url=') || arg.startsWith('custom-afv-url=')
-    );
-    if (customAfvUrlValue) {
-      customAfvUrl = customAfvUrlValue.split('=')[1];
-    }
-
-    if (customAfvUrl) {
-      console.log(`Using custom AFV URL: ${customAfvUrl}`);
-      bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath, customAfvUrl);
+    if (ENV.VITE_AFV_URL) {
+      console.log(`Using custom AFV URL: ${ENV.VITE_AFV_URL}`);
+      bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath, ENV.VITE_AFV_URL);
     } else {
       bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
     }
@@ -377,22 +369,20 @@ app
      * @property {boolean} isAtc - Whether position is an ATC position
      */
 
-    const debugCid = configManager.config.cid;
-    const debugFreq = process.argv.find((arg) => arg.startsWith('--debug-freq='))?.split('=')[1];
-    const debugCallsign = process.argv
-      .find((arg) => arg.startsWith('--debug-callsign='))
-      ?.split('=')[1];
-    const debugLat = process.argv.find((arg) => arg.startsWith('--debug-lat='))?.split('=')[1];
-    const debugLon = process.argv.find((arg) => arg.startsWith('--debug-lon='))?.split('=')[1];
-    const debugIsAtc = process.argv.includes('--debug-as-atc');
+    const debugCid = ENV.VITE_DEBUG_CID;
+    const debugFreq = ENV.VITE_DEBUG_FREQ;
+    const debugCallsign = ENV.VITE_DEBUG_CALLSIGN;
+    const debugLat = ENV.VITE_DEBUG_LAT;
+    const debugLon = ENV.VITE_DEBUG_LON;
+    const debugIsAtc = ENV.VITE_DEBUG_IS_ATC;
 
-    if (customAfvUrl && debugCid && debugFreq && debugCallsign && debugLat && debugLon) {
+    if (ENV.VITE_AFV_URL && debugCid && debugFreq && debugCallsign && debugLat && debugLon) {
       TrackAudioAfv.SetDebugSession({
         cid: debugCid,
-        frequency: parseInt(debugFreq),
+        frequency: debugFreq,
         callsign: debugCallsign,
-        lat: parseFloat(debugLat),
-        lon: parseFloat(debugLon),
+        lat: debugLat,
+        lon: debugLon,
         isAtc: debugIsAtc
       });
     }
