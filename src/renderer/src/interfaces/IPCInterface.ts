@@ -124,8 +124,8 @@ class IPCInterface {
     window.api.on('VoiceConnected', () => {
       sessionStoreState.setIsConnecting(false);
       sessionStoreState.setIsConnected(true);
-      if (sessionStoreState.isAtc) {
-        void window.api.GetStation(sessionStoreState.stationCallsign);
+      if (sessionStoreState.getIsAtc()) {
+        void window.api.GetStation(sessionStoreState.getStationCallsign());
       }
     });
 

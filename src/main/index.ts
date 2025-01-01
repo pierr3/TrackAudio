@@ -178,9 +178,11 @@ const createWindow = (): void => {
 
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
-  log.transports.file.resolvePathFn = (): string => {
-    return TrackAudioAfv.GetLoggerFilePath() as string;
-  };
+
+  // We can't log to the same file as the C++ backend since PLOGI holds a lock on the file.
+  // log.transports.file.resolvePathFn = (): string => {
+  //   return TrackAudioAfv.GetLoggerFilePath();
+  // };
 
   const options: Electron.BrowserWindowConstructorOptions = {
     height: defaultWindowSize.height,
