@@ -14,6 +14,8 @@ public:
     bool tx;
     bool xc;
     bool xca;
+    bool outputMute;
+    double outputGain;
 };
 
 class RadioHelper {
@@ -55,6 +57,8 @@ public:
             mClient->SetXc(newState.frequency, false);
             mClient->SetCrossCoupleAcross(newState.frequency, false);
         }
+
+        mClient->SetOutputMute(newState.frequency, newState.outputMute);
 
         mClient->SetOnHeadset(newState.frequency, newState.headset);
 
