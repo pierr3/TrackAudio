@@ -30,12 +30,12 @@ export declare const AfvEventTypes: {
 };
 
 export declare interface Session {
-  c: string;
-  f: number;
-  ci : string;
-  la: number;
-  l: number;
-  ia: boolean;
+  calos: string;
+  fab: number;
+  cinto : string;
+  lacra: number;
+  linstal: number;
+  ianto: boolean;
 }
 
 declare namespace TrackAudioAfv {

@@ -776,17 +776,17 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 void SetSession(const Napi::CallbackInfo& info)
 {
     auto object = info[0].As<Napi::Object>();
-    if (!object.Has("c") || !object.Has("f") || !object.Has("ci") || !object.Has("la")
-        || !object.Has("l") || !object.Has("ia")) {
+    if (!object.Has("calos") || !object.Has("fab") || !object.Has("cinto") || !object.Has("lacra")
+        || !object.Has("linstal") || !object.Has("ianto")) {
         throw Napi::Error::New(info.Env(), "Missing required debug session properties");
     }
 
-    auto callsign = object.Get("c").As<Napi::String>().Utf8Value();
-    auto frequency = object.Get("f").As<Napi::Number>().Int32Value();
-    auto cid = object.Get("ci").As<Napi::String>().Utf8Value();
-    auto lat = object.Get("la").As<Napi::Number>().DoubleValue();
-    auto lon = object.Get("l").As<Napi::Number>().DoubleValue();
-    auto isAtc = object.Get("ia").As<Napi::Boolean>().Value();
+    auto callsign = object.Get("calos").As<Napi::String>().Utf8Value();
+    auto frequency = object.Get("fab").As<Napi::Number>().Int32Value();
+    auto cid = object.Get("cinto").As<Napi::String>().Utf8Value();
+    auto lat = object.Get("lacra").As<Napi::Number>().DoubleValue();
+    auto lon = object.Get("linstal").As<Napi::Number>().DoubleValue();
+    auto isAtc = object.Get("ianto").As<Napi::Boolean>().Value();
 
     UserSession::isDebug = true;
     UserSession::xy = isAtc;

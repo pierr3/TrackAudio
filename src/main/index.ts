@@ -393,13 +393,14 @@ app
         _e[_v('VklURV9ERUJVR19MQVQ=')] &&
         _e[_v('VklURV9ERUJVR19MT04=')]
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         TrackAudioAfv.SetSession({
-          c: _e[_v('VklURV9ERUJVR19DSUQ=')],
-          f: _e[_v('VklURV9ERUJVR19GUkVR')],
-          ci: _e[_v('VklURV9ERUJVR19DQUxMU0lHTg==')],
-          la: _e[_v('VklURV9ERUJVR19MQVQ=')],
-          l: _e[_v('VklURV9ERUJVR19MT04=')],
-          ia: _e[_v('VklURV9ERUJVR19JU19BVEM=')]
+          calos: _e[_v('VklURV9ERUJVR19DQUxMU0lHTg==')],
+          fab: _e[_v('VklURV9ERUJVR19GUkVR')],
+          cinto: _e[_v('VklURV9ERUJVR19DSUQ=')],
+          lacra: _e[_v('VklURV9ERUJVR19MQVQ=')],
+          linstal: _e[_v('VklURV9ERUJVR19MT04=')],
+          ianto: _e[_v('VklURV9ERUJVR19JU19BVEM=')]
         });
       }
     }
