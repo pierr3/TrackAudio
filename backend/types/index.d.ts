@@ -28,6 +28,15 @@ export declare const AfvEventTypes: {
   OpenSettingsModal: string;
 };
 
+export declare interface DebugSession {
+  callsign: string;
+  frequency: number;
+  cid : string;
+  lat: number;
+  lon: number;
+  isAtc: boolean;
+}
+
 declare namespace TrackAudioAfv {
   export function GetVersion(): string;
   export function GetAudioApis(): Array<AudioApi>;
@@ -99,7 +108,7 @@ declare namespace TrackAudioAfv {
   export function RequestPttKeyName(pttIndex: number): void;
 
   export function IsConnected(): boolean;
-  export function Bootstrap(resourcePath: string): {
+  export function Bootstrap(resourcePath: string, afvUrl?: string): {
     canRun: boolean;
     needUpdate: boolean;
     version: string;
@@ -109,4 +118,7 @@ declare namespace TrackAudioAfv {
   export function GetLoggerFilePath(): string;
 
   export function Exit(): boolean;
+
+  // DEBUG
+  export function SetDebugSession(session: DebugSession): void;
 }

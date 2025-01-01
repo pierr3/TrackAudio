@@ -26,6 +26,7 @@ let mainWindow: BrowserWindow | null;
 
 let isAppReady = false;
 
+let customAfvUrl: string | null = null;
 const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 455; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
 const defaultMiniModeWidth = 250; // Default width to use for mini mode if the user hasn't explicitly resized it to something else.
@@ -344,16 +345,56 @@ app
     // Auto-show the settings dialog if the audioApi is the default value.
     autoOpenSettings = configManager.config.audioApi === -1;
 
-    const bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
+    let bootstrapOutput: {
+      checkSuccessful: boolean;
+      needUpdate: boolean;
+      version: string;
+      canRun: boolean;
+    };
 
-    if (!bootstrapOutput.checkSuccessful) {
-      dialog.showMessageBoxSync({
-        type: 'error',
-        message:
-          'An error occured during the version check, either your internet connection is down or the server (raw.githubusercontent.com) is unreachable.',
-        buttons: ['OK']
+    const customAfvUrlValue = process.argv.find(
+      (arg) => arg.startsWith('--custom-afv-url=') || arg.startsWith('custom-afv-url=')
+    );
+    if (customAfvUrlValue) {
+      customAfvUrl = customAfvUrlValue.split('=')[1];
+    }
+
+    if (customAfvUrl) {
+      console.log(`Using custom AFV URL: ${customAfvUrl}`);
+      bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath, customAfvUrl);
+    } else {
+      bootstrapOutput = TrackAudioAfv.Bootstrap(process.resourcesPath);
+    }
+
+    /**
+     * Debug session configuration for the TrackAudioAfv library
+     * @typedef {Object} DebugSession Configuration object for debug session
+     * @property {string} cid - Controller ID/VATSIM CID
+     * @property {number} frequency - Radio frequency in Hz (e.g. 119730000 for 119.730)
+     * @property {string} callsign - Controller position callsign (e.g. EGLL_N_APP)
+     * @property {number} lat - Latitude coordinate of position
+     * @property {number} lon - Longitude coordinate of position
+     * @property {boolean} isAtc - Whether position is an ATC position
+     */
+
+    const debugCid = configManager.config.cid;
+    const debugFreq = process.argv.find((arg) => arg.startsWith('--debug-freq='))?.split('=')[1];
+    const debugCallsign = process.argv
+      .find((arg) => arg.startsWith('--debug-callsign='))
+      ?.split('=')[1];
+    const debugLat = process.argv.find((arg) => arg.startsWith('--debug-lat='))?.split('=')[1];
+    const debugLon = process.argv.find((arg) => arg.startsWith('--debug-lon='))?.split('=')[1];
+    const debugIsAtc = process.argv.includes('--debug-as-atc');
+
+    if (customAfvUrl && debugCid && debugFreq && debugCallsign && debugLat && debugLon) {
+      TrackAudioAfv.SetDebugSession({
+        cid: debugCid,
+        frequency: parseInt(debugFreq),
+        callsign: debugCallsign,
+        lat: parseFloat(debugLat),
+        lon: parseFloat(debugLon),
+        isAtc: debugIsAtc
       });
-      app.quit();
     }
 
     if (bootstrapOutput.needUpdate) {

@@ -49,6 +49,7 @@ public:
     static bool xy;
     static bool isConnectedToTheNetwork;
     static float currentRadioGain;
+    static bool isDebug;
 };
 
 struct RemoteDataStatus {
