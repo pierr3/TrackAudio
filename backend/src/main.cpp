@@ -746,7 +746,13 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     PLOGI << "Version check successful, continuing...";
 
     std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
-    mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath);
+    if (info.Length() > 1 && info[1].IsString()) {
+        std::string request = info[1].As<Napi::String>().Utf8Value();
+        mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath, request);
+    } else {
+        mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath);
+    }
+
     MainThreadShared::mRemoteDataHandler = std::make_unique<RemoteData>();
 
     // Setup afv
@@ -765,6 +771,31 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     UserSettings::load();
 
     return outObject;
+}
+
+void SetSession(const Napi::CallbackInfo& info)
+{
+    auto object = info[0].As<Napi::Object>();
+    if (!object.Has("c") || !object.Has("f") || !object.Has("ci") || !object.Has("la")
+        || !object.Has("l") || !object.Has("ia")) {
+        throw Napi::Error::New(info.Env(), "Missing required debug session properties");
+    }
+
+    auto callsign = object.Get("c").As<Napi::String>().Utf8Value();
+    auto frequency = object.Get("f").As<Napi::Number>().Int32Value();
+    auto cid = object.Get("ci").As<Napi::String>().Utf8Value();
+    auto lat = object.Get("la").As<Napi::Number>().DoubleValue();
+    auto lon = object.Get("l").As<Napi::Number>().DoubleValue();
+    auto isAtc = object.Get("ia").As<Napi::Boolean>().Value();
+
+    UserSession::isDebug = true;
+    UserSession::xy = isAtc;
+
+    UserSession::callsign = callsign;
+    UserSession::cid = cid;
+    UserSession::lat = lat;
+    UserSession::lon = lon;
+    UserSession::frequency = frequency;
 }
 
 Napi::Boolean Exit(const Napi::CallbackInfo& info)
@@ -878,6 +909,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
         Napi::String::New(env, "GetLoggerFilePath"), Napi::Function::New(env, GetLoggerFilePath));
 
     exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
+
+    // Debugging
+    exports.Set(Napi::String::New(env, "SetSession"), Napi::Function::New(env, SetSession));
 
     return exports;
 }
