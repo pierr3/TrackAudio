@@ -47,6 +47,8 @@ nlohmann::json SDK::buildStationStateJson(
     jsonMessage["value"]["xca"] = mClient->GetCrossCoupleAcrossState(frequencyHz);
     jsonMessage["value"]["headset"] = mClient->GetOnHeadset(frequencyHz);
     jsonMessage["value"]["isAvailable"] = true;
+    jsonMessage["value"]["outputMute"] = mClient->GetOutputMuteState(frequencyHz);
+    jsonMessage["value"]["outputGain"] = mClient->GetOutputGainState(frequencyHz);
 
     return jsonMessage;
 }
@@ -320,6 +322,21 @@ void SDK::handleSetStationState(const nlohmann::json& json)
             = Helpers::ConvertBoolOrToggleToBool(json["value"]["headset"], currentValue);
     } else {
         radioState.headset = currentValue;
+    }
+
+    currentValue = mClient->GetOutputMuteState(frequency);
+    if (json["value"].contains("outputMute")) {
+        radioState.outputMute
+            = Helpers::ConvertBoolOrToggleToBool(json["value"]["outputMute"], currentValue);
+    } else {
+        radioState.outputMute = currentValue;
+    }
+
+    currentValue = mClient->GetOutputGainState(frequency);
+    if (json["value"].contains("outputGain")) {
+        radioState.outputGain = json["value"]["outputGain"];
+    } else {
+        radioState.outputGain = currentValue;
     }
 
     RadioHelper::SetRadioState(shared_from_this(), radioState);

@@ -200,6 +200,8 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     newState.xc = false;
     newState.headset = true;
     newState.xca = false;
+    newState.outputMute = false;
+    newState.outputGain = 1.0;
 
     // Issue 227: Make sure to publish the frequency was added to any connected clients.
     MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
@@ -218,6 +220,8 @@ void RemoveFrequency(const Napi::CallbackInfo& info)
     newState.xc = false;
     newState.headset = false;
     newState.xca = false;
+    newState.outputMute = false;
+    newState.outputGain = 1.0;
 
     RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     mClient->RemoveFrequency(newState.frequency);
@@ -256,6 +260,8 @@ Napi::Object GetFrequencyState(const Napi::CallbackInfo& info)
     obj.Set("xc", mClient->GetXcState(frequency));
     obj.Set("onSpeaker", !mClient->GetOnHeadset(frequency));
     obj.Set("crossCoupleAcross", !mClient->GetCrossCoupleAcrossState(frequency));
+    obj.Set("outputMute", mClient->GetOutputMuteState(frequency));
+    obj.Set("outputGain", mClient->GetOutputGainState(frequency));
 
     return obj;
 }

@@ -82,6 +82,8 @@ declare namespace TrackAudioAfv {
     tx: boolean;
     xc: boolean;
     onSpeaker: boolean;
+    outputMute: boolean;
+    outputGain: number;
   }>;
 
   export function SetCid(cid: string): void;
