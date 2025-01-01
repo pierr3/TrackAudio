@@ -15,6 +15,8 @@
 #define SLURPER_DATA_ENDPOINT "/users/info/"
 #define VERSION_CHECK_BASE_URL "https://raw.githubusercontent.com"
 #define VERSION_CHECK_ENDPOINT "/pierr3/TrackAudio/main/MANDATORY_VERSION"
+#define VERSION_CHECK_BASE_URL_CDN "https://cdn.jsdelivr.net"
+#define VERSION_CHECK_ENDPOINT_CDN "/gh/pierr3/TrackAudio@main/MANDATORY_VERSION"
 #define OBS_FREQUENCY 199998000 // 199.998
 #define UNICOM_FREQUENCY 122800000 // 122.800
 #define GUARD_FREQUENCY 121500000 // 121.500
