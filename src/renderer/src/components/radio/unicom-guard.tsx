@@ -80,7 +80,9 @@ const UnicomGuardBar = () => {
         newState ? radio.tx : false,
         false,
         radio.onSpeaker,
-        false
+        false,
+        radio.isOutputMuted,
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret && !noError) {
@@ -92,7 +94,9 @@ const UnicomGuardBar = () => {
           tx: !newState ? false : radio.tx,
           xc: !false,
           crossCoupleAcross: false,
-          onSpeaker: radio.onSpeaker
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -111,7 +115,9 @@ const UnicomGuardBar = () => {
         newState,
         false,
         radio.onSpeaker,
-        false
+        false,
+        radio.isOutputMuted,
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret && !noError) {
@@ -123,7 +129,9 @@ const UnicomGuardBar = () => {
           tx: newState,
           xc: false,
           crossCoupleAcross: false,
-          onSpeaker: radio.onSpeaker
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -141,7 +149,9 @@ const UnicomGuardBar = () => {
         radio.tx,
         radio.xc,
         newState,
-        radio.crossCoupleAcross
+        radio.crossCoupleAcross,
+        radio.isOutputMuted,
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret && !noError) {
@@ -153,7 +163,9 @@ const UnicomGuardBar = () => {
           tx: radio.tx,
           xc: radio.xc,
           crossCoupleAcross: radio.crossCoupleAcross,
-          onSpeaker: newState
+          onSpeaker: newState,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -221,7 +233,10 @@ const UnicomGuardBar = () => {
   };
 
   const handleStationVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
-    const newValue = Math.min(Math.max(localUnicomStationVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
+    const newValue = Math.min(
+      Math.max(localUnicomStationVolume + (event.deltaY > 0 ? -1 : 1), 0),
+      100
+    );
 
     updateStationVolumeValue(newValue);
   };
