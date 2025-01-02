@@ -23,6 +23,8 @@ export interface RadioType {
   position: string;
   subPosition: string;
   isPendingDeleting: boolean;
+  outputVolume: number;
+  isOutputMuted: boolean;
 }
 
 export interface FrequencyState {
@@ -31,6 +33,8 @@ export interface FrequencyState {
   xc: boolean;
   crossCoupleAcross: boolean;
   onSpeaker: boolean;
+  outputVolume: number;
+  isOutputMuted: boolean;
 }
 
 interface RadioState {
@@ -42,6 +46,7 @@ interface RadioState {
   setRadioState: (frequency: number, frequencyState: FrequencyState) => void;
   setCurrentlyTx: (value: boolean) => void;
   setCurrentlyRx: (frequency: number, value: boolean) => void;
+  setOutputVolume: (frequency: number, volume: number) => void;
   selectRadio: (frequency: number) => void;
   getSelectedRadio: () => RadioType | undefined;
   isRadioUnique: (frequency: number) => boolean;
@@ -113,7 +118,9 @@ const useRadioState = create<RadioState>((set, get) => ({
           onSpeaker: false,
           selected: false,
           transceiverCount: 0,
-          isPendingDeleting: false
+          isPendingDeleting: false,
+          outputVolume: 100,
+          isOutputMuted: false
         }
       ].sort((a, b) => radioCompare(a, b, stationCallsign))
     }));
@@ -210,6 +217,13 @@ const useRadioState = create<RadioState>((set, get) => ({
       )
     }));
   },
+  setOutputVolume: (frequency, volume) => {
+    set((state) => ({
+      radios: state.radios.map((radio) =>
+        radio.frequency === frequency ? { ...radio, outputVolume: volume } : radio
+      )
+    }));
+  },
   getRadioByFrequency: (frequency) => {
     return get().radios.find((radio) => radio.frequency === frequency);
   },
@@ -225,7 +239,9 @@ const useRadioState = create<RadioState>((set, get) => ({
               crossCoupleAcross: frequencyState.crossCoupleAcross,
               onSpeaker: frequencyState.onSpeaker,
               currentlyRx: frequencyState.rx ? radio.currentlyRx : false,
-              currentlyTx: frequencyState.tx ? radio.currentlyTx : false
+              currentlyTx: frequencyState.tx ? radio.currentlyTx : false,
+              outputVolume: frequencyState.outputVolume,
+              isOutputMuted: frequencyState.isOutputMuted
             }
           : radio
       )

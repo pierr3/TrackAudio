@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import useErrorStore from '../../store/errorStore';
 import useSessionStore from '../../store/sessionStore';
 import useUtilStore from '../../store/utilStore';
-import { Sliders2 } from 'react-bootstrap-icons';
+import { Sliders2, VolumeMute, VolumeUp } from 'react-bootstrap-icons';
 
 export interface RadioProps {
   radio: RadioType;
@@ -18,29 +18,30 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     removeRadio,
     setPendingDeletion,
     addOrRemoveRadioToBeDeleted,
-    radiosToBeDeleted
+    radiosToBeDeleted,
+    setOutputVolume
   ] = useRadioState((state) => [
     state.setRadioState,
     state.selectRadio,
     state.removeRadio,
     state.setPendingDeletion,
     state.addOrRemoveRadioToBeDeleted,
-    state.radiosSelected
+    state.radiosSelected,
+    state.setOutputVolume
   ]);
   const [isEditMode] = useUtilStore((state) => [state.isEditMode]);
   const isATC = useSessionStore((state) => state.isAtc);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [localStationVolume, setLocalStationVolume] = useState(100);
 
   const updateStationVolumeValue = (newStationVolume: number) => {
-    window.api
-      .SetFrequencyRadioVolume(radio.frequency, newStationVolume)
-      .then(() => {
-        setLocalStationVolume(newStationVolume);
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
+    if (radio.isOutputMuted) {
+      toggleMute();
+    }
+
+    console.log('Setting station volume to', newStationVolume);
+    window.api.SetFrequencyRadioVolume(radio.frequency, newStationVolume).catch((err: unknown) => {
+      console.error(err);
+    });
 
     if (!radio.tx) {
       window.localStorage.setItem(radio.callsign + 'StationVolume', newStationVolume.toString());
@@ -60,14 +61,15 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   }, []);
 
   const forceToMainVolume = () => {
-    setLocalStationVolume(radio.frequency);
+    // setLocalStationVolume(radio.frequency);
     updateStationVolumeValue(100);
   };
 
   const setStoredStationVolume = () => {
     const storedStationVolume = window.localStorage.getItem(radio.callsign + 'StationVolume');
     const stationVolumeToSet = storedStationVolume?.length ? parseInt(storedStationVolume) : 100;
-    setLocalStationVolume(stationVolumeToSet);
+    setOutputVolume(radio.frequency, stationVolumeToSet);
+    // setLocalStationVolume(stationVolumeToSet);
   };
 
   const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,7 +77,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   };
 
   const handleStationVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
-    const newValue = Math.min(Math.max(localStationVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
+    const newValue = Math.min(Math.max(radio.outputVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
 
     updateStationVolumeValue(newValue);
   };
@@ -101,7 +103,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? radio.tx : false,
         newState ? radio.xc : false,
         radio.onSpeaker,
-        newState ? radio.crossCoupleAcross : false
+        newState ? radio.crossCoupleAcross : false,
+        radio.isOutputMuted,
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret) {
@@ -114,7 +118,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           tx: !newState ? false : radio.tx,
           xc: !newState ? false : radio.xc,
           crossCoupleAcross: !newState ? false : radio.crossCoupleAcross,
-          onSpeaker: radio.onSpeaker
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -132,7 +138,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState,
         !newState ? false : radio.xc, // If tx is false, xc must be false
         radio.onSpeaker,
-        !newState ? false : radio.crossCoupleAcross // If tx is false, crossCoupleAcross must be false
+        !newState ? false : radio.crossCoupleAcross,
+        radio.isOutputMuted,
+        radio.outputVolume // If tx is false, crossCoupleAcross must be false
       )
       .then((ret) => {
         if (!ret) {
@@ -144,7 +152,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           tx: newState,
           xc: !newState ? false : radio.xc,
           crossCoupleAcross: !newState ? false : radio.crossCoupleAcross,
-          onSpeaker: radio.onSpeaker
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -161,7 +171,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? true : radio.tx, // If xc is true, tx must be true
         newState,
         radio.onSpeaker,
-        false // If xc is true, crossCoupleAcross must be false
+        false,
+        radio.isOutputMuted,
+        radio.outputVolume // If xc is true, crossCoupleAcross must be false
       )
       .then((ret) => {
         if (!ret) {
@@ -173,7 +185,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           tx: !radio.tx && newState ? true : radio.tx,
           xc: newState,
           crossCoupleAcross: false,
-          onSpeaker: radio.onSpeaker
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -190,7 +204,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         newState ? true : radio.tx, // If crossCoupleAcross is true, tx must be true
         false, // If crossCoupleAcross is true, xc must be false
         radio.onSpeaker,
-        newState
+        newState,
+        radio.isOutputMuted,
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret) {
@@ -202,7 +218,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           tx: !radio.tx && newState ? true : radio.tx,
           xc: false,
           crossCoupleAcross: newState,
-          onSpeaker: radio.onSpeaker
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -219,7 +237,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         radio.tx,
         radio.xc,
         newState,
-        radio.crossCoupleAcross
+        radio.crossCoupleAcross,
+        radio.isOutputMuted,
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret) {
@@ -232,7 +252,43 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           tx: radio.tx,
           xc: radio.xc,
           crossCoupleAcross: radio.crossCoupleAcross,
-          onSpeaker: newState
+          onSpeaker: newState,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
+        });
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+  };
+
+  const toggleMute = () => {
+    const newState = !radio.isOutputMuted;
+    window.api
+      .setFrequencyState(
+        radio.frequency,
+        radio.rx,
+        radio.tx,
+        radio.xc,
+        radio.onSpeaker,
+        radio.crossCoupleAcross,
+        newState,
+        radio.outputVolume
+      )
+      .then((ret) => {
+        if (!ret) {
+          postError('Invalid action on invalid radio: Mute.');
+          removeRadio(radio.frequency);
+          return;
+        }
+        setRadioState(radio.frequency, {
+          rx: radio.rx,
+          tx: radio.tx,
+          xc: radio.xc,
+          crossCoupleAcross: radio.crossCoupleAcross,
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: newState
         });
       })
       .catch((err: unknown) => {
@@ -297,22 +353,33 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       <div className={clsx('radio-settings-overlay', isSettingsOpen && 'active')}>
         {/* Add your settings content here */}
         <div className="d-flex flex-row align-items-center px-3">
-          <div className="p-3 text-white">VOLUME</div>
+          <span className="me-3 text-white d-flex align-items-center">VOLUME</span>
 
-          <input
-            type="range"
-            className="form-range radio-text station-volume-bar "
-            disabled={radio.tx}
-            style={{
-              lineHeight: '30px'
-            }}
-            min="0"
-            max="100"
-            step="1"
-            value={localStationVolume}
-            onChange={handleStationVolumeChange}
-            onWheel={handleStationVolumeMouseWheel}
-          ></input>
+          <div className="flex-grow-1 d-flex align-items-center">
+            <input
+              type="range"
+              className="form-range radio-text station-volume-bar w-100"
+              disabled={radio.tx}
+              min="0"
+              max="100"
+              step="1"
+              value={radio.outputVolume}
+              onChange={handleStationVolumeChange}
+              onWheel={handleStationVolumeMouseWheel}
+            />
+          </div>
+
+          <button
+            type="button"
+            className={clsx(
+              'radio-settings ms-2 d-flex align-items-center justify-content-center',
+              radio.isOutputMuted ? 'text-red' : 'text-muted'
+            )}
+            onClick={toggleMute}
+            title="Toggle mute output audio"
+          >
+            {radio.isOutputMuted ? <VolumeMute size={18} color="red" /> : <VolumeUp size={18} />}
+          </button>
         </div>
       </div>
       <div className="radio-content">

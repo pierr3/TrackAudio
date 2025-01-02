@@ -40,6 +40,7 @@ nlohmann::json SDK::buildStationStateJson(
     if (callsign.has_value()) {
         jsonMessage["value"]["callsign"] = callsign.value();
     }
+
     jsonMessage["value"]["frequency"] = frequencyHz;
     jsonMessage["value"]["tx"] = mClient->GetTxState(frequencyHz);
     jsonMessage["value"]["rx"] = mClient->GetRxState(frequencyHz);
@@ -48,8 +49,7 @@ nlohmann::json SDK::buildStationStateJson(
     jsonMessage["value"]["headset"] = mClient->GetOnHeadset(frequencyHz);
     jsonMessage["value"]["isAvailable"] = true;
     jsonMessage["value"]["isOutputMuted"] = mClient->GetIsOutputMutedState(frequencyHz);
-    jsonMessage["value"]["outputVolume"]
-        = Helpers::ConvertGainToVolume(mClient->GetOutputGainState(frequencyHz));
+    jsonMessage["value"]["outputVolume"] = RadioHelper::getRadioVolume(frequencyHz);
 
     return jsonMessage;
 }
@@ -334,11 +334,11 @@ void SDK::handleSetStationState(const nlohmann::json& json)
         radioState.isOutputMuted = mutedValue;
     }
 
-    auto gainValue = mClient->GetOutputGainState(frequency);
+    auto gainValue = RadioHelper::getRadioVolume(frequency);
     if (json["value"].contains("outputVolume")) {
         radioState.outputVolume = json["value"]["outputVolume"];
     } else {
-        radioState.outputVolume = Helpers::ConvertGainToVolume(gainValue);
+        radioState.outputVolume = gainValue;
     }
 
     RadioHelper::SetRadioState(shared_from_this(), radioState);
@@ -394,6 +394,7 @@ void SDK::handleGetStationState(const std::string& callsign)
 void SDK::publishStationState(const nlohmann::json& state)
 {
     this->broadcastOnWebsocket(state.dump());
+    NapiHelpers::callElectron("station-state-update", state.dump());
 }
 
 void SDK::publishStationAdded(const std::string& callsign, const int& frequencyHz)
@@ -534,18 +535,19 @@ void SDK::handleChangeStationVolume(const nlohmann::json& json)
             return;
         }
 
-        auto currentVolume = Helpers::ConvertGainToVolume(mClient->GetOutputGainState(frequency));
-        double newGain;
+        auto currentVolume = RadioHelper::getRadioVolume(frequency);
+        float newGain;
 
-        newGain = Helpers::ConvertVolumeToGain(std::clamp(currentVolume + amount, 0.0, 100.0));
+        newGain = static_cast<float>(std::clamp(currentVolume + amount, 0.0, 100.0));
 
-        mClient->SetRadioGain(frequency, newGain);
+        RadioHelper::setRadioVolume(frequency, newGain);
 
         // Get the updated radio state and publish it
         auto updatedRadios = mClient->getRadioState();
         auto radioState = updatedRadios[frequency];
-        this->publishStationState(
-            this->buildStationStateJson(radioState.stationName, static_cast<int>(frequency)));
+        auto stateJson = this->buildStationStateJson(radioState.stationName, frequency);
+        this->publishStationState(stateJson);
+
     } catch (const nlohmann::json::exception& e) {
         PLOG_ERROR << "Failed to read the frequency: " << e.what();
     }
