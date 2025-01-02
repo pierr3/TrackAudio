@@ -5,8 +5,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
-/.vscode
-.vscode
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -132,4 +131,3 @@ build/vcpkg_installed
 build/.cmake
 build/CMakeFiles
 build/CMakeCache.txt
-.vscode/settings.json

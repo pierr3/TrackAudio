@@ -129,21 +129,5 @@ public:
         }
         return 100;
     }
-
-    // static void setAllRadioVolumes()
-    // {
-
-    //     auto states = mClient->getRadioState();
-    //     for (const auto& state : states) {
-    //         setRadioVolume(state.first, state.second.outputGain);
-    //     }
-    // }
-
-    // static void setRadioVolume(const unsigned int frequency, const float gain)
-    // {
-
-    //     double scaledVolume = UserSession::currentMainOutputVolume * gain;
-    //     mClient->SetRadioGain(frequency, Helpers::ConvertVolumeToGain(scaledVolume));
-    // }
 };
 ;
