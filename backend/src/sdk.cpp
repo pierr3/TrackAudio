@@ -48,7 +48,8 @@ nlohmann::json SDK::buildStationStateJson(
     jsonMessage["value"]["headset"] = mClient->GetOnHeadset(frequencyHz);
     jsonMessage["value"]["isAvailable"] = true;
     jsonMessage["value"]["isOutputMuted"] = mClient->GetIsOutputMutedState(frequencyHz);
-    jsonMessage["value"]["outputGain"] = mClient->GetOutputGainState(frequencyHz);
+    jsonMessage["value"]["outputVolume"]
+        = Helpers::ConvertGainToVolume(mClient->GetOutputGainState(frequencyHz));
 
     return jsonMessage;
 }
@@ -64,7 +65,8 @@ void SDK::handleVoiceConnectedEventForWebsocket(bool isVoiceConnected)
 
 // NOLINTNEXTLINE
 void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
-    const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz)
+    const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz,
+    const std::optional<std::string>& parameter3)
 {
     if (event == sdk::types::Event::kDisconnectFrequencyStateUpdate) {
         nlohmann::json jsonMessage
@@ -93,11 +95,11 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         return;
     }
 
-    if (event == sdk::types::Event::kRxEnd && callsign && frequencyHz) {
+    if (event == sdk::types::Event::kRxEnd && callsign && frequencyHz && parameter3) {
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kRxEnd);
         jsonMessage["value"]["callsign"] = *callsign;
         jsonMessage["value"]["pFrequencyHz"] = *frequencyHz;
-        this->broadcastOnWebsocket(jsonMessage.dump());
+        jsonMessage["value"]["lastRx"] = *parameter3;
 
         std::lock_guard<std::mutex> lock(TransmittingMutex);
         CurrentlyTransmittingData.erase(*callsign);
@@ -269,16 +271,16 @@ void SDK::handleSetStationState(const nlohmann::json& json)
 
     radioState.frequency = frequency;
 
-    auto currentValue = mClient->GetRxState(frequency);
+    auto rxValue = mClient->GetRxState(frequency);
     if (json["value"].contains("rx")) {
-        radioState.rx = Helpers::ConvertBoolOrToggleToBool(json["value"]["rx"], currentValue);
+        radioState.rx = Helpers::ConvertBoolOrToggleToBool(json["value"]["rx"], rxValue);
     } else {
-        radioState.rx = currentValue;
+        radioState.rx = rxValue;
     }
 
-    currentValue = mClient->GetTxState(frequency);
+    auto txValue = mClient->GetTxState(frequency);
     if (json["value"].contains("tx")) {
-        radioState.tx = Helpers::ConvertBoolOrToggleToBool(json["value"]["tx"], currentValue);
+        radioState.tx = Helpers::ConvertBoolOrToggleToBool(json["value"]["tx"], txValue);
 
         if (radioState.tx) {
             radioState.rx = true;
@@ -289,54 +291,54 @@ void SDK::handleSetStationState(const nlohmann::json& json)
     else if (json["value"].contains("rx") && !radioState.rx) {
         radioState.tx = false;
     } else {
-        radioState.tx = currentValue;
+        radioState.tx = txValue;
     }
 
-    currentValue = mClient->GetXcState(frequency);
+    auto xcValue = mClient->GetXcState(frequency);
     if (json["value"].contains("xc")) {
-        radioState.xc = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], currentValue);
+        radioState.xc = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], xcValue);
 
         if (radioState.xc) {
             radioState.tx = true;
             radioState.rx = true;
         }
     } else {
-        radioState.xc = currentValue;
+        radioState.xc = xcValue;
     }
 
-    currentValue = mClient->GetCrossCoupleAcrossState(frequency);
+    auto xcaValue = mClient->GetCrossCoupleAcrossState(frequency);
     if (json["value"].contains("xca")) {
-        radioState.xca = Helpers::ConvertBoolOrToggleToBool(json["value"]["xca"], currentValue);
+        radioState.xca = Helpers::ConvertBoolOrToggleToBool(json["value"]["xca"], xcaValue);
 
         if (radioState.xca) {
             radioState.tx = true;
             radioState.rx = true;
         }
     } else {
-        radioState.xca = currentValue;
+        radioState.xca = xcaValue;
     }
 
-    currentValue = mClient->GetOnHeadset(frequency);
+    auto headsetValue = mClient->GetOnHeadset(frequency);
     if (json["value"].contains("headset")) {
         radioState.headset
-            = Helpers::ConvertBoolOrToggleToBool(json["value"]["headset"], currentValue);
+            = Helpers::ConvertBoolOrToggleToBool(json["value"]["headset"], headsetValue);
     } else {
-        radioState.headset = currentValue;
+        radioState.headset = headsetValue;
     }
 
-    currentValue = mClient->GetIsOutputMutedState(frequency);
+    auto mutedValue = mClient->GetIsOutputMutedState(frequency);
     if (json["value"].contains("isOutputMuted")) {
         radioState.isOutputMuted
-            = Helpers::ConvertBoolOrToggleToBool(json["value"]["isOutputMuted"], currentValue);
+            = Helpers::ConvertBoolOrToggleToBool(json["value"]["isOutputMuted"], mutedValue);
     } else {
-        radioState.isOutputMuted = currentValue;
+        radioState.isOutputMuted = mutedValue;
     }
 
-    currentValue = mClient->GetOutputGainState(frequency);
-    if (json["value"].contains("outputGain")) {
-        radioState.outputGain = json["value"]["outputGain"];
+    auto gainValue = mClient->GetOutputGainState(frequency);
+    if (json["value"].contains("outputVolume")) {
+        radioState.outputVolume = json["value"]["outputVolume"];
     } else {
-        radioState.outputGain = currentValue;
+        radioState.outputVolume = Helpers::ConvertGainToVolume(gainValue);
     }
 
     RadioHelper::SetRadioState(shared_from_this(), radioState);
@@ -449,8 +451,8 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleAddStation(json);
             return;
         }
-        if (messageType == "kChangeStationGain") {
-            this->handleChangeStationGain(json);
+        if (messageType == "kChangeStationVolume") {
+            this->handleChangeStationVolume(json);
             return;
         }
     } catch (const std::exception& e) {
@@ -510,7 +512,7 @@ void SDK::broadcastOnWebsocket(const std::string& data)
     }
 };
 
-void SDK::handleChangeStationGain(const nlohmann::json& json)
+void SDK::handleChangeStationVolume(const nlohmann::json& json)
 {
     if (!mClient->IsVoiceConnected()) {
         PLOG_ERROR << "Voice must be connected before adding a station.";
@@ -532,10 +534,10 @@ void SDK::handleChangeStationGain(const nlohmann::json& json)
             return;
         }
 
-        auto currentGain = mClient->GetOutputGainState(frequency);
+        auto currentVolume = Helpers::ConvertGainToVolume(mClient->GetOutputGainState(frequency));
         double newGain;
 
-        newGain = std::clamp(currentGain + amount, 0.0, 1.0);
+        newGain = Helpers::ConvertVolumeToGain(std::clamp(currentVolume + amount, 0.0, 100.0));
 
         mClient->SetRadioGain(frequency, newGain);
 

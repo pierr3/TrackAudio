@@ -52,7 +52,8 @@ public:
      * @param data Optional data associated with the event.
      */
     void handleAFVEventForWebsocket(sdk::types::Event event,
-        const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz);
+        const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz,
+        const std::optional<std::string>& parameter3 = std::nullopt);
 
     /**
      * Handles an AFV voiceConnected event for the websocket.
@@ -218,5 +219,5 @@ private:
      *
      * @param json The incoming JSON with the station information.
      */
-    void handleChangeStationGain(const nlohmann::json& json);
+    void handleChangeStationVolume(const nlohmann::json& json);
 };

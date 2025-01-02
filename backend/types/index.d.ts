@@ -74,7 +74,9 @@ declare namespace TrackAudioAfv {
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean
+    crossCoupleAcross: boolean,
+    outputMuted?: boolean,
+    outputGain?: number,
   ): Promise<boolean>;
 
   export function GetFrequencyState(frequency: number): Promise<{

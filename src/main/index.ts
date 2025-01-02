@@ -175,7 +175,7 @@ const toggleMiniMode = (numOfRadios = 0) => {
 const createWindow = (): void => {
   // Set the store CID
   TrackAudioAfv.SetCid(configManager.config.cid || '');
-  TrackAudioAfv.SetRadioGain(configManager.config.radioGain || 0.5);
+  TrackAudioAfv.SetRadioGain(configManager.config.radioGain || 100);
 
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';

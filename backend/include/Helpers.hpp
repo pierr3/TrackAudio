@@ -47,6 +47,19 @@ public:
     }
 
     /**
+     * Converts volume to a gain value.
+     *
+     */
+
+    static float ConvertVolumeToGain(float volume) { return pow(10.0f, (volume - 100.0f) / 20.0f); }
+
+    /**
+     * Converts a gain value to a volume.
+     */
+
+    static float ConvertGainToVolume(float gain) { return 20.0f * log10f(gain) + 100.0f; }
+
+    /**
      * @brief Converts a JSON property that is either true, false, or "toggle" to a boolean value.
      *
      * @param incomingValue The JSON property to convert.
