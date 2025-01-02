@@ -47,7 +47,7 @@ nlohmann::json SDK::buildStationStateJson(
     jsonMessage["value"]["xca"] = mClient->GetCrossCoupleAcrossState(frequencyHz);
     jsonMessage["value"]["headset"] = mClient->GetOnHeadset(frequencyHz);
     jsonMessage["value"]["isAvailable"] = true;
-    jsonMessage["value"]["outputMute"] = mClient->GetOutputMuteState(frequencyHz);
+    jsonMessage["value"]["isOutputMuted"] = mClient->GetIsOutputMutedState(frequencyHz);
     jsonMessage["value"]["outputGain"] = mClient->GetOutputGainState(frequencyHz);
 
     return jsonMessage;
@@ -324,12 +324,12 @@ void SDK::handleSetStationState(const nlohmann::json& json)
         radioState.headset = currentValue;
     }
 
-    currentValue = mClient->GetOutputMuteState(frequency);
-    if (json["value"].contains("outputMute")) {
-        radioState.outputMute
-            = Helpers::ConvertBoolOrToggleToBool(json["value"]["outputMute"], currentValue);
+    currentValue = mClient->GetIsOutputMutedState(frequency);
+    if (json["value"].contains("isOutputMuted")) {
+        radioState.isOutputMuted
+            = Helpers::ConvertBoolOrToggleToBool(json["value"]["isOutputMuted"], currentValue);
     } else {
-        radioState.outputMute = currentValue;
+        radioState.isOutputMuted = currentValue;
     }
 
     currentValue = mClient->GetOutputGainState(frequency);
@@ -449,6 +449,14 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleAddStation(json);
             return;
         }
+        if (messageType == "kIncremementStationGain") {
+            this->handleChangeStationGain(json, true);
+            return;
+        }
+        if (messageType == "kDecrementStationGain") {
+            this->handleChangeStationGain(json, false);
+            return;
+        }
     } catch (const std::exception& e) {
         // Handle JSON parsing error
         PLOG_ERROR << "Error parsing incoming message JSON: " << e.what();
@@ -505,6 +513,43 @@ void SDK::broadcastOnWebsocket(const std::string& data)
         }
     }
 };
+
+void SDK::handleChangeStationGain(const nlohmann::json& json, bool isIncrement)
+{
+    if (!mClient->IsVoiceConnected()) {
+        PLOG_ERROR << "Voice must be connected before adding a station.";
+        return;
+    }
+    if (!json.contains("value") || !json["value"].contains("frequency")
+        || !json["value"].contains("amount")) {
+        PLOG_ERROR << "Frequency must be specified.";
+        return;
+    }
+
+    try {
+        auto frequency = json["value"]["frequency"].get<int>();
+        auto amount = json["value"]["amount"].get<double>();
+        auto allRadios = mClient->getRadioState();
+
+        if (allRadios.find(frequency) == allRadios.end()) {
+            PLOG_ERROR << "Frequency not found.";
+            return;
+        }
+
+        auto currentGain = mClient->GetOutputGainState(frequency);
+        double newGain;
+
+        if (isIncrement) {
+            newGain = std::min(1.0, currentGain + amount);
+        } else {
+            newGain = std::max(0.0, currentGain - amount);
+        }
+
+        mClient->SetRadioGain(frequency, newGain);
+    } catch (const nlohmann::json::exception& e) {
+        PLOG_ERROR << "Failed to read the frequency: " << e.what();
+    }
+}
 
 void SDK::handleAddStation(const nlohmann::json& json)
 {
