@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import Radio from './radio';
 import useRadioState from '../../store/radioStore';
 import TopBarContainer from './top-bar-container';
@@ -24,7 +24,7 @@ const RadioContainer: React.FC = () => {
   ]);
   const [showExpandedRxInfo] = useUtilStore((state) => [state.showExpandedRxInfo]);
 
-  const [uiState, setUiState] = useState<null | 'add-station' | 'show-radios'>();
+  const [uiState, setUiState] = useState<null | 'add-station' | 'show-radios'>(null);
 
   // Filter radios once when the array changes
   const filteredRadios = useMemo(() => {
@@ -34,32 +34,43 @@ const RadioContainer: React.FC = () => {
     return radios.filter((radio) => !excludedFreqs.includes(radio.frequency));
   }, [radios, showingUnicomBar]);
 
+  // Memoize the condition check to prevent unnecessary re-renders
+  const shouldShowAddStation = useCallback(() => {
+    return !isAtc || filteredRadios.length === 0;
+  }, [isAtc, filteredRadios.length]);
+
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: NodeJS.Timeout | undefined;
 
     if (!isConnected) {
       setUiState(null);
       return;
     }
 
-    if (filteredRadios.length === 0) {
-      if (!isAtc) {
-        setUiState('add-station');
-        return;
-      }
-      timer = setTimeout(() => {
-        if (filteredRadios.length === 0) {
+    const updateUiState = () => {
+      if (filteredRadios.length === 0) {
+        if (shouldShowAddStation()) {
           setUiState('add-station');
         }
-      }, LOADING_DELAY);
-    } else {
-      setUiState('show-radios');
+      } else {
+        setUiState('show-radios');
+      }
+    };
+
+    // Initial state update
+    updateUiState();
+
+    // Only set timer if needed
+    if (filteredRadios.length === 0 && !shouldShowAddStation()) {
+      timer = setTimeout(updateUiState, LOADING_DELAY);
     }
 
     return () => {
-      clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+      }
     };
-  }, [filteredRadios, isAtc]);
+  }, [isConnected, filteredRadios.length, shouldShowAddStation]);
 
   if (!isNetworkConnected) {
     return (

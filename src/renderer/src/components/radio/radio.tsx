@@ -38,7 +38,6 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       toggleMute();
     }
 
-    console.log('Setting station volume to', newStationVolume);
     window.api.SetFrequencyRadioVolume(radio.frequency, newStationVolume).catch((err: unknown) => {
       console.error(err);
     });
