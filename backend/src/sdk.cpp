@@ -449,12 +449,8 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleAddStation(json);
             return;
         }
-        if (messageType == "kIncremementStationGain") {
-            this->handleChangeStationGain(json, true);
-            return;
-        }
-        if (messageType == "kDecrementStationGain") {
-            this->handleChangeStationGain(json, false);
+        if (messageType == "kChangeStationGain") {
+            this->handleChangeStationGain(json);
             return;
         }
     } catch (const std::exception& e) {
@@ -514,7 +510,7 @@ void SDK::broadcastOnWebsocket(const std::string& data)
     }
 };
 
-void SDK::handleChangeStationGain(const nlohmann::json& json, bool isIncrement)
+void SDK::handleChangeStationGain(const nlohmann::json& json)
 {
     if (!mClient->IsVoiceConnected()) {
         PLOG_ERROR << "Voice must be connected before adding a station.";
@@ -539,13 +535,15 @@ void SDK::handleChangeStationGain(const nlohmann::json& json, bool isIncrement)
         auto currentGain = mClient->GetOutputGainState(frequency);
         double newGain;
 
-        if (isIncrement) {
-            newGain = std::min(1.0, currentGain + amount);
-        } else {
-            newGain = std::max(0.0, currentGain - amount);
-        }
+        newGain = std::clamp(currentGain + amount, 0.0, 1.0);
 
         mClient->SetRadioGain(frequency, newGain);
+
+        // Get the updated radio state and publish it
+        auto updatedRadios = mClient->getRadioState();
+        auto radioState = updatedRadios[frequency];
+        this->publishStationState(
+            this->buildStationStateJson(radioState.stationName, static_cast<int>(frequency)));
     } catch (const nlohmann::json::exception& e) {
         PLOG_ERROR << "Failed to read the frequency: " << e.what();
     }
