@@ -75,7 +75,7 @@ declare namespace TrackAudioAfv {
     xc: boolean,
     onSpeaker: boolean,
     crossCoupleAcross: boolean,
-    outputMuted?: boolean,
+    isOutputMuted?: boolean,
     outputGain?: number,
   ): Promise<boolean>;
 

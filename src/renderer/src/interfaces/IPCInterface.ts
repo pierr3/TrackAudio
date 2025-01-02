@@ -84,7 +84,9 @@ class IPCInterface {
         tx: update.value.tx,
         xc: update.value.xc,
         crossCoupleAcross: update.value.xca,
-        onSpeaker: !update.value.headset
+        onSpeaker: !update.value.headset,
+        outputVolume: update.value.outputVolume,
+        isOutputMuted: update.value.isOutputMuted
       });
     });
 

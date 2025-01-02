@@ -124,6 +124,94 @@ public:
             });
     }
 
+    template <typename ResultType> class SimplePromiseWorker : public Napi::AsyncWorker {
+    public:
+        template <typename F>
+        SimplePromiseWorker(Napi::Env env, std::string eventName, F&& f)
+            : Napi::AsyncWorker(env)
+            , deferred(Napi::Promise::Deferred::New(env))
+            , workFn(std::forward<F>(f))
+            , event(eventName) // Store the event name
+        {
+        }
+
+        void Execute() override
+        {
+            try {
+                result = workFn();
+            } catch (const std::exception& e) {
+                SetError(e.what());
+            }
+        }
+
+        void OnOK() override
+        {
+            Napi::HandleScope scope(Env());
+            // Create object with event and data properties
+            auto obj = Napi::Object::New(Env());
+            obj.Set("event", event);
+            obj.Set("data", JsonToNapiValue(Env(), result));
+            deferred.Resolve(obj);
+        }
+
+        void OnError(const Napi::Error& error) override
+        {
+            Napi::HandleScope scope(Env());
+            deferred.Reject(error.Value());
+        }
+
+        Napi::Promise GetPromise() { return deferred.Promise(); }
+
+    private:
+        Napi::Promise::Deferred deferred;
+        std::function<ResultType()> workFn;
+        ResultType result;
+        std::string event; // Added event name storage
+    };
+
+    template <typename ResultType, typename F>
+    static Napi::Promise HandleSimplePromise(
+        Napi::Env env, const std::string& eventName, F&& workFn)
+    {
+        auto worker = new SimplePromiseWorker<ResultType>(env, eventName, std::forward<F>(workFn));
+        worker->Queue();
+        return worker->GetPromise();
+    }
+
+    static Napi::Value JsonToNapiValue(Napi::Env env, const nlohmann::json& j)
+    {
+        try {
+            if (j.is_array()) {
+                Napi::Array arr = Napi::Array::New(env, j.size());
+                size_t index = 0;
+                for (const auto& element : j) {
+                    arr[index++] = JsonToNapiValue(env, element);
+                }
+                return arr;
+
+            } else if (j.is_object()) {
+                Napi::Object obj = Napi::Object::New(env);
+                for (auto it = j.begin(); it != j.end(); ++it) {
+                    obj.Set(it.key(), JsonToNapiValue(env, it.value()));
+                }
+                return obj;
+            } else if (j.is_string()) {
+                return Napi::String::New(env, j.get<std::string>());
+            } else if (j.is_number_integer()) {
+                return Napi::Number::New(env, j.get<int>());
+            } else if (j.is_number_float()) {
+                return Napi::Number::New(env, j.get<double>());
+            } else if (j.is_boolean()) {
+                return Napi::Boolean::New(env, j.get<bool>());
+            } else {
+                return env.Null();
+            }
+        } catch (const std::exception& e) {
+            PLOGE << "Error converting JSON to Napi::Value: " << e.what();
+            return env.Null();
+        }
+    }
+
     static void sendErrorToElectron(const std::string& message) { callElectron("error", message); }
 
     inline static std::mutex _callElectronMutex;

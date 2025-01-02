@@ -48,7 +48,7 @@ public:
     static double lon;
     static bool xy;
     static bool isConnectedToTheNetwork;
-    static float currentRadioVolume;
+    static float currentMainOutputVolume;
     static bool isDebug;
     static std::map<unsigned int, float> stationVolumes;
 };

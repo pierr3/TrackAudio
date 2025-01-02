@@ -69,7 +69,9 @@ export const api = {
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean
+    crossCoupleAcross: boolean,
+    isOutputMuted?: boolean,
+    outputVolume?: number
   ) =>
     ipcRenderer.invoke(
       'audio-set-frequency-state',
@@ -78,7 +80,9 @@ export const api = {
       tx,
       xc,
       onSpeaker,
-      crossCoupleAcross
+      crossCoupleAcross,
+      isOutputMuted,
+      outputVolume
     ),
   getFrequencyState: (frequency: number) =>
     ipcRenderer.invoke('audio-get-frequency-state', frequency),
@@ -90,7 +94,8 @@ export const api = {
 
   SetFrequencyRadioVolume: (frequency: number, stationVolume: number) =>
     ipcRenderer.invoke('set-frequency-radio-volume', frequency, stationVolume),
-  SetMainRadioVolume: (mainRadioVolume: number) => ipcRenderer.invoke('set-main-radio-volume', mainRadioVolume),
+  SetMainRadioVolume: (mainRadioVolume: number) =>
+    ipcRenderer.invoke('set-main-radio-volume', mainRadioVolume),
 
   SetRadioEffects: (type: RadioEffects) => ipcRenderer.invoke('set-radio-effects', type),
 
@@ -216,9 +221,15 @@ export const api = {
   },
 
   log: {
-    info: (message: string) => { ipcRenderer.send('log-info', message); },
-    warn: (message: string) => { ipcRenderer.send('log-warn', message); },
-    error: (message: string) => { ipcRenderer.send('log-error', message); }
+    info: (message: string) => {
+      ipcRenderer.send('log-info', message);
+    },
+    warn: (message: string) => {
+      ipcRenderer.send('log-warn', message);
+    },
+    error: (message: string) => {
+      ipcRenderer.send('log-error', message);
+    }
   }
 };
 

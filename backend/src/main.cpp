@@ -243,7 +243,7 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     newState.headset = !info[4].As<Napi::Boolean>().Value();
     newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
     newState.isOutputMuted = info.Length() > 6 ? info[6].As<Napi::Boolean>().Value() : false;
-    newState.outputVolume = info.Length() > 7 ? info[7].As<Napi::Number>().FloatValue() : 50;
+    newState.outputVolume = info.Length() > 7 ? info[7].As<Napi::Number>().FloatValue() : 100;
 
     // SetGuardAndUnicomTransceivers();
 
@@ -371,20 +371,43 @@ void SetPtt(const Napi::CallbackInfo& info)
 
 void SetMainRadioVolume(const Napi::CallbackInfo& info)
 {
-    float gain = info[0].As<Napi::Number>().FloatValue();
-    UserSession::currentRadioVolume = Helpers::ConvertGainToVolume(gain);
+    float volume = info[0].As<Napi::Number>().FloatValue();
+    UserSession::currentMainOutputVolume = volume;
 
     RadioHelper::setAllRadioVolumes();
+
+    // Add state updates for all radios since their effective volume has changed
+    auto states = mClient->getRadioState();
+    for (const auto& [freq, state] : states) {
+        auto stateJson
+            = MainThreadShared::mApiServer->buildStationStateJson(state.stationName, freq);
+        MainThreadShared::mApiServer->publishStationState(stateJson);
+        NapiHelpers::callElectron("station-state-update", stateJson.dump());
+    }
 }
 
-void SetFrequencyRadioVolume(const Napi::CallbackInfo& info)
+Napi::Promise SetFrequencyRadioVolume(const Napi::CallbackInfo& info)
 {
+    Napi::Env env = info.Env();
     int frequency = info[0].As<Napi::Number>().Int32Value();
     float stationVolume = info[1].As<Napi::Number>().FloatValue();
-    UserSession::stationVolumes.insert_or_assign(frequency, stationVolume);
 
-    // Frequency Radio Volume = Main Volume * Frequency Station Volume
-    RadioHelper::setRadioVolume(frequency);
+    return NapiHelpers::HandleSimplePromise<nlohmann::json>(
+        env, "station-state-update", [frequency, stationVolume]() {
+            RadioHelper::setRadioVolume(frequency, stationVolume);
+
+            auto states = mClient->getRadioState();
+            std::string stationName;
+            if (states.find(frequency) != states.end()) {
+                stationName = states[frequency].stationName;
+            }
+
+            auto stateJson
+                = MainThreadShared::mApiServer->buildStationStateJson(stationName, frequency);
+            MainThreadShared::mApiServer->publishStationState(stateJson);
+
+            return stateJson;
+        });
 }
 
 Napi::String Version(const Napi::CallbackInfo& info)
