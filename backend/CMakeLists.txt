@@ -120,9 +120,11 @@ target_link_libraries(trackaudio-afv PRIVATE
     sfml-system sfml-graphics sfml-window
     utf8proc
     uiohook
-    delayimp.lib
     ${CMAKE_JS_LIB})
 
+if (WIN32)
+target_link_libraries(trackaudio-afv PRIVATE delayimp.lib)
+endif()
 # Set the output directory for the built executable
 set_target_properties(trackaudio-afv
     PROPERTIES

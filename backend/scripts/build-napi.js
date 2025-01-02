@@ -1,105 +1,58 @@
-const fs = require("fs");
-const path = require("path");
-const { spawn, spawnSync } = require("child_process");
+// build-napi.js
+const fs = require('fs');
+const path = require('path');
+const { spawn } = require('child_process');
 
-const TA_PATH = path.join(__dirname, "..");
-
-process.chdir(TA_PATH);
-
-// Get arguments
-const args = process.argv.slice(2); // Exclude the first two arguments (node and script file)
-
-const debugFlagIndex = args.indexOf("--debug");
-const isDebug = debugFlagIndex !== -1;
-
-const fastFlagIndex = args.indexOf("--fast");
-const isFast = fastFlagIndex !== -1;
-
-const oldBuildPath = path.join(TA_PATH, "build", isDebug ? "Release" : "Debug");
-
-console.log("Building N-API module...");
-
-build();
+const args = process.argv.slice(2);
+const isDebug = args.includes('--debug');
+const isFast = args.includes('--fast');
+const isWindows = process.platform === 'win32';
 
 async function build() {
-  try {
-    if (fs.existsSync(oldBuildPath)) {
-      console.log("Removing existing build directory...");
-      fs.rmSync(path.join(TA_PATH, "build"), { recursive: true, force: true });
-
-      wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      await wait(500);
-    }
-  } catch (error) {
-    console.error(`Error while deleting directory: ${error}`);
-    return;
+  // Clean up old build directory
+  const buildPath = path.join(__dirname, '..', 'build');
+  if (fs.existsSync(buildPath)) {
+    console.log('Removing existing build directory...');
+    await fs.promises.rm(buildPath, { recursive: true, force: true });
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
 
-  try {
+  // Prepare build command based on platform
+  const buildCommand = isWindows ? {
+    cmd: 'cmd.exe',
+    args: ['/c', `cmake-js -G Ninja --out=build${isDebug ? ' -D' : ''}${isFast ? ' --parallel 8' : ' --parallel 2'}`]
+  } : {
+    cmd: 'cmake-js',
+    args: [
+      'build',
+      '--out=build',
+      ...(isDebug ? ['-D'] : []),
+      '--parallel',
+      isFast ? '8' : '2'
+    ]
+  };
 
-    const isWindows = /^win/.test(process.platform);
+  // Execute build
+  return new Promise((resolve, reject) => {
+    const buildProcess = spawn(buildCommand.cmd, buildCommand.args, {
+      stdio: 'inherit',
+      shell: true
+    });
 
-    if (isWindows) {
-      const cmakeJsCommand = `cmake-js -G Ninja --out=build`;
-
-      let  buildCommand = isDebug ? `${cmakeJsCommand} -D` : cmakeJsCommand;
-      if (!isFast) {
-        buildCommand += " --parallel 2";
+    buildProcess.on('error', reject);
+    buildProcess.on('close', code => {
+      if (code === 0) {
+        console.log('Build completed successfully!');
+        resolve();
       } else {
-        buildCommand += " --parallel 8";
+        reject(new Error(`Build failed with code ${code}`));
       }
-
-      const buildProcess = spawn("cmd.exe", ["/c", buildCommand], { stdio: "inherit", shell: true });
-
-      buildProcess.on("error", (error) => {
-        console.error(`Error: ${error.message}`);
-      });
-
-      buildProcess.on("close", (code) => {
-        if (code !== 0) {
-          process.exit(code);
-        }
-        console.log("Build process completed successfully!");
-      });
-    } else {
-      const buildCommand = "npm";
-
-      const buildArgs = [
-        "run",
-        "build:node",
-        "--",
-      ];
-
-
-      if (isDebug) {
-        // Append -D if --debug flag is passed
-        buildArgs.push("-D");
-      }
-
-      if (isFast) {
-        buildArgs.push("--p=8");
-      } else {
-        buildArgs.push("--p=2");
-      }
-
-      console.log(`Build arguments: ${buildArgs.join(" ")}`);
-
-      // Execute the build command through the shell
-      const buildProcess = spawn(buildCommand, buildArgs, { stdio: "inherit", shell: true });
-
-      buildProcess.on("error", (error) => {
-        console.error(`Error: ${error.message}`);
-      });
-
-      buildProcess.on("close", (code) => {
-        if (code !== 0) {
-          process.exit(code);
-        }
-        console.log("Build process completed successfully!");
-
-      });
-    }
-  } catch (err) {
-    console.error("Error:", err);
-  }
+    });
+  });
 }
+
+// Execute build and handle errors
+build().catch(err => {
+  console.error('Build failed:', err);
+  process.exit(1);
+});
