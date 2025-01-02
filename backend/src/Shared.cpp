@@ -18,7 +18,7 @@ double UserSession::lat = 0.0;
 double UserSession::lon = 0.0;
 bool UserSession::xy = false;
 bool UserSession::isConnectedToTheNetwork = false;
-float UserSession::currentRadioGain = 0.5;
+float UserSession::currentRadioVolume = 100;
 bool UserSession::isDebug = false;
 
 bool RemoteDataStatus::isSlurperAvailable = false;

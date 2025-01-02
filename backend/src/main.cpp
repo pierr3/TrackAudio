@@ -201,7 +201,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     newState.headset = true;
     newState.xca = false;
     newState.isOutputMuted = false;
-    newState.outputGain = 1.0;
+    newState.outputVolume = 100;
 
     // Issue 227: Make sure to publish the frequency was added to any connected clients.
     MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);
@@ -221,7 +221,7 @@ void RemoveFrequency(const Napi::CallbackInfo& info)
     newState.headset = false;
     newState.xca = false;
     newState.isOutputMuted = false;
-    newState.outputGain = 1.0;
+    newState.outputVolume = 100;
 
     RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
     mClient->RemoveFrequency(newState.frequency);
@@ -242,6 +242,8 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     // Note the negation here, as the API uses the opposite of what is saved internally
     newState.headset = !info[4].As<Napi::Boolean>().Value();
     newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
+    newState.isOutputMuted = info.Length() > 6 ? info[6].As<Napi::Boolean>().Value() : false;
+    newState.outputVolume = info.Length() > 7 ? info[7].As<Napi::Number>().FloatValue() : 50;
 
     // SetGuardAndUnicomTransceivers();
 
@@ -261,7 +263,7 @@ Napi::Object GetFrequencyState(const Napi::CallbackInfo& info)
     obj.Set("onSpeaker", !mClient->GetOnHeadset(frequency));
     obj.Set("crossCoupleAcross", !mClient->GetCrossCoupleAcrossState(frequency));
     obj.Set("isOutputMuted", mClient->GetIsOutputMutedState(frequency));
-    obj.Set("outputGain", mClient->GetOutputGainState(frequency));
+    obj.Set("outputVolume", mClient->GetOutputGainState(frequency));
 
     return obj;
 }
@@ -370,7 +372,7 @@ void SetPtt(const Napi::CallbackInfo& info)
 void SetRadioGain(const Napi::CallbackInfo& info)
 {
     float gain = info[0].As<Napi::Number>().FloatValue();
-    UserSession::currentRadioGain = gain;
+    UserSession::currentRadioVolume = Helpers::ConvertGainToVolume(gain);
 
     auto states = mClient->getRadioState();
     for (const auto& state : states) {
@@ -615,7 +617,7 @@ void HandleAfvEvents()
             NapiHelpers::callElectron(
                 "StationRxEnd", std::to_string(event.frequency), event.lastRx);
             MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-                sdk::types::Event::kRxEnd, event.callsign, event.frequency);
+                sdk::types::Event::kRxEnd, event.callsign, event.frequency, event.lastRx);
         });
 
     event.AddHandler<afv_native::PttOpenEvent>([&](const afv_native::PttOpenEvent& event) {

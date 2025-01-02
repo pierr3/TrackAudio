@@ -34,7 +34,7 @@ const useSessionStore = create<sessionStore>((set) => ({
   frequency: 199998000,
   version: '0.0.0',
   pttKeyName: '',
-  radioGain: 50,
+  radioGain: 100,
   stationCallsign: '',
   connectTimestamp: null,
 

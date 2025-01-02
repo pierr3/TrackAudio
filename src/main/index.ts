@@ -174,7 +174,7 @@ const toggleMiniMode = (numOfRadios = 0) => {
 const createWindow = (): void => {
   // Set the store CID
   TrackAudioAfv.SetCid(configManager.config.cid || '');
-  TrackAudioAfv.SetRadioGain(configManager.config.radioGain || 0.5);
+  TrackAudioAfv.SetRadioGain(configManager.config.radioGain || 100);
 
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
@@ -376,7 +376,15 @@ app
     const debugLon = ENV.VITE_DEBUG_LON;
     const debugIsAtc = ENV.VITE_DEBUG_IS_ATC;
 
-    if (ENV.VITE_AFV_URL && debugCid && debugFreq && debugCallsign && debugLat && debugLon) {
+    if (
+      ENV.VITE_AFV_URL &&
+      debugCid &&
+      debugFreq &&
+      debugCallsign &&
+      debugLat &&
+      debugLon &&
+      debugIsAtc
+    ) {
       TrackAudioAfv.SetDebugSession({
         cid: debugCid,
         frequency: debugFreq,

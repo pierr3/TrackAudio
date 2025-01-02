@@ -15,7 +15,7 @@ public:
     bool xc;
     bool xca;
     bool isOutputMuted;
-    double outputGain;
+    double outputVolume;
 };
 
 class RadioHelper {
@@ -46,7 +46,9 @@ public:
 
         bool oldRxValue = mClient->GetRxState(newState.frequency);
         mClient->SetRx(newState.frequency, newState.rx);
-        mClient->SetRadioGainAll(UserSession::currentRadioGain);
+
+        mClient->SetRadioGain(
+            newState.frequency, Helpers::ConvertVolumeToGain(newState.outputVolume));
 
         if (UserSession::xy) {
             mClient->SetTx(newState.frequency, newState.tx);
