@@ -14,7 +14,7 @@ public:
     bool tx;
     bool xc;
     bool xca;
-    bool outputMute;
+    bool isOutputMuted;
     double outputGain;
 };
 
@@ -58,7 +58,7 @@ public:
             mClient->SetCrossCoupleAcross(newState.frequency, false);
         }
 
-        mClient->SetOutputMute(newState.frequency, newState.outputMute);
+        mClient->SetOutputMute(newState.frequency, newState.isOutputMuted);
 
         mClient->SetOnHeadset(newState.frequency, newState.headset);
 

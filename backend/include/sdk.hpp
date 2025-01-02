@@ -212,4 +212,12 @@ private:
      * @param json The incoming JSON with the station information.
      */
     void handleAddStation(const nlohmann::json& json);
+
+    /**
+     * Handles the SDK call to increment or decrement the station gain.
+     *
+     * @param json The incoming JSON with the station information.
+     * @param isIncrement True if incrementing, false if decrementing.
+     */
+    void handleChangeStationGain(const nlohmann::json& json, bool isIncrement);
 };

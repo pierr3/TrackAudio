@@ -121,10 +121,7 @@
     "semaphore": "cpp",
     "spanstream": "cpp",
     "stacktrace": "cpp",
-    "syncstream": "cpp",
-    "*.tcc": "cpp",
-    "string_view": "cpp",
-    "C_Cpp.default.compileCommands": "backend/build/compile_commands.json"
+    "syncstream": "cpp"
   },
   "C_Cpp.default.compileCommands": "backend/build/compile_commands.json"
 }

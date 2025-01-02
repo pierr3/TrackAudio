@@ -82,7 +82,7 @@ declare namespace TrackAudioAfv {
     tx: boolean;
     xc: boolean;
     onSpeaker: boolean;
-    outputMute: boolean;
+    isOutputMuted: boolean;
     outputGain: number;
   }>;
 
