@@ -78,7 +78,7 @@ public:
      *
      * @param state A JSON object representing the station state.
      */
-    void publishStationState(const nlohmann::json& state);
+    void publishStationState(const nlohmann::json& state, bool broadcastToElectron = true);
 
     /**
      * @brief Publishes the main output volume change.

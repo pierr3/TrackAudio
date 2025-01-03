@@ -406,7 +406,7 @@ Napi::Promise SetFrequencyRadioVolume(const Napi::CallbackInfo& info)
 
             auto stateJson
                 = MainThreadShared::mApiServer->buildStationStateJson(stationName, frequency);
-            MainThreadShared::mApiServer->publishStationState(stateJson);
+            MainThreadShared::mApiServer->publishStationState(stateJson, false);
 
             return stateJson;
         });

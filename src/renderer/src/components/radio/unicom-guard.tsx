@@ -1,6 +1,6 @@
 import useRadioState, { RadioType } from '@renderer/store/radioStore';
 import '../../style/UnicomGuard.scss';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import clsx from 'clsx';
 import useSessionStore from '@renderer/store/sessionStore';
 import useErrorStore from '@renderer/store/errorStore';
@@ -8,17 +8,18 @@ import { GuardFrequency, UnicomFrequency } from '../../../../shared/common';
 import { useMediaQuery } from 'react-responsive';
 
 const UnicomGuardBar = () => {
-  const [radios, setRadioState, addRadio, removeRadio] = useRadioState((state) => [
+  const [radios, setRadioState, addRadio, removeRadio, setOutputVolume] = useRadioState((state) => [
     state.radios,
     state.setRadioState,
     state.addRadio,
-    state.removeRadio
+    state.removeRadio,
+    state.setOutputVolume
   ]);
   const [isConnected, isAtc] = useSessionStore((state) => [state.isConnected, state.isAtc]);
 
   const isReducedSize = useMediaQuery({ maxWidth: '895px' });
 
-  const [localUnicomStationVolume, setLocalUnicomStationVolume] = useState(50);
+  // const [localUnicomStationVolume, setLocalUnicomStationVolume] = useState(50);
 
   const [showingUnicomBar] = useRadioState((state) => [state.showingUnicomBar]);
 
@@ -202,74 +203,89 @@ const UnicomGuardBar = () => {
       });
   };
 
+  // In UnicomGuardBar.tsx, modify the useEffect:
   useEffect(() => {
     if (!isConnected) {
       void window.api.removeFrequency(UnicomFrequency).then((ret) => {
-        if (!ret) {
-          return;
-        }
+        if (!ret) return;
         removeRadio(UnicomFrequency);
       });
       void window.api.removeFrequency(GuardFrequency).then((ret) => {
-        if (!ret) {
-          return;
-        }
+        if (!ret) return;
         removeRadio(GuardFrequency);
       });
     } else if (!unicom || !guard) {
-      void window.api.addFrequency(UnicomFrequency, 'UNICOM').then((ret) => {
+      // Setup UNICOM
+      void window.api.addFrequency(UnicomFrequency, 'UNICOM').then(async (ret) => {
         if (!ret) {
           console.error('Failed to add UNICOM frequency');
           return;
         }
+
+        // Get stored volume before adding radio
+        const storedStationVolume = window.localStorage.getItem('UNICOMStationVolume');
+        const stationVolumeToSet = storedStationVolume?.length
+          ? parseInt(storedStationVolume)
+          : 100;
+
+        // Create radio object with initial volume
         addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
-        void window.api.SetFrequencyRadioVolume(UnicomFrequency, localUnicomStationVolume);
+
+        // Set volume in store immediately after adding radio
+        setOutputVolume(UnicomFrequency, stationVolumeToSet);
+
+        // Set volume in API
+        await window.api.SetFrequencyRadioVolume(UnicomFrequency, stationVolumeToSet);
       });
-      void window.api.addFrequency(GuardFrequency, 'GUARD').then((ret) => {
+
+      // Setup GUARD with same volume as UNICOM
+      void window.api.addFrequency(GuardFrequency, 'GUARD').then(async (ret) => {
         if (!ret) {
           console.error('Failed to add GUARD frequency');
           return;
         }
+
+        // Get the same stored volume as UNICOM
+        const storedStationVolume = window.localStorage.getItem('UNICOMStationVolume');
+        const stationVolumeToSet = storedStationVolume?.length
+          ? parseInt(storedStationVolume)
+          : 100;
+
         addRadio(GuardFrequency, 'GUARD', 'GUARD');
-        void window.api.SetFrequencyRadioVolume(GuardFrequency, localUnicomStationVolume);
+        setOutputVolume(GuardFrequency, stationVolumeToSet);
+        await window.api.SetFrequencyRadioVolume(GuardFrequency, stationVolumeToSet);
       });
     }
   }, [isConnected]);
 
-  useEffect(() => {
-    const storedStationVolume = window.localStorage.getItem(
-      unicom?.callsign ?? 'UNICOM' + 'StationVolume'
-    );
-    const stationVolumeToSet = storedStationVolume?.length ? parseInt(storedStationVolume) : 100;
-    setLocalUnicomStationVolume(stationVolumeToSet);
-  }, []);
-
-  const updateStationVolumeValue = (newStationVolume: number) => {
+  // Also modify updateStationVolumeValue to set store value first:
+  const updateStationVolumeValue = async (newStationVolume: number) => {
     if (!unicom || !guard) return;
-    setLocalUnicomStationVolume(newStationVolume);
-    window.api
-      .SetFrequencyRadioVolume(unicom.frequency, newStationVolume)
-      .then(() => {
-        void window.api.SetFrequencyRadioVolume(guard.frequency, newStationVolume);
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
 
-    window.localStorage.setItem(unicom.callsign + 'StationVolume', newStationVolume.toString());
+    // Update store values first
+    setOutputVolume(unicom.frequency, newStationVolume);
+    setOutputVolume(guard.frequency, newStationVolume);
+
+    // Then update API
+    try {
+      await window.api.SetFrequencyRadioVolume(unicom.frequency, newStationVolume);
+      await window.api.SetFrequencyRadioVolume(guard.frequency, newStationVolume);
+      window.localStorage.setItem('UNICOMStationVolume', newStationVolume.toString());
+    } catch (err) {
+      console.error(err);
+    }
   };
-
   const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateStationVolumeValue(event.target.valueAsNumber);
+    void updateStationVolumeValue(event.target.valueAsNumber);
   };
 
   const handleStationVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
     const newValue = Math.min(
-      Math.max(localUnicomStationVolume + (event.deltaY > 0 ? -1 : 1), 0),
+      Math.max(unicom?.outputVolume ?? 100 + (event.deltaY > 0 ? -1 : 1), 0),
       100
     );
 
-    updateStationVolumeValue(newValue);
+    void updateStationVolumeValue(newValue);
   };
 
   if (!showingUnicomBar) {
@@ -403,7 +419,7 @@ const UnicomGuardBar = () => {
           min="0"
           max="100"
           step="1"
-          value={localUnicomStationVolume}
+          value={unicom?.outputVolume ?? 100}
           onChange={handleStationVolumeChange}
           onWheel={handleStationVolumeMouseWheel}
         ></input>

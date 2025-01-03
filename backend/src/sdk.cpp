@@ -406,10 +406,12 @@ void SDK::publishMainOutputVolumeChange(const float& volume, bool broadcastToEle
     }
 }
 
-void SDK::publishStationState(const nlohmann::json& state)
+void SDK::publishStationState(const nlohmann::json& state, bool broadcastToElectron)
 {
     this->broadcastOnWebsocket(state.dump());
-    NapiHelpers::callElectron("station-state-update", state.dump());
+    if (broadcastToElectron) {
+        NapiHelpers::callElectron("station-state-update", state.dump());
+    }
 }
 
 void SDK::publishStationAdded(const std::string& callsign, const int& frequencyHz)

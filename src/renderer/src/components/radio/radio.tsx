@@ -77,12 +77,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   };
 
   const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setOutputVolume(radio.frequency, event.target.valueAsNumber);
     updateStationVolumeValue(event.target.valueAsNumber);
   };
 
   const handleStationVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
     const newValue = Math.min(Math.max(radio.outputVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
-
+    setOutputVolume(radio.frequency, newValue);
     updateStationVolumeValue(newValue);
   };
 
