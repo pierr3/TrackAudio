@@ -19,6 +19,7 @@ import log from 'electron-log/main';
 import { ENV } from './env';
 import configManager from './config';
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
+import { MainOutputVolumeChange } from '../shared/MainOutputVolumeChange';
 
 type WindowMode = 'mini' | 'maxi';
 
@@ -175,7 +176,7 @@ const toggleMiniMode = (numOfRadios = 0) => {
 const createWindow = (): void => {
   // Set the store CID
   TrackAudioAfv.SetCid(configManager.config.cid || '');
-  TrackAudioAfv.SetMainRadioVolume(configManager.config.mainRadioVolume || 50);
+  TrackAudioAfv.SetMainRadioVolume(configManager.config.mainRadioVolume || 100);
 
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
@@ -793,6 +794,8 @@ const handleEvent = (arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.MainOutputVolumeChange) {
+    const update = JSON.parse(arg2) as MainOutputVolumeChange;
+    configManager.updateConfig({ mainRadioVolume: update.value.volume });
     mainWindow?.webContents.send('main-output-volume-change', arg2);
   }
 

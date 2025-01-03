@@ -124,6 +124,27 @@ public:
             });
     }
 
+    static void callElectronWithStringArray(
+        const std::string& eventName, const std::string& data, const std::vector<std::string>& arr)
+    {
+        if (!NapiHelpers::callbackAvailable || NapiHelpers::callbackRef == nullptr
+            || NapiHelpers::_requestExit.load()) {
+            return;
+        }
+
+        std::lock_guard<std::mutex> lock(_callElectronMutex);
+
+        callbackRef->NonBlockingCall(
+            [eventName, data, arr](Napi::Env env, Napi::Function jsCallback) {
+                auto napiArr = Napi::Array::New(env, arr.size());
+                for (size_t i = 0; i < arr.size(); i++) {
+                    napiArr[i] = Napi::String::New(env, arr[i]);
+                }
+                jsCallback.Call(
+                    { Napi::String::New(env, eventName), Napi::String::New(env, data), napiArr });
+            });
+    }
+
     template <typename ResultType> class SimplePromiseWorker : public Napi::AsyncWorker {
     public:
         template <typename F>

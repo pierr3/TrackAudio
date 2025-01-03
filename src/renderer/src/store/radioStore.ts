@@ -17,7 +17,7 @@ export interface RadioType {
   onSpeaker: boolean;
   selected: boolean;
   transceiverCount: number;
-  lastReceivedCallsign?: string;
+  lastReceivedCallsigns: string[];
   lastReceivedCallsignHistory?: string[];
   station: string;
   position: string;
@@ -52,7 +52,7 @@ interface RadioState {
   getSelectedRadio: () => RadioType | undefined;
   isRadioUnique: (frequency: number) => boolean;
   isInactive: (frequency: number) => boolean;
-  setLastReceivedCallsign(frequency: number, callsign: string): void;
+  setLastReceivedCallsigns(frequency: number, callsigns: string[]): void;
   setTransceiverCountForStationCallsign: (callsign: string, count: number) => void;
   setPendingDeletion: (frequency: number, value: boolean) => void;
   reset: () => void;
@@ -129,7 +129,8 @@ const useRadioState = create<RadioState>((set, get) => ({
           transceiverCount: 0,
           isPendingDeleting: false,
           outputVolume: 100,
-          isOutputMuted: false
+          isOutputMuted: false,
+          lastReceivedCallsigns: []
         }
       ].sort((a, b) => radioCompare(a, b, stationCallsign))
     }));
@@ -169,8 +170,8 @@ const useRadioState = create<RadioState>((set, get) => ({
   isRadioUnique: (frequency): boolean => {
     return !RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency);
   },
-  setLastReceivedCallsign: (frequency, callsign) => {
-    if (callsign === useSessionStore.getState().stationCallsign) {
+  setLastReceivedCallsigns: (frequency, callsigns) => {
+    if (callsigns.includes(useSessionStore.getState().stationCallsign)) {
       return; // Ignore our transmissions
     }
     set((state) => ({
@@ -178,12 +179,11 @@ const useRadioState = create<RadioState>((set, get) => ({
         radio.frequency === frequency
           ? {
               ...radio,
-              lastReceivedCallsign: callsign,
-              lastReceivedCallsignHistory: radio.lastReceivedCallsign
-                ? [...(radio.lastReceivedCallsignHistory ?? []), radio.lastReceivedCallsign].slice(
-                    -5
-                  ) // Ensure maximum of 5 values in the array
-                : radio.lastReceivedCallsignHistory
+              lastReceivedCallsigns: callsigns,
+              lastReceivedCallsignHistory: [
+                ...(radio.lastReceivedCallsignHistory ?? []),
+                ...callsigns
+              ].slice(-5)
             }
           : radio
       )

@@ -3,39 +3,28 @@ import React, { useMemo } from 'react';
 
 const ExpandedRxInfo: React.FC = () => {
   const radios = useRadioState((state) => state.radios);
-
-  const radiosWithRx = useMemo(() => {
-    return radios.filter((radio) => radio.rx);
-  }, [radios]);
+  const radiosWithRx = useMemo(() => radios.filter((radio) => radio.rx), [radios]);
 
   return (
-    <div className="d-flex h-100 align-items-center flex-column">
+    <div className="d-flex align-items-center flex-column">
       <div>RX LIST</div>
       {radiosWithRx.map((radio) => (
-        <div className="rx-bar-container d-flex w-100" key={radio.frequency}>
-          <div
-            className="d-flex justify-content-start"
-            style={{
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis'
-            }}
-          >
+        <div className="h-100 rx-bar-container d-flex w-100" key={radio.frequency}>
+          <div className="d-flex justify-content-start align-items-center align-self-start text-truncate">
             <span className="unicom-text">{radio.callsign}:</span>
           </div>
-          <div
-            className="flex-grow-1 d-flex justify-content-end align-items-center"
-            style={{
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis'
-            }}
-          >
-            {radio.lastReceivedCallsign ? (
+          <div className="flex-grow-1 d-flex justify-content-end align-items-center text-truncate">
+            {radio.lastReceivedCallsigns.length > 0 ? (
               <span className="rx-text">
-                <div className={radio.currentlyRx ? 'text-warning' : 'text-grey'}>
-                  {radio.lastReceivedCallsign}
-                </div>
+                {radio.lastReceivedCallsigns.map((callsign, index) => (
+                  <div
+                    key={index}
+                    className={`${radio.currentlyRx ? 'text-warning' : 'text-grey'} text-end`}
+                  >
+                    {' '}
+                    {callsign}
+                  </div>
+                ))}
               </span>
             ) : (
               <span className="unicom-text">

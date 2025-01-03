@@ -13,11 +13,10 @@ const MainRadioVolume: React.FC = () => {
     window.api
       .getConfig()
       .then((config: Configuration) => {
-        const initialVolume = config.mainRadioVolume ?? 50;
         window.api
-          .SetMainRadioVolume(initialVolume)
+          .SetMainRadioVolume(config.mainRadioVolume)
           .then(() => {
-            setMainRadioVolume(initialVolume);
+            setMainRadioVolume(config.mainRadioVolume);
           })
           .catch((err: unknown) => {
             console.error(err);
@@ -32,26 +31,17 @@ const MainRadioVolume: React.FC = () => {
     const newVolume = event.target.valueAsNumber;
     if (Number.isNaN(newVolume)) return;
 
-    // Set store value first for responsive UI
     setMainRadioVolume(newVolume);
 
-    // Then update backend
-    window.api
-      .SetMainRadioVolume(newVolume)
-      .then(() => {
-        // Store is already updated, no need to update again
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-        // Could add error handling here if needed
-      });
+    window.api.SetMainRadioVolume(newVolume).catch((err: unknown) => {
+      console.error(err);
+    });
   };
 
   const handleRadioVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>): void => {
     event.preventDefault();
     const newValue = Math.min(Math.max(mainRadioVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
 
-    // Same pattern as above
     setMainRadioVolume(newValue);
     window.api.SetMainRadioVolume(newValue).catch((err: unknown) => {
       console.error(err);

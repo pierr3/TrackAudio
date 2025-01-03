@@ -32,7 +32,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   const [isEditMode] = useUtilStore((state) => [state.isEditMode]);
   const isATC = useSessionStore((state) => state.isAtc);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
+  const [initialised, setInitialised] = useState(false);
   const updateStationVolumeValue = (newStationVolume: number) => {
     if (radio.isOutputMuted) {
       toggleMute();
@@ -41,11 +41,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     window.api.SetFrequencyRadioVolume(radio.frequency, newStationVolume).catch((err: unknown) => {
       console.error(err);
     });
-
-    if (!radio.tx) {
-      window.localStorage.setItem(radio.callsign + 'StationVolume', newStationVolume.toString());
-    }
   };
+
+  useEffect(() => {
+    if (!radio.tx && initialised) {
+      window.localStorage.setItem(radio.callsign + 'StationVolume', radio.outputVolume.toString());
+    }
+  }, [radio.outputVolume, radio.callsign]);
 
   useEffect(() => {
     if (radio.tx) {
@@ -57,6 +59,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
 
   useEffect(() => {
     setStoredStationVolume();
+    setInitialised(true);
   }, []);
 
   const forceToMainVolume = () => {
@@ -66,9 +69,11 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
 
   const setStoredStationVolume = () => {
     const storedStationVolume = window.localStorage.getItem(radio.callsign + 'StationVolume');
-    const stationVolumeToSet = storedStationVolume?.length ? parseInt(storedStationVolume) : 100;
-    setOutputVolume(radio.frequency, stationVolumeToSet);
-    // setLocalStationVolume(stationVolumeToSet);
+    const storedStationVolumeInt = storedStationVolume ? parseInt(storedStationVolume) : null;
+    if (storedStationVolumeInt) {
+      setOutputVolume(radio.frequency, storedStationVolumeInt);
+      updateStationVolumeValue(storedStationVolumeInt);
+    }
   };
 
   const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {

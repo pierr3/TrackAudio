@@ -214,6 +214,12 @@ private:
     void handleGetStationState(const std::string& callsign);
 
     /**
+     * Handles the SDK call to get the main output volume.
+     *
+     */
+    void handleGetMainOutputVolume();
+
+    /**
      * Handles the SDK call to add a station.
      *
      * @param json The incoming JSON with the station information.
@@ -232,5 +238,5 @@ private:
      *
      * @param json The incoming JSON with the volume information.
      */
-    void handleChangeMainVolume(const nlohmann::json& json);
+    void handleChangeMainOutputVolume(const nlohmann::json& json);
 };

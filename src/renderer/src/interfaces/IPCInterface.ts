@@ -4,7 +4,7 @@ import useUtilStore from '@renderer/store/utilStore';
 import { Configuration } from 'src/shared/config.type';
 import { StationStateUpdate } from './StationStateUpdate';
 import useErrorStore from '@renderer/store/errorStore';
-import { MainOutputVolumeChange } from './MainOutputVolumeChange';
+import { MainOutputVolumeChange } from 'src/shared/MainOutputVolumeChange';
 
 class IPCInterface {
   public init() {
@@ -109,15 +109,17 @@ class IPCInterface {
         return;
       }
 
-      radioStoreState.setLastReceivedCallsign(parseInt(frequency), lastRx);
+      radioStoreState.setLastReceivedCallsigns(parseInt(frequency), [lastRx]);
     });
 
-    window.api.on('StationRxEnd', (frequency: string, lastRx: string) => {
+    window.api.on('StationRxEnd', (frequency: string, lastRx: string[]) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
         return;
       }
 
-      radioStoreState.setLastReceivedCallsign(parseInt(frequency), lastRx);
+      console.log('StationRxEnd', frequency, lastRx);
+
+      radioStoreState.setLastReceivedCallsigns(parseInt(frequency), lastRx);
     });
 
     window.api.on('FrequencyRxEnd', (frequency: string) => {

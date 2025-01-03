@@ -450,6 +450,10 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleGetStationState(json["value"]["callsign"]);
             return;
         }
+        if (messageType == "kGetMainOutputVolume") {
+            this->handleGetMainOutputVolume();
+            return;
+        }
         if (messageType == "kPttPressed") {
             mClient->SetPtt(true);
             return;
@@ -470,8 +474,8 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleChangeStationVolume(json);
             return;
         }
-        if (messageType == "kChangeMainVolume") {
-            this->handleChangeMainVolume(json);
+        if (messageType == "kChangeMainOutputVolume") {
+            this->handleChangeMainOutputVolume(json);
             return;
         }
     } catch (const std::exception& e) {
@@ -531,7 +535,12 @@ void SDK::broadcastOnWebsocket(const std::string& data)
     }
 };
 
-void SDK::handleChangeMainVolume(const nlohmann::json& json)
+void SDK::handleGetMainOutputVolume()
+{
+    this->publishMainOutputVolumeChange(UserSession::currentMainOutputVolume, false);
+}
+
+void SDK::handleChangeMainOutputVolume(const nlohmann::json& json)
 {
     if (!mClient->IsVoiceConnected()) {
         PLOG_ERROR << "Voice must be connected before adding a station.";

@@ -208,8 +208,10 @@ const UnicomGuardBar = () => {
   }, [isConnected]);
 
   useEffect(() => {
-    const storedStationVolume = window.localStorage.getItem('unicomStationVolume');
-    const stationVolumeToSet = storedStationVolume?.length ? parseInt(storedStationVolume) : 50;
+    const storedStationVolume = window.localStorage.getItem(
+      unicom?.callsign ?? 'UNICOM' + 'StationVolume'
+    );
+    const stationVolumeToSet = storedStationVolume?.length ? parseInt(storedStationVolume) : 100;
     setLocalUnicomStationVolume(stationVolumeToSet);
   }, []);
 
@@ -225,7 +227,7 @@ const UnicomGuardBar = () => {
         console.error(err);
       });
 
-    window.localStorage.setItem('unicomStationVolume', newStationVolume.toString());
+    window.localStorage.setItem(unicom.callsign + 'StationVolume', newStationVolume.toString());
   };
 
   const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
