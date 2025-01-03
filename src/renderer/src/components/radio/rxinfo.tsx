@@ -1,5 +1,5 @@
 import useRadioState from '@renderer/store/radioStore';
-import React, { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { RadioType } from '@renderer/store/radioStore';
 import { LayoutSidebarInsetReverse, LayoutSidebarReverse } from 'react-bootstrap-icons';
 import useUtilStore from '@renderer/store/utilStore';
