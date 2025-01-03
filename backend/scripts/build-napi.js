@@ -29,7 +29,9 @@ async function build() {
   try {
     // Construct cmake-js command
     const cmakeJsCommand = ['cmake-js'];
-    cmakeJsCommand.push('-G', 'Ninja');
+    if (isWindows) {
+      cmakeJsCommand.push('-G', 'Ninja');
+    }
     cmakeJsCommand.push('--out=build');
 
     if (isDebug) {
