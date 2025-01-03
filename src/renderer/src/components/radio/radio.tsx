@@ -442,6 +442,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               radio.rx && !radio.isOutputMuted && !radio.currentlyRx && 'btn-success'
             )}
             onClick={clickRx}
+            onContextMenu={toggleMute}
           >
             RX
           </button>
