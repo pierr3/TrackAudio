@@ -66,7 +66,7 @@ void SDK::handleVoiceConnectedEventForWebsocket(bool isVoiceConnected)
 // NOLINTNEXTLINE
 void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz,
-    const std::optional<std::string>& parameter3)
+    const std::optional<std::vector<std::string>>& parameter3)
 {
     if (event == sdk::types::Event::kDisconnectFrequencyStateUpdate) {
         nlohmann::json jsonMessage
@@ -100,6 +100,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         jsonMessage["value"]["callsign"] = *callsign;
         jsonMessage["value"]["pFrequencyHz"] = *frequencyHz;
         jsonMessage["value"]["lastRx"] = *parameter3;
+        this->broadcastOnWebsocket(jsonMessage.dump());
 
         std::lock_guard<std::mutex> lock(TransmittingMutex);
         CurrentlyTransmittingData.erase(*callsign);

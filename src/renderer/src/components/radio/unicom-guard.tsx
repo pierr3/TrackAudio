@@ -187,7 +187,7 @@ const UnicomGuardBar = () => {
         }
         removeRadio(GuardFrequency);
       });
-    } else {
+    } else if (!unicom || !guard) {
       void window.api.addFrequency(UnicomFrequency, 'UNICOM').then((ret) => {
         if (!ret) {
           console.error('Failed to add UNICOM frequency');

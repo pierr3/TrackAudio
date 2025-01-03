@@ -633,11 +633,10 @@ void HandleAfvEvents()
                 PLOGW << "StationRxEnd: Frequency " << event.frequency << " not active, skipping";
                 return;
             }
-            nlohmann::json lastRxCallsigns = event.lastRxCallsigns;
             NapiHelpers::callElectronWithStringArray(
                 "StationRxEnd", std::to_string(event.frequency), event.lastRxCallsigns);
             MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-                sdk::types::Event::kRxEnd, event.callsign, event.frequency, lastRxCallsigns.dump());
+                sdk::types::Event::kRxEnd, event.callsign, event.frequency, event.lastRxCallsigns);
         });
 
     event.AddHandler<afv_native::PttOpenEvent>([&](const afv_native::PttOpenEvent& event) {

@@ -53,7 +53,7 @@ public:
      */
     void handleAFVEventForWebsocket(sdk::types::Event event,
         const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz,
-        const std::optional<std::string>& parameter3 = std::nullopt);
+        const std::optional<std::vector<std::string>>& parameter3 = std::nullopt);
 
     /**
      * Handles an AFV voiceConnected event for the websocket.
