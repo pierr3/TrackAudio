@@ -27,6 +27,7 @@ export declare const AfvEventTypes: {
   FrequencyStateUpdate: string;
   StationStateUpdate: string;
   OpenSettingsModal: string;
+  MainOutputVolumeChange: string;
 };
 
 export declare interface Session {

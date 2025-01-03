@@ -81,6 +81,12 @@ public:
     void publishStationState(const nlohmann::json& state);
 
     /**
+     * @brief Publishes the main output volume change.
+     *
+     */
+    void publishMainOutputVolumeChange(const float& volume, bool broadcastToElectron = true);
+
+    /**
      * @brief Publishes the kStationAdded message.
      *
      * @param callsign The callsign for the added station.
@@ -220,4 +226,11 @@ private:
      * @param json The incoming JSON with the station information.
      */
     void handleChangeStationVolume(const nlohmann::json& json);
+
+    /**
+     * Handles the SDK call to increment or decrement the main output volume.
+     *
+     * @param json The incoming JSON with the volume information.
+     */
+    void handleChangeMainVolume(const nlohmann::json& json);
 };

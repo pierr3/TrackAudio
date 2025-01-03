@@ -384,6 +384,8 @@ void SetMainRadioVolume(const Napi::CallbackInfo& info)
         MainThreadShared::mApiServer->publishStationState(stateJson);
         NapiHelpers::callElectron("station-state-update", stateJson.dump());
     }
+
+    MainThreadShared::mApiServer->publishMainOutputVolumeChange(volume, false);
 }
 
 Napi::Promise SetFrequencyRadioVolume(const Napi::CallbackInfo& info)

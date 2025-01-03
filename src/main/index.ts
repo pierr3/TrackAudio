@@ -792,6 +792,10 @@ const handleEvent = (arg: string, arg2: string, arg3: string) => {
     mainWindow?.webContents.send('station-state-update', arg2);
   }
 
+  if (arg == AfvEventTypes.MainOutputVolumeChange) {
+    mainWindow?.webContents.send('main-output-volume-change', arg2);
+  }
+
   if (arg == AfvEventTypes.StationDataReceived) {
     mainWindow?.webContents.send('station-data-received', arg2, arg3);
   }

@@ -391,6 +391,20 @@ void SDK::handleGetStationState(const std::string& callsign)
     PLOG_ERROR << "Station " << callsign << " not found";
 }
 
+void SDK::publishMainOutputVolumeChange(const float& volume, bool broadcastToElectron)
+{
+
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kMainOutputVolumeChange);
+
+    jsonMessage["value"]["volume"] = volume;
+
+    this->broadcastOnWebsocket(jsonMessage.dump());
+    if (broadcastToElectron) {
+        NapiHelpers::callElectron("main-output-volume-change", jsonMessage.dump());
+    }
+}
+
 void SDK::publishStationState(const nlohmann::json& state)
 {
     this->broadcastOnWebsocket(state.dump());
@@ -456,6 +470,10 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleChangeStationVolume(json);
             return;
         }
+        if (messageType == "kChangeMainVolume") {
+            this->handleChangeMainVolume(json);
+            return;
+        }
     } catch (const std::exception& e) {
         // Handle JSON parsing error
         PLOG_ERROR << "Error parsing incoming message JSON: " << e.what();
@@ -512,6 +530,34 @@ void SDK::broadcastOnWebsocket(const std::string& data)
         }
     }
 };
+
+void SDK::handleChangeMainVolume(const nlohmann::json& json)
+{
+    if (!mClient->IsVoiceConnected()) {
+        PLOG_ERROR << "Voice must be connected before adding a station.";
+        return;
+    }
+
+    if (!json.contains("value") || !json["value"].contains("amount")) {
+        PLOG_ERROR << "Amount must be specified.";
+        return;
+    }
+
+    try {
+        auto amount = json["value"]["amount"].get<double>();
+        auto currentVolume = UserSession::currentMainOutputVolume;
+        float newVolume;
+
+        newVolume = static_cast<float>(std::clamp(currentVolume + amount, 0.0, 100.0));
+
+        UserSession::currentMainOutputVolume = newVolume;
+        RadioHelper::setAllRadioVolumes();
+        this->publishMainOutputVolumeChange(newVolume);
+
+    } catch (const nlohmann::json::exception& e) {
+        PLOG_ERROR << "Failed to read the amount: " << e.what();
+    }
+}
 
 void SDK::handleChangeStationVolume(const nlohmann::json& json)
 {
