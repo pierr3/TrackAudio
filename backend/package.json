@@ -12,11 +12,11 @@
     },
     "types": "types/index.d.ts",
     "scripts": {
-      "build:node": "node ./scripts/build-napi.js",
-      "build:node:debug": "node ./scripts/build-napi.js --debug",
-      "build:debug": "node ./scripts/build-napi.js --debug && node custom_build.mjs && npm pack",
-      "build:release": "node ./scripts/build-napi.js && node custom_build.mjs && npm pack",
-      "build:release-fast": "node ./scripts/build-napi.js --fast && node custom_build.mjs && npm pack",
+      "build:node": "node -e \"require('child_process').spawn(process.platform === 'win32' ? '.\\\\scripts\\\\make.bat' : 'node', process.platform === 'win32' ? [] : ['./scripts/build-napi.js'], {stdio: 'inherit', shell: true})\"",
+      "build:node:debug": "node -e \"require('child_process').spawn(process.platform === 'win32' ? '.\\\\scripts\\\\make.bat' : 'node', process.platform === 'win32' ? [] : ['./scripts/build-napi.js'], {stdio: 'inherit', shell: true}).on('exit', function(code) { process.exit(code); })\" -- --debug",
+      "build:debug": "npm run build:node:debug && node custom_build.mjs && npm pack",
+      "build:release": "npm run build:node && node custom_build.mjs && npm pack",
+      "build:release-fast": "node -e \"require('child_process').spawn(process.platform === 'win32' ? '.\\\\scripts\\\\make.bat' : 'node', process.platform === 'win32' ? [] : ['./scripts/build-napi.js'], {stdio: 'inherit', shell: true}).on('exit', function(code) { process.exit(code); })\" -- --fast && node custom_build.mjs && npm pack",
       "format": "clang-format -i include/**.hpp include/**.h src/**.cpp"
     },
     "cmake-js": {
