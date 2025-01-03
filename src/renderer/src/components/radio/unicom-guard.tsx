@@ -1,6 +1,6 @@
 import useRadioState, { RadioType } from '@renderer/store/radioStore';
 import '../../style/UnicomGuard.scss';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import useSessionStore from '@renderer/store/sessionStore';
 import useErrorStore from '@renderer/store/errorStore';
@@ -19,7 +19,7 @@ const UnicomGuardBar = () => {
 
   const isReducedSize = useMediaQuery({ maxWidth: '895px' });
 
-  // const [localUnicomStationVolume, setLocalUnicomStationVolume] = useState(50);
+  const [localUnicomStationVolume, setLocalUnicomStationVolume] = useState(100);
 
   const [showingUnicomBar] = useRadioState((state) => [state.showingUnicomBar]);
 
@@ -258,13 +258,22 @@ const UnicomGuardBar = () => {
     }
   }, [isConnected]);
 
-  // Also modify updateStationVolumeValue to set store value first:
+  useEffect(() => {
+    if (!unicom) return;
+    setLocalUnicomStationVolume(unicom.outputVolume);
+  }, [unicom?.outputVolume]);
+
+  useEffect(() => {
+    if (!guard) return;
+    setLocalUnicomStationVolume(guard.outputVolume);
+  }, [guard?.outputVolume]);
+
+  // Modify updateStationVolumeValue to use local state:
   const updateStationVolumeValue = async (newStationVolume: number) => {
     if (!unicom || !guard) return;
 
-    // Update store values first
-    setOutputVolume(unicom.frequency, newStationVolume);
-    setOutputVolume(guard.frequency, newStationVolume);
+    // Update local state immediately for responsive UI
+    setLocalUnicomStationVolume(newStationVolume);
 
     // Then update API
     try {
@@ -272,19 +281,21 @@ const UnicomGuardBar = () => {
       await window.api.SetFrequencyRadioVolume(guard.frequency, newStationVolume);
       window.localStorage.setItem('UNICOMStationVolume', newStationVolume.toString());
     } catch (err) {
+      // On error, revert to previous state
+      setLocalUnicomStationVolume(unicom.outputVolume);
       console.error(err);
     }
   };
+
   const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     void updateStationVolumeValue(event.target.valueAsNumber);
   };
 
   const handleStationVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
     const newValue = Math.min(
-      Math.max(unicom?.outputVolume ?? 100 + (event.deltaY > 0 ? -1 : 1), 0),
+      Math.max(localUnicomStationVolume + (event.deltaY > 0 ? -1 : 1), 0),
       100
     );
-
     void updateStationVolumeValue(newValue);
   };
 
@@ -419,7 +430,7 @@ const UnicomGuardBar = () => {
           min="0"
           max="100"
           step="1"
-          value={unicom?.outputVolume ?? 100}
+          value={localUnicomStationVolume}
           onChange={handleStationVolumeChange}
           onWheel={handleStationVolumeMouseWheel}
         ></input>
