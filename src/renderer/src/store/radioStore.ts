@@ -89,7 +89,7 @@ const useRadioState = create<RadioState>((set, get) => ({
   radios: [],
   radiosSelected: [],
   pttIsOn: false,
-  showingUnicomBar: true,
+  showingUnicomBar: false,
 
   setShowingUnicomBar: (value) => {
     set(() => ({

@@ -89,6 +89,10 @@
     outline: darken($success, 15%) solid 1px !important;
   }
 
+  &.btn-danger {
+    outline: darken($danger, 15%) solid 1px !important;
+  }
+
   &.btn-warning {
     outline: darken($warning, 15%) solid 1px !important;
   }

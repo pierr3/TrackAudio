@@ -20,7 +20,7 @@ const UnicomGuardBar = () => {
 
   const [localUnicomStationVolume, setLocalUnicomStationVolume] = useState(50);
 
-  const [setShowingUnicomBar] = useRadioState((state) => [state.setShowingUnicomBar]);
+  const [showingUnicomBar] = useRadioState((state) => [state.showingUnicomBar]);
 
   const postError = useErrorStore((state) => state.postError);
 
@@ -31,13 +31,6 @@ const UnicomGuardBar = () => {
   const guard = useMemo(() => {
     return radios.find((radio) => radio.frequency === GuardFrequency);
   }, [radios, isConnected]);
-
-  useEffect(() => {
-    setShowingUnicomBar(true);
-    return () => {
-      setShowingUnicomBar(false);
-    };
-  }, []);
 
   const reAddRadio = (radio: RadioType, eventType: 'RX' | 'TX' | 'SPK') => {
     const radioName =
@@ -173,6 +166,42 @@ const UnicomGuardBar = () => {
       });
   };
 
+  const toggleMute = (radio: RadioType | undefined) => {
+    if (!radio) return;
+
+    const newState = !radio.isOutputMuted;
+    window.api
+      .setFrequencyState(
+        radio.frequency,
+        radio.rx,
+        radio.tx,
+        radio.xc,
+        radio.onSpeaker,
+        radio.crossCoupleAcross,
+        newState,
+        radio.outputVolume
+      )
+      .then((ret) => {
+        if (!ret) {
+          postError('Invalid action on invalid radio: Mute.');
+          removeRadio(radio.frequency);
+          return;
+        }
+        setRadioState(radio.frequency, {
+          rx: radio.rx,
+          tx: radio.tx,
+          xc: radio.xc,
+          crossCoupleAcross: radio.crossCoupleAcross,
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: newState
+        });
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+  };
+
   useEffect(() => {
     if (!isConnected) {
       void window.api.removeFrequency(UnicomFrequency).then((ret) => {
@@ -243,6 +272,10 @@ const UnicomGuardBar = () => {
     updateStationVolumeValue(newValue);
   };
 
+  if (!showingUnicomBar) {
+    return null;
+  }
+
   return (
     <div className="unicom-bar-container">
       <span className="unicom-line-item">
@@ -252,13 +285,17 @@ const UnicomGuardBar = () => {
         <button
           className={clsx(
             'btn sm-button',
-            !unicom?.rx && 'btn-info',
-            unicom?.rx && unicom.currentlyRx && 'btn-warning',
-            unicom?.rx && !unicom.currentlyRx && 'btn-success'
+            unicom?.isOutputMuted && 'btn-danger',
+            !unicom?.rx && !unicom?.isOutputMuted && 'btn-info',
+            unicom?.rx && !unicom.isOutputMuted && unicom.currentlyRx && 'btn-warning',
+            unicom?.rx && !unicom.isOutputMuted && !unicom.currentlyRx && 'btn-success'
           )}
           disabled={!isConnected || !unicom}
           onClick={() => {
             clickRx(unicom);
+          }}
+          onContextMenu={() => {
+            toggleMute(unicom);
           }}
         >
           RX
@@ -301,13 +338,17 @@ const UnicomGuardBar = () => {
         <button
           className={clsx(
             'btn sm-button',
-            !guard?.rx && 'btn-info',
-            guard?.rx && guard.currentlyRx && 'btn-warning',
-            guard?.rx && !guard.currentlyRx && 'btn-success'
+            guard?.isOutputMuted && 'btn-danger',
+            !guard?.rx && !guard?.isOutputMuted && 'btn-info',
+            guard?.rx && !guard.isOutputMuted && guard.currentlyRx && 'btn-warning',
+            guard?.rx && !guard.isOutputMuted && !guard.currentlyRx && 'btn-success'
           )}
           disabled={!isConnected || !guard}
           onClick={() => {
             clickRx(guard);
+          }}
+          onContextMenu={() => {
+            toggleMute(guard);
           }}
         >
           RX

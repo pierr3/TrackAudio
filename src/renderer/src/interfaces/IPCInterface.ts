@@ -117,8 +117,6 @@ class IPCInterface {
         return;
       }
 
-      console.log('StationRxEnd', frequency, lastRx);
-
       radioStoreState.setLastReceivedCallsigns(parseInt(frequency), lastRx);
     });
 

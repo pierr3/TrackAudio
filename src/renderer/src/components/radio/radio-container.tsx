@@ -31,6 +31,7 @@ const RadioContainer: React.FC = () => {
     const excludedFreqs = showingUnicomBar
       ? [...EXCLUDED_FREQUENCIES, ...UNICOM_EXCLUDED_FREQUENCIES]
       : EXCLUDED_FREQUENCIES;
+
     return radios.filter((radio) => !excludedFreqs.includes(radio.frequency));
   }, [radios, showingUnicomBar]);
 
