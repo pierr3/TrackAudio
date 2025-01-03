@@ -37,7 +37,7 @@ jobs:
           git submodule update --init --remote backend/extern/afv-native
           git submodule update --init --remote backend/extern/libuiohook
           cd backend/extern/afv-native
-          git checkout modern-chained-callback
+          git checkout modern-event-bus
           cd ../libuiohook
           git checkout unregister-hook-when-debugging
 

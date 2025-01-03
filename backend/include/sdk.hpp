@@ -52,7 +52,8 @@ public:
      * @param data Optional data associated with the event.
      */
     void handleAFVEventForWebsocket(sdk::types::Event event,
-        const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz);
+        const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz,
+        const std::optional<std::vector<std::string>>& parameter3 = std::nullopt);
 
     /**
      * Handles an AFV voiceConnected event for the websocket.
@@ -77,7 +78,13 @@ public:
      *
      * @param state A JSON object representing the station state.
      */
-    void publishStationState(const nlohmann::json& state);
+    void publishStationState(const nlohmann::json& state, bool broadcastToElectron = true);
+
+    /**
+     * @brief Publishes the main output volume change.
+     *
+     */
+    void publishMainOutputVolumeChange(const float& volume, bool broadcastToElectron = true);
 
     /**
      * @brief Publishes the kStationAdded message.
@@ -207,9 +214,29 @@ private:
     void handleGetStationState(const std::string& callsign);
 
     /**
+     * Handles the SDK call to get the main output volume.
+     *
+     */
+    void handleGetMainOutputVolume();
+
+    /**
      * Handles the SDK call to add a station.
      *
      * @param json The incoming JSON with the station information.
      */
     void handleAddStation(const nlohmann::json& json);
+
+    /**
+     * Handles the SDK call to increment or decrement the station gain.
+     *
+     * @param json The incoming JSON with the station information.
+     */
+    void handleChangeStationVolume(const nlohmann::json& json);
+
+    /**
+     * Handles the SDK call to increment or decrement the main output volume.
+     *
+     * @param json The incoming JSON with the volume information.
+     */
+    void handleChangeMainOutputVolume(const nlohmann::json& json);
 };

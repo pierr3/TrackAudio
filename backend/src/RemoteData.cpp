@@ -15,6 +15,10 @@ void RemoteData::onTimer(Poco::Timer& /*timer*/)
 {
     std::lock_guard<std::mutex> lock(m); // Prevent double updates in case of a slow network
     auto previousCallsign = UserSession::callsign;
+    if (UserSession::isDebug) {
+        updateSessionStatus(previousCallsign, true);
+        return;
+    }
     try {
         auto slurperData = getSlurperData();
         if (slurperData.empty() && enteredSlurperGracePeriod) {

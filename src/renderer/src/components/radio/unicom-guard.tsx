@@ -8,17 +8,20 @@ import { GuardFrequency, UnicomFrequency } from '../../../../shared/common';
 import { useMediaQuery } from 'react-responsive';
 
 const UnicomGuardBar = () => {
-  const [radios, setRadioState, addRadio, removeRadio] = useRadioState((state) => [
+  const [radios, setRadioState, addRadio, removeRadio, setOutputVolume] = useRadioState((state) => [
     state.radios,
     state.setRadioState,
     state.addRadio,
-    state.removeRadio
+    state.removeRadio,
+    state.setOutputVolume
   ]);
   const [isConnected, isAtc] = useSessionStore((state) => [state.isConnected, state.isAtc]);
 
   const isReducedSize = useMediaQuery({ maxWidth: '895px' });
 
-  const [localRadioGain, setLocalRadioGain] = useState(50);
+  const [localUnicomStationVolume, setLocalUnicomStationVolume] = useState(100);
+
+  const [showingUnicomBar] = useRadioState((state) => [state.showingUnicomBar]);
 
   const postError = useErrorStore((state) => state.postError);
 
@@ -71,7 +74,9 @@ const UnicomGuardBar = () => {
         newState ? radio.tx : false,
         false,
         radio.onSpeaker,
-        false
+        false,
+        radio.isOutputMuted,
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret && !noError) {
@@ -83,7 +88,9 @@ const UnicomGuardBar = () => {
           tx: !newState ? false : radio.tx,
           xc: !false,
           crossCoupleAcross: false,
-          onSpeaker: radio.onSpeaker
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -102,7 +109,9 @@ const UnicomGuardBar = () => {
         newState,
         false,
         radio.onSpeaker,
-        false
+        false,
+        radio.isOutputMuted,
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret && !noError) {
@@ -114,7 +123,9 @@ const UnicomGuardBar = () => {
           tx: newState,
           xc: false,
           crossCoupleAcross: false,
-          onSpeaker: radio.onSpeaker
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -132,7 +143,9 @@ const UnicomGuardBar = () => {
         radio.tx,
         radio.xc,
         newState,
-        radio.crossCoupleAcross
+        radio.crossCoupleAcross,
+        radio.isOutputMuted,
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret && !noError) {
@@ -144,7 +157,9 @@ const UnicomGuardBar = () => {
           tx: radio.tx,
           xc: radio.xc,
           crossCoupleAcross: radio.crossCoupleAcross,
-          onSpeaker: newState
+          onSpeaker: newState,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: radio.isOutputMuted
         });
       })
       .catch((err: unknown) => {
@@ -152,70 +167,141 @@ const UnicomGuardBar = () => {
       });
   };
 
+  const toggleMute = (radio: RadioType | undefined) => {
+    if (!radio) return;
+
+    const newState = !radio.isOutputMuted;
+    window.api
+      .setFrequencyState(
+        radio.frequency,
+        radio.rx,
+        radio.tx,
+        radio.xc,
+        radio.onSpeaker,
+        radio.crossCoupleAcross,
+        newState,
+        radio.outputVolume
+      )
+      .then((ret) => {
+        if (!ret) {
+          postError('Invalid action on invalid radio: Mute.');
+          removeRadio(radio.frequency);
+          return;
+        }
+        setRadioState(radio.frequency, {
+          rx: radio.rx,
+          tx: radio.tx,
+          xc: radio.xc,
+          crossCoupleAcross: radio.crossCoupleAcross,
+          onSpeaker: radio.onSpeaker,
+          outputVolume: radio.outputVolume,
+          isOutputMuted: newState
+        });
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+  };
+
+  // In UnicomGuardBar.tsx, modify the useEffect:
   useEffect(() => {
     if (!isConnected) {
       void window.api.removeFrequency(UnicomFrequency).then((ret) => {
-        if (!ret) {
-          return;
-        }
+        if (!ret) return;
         removeRadio(UnicomFrequency);
       });
       void window.api.removeFrequency(GuardFrequency).then((ret) => {
-        if (!ret) {
-          return;
-        }
+        if (!ret) return;
         removeRadio(GuardFrequency);
       });
-    } else {
-      void window.api.addFrequency(UnicomFrequency, 'UNICOM').then((ret) => {
+    } else if (!unicom || !guard) {
+      // Setup UNICOM
+      void window.api.addFrequency(UnicomFrequency, 'UNICOM').then(async (ret) => {
         if (!ret) {
           console.error('Failed to add UNICOM frequency');
           return;
         }
+
+        // Get stored volume before adding radio
+        const storedStationVolume = window.localStorage.getItem('UNICOMStationVolume');
+        const stationVolumeToSet = storedStationVolume?.length
+          ? parseInt(storedStationVolume)
+          : 100;
+
+        // Create radio object with initial volume
         addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
-        void window.api.SetFrequencyRadioGain(UnicomFrequency, localRadioGain / 100);
+
+        // Set volume in store immediately after adding radio
+        setOutputVolume(UnicomFrequency, stationVolumeToSet);
+
+        // Set volume in API
+        await window.api.SetFrequencyRadioVolume(UnicomFrequency, stationVolumeToSet);
       });
-      void window.api.addFrequency(GuardFrequency, 'GUARD').then((ret) => {
+
+      // Setup GUARD with same volume as UNICOM
+      void window.api.addFrequency(GuardFrequency, 'GUARD').then(async (ret) => {
         if (!ret) {
           console.error('Failed to add GUARD frequency');
           return;
         }
+
+        // Get the same stored volume as UNICOM
+        const storedStationVolume = window.localStorage.getItem('UNICOMStationVolume');
+        const stationVolumeToSet = storedStationVolume?.length
+          ? parseInt(storedStationVolume)
+          : 100;
+
         addRadio(GuardFrequency, 'GUARD', 'GUARD');
-        void window.api.SetFrequencyRadioGain(GuardFrequency, localRadioGain / 100);
+        setOutputVolume(GuardFrequency, stationVolumeToSet);
+        await window.api.SetFrequencyRadioVolume(GuardFrequency, stationVolumeToSet);
       });
     }
   }, [isConnected]);
 
   useEffect(() => {
-    const storedGain = window.localStorage.getItem('unicomRadioGain');
-    const gainToSet = storedGain?.length ? parseInt(storedGain) : 50;
-    setLocalRadioGain(gainToSet);
-  }, []);
+    if (!unicom) return;
+    setLocalUnicomStationVolume(unicom.outputVolume);
+  }, [unicom?.outputVolume]);
 
-  const updateRadioGainValue = (newGain: number) => {
+  useEffect(() => {
+    if (!guard) return;
+    setLocalUnicomStationVolume(guard.outputVolume);
+  }, [guard?.outputVolume]);
+
+  // Modify updateStationVolumeValue to use local state:
+  const updateStationVolumeValue = async (newStationVolume: number) => {
     if (!unicom || !guard) return;
-    window.api
-      .SetFrequencyRadioGain(unicom.frequency, newGain / 100)
-      .then(() => {
-        void window.api.SetFrequencyRadioGain(guard.frequency, newGain / 100);
-        setLocalRadioGain(newGain);
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
 
-    window.localStorage.setItem('unicomRadioGain', newGain.toString());
+    // Update local state immediately for responsive UI
+    setLocalUnicomStationVolume(newStationVolume);
+
+    // Then update API
+    try {
+      await window.api.SetFrequencyRadioVolume(unicom.frequency, newStationVolume);
+      await window.api.SetFrequencyRadioVolume(guard.frequency, newStationVolume);
+      window.localStorage.setItem('UNICOMStationVolume', newStationVolume.toString());
+    } catch (err) {
+      // On error, revert to previous state
+      setLocalUnicomStationVolume(unicom.outputVolume);
+      console.error(err);
+    }
   };
 
-  const handleRadioGainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateRadioGainValue(event.target.valueAsNumber);
+  const handleStationVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    void updateStationVolumeValue(event.target.valueAsNumber);
   };
 
-  const handleRadioGainMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
-    const newValue = Math.min(Math.max(localRadioGain + (event.deltaY > 0 ? -1 : 1), 0), 100);
-
-    updateRadioGainValue(newValue);
+  const handleStationVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>) => {
+    const newValue = Math.min(
+      Math.max(localUnicomStationVolume + (event.deltaY > 0 ? -1 : 1), 0),
+      100
+    );
+    void updateStationVolumeValue(newValue);
   };
+
+  if (!showingUnicomBar) {
+    return null;
+  }
 
   return (
     <div className="unicom-bar-container">
@@ -226,13 +312,17 @@ const UnicomGuardBar = () => {
         <button
           className={clsx(
             'btn sm-button',
-            !unicom?.rx && 'btn-info',
-            unicom?.rx && unicom.currentlyRx && 'btn-warning',
-            unicom?.rx && !unicom.currentlyRx && 'btn-success'
+            unicom?.isOutputMuted && 'btn-danger',
+            !unicom?.rx && !unicom?.isOutputMuted && 'btn-info',
+            unicom?.rx && !unicom.isOutputMuted && unicom.currentlyRx && 'btn-warning',
+            unicom?.rx && !unicom.isOutputMuted && !unicom.currentlyRx && 'btn-success'
           )}
           disabled={!isConnected || !unicom}
           onClick={() => {
             clickRx(unicom);
+          }}
+          onContextMenu={() => {
+            toggleMute(unicom);
           }}
         >
           RX
@@ -275,13 +365,17 @@ const UnicomGuardBar = () => {
         <button
           className={clsx(
             'btn sm-button',
-            !guard?.rx && 'btn-info',
-            guard?.rx && guard.currentlyRx && 'btn-warning',
-            guard?.rx && !guard.currentlyRx && 'btn-success'
+            guard?.isOutputMuted && 'btn-danger',
+            !guard?.rx && !guard?.isOutputMuted && 'btn-info',
+            guard?.rx && !guard.isOutputMuted && guard.currentlyRx && 'btn-warning',
+            guard?.rx && !guard.isOutputMuted && !guard.currentlyRx && 'btn-success'
           )}
           disabled={!isConnected || !guard}
           onClick={() => {
             clickRx(guard);
+          }}
+          onContextMenu={() => {
+            toggleMute(guard);
           }}
         >
           RX
@@ -336,9 +430,9 @@ const UnicomGuardBar = () => {
           min="0"
           max="100"
           step="1"
-          value={localRadioGain}
-          onChange={handleRadioGainChange}
-          onWheel={handleRadioGainMouseWheel}
+          value={localUnicomStationVolume}
+          onChange={handleStationVolumeChange}
+          onWheel={handleStationVolumeMouseWheel}
         ></input>
       </span>
     </div>

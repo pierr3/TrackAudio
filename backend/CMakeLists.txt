@@ -18,15 +18,20 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 if(WIN32)
-    # set(BUILD_SHARED_LIBS OFF)
-    add_compile_options(
-        $<$<CONFIG:>:/MD>
-        $<$<CONFIG:Debug>:/MDd>
-        $<$<CONFIG:Release>:/MD>
-    )
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
+    add_compile_options(
+      $<$<CONFIG:>:/MD>
+      $<$<CONFIG:Debug>:/MDd>
+      $<$<CONFIG:Release>:/MD>
+    )
     add_definitions(-D_WIN32_WINNT=0x0A00)
     set(VCPKG_TARGET_TRIPLET "x64-windows")
+endif()
+
+if(WIN32)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DELAYLOAD:node.exe /INCREMENTAL:NO")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DELAYLOAD:node.exe /INCREMENTAL:NO")
 endif()
 
 project(trackaudio-afv)
@@ -45,16 +50,6 @@ add_subdirectory(extern/utf8proc)
 include_directories(extern/afv-native/include)
 include_directories(extern/afv-native/extern)
 include_directories(extern/libuiohook/include)
-if(WIN32)
-    # set(BUILD_SHARED_LIBS OFF)
-    add_compile_options(
-        $<$<CONFIG:>:/MD>
-        $<$<CONFIG:Debug>:/MDd>
-        $<$<CONFIG:Release>:/MD>
-    )
-
-    add_definitions(-D_WIN32_WINNT=0x0A00)
-endif()
 
 set(SOURCE
   src/main.cpp
@@ -129,6 +124,9 @@ target_link_libraries(trackaudio-afv PRIVATE
     uiohook
     ${CMAKE_JS_LIB})
 
+if (WIN32)
+target_link_libraries(trackaudio-afv PRIVATE delayimp.lib)
+endif()
 # Set the output directory for the built executable
 set_target_properties(trackaudio-afv
     PROPERTIES

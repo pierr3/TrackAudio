@@ -7,7 +7,7 @@ interface LastReceivedCallsignsProps {
 
 const LastReceivedCallsigns: React.FC<LastReceivedCallsignsProps> = ({ radios }) => {
   const rxRadios = useMemo(() => {
-    return radios.filter((radio) => radio.rx && radio.lastReceivedCallsign);
+    return radios.filter((radio) => radio.rx);
   }, [radios]);
 
   return (
@@ -15,7 +15,12 @@ const LastReceivedCallsigns: React.FC<LastReceivedCallsignsProps> = ({ radios })
       <div className="w-100 mb-0 text-center">Last RX</div>
       {rxRadios.map((radio, index) => (
         <div key={index}>
-          {radio.callsign}: {radio.lastReceivedCallsign}
+          {radio.callsign}:
+          <div className="ml-4">
+            {radio.lastReceivedCallsigns.map((callsign, idx) => (
+              <div key={idx}>{callsign}</div>
+            ))}
+          </div>
         </div>
       ))}
     </div>
