@@ -28,14 +28,10 @@ const MainRadioVolume = () => {
   }, [setMainRadioVolume]);
 
   const updateRadioVolumeValue = (newVolume: number) => {
-    window.api
-      .SetMainRadioVolume(newVolume)
-      .then(() => {
-        setMainRadioVolume(newVolume);
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
+    setMainRadioVolume(newVolume);
+    window.api.SetMainRadioVolume(newVolume).catch((err: unknown) => {
+      console.error(err);
+    });
   };
 
   const handleRadioVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {

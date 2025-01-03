@@ -215,11 +215,11 @@ const UnicomGuardBar = () => {
 
   const updateStationVolumeValue = (newStationVolume: number) => {
     if (!unicom || !guard) return;
+    setLocalUnicomStationVolume(newStationVolume);
     window.api
       .SetFrequencyRadioVolume(unicom.frequency, newStationVolume)
       .then(() => {
         void window.api.SetFrequencyRadioVolume(guard.frequency, newStationVolume);
-        setLocalUnicomStationVolume(newStationVolume);
       })
       .catch((err: unknown) => {
         console.error(err);

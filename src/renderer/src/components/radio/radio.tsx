@@ -431,9 +431,10 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           <button
             className={clsx(
               'btn radio-button',
-              !radio.rx && 'btn-primary',
-              radio.rx && radio.currentlyRx && 'btn-warning',
-              radio.rx && !radio.currentlyRx && 'btn-success'
+              radio.isOutputMuted && 'btn-danger',
+              !radio.rx && !radio.isOutputMuted && 'btn-primary',
+              radio.rx && !radio.isOutputMuted && radio.currentlyRx && 'btn-warning',
+              radio.rx && !radio.isOutputMuted && !radio.currentlyRx && 'btn-success'
             )}
             onClick={clickRx}
           >
