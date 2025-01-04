@@ -19,7 +19,7 @@ import log from 'electron-log/main';
 import { ENV } from './env';
 import configManager from './config';
 import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
-import { MainOutputVolumeChange } from '../shared/MainOutputVolumeChange';
+import { MainVolumeChange } from '../shared/MainVolumeChange';
 
 type WindowMode = 'mini' | 'maxi';
 
@@ -793,10 +793,10 @@ const handleEvent = (arg: string, arg2: string, arg3: string) => {
     mainWindow?.webContents.send('station-state-update', arg2);
   }
 
-  if (arg == AfvEventTypes.MainOutputVolumeChange) {
-    const update = JSON.parse(arg2) as MainOutputVolumeChange;
+  if (arg == AfvEventTypes.MainVolumeChange) {
+    const update = JSON.parse(arg2) as MainVolumeChange;
     configManager.updateConfig({ mainRadioVolume: update.value.volume });
-    mainWindow?.webContents.send('main-output-volume-change', arg2);
+    mainWindow?.webContents.send('main-volume-change', arg2);
   }
 
   if (arg == AfvEventTypes.StationDataReceived) {

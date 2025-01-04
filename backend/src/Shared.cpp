@@ -18,7 +18,7 @@ double UserSession::lat = 0.0;
 double UserSession::lon = 0.0;
 bool UserSession::xy = false;
 bool UserSession::isConnectedToTheNetwork = false;
-float UserSession::currentMainOutputVolume = 100;
+float UserSession::currentMainVolume = 100;
 bool UserSession::isDebug = false;
 std::map<unsigned int, float> UserSession::stationVolumes = {};
 

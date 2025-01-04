@@ -4,7 +4,7 @@ import useUtilStore from '@renderer/store/utilStore';
 import { Configuration } from 'src/shared/config.type';
 import { StationStateUpdate } from './StationStateUpdate';
 import useErrorStore from '@renderer/store/errorStore';
-import { MainOutputVolumeChange } from 'src/shared/MainOutputVolumeChange';
+import { MainVolumeChange } from 'src/shared/MainVolumeChange';
 
 class IPCInterface {
   public init() {
@@ -91,8 +91,8 @@ class IPCInterface {
       });
     });
 
-    window.api.on('main-output-volume-change', (data: string) => {
-      const change = JSON.parse(data) as MainOutputVolumeChange;
+    window.api.on('main-volume-change', (data: string) => {
+      const change = JSON.parse(data) as MainVolumeChange;
       sessionStoreState.setMainRadioVolume(change.value.volume);
     });
 
@@ -215,7 +215,7 @@ class IPCInterface {
     window.api.removeAllListeners('network-disconnected');
     window.api.removeAllListeners('ptt-key-set');
     window.api.removeAllListeners('station-state-update');
-    window.api.removeAllListeners('main-output-volume-change');
+    window.api.removeAllListeners('main-volume-change');
   }
 }
 

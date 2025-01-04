@@ -16,5 +16,5 @@ exports.AfvEventTypes = {
   PttKeySet: "UpdatePttKeyName",
   StationStateUpdate: "station-state-update",
   OpenSettingsModal: "open-settings-modal",
-  MainOutputVolumeChange: "main-output-volume-change",
+  MainVolumeChange: "main-volume-change",
 };

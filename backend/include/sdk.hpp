@@ -84,7 +84,7 @@ public:
      * @brief Publishes the main output volume change.
      *
      */
-    void publishMainOutputVolumeChange(const float& volume, bool broadcastToElectron = true);
+    void publishMainVolumeChange(const float& volume, bool broadcastToElectron = true);
 
     /**
      * @brief Publishes the kStationAdded message.
@@ -217,7 +217,7 @@ private:
      * Handles the SDK call to get the main output volume.
      *
      */
-    void handleGetMainOutputVolume();
+    void handleGetMainVolume();
 
     /**
      * Handles the SDK call to add a station.
@@ -238,5 +238,5 @@ private:
      *
      * @param json The incoming JSON with the volume information.
      */
-    void handleChangeMainOutputVolume(const nlohmann::json& json);
+    void handleChangeMainVolume(const nlohmann::json& json);
 };

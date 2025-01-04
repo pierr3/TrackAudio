@@ -392,17 +392,17 @@ void SDK::handleGetStationState(const std::string& callsign)
     PLOG_ERROR << "Station " << callsign << " not found";
 }
 
-void SDK::publishMainOutputVolumeChange(const float& volume, bool broadcastToElectron)
+void SDK::publishMainVolumeChange(const float& volume, bool broadcastToElectron)
 {
 
     nlohmann::json jsonMessage
-        = WebsocketMessage::buildMessage(WebsocketMessageType::kMainOutputVolumeChange);
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kMainVolumeChange);
 
     jsonMessage["value"]["volume"] = volume;
 
     this->broadcastOnWebsocket(jsonMessage.dump());
     if (broadcastToElectron) {
-        NapiHelpers::callElectron("main-output-volume-change", jsonMessage.dump());
+        NapiHelpers::callElectron("main-volume-change", jsonMessage.dump());
     }
 }
 
@@ -453,8 +453,8 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleGetStationState(json["value"]["callsign"]);
             return;
         }
-        if (messageType == "kGetMainOutputVolume") {
-            this->handleGetMainOutputVolume();
+        if (messageType == "kGetMainVolume") {
+            this->handleGetMainVolume();
             return;
         }
         if (messageType == "kPttPressed") {
@@ -477,8 +477,8 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload)
             this->handleChangeStationVolume(json);
             return;
         }
-        if (messageType == "kChangeMainOutputVolume") {
-            this->handleChangeMainOutputVolume(json);
+        if (messageType == "kChangeMainVolume") {
+            this->handleChangeMainVolume(json);
             return;
         }
     } catch (const std::exception& e) {
@@ -538,12 +538,12 @@ void SDK::broadcastOnWebsocket(const std::string& data)
     }
 };
 
-void SDK::handleGetMainOutputVolume()
+void SDK::handleGetMainVolume()
 {
-    this->publishMainOutputVolumeChange(UserSession::currentMainOutputVolume, false);
+    this->publishMainVolumeChange(UserSession::currentMainVolume, false);
 }
 
-void SDK::handleChangeMainOutputVolume(const nlohmann::json& json)
+void SDK::handleChangeMainVolume(const nlohmann::json& json)
 {
     if (!mClient->IsVoiceConnected()) {
         PLOG_ERROR << "Voice must be connected before adding a station.";
@@ -557,14 +557,14 @@ void SDK::handleChangeMainOutputVolume(const nlohmann::json& json)
 
     try {
         auto amount = json["value"]["amount"].get<double>();
-        auto currentVolume = UserSession::currentMainOutputVolume;
+        auto currentVolume = UserSession::currentMainVolume;
         float newVolume;
 
         newVolume = static_cast<float>(std::clamp(currentVolume + amount, 0.0, 100.0));
+        this->publishMainVolumeChange(newVolume);
 
-        UserSession::currentMainOutputVolume = newVolume;
+        UserSession::currentMainVolume = newVolume;
         RadioHelper::setAllRadioVolumes();
-        this->publishMainOutputVolumeChange(newVolume);
 
     } catch (const nlohmann::json::exception& e) {
         PLOG_ERROR << "Failed to read the amount: " << e.what();
@@ -598,13 +598,13 @@ void SDK::handleChangeStationVolume(const nlohmann::json& json)
 
         newGain = static_cast<float>(std::clamp(currentVolume + amount, 0.0, 100.0));
 
-        RadioHelper::setRadioVolume(frequency, newGain);
-
         // Get the updated radio state and publish it
         auto updatedRadios = mClient->getRadioState();
         auto radioState = updatedRadios[frequency];
         auto stateJson = this->buildStationStateJson(radioState.stationName, frequency);
         this->publishStationState(stateJson);
+
+        RadioHelper::setRadioVolume(frequency, newGain);
 
     } catch (const nlohmann::json::exception& e) {
         PLOG_ERROR << "Failed to read the frequency: " << e.what();

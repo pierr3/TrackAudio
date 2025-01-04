@@ -110,7 +110,7 @@ public:
             }
         }
         float combinedVolume
-            = (UserSession::currentMainOutputVolume / 100.0f) * (stationVolume / 100.0f) * 100.0f;
+            = (UserSession::currentMainVolume / 100.0f) * (stationVolume / 100.0f) * 100.0f;
 
         // Clamp it to ensure it stays within 0-100
         combinedVolume = std::min(100.0f, std::max(0.0f, combinedVolume));

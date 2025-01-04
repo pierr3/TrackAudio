@@ -372,20 +372,11 @@ void SetPtt(const Napi::CallbackInfo& info)
 void SetMainRadioVolume(const Napi::CallbackInfo& info)
 {
     float volume = info[0].As<Napi::Number>().FloatValue();
-    UserSession::currentMainOutputVolume = volume;
+    UserSession::currentMainVolume = volume;
 
     RadioHelper::setAllRadioVolumes();
 
-    // Add state updates for all radios since their effective volume has changed
-    auto states = mClient->getRadioState();
-    for (const auto& [freq, state] : states) {
-        auto stateJson
-            = MainThreadShared::mApiServer->buildStationStateJson(state.stationName, freq);
-        MainThreadShared::mApiServer->publishStationState(stateJson);
-        NapiHelpers::callElectron("station-state-update", stateJson.dump());
-    }
-
-    MainThreadShared::mApiServer->publishMainOutputVolumeChange(volume, false);
+    MainThreadShared::mApiServer->publishMainVolumeChange(volume, false);
 }
 
 Napi::Promise SetFrequencyRadioVolume(const Napi::CallbackInfo& info)
