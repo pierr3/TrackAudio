@@ -66,14 +66,9 @@ class IPCInterface {
     window.api.on('station-state-update', (data: string) => {
       const update = JSON.parse(data) as StationStateUpdate;
 
-      if (update.value.isAvailable == false) {
-        return;
-      }
-
       const radio = radioStoreState.getRadioByFrequency(update.value.frequency);
 
       if (!radio) {
-        // We received an update for a frequency that we don't have a radio for, so we create one
         radioStoreState.addRadio(
           update.value.frequency,
           update.value.callsign ?? 'MANUAL',
@@ -104,24 +99,22 @@ class IPCInterface {
       if (radioStoreState.isInactive(parseInt(frequency))) {
         return;
       }
-
       radioStoreState.setCurrentlyRx(parseInt(frequency), true);
     });
 
-    window.api.on('StationRxBegin', (frequency: string, lastRx: string) => {
+    window.api.on('StationRxBegin', (frequency: string, activeTransmitters: string[]) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
         return;
       }
-
-      radioStoreState.setLastReceivedCallsigns(parseInt(frequency), [lastRx]);
+      radioStoreState.setLastReceivedCallsigns(parseInt(frequency), activeTransmitters);
     });
 
-    window.api.on('StationRxEnd', (frequency: string, lastRx: string[]) => {
+    window.api.on('StationRxEnd', (frequency: string, remainingTransmitters: string[]) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
         return;
       }
-
-      radioStoreState.setLastReceivedCallsigns(parseInt(frequency), lastRx);
+      // When someone stops, they become the "last received"
+      radioStoreState.setLastReceivedCallsigns(parseInt(frequency), remainingTransmitters);
     });
 
     window.api.on('FrequencyRxEnd', (frequency: string) => {

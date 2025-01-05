@@ -1,7 +1,7 @@
 export interface StationStateUpdate {
   type: 'kStationStateUpdate';
   value: {
-    callsign: string | undefined;
+    callsign?: string;
     frequency: number;
     rx: boolean;
     tx: boolean;
@@ -10,6 +10,5 @@ export interface StationStateUpdate {
     headset: boolean;
     outputVolume: number;
     isOutputMuted: boolean;
-    isAvailable?: boolean;
   };
 }

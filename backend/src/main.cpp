@@ -612,10 +612,10 @@ void HandleAfvEvents()
                 return;
             }
 
-            NapiHelpers::callElectron(
-                "StationRxBegin", std::to_string(event.frequency), event.lastRx);
-            MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-                sdk::types::Event::kRxBegin, event.callsign, event.frequency);
+            NapiHelpers::callElectronWithStringArray(
+                "StationRxBegin", std::to_string(event.frequency), event.activeTransmitters);
+            MainThreadShared::mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxBegin,
+                event.callsign, event.frequency, event.activeTransmitters);
         });
 
     event.AddHandler<afv_native::StationRxEndEvent>(
@@ -625,9 +625,9 @@ void HandleAfvEvents()
                 return;
             }
             NapiHelpers::callElectronWithStringArray(
-                "StationRxEnd", std::to_string(event.frequency), event.lastRxCallsigns);
-            MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-                sdk::types::Event::kRxEnd, event.callsign, event.frequency, event.lastRxCallsigns);
+                "StationRxEnd", std::to_string(event.frequency), event.remainingTransmitters);
+            MainThreadShared::mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxEnd,
+                event.callsign, event.frequency, event.remainingTransmitters);
         });
 
     event.AddHandler<afv_native::PttOpenEvent>([&](const afv_native::PttOpenEvent& event) {

@@ -52,6 +52,7 @@ interface RadioState {
   getSelectedRadio: () => RadioType | undefined;
   isRadioUnique: (frequency: number) => boolean;
   isInactive: (frequency: number) => boolean;
+  getLastReceivedCallsigns: (frequency: number) => string[];
   setLastReceivedCallsigns(frequency: number, callsigns: string[]): void;
   setTransceiverCountForStationCallsign: (callsign: string, count: number) => void;
   setPendingDeletion: (frequency: number, value: boolean) => void;
@@ -170,6 +171,7 @@ const useRadioState = create<RadioState>((set, get) => ({
   isRadioUnique: (frequency): boolean => {
     return !RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency);
   },
+
   setLastReceivedCallsigns: (frequency, callsigns) => {
     if (callsigns.includes(useSessionStore.getState().stationCallsign)) {
       return; // Ignore our transmissions
@@ -188,6 +190,10 @@ const useRadioState = create<RadioState>((set, get) => ({
           : radio
       )
     }));
+  },
+  getLastReceivedCallsigns: (frequency: number): string[] => {
+    const radio = useRadioState.getState().radios.find((radio) => radio.frequency === frequency);
+    return radio ? radio.lastReceivedCallsigns : [];
   },
   reset: () => {
     set(() => ({
