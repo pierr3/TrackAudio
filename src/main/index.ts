@@ -655,19 +655,6 @@ ipcMain.handle('restart', () => {
   }
 });
 
-// Add logging for app lifecycle events
-app.on('will-quit', () => {
-  log.info('App will-quit event triggered');
-});
-
-app.on('before-quit', () => {
-  log.info('App before-quit event triggered');
-});
-
-app.on('quit', () => {
-  log.info('App quit event triggered');
-});
-
 ipcMain.on('check-for-updates', (event) => {
   if (process.platform === 'win32') {
     event.reply('update-not-available');
