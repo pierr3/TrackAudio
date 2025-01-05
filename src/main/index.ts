@@ -177,12 +177,11 @@ const createWindow = (): void => {
   // Set the store CID
   TrackAudioAfv.SetCid(configManager.config.cid || '');
   TrackAudioAfv.SetMainRadioVolume(configManager.config.mainRadioVolume || 100);
-
   // Set the logger file path
   log.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s}:{ms} {level} [ELECTRON] {text}';
-  log.transports.file.resolvePathFn = (): string => {
-    return TrackAudioAfv.GetLoggerFilePath();
-  };
+  // log.transports.file.resolvePathFn = (): string => {
+  //   return TrackAudioAfv.GetLoggerFilePath();
+  // };
 
   const options: Electron.BrowserWindowConstructorOptions = {
     height: defaultWindowSize.height,
@@ -639,14 +638,34 @@ ipcMain.handle('close-me', () => {
 });
 
 ipcMain.handle('restart', () => {
-  if (TrackAudioAfv.IsConnected()) {
-    TrackAudioAfv.Disconnect();
+  try {
+    // Perform cleanup
+    if (TrackAudioAfv.IsConnected()) {
+      TrackAudioAfv.Disconnect();
+    }
+    TrackAudioAfv.Exit();
+
+    app.relaunch();
+    app.exit();
+
+    return true;
+  } catch (error) {
+    log.error('Fatal error during restart:', error);
+    throw error;
   }
+});
 
-  TrackAudioAfv.Exit();
+// Add logging for app lifecycle events
+app.on('will-quit', () => {
+  log.info('App will-quit event triggered');
+});
 
-  mainWindow?.close();
-  createWindow();
+app.on('before-quit', () => {
+  log.info('App before-quit event triggered');
+});
+
+app.on('quit', () => {
+  log.info('App quit event triggered');
 });
 
 ipcMain.on('check-for-updates', (event) => {

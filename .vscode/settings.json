@@ -8,6 +8,10 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "files.watcherExclude": {
+    "**/dist/**": true,
+    "**/release/**": true
+  },
   "files.associations": {
     "xstring": "cpp",
     "valarray": "cpp",
