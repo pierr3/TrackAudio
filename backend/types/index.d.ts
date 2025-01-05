@@ -105,7 +105,7 @@ declare namespace TrackAudioAfv {
   export function StopMicTest(): void;
 
   export function RegisterCallback(
-    func: (arg: string, arg2: string, arg3: string) => void
+    func: (arg: string, arg2: string, arg3: string, arg4: string) => void
   ): void;
 
   export function SetupPttBegin(pttIndex: number, shouldListenForJoysticks?: boolean): void;

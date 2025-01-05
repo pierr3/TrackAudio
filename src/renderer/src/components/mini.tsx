@@ -83,7 +83,12 @@ const Mini: React.FC = () => {
                 className="d-flex gap-1 justify-content-between"
                 style={{ width: '100%' }}
               >
-                <span style={{ color: radio.currentlyTx ? 'orange' : 'inherit', flexShrink: 0 }}>
+                <span
+                  style={{
+                    color: radio.isOutputMuted ? 'red' : radio.currentlyTx ? 'orange' : 'inherit',
+                    flexShrink: 0
+                  }}
+                >
                   {radio.callsign !== 'MANUAL' ? radio.callsign : radio.humanFrequency}:
                 </span>
                 <span

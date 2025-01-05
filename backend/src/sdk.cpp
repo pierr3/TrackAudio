@@ -178,7 +178,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kRxEnd);
         jsonMessage["value"]["callsign"] = *callsign;
         jsonMessage["value"]["pFrequencyHz"] = *frequencyHz;
-        jsonMessage["value"]["remainingTransmitters"] = *parameter3;
+        jsonMessage["value"]["activeTransmitters"] = *parameter3;
         broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
 
         std::lock_guard<std::mutex> lock(TransmittingMutex);

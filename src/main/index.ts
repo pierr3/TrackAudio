@@ -40,7 +40,7 @@ let autoOpenSettings = false;
 const store = new Store({ clearInvalidConfig: true });
 configManager.setStore(store);
 
-const eventQueue: [string, string, string][] = [];
+const eventQueue: [string, string, string, string][] = [];
 
 /**
  * Sets the always on top state for the main window, with different
@@ -431,8 +431,8 @@ ipcMain.handle('settings-ready', () => {
   while (eventQueue.length > 0) {
     const event = eventQueue.shift();
     if (!event) return;
-    const [arg, arg2, arg3] = event;
-    handleEvent(arg, arg2, arg3);
+    const [arg, arg2, arg3, arg4] = event;
+    handleEvent(arg, arg2, arg3, arg4);
   }
 
   // Automatically show the settings dialog if the flag was set during
@@ -753,11 +753,11 @@ ipcMain.on('log-error', (_, message: string) => {
 // Callbacks
 //
 
-const handleEvent = (arg: string, arg2: string, arg3: string) => {
+const handleEvent = (arg: string, arg2: string, arg3: string, arg4: string) => {
   if (!arg) return;
 
   if (!isAppReady) {
-    eventQueue.push([arg, arg2, arg3]);
+    eventQueue.push([arg, arg2, arg3, arg4]);
     return;
   }
 
@@ -778,11 +778,11 @@ const handleEvent = (arg: string, arg2: string, arg3: string) => {
   }
 
   if (arg == AfvEventTypes.StationRxBegin) {
-    mainWindow?.webContents.send('StationRxBegin', arg2, arg3);
+    mainWindow?.webContents.send('StationRxBegin', arg2, arg3, arg4);
   }
 
   if (arg == AfvEventTypes.StationRxEnd) {
-    mainWindow?.webContents.send('StationRxEnd', arg2, arg3);
+    mainWindow?.webContents.send('StationRxEnd', arg2, arg3, arg4);
   }
 
   if (arg == AfvEventTypes.StationTransceiversUpdated) {

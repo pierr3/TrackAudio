@@ -106,8 +106,8 @@ public:
         NapiHelpers::callbackAvailable = true;
     }
 
-    static void callElectron(
-        const std::string& eventName, const std::string& data = "", const std::string& data2 = "")
+    static void callElectron(const std::string& eventName, const std::string& data = "",
+        const std::string& data2 = "", const std::string& data3 = "")
     {
         if (!NapiHelpers::callbackAvailable || NapiHelpers::callbackRef == nullptr
             || NapiHelpers::_requestExit.load()) {
@@ -117,15 +117,16 @@ public:
         std::lock_guard<std::mutex> lock(_callElectronMutex);
 
         callbackRef->NonBlockingCall(
-            [eventName, data, data2](Napi::Env env, Napi::Function jsCallback) {
-                PLOGV << "Event name: " << eventName << ", data: " << data << ", data2: " << data2;
+            [eventName, data, data2, data3](Napi::Env env, Napi::Function jsCallback) {
+                PLOGV << "Event name: " << eventName << ", data: " << data << ", data2: " << data2
+                      << ", data3: " << data3;
                 jsCallback.Call({ Napi::String::New(env, eventName), Napi::String::New(env, data),
-                    Napi::String::New(env, data2) });
+                    Napi::String::New(env, data2), Napi::String::New(env, data3) });
             });
     }
 
-    static void callElectronWithStringArray(
-        const std::string& eventName, const std::string& data, const std::vector<std::string>& arr)
+    static void callElectronWithStringArray(const std::string& eventName, const std::string& data,
+        const std::string& data2, const std::vector<std::string>& arr)
     {
         if (!NapiHelpers::callbackAvailable || NapiHelpers::callbackRef == nullptr
             || NapiHelpers::_requestExit.load()) {
@@ -135,13 +136,13 @@ public:
         std::lock_guard<std::mutex> lock(_callElectronMutex);
 
         callbackRef->NonBlockingCall(
-            [eventName, data, arr](Napi::Env env, Napi::Function jsCallback) {
+            [eventName, data, data2, arr](Napi::Env env, Napi::Function jsCallback) {
                 auto napiArr = Napi::Array::New(env, arr.size());
                 for (size_t i = 0; i < arr.size(); i++) {
                     napiArr[i] = Napi::String::New(env, arr[i]);
                 }
-                jsCallback.Call(
-                    { Napi::String::New(env, eventName), Napi::String::New(env, data), napiArr });
+                jsCallback.Call({ Napi::String::New(env, eventName), Napi::String::New(env, data),
+                    Napi::String::New(env, data2), napiArr });
             });
     }
 

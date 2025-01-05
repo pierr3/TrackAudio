@@ -102,20 +102,34 @@ class IPCInterface {
       radioStoreState.setCurrentlyRx(parseInt(frequency), true);
     });
 
-    window.api.on('StationRxBegin', (frequency: string, activeTransmitters: string[]) => {
-      if (radioStoreState.isInactive(parseInt(frequency))) {
-        return;
-      }
-      radioStoreState.setLastReceivedCallsigns(parseInt(frequency), activeTransmitters);
-    });
+    window.api.on(
+      'StationRxBegin',
+      (frequency: string, _callsign: string, activeTransmitters: string[]) => {
+        if (radioStoreState.isInactive(parseInt(frequency))) {
+          return;
+        }
 
-    window.api.on('StationRxEnd', (frequency: string, remainingTransmitters: string[]) => {
-      if (radioStoreState.isInactive(parseInt(frequency))) {
-        return;
+        // On begin, use the complete list of transmitters
+        radioStoreState.setLastReceivedCallsigns(parseInt(frequency), activeTransmitters);
       }
-      // When someone stops, they become the "last received"
-      radioStoreState.setLastReceivedCallsigns(parseInt(frequency), remainingTransmitters);
-    });
+    );
+
+    window.api.on(
+      'StationRxEnd',
+      (frequency: string, callsign: string, activeTransmitters: string[]) => {
+        if (radioStoreState.isInactive(parseInt(frequency))) {
+          return;
+        }
+
+        if (activeTransmitters.length > 0) {
+          // If others are still transmitting, show them
+          radioStoreState.setLastReceivedCallsigns(parseInt(frequency), activeTransmitters);
+        } else {
+          // If no one is transmitting, keep who just stopped as the last received
+          radioStoreState.setLastReceivedCallsigns(parseInt(frequency), [callsign]);
+        }
+      }
+    );
 
     window.api.on('FrequencyRxEnd', (frequency: string) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
