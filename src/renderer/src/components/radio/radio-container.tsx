@@ -125,7 +125,7 @@ const RadioContainer: React.FC = () => {
             )}
 
             {uiState === 'show-radios' && (
-              <div className="row mx-1 mt-1 gap-3">
+              <div className="row m-1 gap-3">
                 {filteredRadios.map((radio) => (
                   <Radio key={radio.frequency} radio={radio} />
                 ))}
