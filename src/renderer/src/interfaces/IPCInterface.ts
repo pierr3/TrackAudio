@@ -66,6 +66,10 @@ class IPCInterface {
     window.api.on('station-state-update', (data: string) => {
       const update = JSON.parse(data) as StationStateUpdate;
 
+      if (update.value.isAvailable == false) {
+        return;
+      }
+
       const radio = radioStoreState.getRadioByFrequency(update.value.frequency);
 
       if (!radio) {

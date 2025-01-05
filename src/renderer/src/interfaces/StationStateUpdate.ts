@@ -10,5 +10,6 @@ export interface StationStateUpdate {
     headset: boolean;
     outputVolume: number;
     isOutputMuted: boolean;
+    isAvailable?: boolean;
   };
 }
