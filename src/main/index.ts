@@ -184,6 +184,7 @@ const createWindow = (): void => {
   // };
 
   const options: Electron.BrowserWindowConstructorOptions = {
+    show: false,
     height: defaultWindowSize.height,
     width: defaultWindowSize.width,
     minWidth: 250,
@@ -191,6 +192,8 @@ const createWindow = (): void => {
     icon,
     trafficLightPosition: { x: 12, y: 10 },
     titleBarStyle: 'hidden',
+    title: 'TrackAudio',
+    frame: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -273,6 +276,11 @@ const createWindow = (): void => {
     }
   });
 
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show();
+    mainWindow?.focus();
+  });
+
   mainWindow.on('resize', () => {
     // Issue 129: Set the always on top state on any resize, not
     // just when the mini-mode button is pressed. The resize event
@@ -331,9 +339,22 @@ app
   .whenReady()
   .then(() => {
     // Set app user model id for windows
-    electronApp.setAppUserModelId('com.electron');
+    app.setName('TrackAudio - Audio for VATSIM Client');
+    electronApp.setAppUserModelId('com.vatsim.trackaudio');
+
     app.on('browser-window-created', (_, window) => {
       optimizer.watchWindowShortcuts(window);
+    });
+
+    app.on('web-contents-created', (_, webContents) => {
+      webContents.setWindowOpenHandler(() => {
+        return {
+          action: 'allow',
+          overrideBrowserWindowOptions: {
+            title: 'TrackAudio'
+          }
+        };
+      });
     });
 
     configManager.loadConfig();
@@ -826,10 +847,12 @@ const handleEvent = (arg: string, arg2: string, arg3: string, arg4: string) => {
   }
 
   if (arg == AfvEventTypes.NetworkConnected) {
+    mainWindow?.setTitle(`${arg2} - TrackAudio - Audio for VATSIM Client`);
     mainWindow?.webContents.send('network-connected', arg2, arg3);
   }
 
   if (arg == AfvEventTypes.NetworkDisconnected) {
+    mainWindow?.setTitle(`TrackAudio - Audio for VATSIM Client`);
     mainWindow?.webContents.send('network-disconnected');
   }
 

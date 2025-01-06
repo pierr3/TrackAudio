@@ -10,7 +10,11 @@
   },
   "files.watcherExclude": {
     "**/dist/**": true,
-    "**/release/**": true
+    "**/release/**": true,
+    "**/dist/win-unpacked/**": true
+  },
+  "typescript.tsserver.watchOptions": {
+    "excludeDirectories": ["**/node_modules", "dist", "release"]
   },
   "files.associations": {
     "xstring": "cpp",
