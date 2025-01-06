@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import useErrorStore from '../../store/errorStore';
 import useSessionStore from '../../store/sessionStore';
 import useUtilStore from '../../store/utilStore';
-import { Sliders2, VolumeMute, VolumeUp } from 'react-bootstrap-icons';
+import { Sliders2, VolumeMute, VolumeUp, VolumeMuteFill } from 'react-bootstrap-icons';
 
 export interface RadioProps {
   radio: RadioType;
@@ -445,7 +445,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             onClick={clickRx}
             onContextMenu={toggleMute}
           >
-            RX
+            {radio.isOutputMuted ? <VolumeMuteFill className="text-white" size={20} /> : 'RX'}
           </button>
 
           <button

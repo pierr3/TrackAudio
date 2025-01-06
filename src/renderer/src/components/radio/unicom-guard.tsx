@@ -6,6 +6,7 @@ import useSessionStore from '@renderer/store/sessionStore';
 import useErrorStore from '@renderer/store/errorStore';
 import { GuardFrequency, UnicomFrequency } from '../../../../shared/common';
 import { useMediaQuery } from 'react-responsive';
+import { VolumeMuteFill } from 'react-bootstrap-icons';
 
 const UnicomGuardBar = () => {
   const [radios, setRadioState, addRadio, removeRadio, setOutputVolume] = useRadioState((state) => [
@@ -325,7 +326,7 @@ const UnicomGuardBar = () => {
             toggleMute(unicom);
           }}
         >
-          RX
+          {unicom?.isOutputMuted ? <VolumeMuteFill className="text-white" size={14} /> : 'RX'}
         </button>
         <button
           className={clsx(
@@ -378,7 +379,7 @@ const UnicomGuardBar = () => {
             toggleMute(guard);
           }}
         >
-          RX
+          {guard?.isOutputMuted ? <VolumeMuteFill className="text-white" size={14} /> : 'RX'}
         </button>
         <button
           className={clsx(
