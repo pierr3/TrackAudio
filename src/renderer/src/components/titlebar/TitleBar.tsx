@@ -156,11 +156,12 @@ const TitleBar: React.FC<TitleBarProps> & {
 
   useEffect(() => {
     handleResize();
-
+    window.addEventListener('resize', handleResize);
     window.addEventListener('focus', handleFocus);
     window.addEventListener('blur', handleBlur);
 
     return () => {
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
     };
