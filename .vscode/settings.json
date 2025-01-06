@@ -8,6 +8,14 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "files.watcherExclude": {
+    "**/dist/**": true,
+    "**/release/**": true,
+    "**/dist/win-unpacked/**": true
+  },
+  "typescript.tsserver.watchOptions": {
+    "excludeDirectories": ["**/node_modules", "dist", "release"]
+  },
   "files.associations": {
     "xstring": "cpp",
     "valarray": "cpp",
@@ -109,6 +117,19 @@
     "xtr1common": "cpp",
     "xtree": "cpp",
     "xutility": "cpp",
-    "resumable": "cpp"
-  }
+    "resumable": "cpp",
+    "barrier": "cpp",
+    "cfenv": "cpp",
+    "csetjmp": "cpp",
+    "cuchar": "cpp",
+    "cwctype": "cpp",
+    "latch": "cpp",
+    "numbers": "cpp",
+    "scoped_allocator": "cpp",
+    "semaphore": "cpp",
+    "spanstream": "cpp",
+    "stacktrace": "cpp",
+    "syncstream": "cpp"
+  },
+  "C_Cpp.default.compileCommands": "backend/build/compile_commands.json"
 }

@@ -4,6 +4,7 @@ import useUtilStore from '@renderer/store/utilStore';
 import { Configuration } from 'src/shared/config.type';
 import { StationStateUpdate } from './StationStateUpdate';
 import useErrorStore from '@renderer/store/errorStore';
+import { MainVolumeChange } from 'src/shared/MainVolumeChange';
 
 class IPCInterface {
   public init() {
@@ -51,7 +52,7 @@ class IPCInterface {
             return;
           }
           radioStoreState.addRadio(freq, station, sessionStoreState.getStationCallsign());
-          void window.api.SetRadioGain(sessionStoreState.radioGain / 100);
+          void window.api.SetMainRadioVolume(sessionStoreState.mainRadioVolume);
         })
         .catch((err: unknown) => {
           window.api.log.error(err as string);
@@ -68,7 +69,6 @@ class IPCInterface {
       const radio = radioStoreState.getRadioByFrequency(update.value.frequency);
 
       if (!radio) {
-        // We received an update for a frequency that we don't have a radio for, so we create one
         radioStoreState.addRadio(
           update.value.frequency,
           update.value.callsign ?? 'MANUAL',
@@ -84,25 +84,52 @@ class IPCInterface {
         tx: update.value.tx,
         xc: update.value.xc,
         crossCoupleAcross: update.value.xca,
-        onSpeaker: !update.value.headset
+        onSpeaker: !update.value.headset,
+        outputVolume: update.value.outputVolume,
+        isOutputMuted: update.value.isOutputMuted
       });
+    });
+
+    window.api.on('main-volume-change', (data: string) => {
+      const change = JSON.parse(data) as MainVolumeChange;
+      sessionStoreState.setMainRadioVolume(change.value.volume);
     });
 
     window.api.on('FrequencyRxBegin', (frequency: string) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
         return;
       }
-
       radioStoreState.setCurrentlyRx(parseInt(frequency), true);
     });
 
-    window.api.on('StationRxBegin', (frequency: string, callsign: string) => {
-      if (radioStoreState.isInactive(parseInt(frequency))) {
-        return;
-      }
+    window.api.on(
+      'StationRxBegin',
+      (frequency: string, _callsign: string, activeTransmitters: string[]) => {
+        if (radioStoreState.isInactive(parseInt(frequency))) {
+          return;
+        }
 
-      radioStoreState.setLastReceivedCallsign(parseInt(frequency), callsign);
-    });
+        // On begin, use the complete list of transmitters
+        radioStoreState.setLastReceivedCallsigns(parseInt(frequency), activeTransmitters);
+      }
+    );
+
+    window.api.on(
+      'StationRxEnd',
+      (frequency: string, callsign: string, activeTransmitters: string[]) => {
+        if (radioStoreState.isInactive(parseInt(frequency))) {
+          return;
+        }
+
+        if (activeTransmitters.length > 0) {
+          // If others are still transmitting, show them
+          radioStoreState.setLastReceivedCallsigns(parseInt(frequency), activeTransmitters);
+        } else {
+          // If no one is transmitting, keep who just stopped as the last received
+          radioStoreState.setLastReceivedCallsigns(parseInt(frequency), [callsign]);
+        }
+      }
+    );
 
     window.api.on('FrequencyRxEnd', (frequency: string) => {
       if (radioStoreState.isInactive(parseInt(frequency))) {
@@ -199,6 +226,7 @@ class IPCInterface {
     window.api.removeAllListeners('network-disconnected');
     window.api.removeAllListeners('ptt-key-set');
     window.api.removeAllListeners('station-state-update');
+    window.api.removeAllListeners('main-volume-change');
   }
 }
 

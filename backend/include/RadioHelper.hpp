@@ -14,6 +14,8 @@ public:
     bool tx;
     bool xc;
     bool xca;
+    bool isOutputMuted;
+    float outputVolume;
 };
 
 class RadioHelper {
@@ -44,7 +46,8 @@ public:
 
         bool oldRxValue = mClient->GetRxState(newState.frequency);
         mClient->SetRx(newState.frequency, newState.rx);
-        mClient->SetRadioGainAll(UserSession::currentRadioGain);
+
+        setRadioVolume(newState.frequency, newState.outputVolume);
 
         if (UserSession::xy) {
             mClient->SetTx(newState.frequency, newState.tx);
@@ -55,6 +58,8 @@ public:
             mClient->SetXc(newState.frequency, false);
             mClient->SetCrossCoupleAcross(newState.frequency, false);
         }
+
+        mClient->SetOutputMute(newState.frequency, newState.isOutputMuted);
 
         mClient->SetOnHeadset(newState.frequency, newState.headset);
 
@@ -79,6 +84,50 @@ public:
         NapiHelpers::callElectron("station-state-update", stateJson.dump());
 
         return true;
+    }
+
+    static void setAllRadioVolumes()
+    {
+
+        auto states = mClient->getRadioState();
+        for (const auto& state : states) {
+            setRadioVolume(state.first);
+        }
+    }
+
+    static void setRadioVolume(
+        const unsigned int frequency, const std::optional<float> volume = std::nullopt)
+    {
+
+        float stationVolume = 100;
+        if (volume.has_value()) {
+            stationVolume = volume.value();
+            UserSession::stationVolumes.insert_or_assign(frequency, stationVolume);
+        } else {
+            auto stationVolumeIterator = UserSession::stationVolumes.find(frequency);
+            if (stationVolumeIterator != UserSession::stationVolumes.end()) {
+                stationVolume = stationVolumeIterator->second;
+            }
+        }
+        float combinedVolume
+            = (UserSession::currentMainVolume / 100.0f) * (stationVolume / 100.0f) * 100.0f;
+
+        // Clamp it to ensure it stays within 0-100
+        combinedVolume = std::min(100.0f, std::max(0.0f, combinedVolume));
+
+        // Now convert the 0-100 volume to gain
+        float gain = Helpers::ConvertVolumeToGain(combinedVolume);
+
+        mClient->SetRadioGain(frequency, gain);
+    }
+
+    static double getRadioVolume(const unsigned int frequency)
+    {
+        auto stationVolumeIterator = UserSession::stationVolumes.find(frequency);
+        if (stationVolumeIterator != UserSession::stationVolumes.end()) {
+            return stationVolumeIterator->second;
+        }
+        return 100;
     }
 };
 ;

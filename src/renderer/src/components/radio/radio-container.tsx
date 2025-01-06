@@ -1,60 +1,77 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import Radio from './radio';
 import useRadioState from '../../store/radioStore';
 import TopBarContainer from './top-bar-container';
 import useSessionStore from '@renderer/store/sessionStore';
 import useUtilStore from '@renderer/store/utilStore';
 import ExpandedRxInfo from './expanded-rx-info';
-import { useMediaQuery } from 'react-responsive';
 import AddStation from '../sidebar/add-station';
 import AddFrequency from '../sidebar/add-frequency';
 
 const LOADING_DELAY = 500;
-const EXCLUDED_FREQUENCIES = [0, 122.8e6, 121.5e6];
+const EXCLUDED_FREQUENCIES = [0];
+const UNICOM_EXCLUDED_FREQUENCIES = [122.8e6, 121.5e6];
 
 const RadioContainer: React.FC = () => {
-  const radios = useRadioState((state) => state.radios);
+  const [radios, showingUnicomBar] = useRadioState((state) => [
+    state.radios,
+    state.showingUnicomBar
+  ]);
   const [isConnected, isNetworkConnected, isAtc] = useSessionStore((state) => [
     state.isConnected,
     state.isNetworkConnected,
     state.isAtc
   ]);
-  const isWideScreen = useMediaQuery({ minWidth: '790px' });
   const [showExpandedRxInfo] = useUtilStore((state) => [state.showExpandedRxInfo]);
 
-  const [uiState, setUiState] = useState<null | 'add-station' | 'show-radios'>();
+  const [uiState, setUiState] = useState<null | 'add-station' | 'show-radios'>(null);
 
   // Filter radios once when the array changes
   const filteredRadios = useMemo(() => {
-    return radios.filter((radio) => !EXCLUDED_FREQUENCIES.includes(radio.frequency));
-  }, [radios]);
+    const excludedFreqs = showingUnicomBar
+      ? [...EXCLUDED_FREQUENCIES, ...UNICOM_EXCLUDED_FREQUENCIES]
+      : EXCLUDED_FREQUENCIES;
+
+    return radios.filter((radio) => !excludedFreqs.includes(radio.frequency));
+  }, [radios, showingUnicomBar]);
+
+  // Memoize the condition check to prevent unnecessary re-renders
+  const shouldShowAddStation = useCallback(() => {
+    return !isAtc || filteredRadios.length === 0;
+  }, [isAtc, filteredRadios.length]);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: NodeJS.Timeout | undefined;
 
     if (!isConnected) {
       setUiState(null);
       return;
     }
 
-    if (filteredRadios.length === 0) {
-      if (!isAtc) {
-        setUiState('add-station');
-        return;
-      }
-      timer = setTimeout(() => {
-        if (filteredRadios.length === 0) {
+    const updateUiState = () => {
+      if (filteredRadios.length === 0) {
+        if (shouldShowAddStation()) {
           setUiState('add-station');
         }
-      }, LOADING_DELAY);
-    } else {
-      setUiState('show-radios');
+      } else {
+        setUiState('show-radios');
+      }
+    };
+
+    // Initial state update
+    updateUiState();
+
+    // Only set timer if needed
+    if (filteredRadios.length === 0 && !shouldShowAddStation()) {
+      timer = setTimeout(updateUiState, LOADING_DELAY);
     }
 
     return () => {
-      clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+      }
     };
-  }, [filteredRadios, isAtc]);
+  }, [isConnected, filteredRadios.length, shouldShowAddStation]);
 
   if (!isNetworkConnected) {
     return (
@@ -90,9 +107,7 @@ const RadioContainer: React.FC = () => {
 
       <div className="d-flex flex-column hide-topbar sub-sub-structure">
         <div className="h-100 d-flex gap-3">
-          <div
-            className={`box-container ${showExpandedRxInfo && isWideScreen ? 'radio-list-expanded' : 'w-100'}`}
-          >
+          <div className={`box-container ${showExpandedRxInfo ? 'radio-list-expanded' : 'w-100'}`}>
             {uiState === 'add-station' && (
               <div className="d-flex justify-content-center flex-column radio-text h-100 w-100">
                 <div
@@ -110,7 +125,7 @@ const RadioContainer: React.FC = () => {
             )}
 
             {uiState === 'show-radios' && (
-              <div className="row mx-1 mt-1 gap-3">
+              <div className="row m-1 gap-3">
                 {filteredRadios.map((radio) => (
                   <Radio key={radio.frequency} radio={radio} />
                 ))}
@@ -118,7 +133,7 @@ const RadioContainer: React.FC = () => {
             )}
           </div>
 
-          {showExpandedRxInfo && isWideScreen && (
+          {showExpandedRxInfo && (
             <div
               className="box-container w-25 h-100"
               style={{

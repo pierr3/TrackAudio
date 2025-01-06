@@ -18,6 +18,7 @@ export declare const AfvEventTypes: {
   FrequencyRxBegin: string;
   FrequencyRxEnd: string;
   StationRxBegin: string;
+  StationRxEnd: string;
   PttState: string;
   NetworkConnected: string;
   NetworkDisconnected: string;
@@ -26,7 +27,17 @@ export declare const AfvEventTypes: {
   FrequencyStateUpdate: string;
   StationStateUpdate: string;
   OpenSettingsModal: string;
+  MainVolumeChange: string;
 };
+
+export declare interface Session {
+  calos: string;
+  fab: number;
+  cinto : string;
+  lacra: number;
+  linstal: number;
+  ianto: boolean;
+}
 
 declare namespace TrackAudioAfv {
   export function GetVersion(): string;
@@ -64,7 +75,9 @@ declare namespace TrackAudioAfv {
     tx: boolean,
     xc: boolean,
     onSpeaker: boolean,
-    crossCoupleAcross: boolean
+    crossCoupleAcross: boolean,
+    isOutputMuted?: boolean,
+    outputGain?: number,
   ): Promise<boolean>;
 
   export function GetFrequencyState(frequency: number): Promise<{
@@ -72,12 +85,14 @@ declare namespace TrackAudioAfv {
     tx: boolean;
     xc: boolean;
     onSpeaker: boolean;
+    isOutputMuted: boolean;
+    outputGain: number;
   }>;
 
   export function SetCid(cid: string): void;
 
-  export function SetRadioGain(gain: number): void;
-  export function SetFrequencyRadioGain(frequency: number, gain: number): void;
+  export function SetMainRadioVolume(volume: number): void;
+  export function SetFrequencyRadioVolume(frequency: number, stationVolume: number): void;
   export function SetPtt(activate: boolean): void;
 
   export function ClearPtt(pttIndex: number): void;
@@ -90,7 +105,7 @@ declare namespace TrackAudioAfv {
   export function StopMicTest(): void;
 
   export function RegisterCallback(
-    func: (arg: string, arg2: string, arg3: string) => void
+    func: (arg: string, arg2: string, arg3: string, arg4: string) => void
   ): void;
 
   export function SetupPttBegin(pttIndex: number, shouldListenForJoysticks?: boolean): void;
@@ -99,7 +114,7 @@ declare namespace TrackAudioAfv {
   export function RequestPttKeyName(pttIndex: number): void;
 
   export function IsConnected(): boolean;
-  export function Bootstrap(resourcePath: string): {
+  export function Bootstrap(resourcePath: string, request?: string): {
     canRun: boolean;
     needUpdate: boolean;
     version: string;
@@ -109,4 +124,6 @@ declare namespace TrackAudioAfv {
   export function GetLoggerFilePath(): string;
 
   export function Exit(): boolean;
+
+  export function SetSession(session: Session): void;
 }

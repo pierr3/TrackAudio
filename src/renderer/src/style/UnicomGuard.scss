@@ -28,7 +28,7 @@
 }
 
 .rx-bar-container {
-  height: 29px;
+  // height: 29px;
   width: fit-content;
   margin: 7.5px 0px;
   line-height: 29px;
@@ -89,6 +89,10 @@
     outline: darken($success, 15%) solid 1px !important;
   }
 
+  &.btn-danger {
+    outline: darken($danger, 15%) solid 1px !important;
+  }
+
   &.btn-warning {
     outline: darken($warning, 15%) solid 1px !important;
   }
@@ -99,6 +103,6 @@
   width: 80px !important;
 }
 
-.global-volume-bar {
+.main-volume-bar {
   height: 23px;
 }

@@ -8,6 +8,7 @@ exports.AfvEventTypes = {
   FrequencyRxBegin: "FrequencyRxBegin",
   FrequencyRxEnd: "FrequencyRxEnd",
   StationRxBegin: "StationRxBegin",
+  StationRxEnd: "StationRxEnd",
   PttState: "PttState",
   VuMeter: "VuMeter",
   NetworkConnected: "network-connected",
@@ -15,4 +16,5 @@ exports.AfvEventTypes = {
   PttKeySet: "UpdatePttKeyName",
   StationStateUpdate: "station-state-update",
   OpenSettingsModal: "open-settings-modal",
+  MainVolumeChange: "main-volume-change",
 };

@@ -71,16 +71,39 @@ const Mini: React.FC = () => {
         {radios
           .filter((r) => r.rx)
           .map((radio) => {
+            const radioPrefix = radio.callsign.slice(0, 4);
+            const reorderedCallsigns = [
+              ...radio.lastReceivedCallsigns.filter((cs) => !cs.startsWith(radioPrefix)),
+              ...radio.lastReceivedCallsigns.filter((cs) => cs.startsWith(radioPrefix))
+            ];
+
             return (
-              <div key={radio.frequency} className="d-flex gap-1 justify-content-between">
-                <span style={{ color: radio.currentlyTx ? 'orange' : 'inherit' }}>
+              <div
+                key={radio.frequency}
+                className="d-flex gap-1 justify-content-between"
+                style={{ width: '100%' }}
+              >
+                <span
+                  style={{
+                    color: radio.isOutputMuted ? 'red' : radio.currentlyTx ? 'orange' : 'inherit',
+                    flexShrink: 0
+                  }}
+                >
                   {radio.callsign !== 'MANUAL' ? radio.callsign : radio.humanFrequency}:
                 </span>
                 <span
-                  style={{ color: radio.currentlyRx ? 'orange' : 'inherit' }}
+                  style={{
+                    color: radio.currentlyRx ? 'orange' : 'inherit',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    paddingLeft: '10px',
+                    textAlign: 'right'
+                  }}
                   className="rx-text-nofont"
+                  title={reorderedCallsigns.join(', ')}
                 >
-                  {radio.lastReceivedCallsign ? radio.lastReceivedCallsign : '--------'}
+                  {reorderedCallsigns.length > 0 ? reorderedCallsigns.join(', ') : '--------'}
                 </span>
               </div>
             );

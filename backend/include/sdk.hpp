@@ -1,8 +1,13 @@
+// SDK.hpp
 #pragma once
 
 #include "sdkWebsocketMessage.hpp"
+#include <absl/strings/str_cat.h>
+#include <absl/strings/str_join.h>
 #include <map>
 #include <memory>
+#include <mutex>
+#include <nlohmann/json_fwd.hpp>
 #include <optional>
 #include <restinio/all.hpp>
 #include <restinio/common_types.hpp>
@@ -12,13 +17,8 @@
 #include <restinio/traits.hpp>
 #include <restinio/websocket/message.hpp>
 #include <restinio/websocket/websocket.hpp>
-#include <string>
-
-#include <absl/strings/str_cat.h>
-#include <absl/strings/str_join.h>
-#include <mutex>
-#include <nlohmann/json_fwd.hpp>
 #include <set>
+#include <string>
 
 using sdk::types::WebsocketMessage;
 using sdk::types::WebsocketMessageType;
@@ -37,72 +37,19 @@ enum class Event : std::uint8_t {
 }
 
 class SDK : public std::enable_shared_from_this<SDK> {
-
-public:
-    explicit SDK();
-    SDK(const SDK&) = delete;
-    SDK(SDK&&) = delete;
-    SDK& operator=(const SDK&) = delete;
-    SDK& operator=(SDK&&) = delete;
-    ~SDK();
-    /**
-     * Handles an AFV event for the websocket.
-     *
-     * @param event The AFV event to handle.
-     * @param data Optional data associated with the event.
-     */
-    void handleAFVEventForWebsocket(sdk::types::Event event,
-        const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz);
-
-    /**
-     * Handles an AFV voiceConnected event for the websocket.
-     *
-     * @param isVoiceConnected True if voice is connected.
-     */
-    void handleVoiceConnectedEventForWebsocket(bool isVoiceConnected);
-
-    /**
-     * @brief Builds a JSON object for the station state.
-     *
-     * @param callsign The callsign of the station. Optional.
-     * @param frequencyHz The frequency of the station.
-     *
-     * @return The JSON object for the station state.
-     */
-    static nlohmann::json buildStationStateJson(
-        const std::optional<std::string>& callsign, const int& frequencyHz);
-
-    /**
-     * @brief Publishes the station state JSON to the websocket clients.
-     *
-     * @param state A JSON object representing the station state.
-     */
-    void publishStationState(const nlohmann::json& state);
-
-    /**
-     * @brief Publishes the kStationAdded message.
-     *
-     * @param callsign The callsign for the added station.
-     * @param frequencyHz The frequency for the added station.
-     */
-    void publishStationAdded(const std::string& callsign, const int& frequencyHz);
-
-    /**
-     * @brief Publishes the kFrequencyRemoved message.
-     *
-     * @param frequencyHz The removed frequency.
-     */
-    void publishFrequencyRemoved(const int& frequencyHz);
-
 private:
     using serverTraits = restinio::traits_t<restinio::asio_timer_manager_t, restinio::null_logger_t,
         restinio::router::express_router_t<>>;
+    using ws_handle_t = restinio::websocket::basic::ws_handle_t;
 
-    restinio::running_server_handle_t<serverTraits> pSDKServer;
+    // Enhanced WebSocket connection tracking
+    struct WebSocketConnection {
+        std::shared_ptr<ws_handle_t> handle; // Using the correct type
+        std::string clientId;
+        std::chrono::system_clock::time_point lastActivity;
+    };
 
-    using ws_registry_t = std::map<std::uint64_t, restinio::websocket::basic::ws_handle_t>;
-
-    ws_registry_t pWsRegistry;
+    enum class MessageScope { SingleClient, AllClients, AllWithElectron };
 
     enum sdkCall : std::uint8_t {
         kTransmitting,
@@ -111,10 +58,37 @@ private:
         kWebSocket,
     };
 
+    restinio::running_server_handle_t<serverTraits> pSDKServer;
+    std::map<std::uint64_t, WebSocketConnection> pWsRegistry;
+
     static inline std::mutex TransmittingMutex;
     static inline std::set<std::string> CurrentlyTransmittingData;
-
     static inline std::mutex BroadcastMutex;
+
+    // Private methods
+    void sendMessage(uint64_t clientId, const std::string& data);
+    void broadcastMessage(const std::string& data, MessageScope scope,
+        const std::optional<std::string>& electronEventName = std::nullopt);
+    void buildServer();
+    std::unique_ptr<restinio::router::express_router_t<>> buildRouter();
+
+    // Request handlers
+    static restinio::request_handling_status_t handleTransmittingSDKCall(
+        const restinio::request_handle_t& req);
+    void handleIncomingWebSocketRequest(const std::string& payload, uint64_t clientId);
+    restinio::request_handling_status_t handleRxSDKCall(const restinio::request_handle_t& req);
+    restinio::request_handling_status_t handleTxSDKCall(const restinio::request_handle_t& req);
+    restinio::request_handling_status_t handleWebSocketSDKCall(
+        const restinio::request_handle_t& req);
+
+    // State management handlers
+    void handleSetStationState(const nlohmann::json& json, uint64_t clientId);
+    void handleGetStationStates(uint64_t requesterId);
+    void handleGetStationState(const std::string& callsign, uint64_t requesterId);
+    void handleGetMainVolume(uint64_t requesterId);
+    void handleAddStation(const nlohmann::json& json, uint64_t clientId);
+    void handleChangeStationVolume(const nlohmann::json& json, uint64_t clientId);
+    void handleChangeMainVolume(const nlohmann::json& json, uint64_t clientId);
 
     static std::map<sdkCall, std::string>& getSDKCallUrlMap()
     {
@@ -123,93 +97,28 @@ private:
         return mSDKCallUrl;
     }
 
-    /**
-     * @brief Broadcasts data on the websocket.
-     *
-     * This function sends the provided data on the websocket connection.
-     *
-     * @param data The data to be broadcasted in JSON format.
-     */
-    void broadcastOnWebsocket(const std::string& data);
+public:
+    explicit SDK();
+    ~SDK();
 
-    /**
-     * @brief Builds the server.
-     *
-     * This function is responsible for building the server.
-     * It performs the necessary initialization and setup tasks
-     * to create a functioning server.
-     */
-    void buildServer();
+    // Delete copy and move operations
+    SDK(const SDK&) = delete;
+    SDK(SDK&&) = delete;
+    SDK& operator=(const SDK&) = delete;
+    SDK& operator=(SDK&&) = delete;
 
-    /**
-     * @brief Builds the router.
-     */
-    std::unique_ptr<restinio::router::express_router_t<>> buildRouter();
+    // Public API methods
+    void handleAFVEventForWebsocket(sdk::types::Event event,
+        const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz,
+        const std::optional<std::vector<std::string>>& parameter3 = std::nullopt);
 
-    /**
-     * Handles the SDK call for transmitting data.
-     *
-     * @param req The request handle.
-     * @return The status of request handling.
-     */
-    static restinio::request_handling_status_t handleTransmittingSDKCall(
-        const restinio::request_handle_t& req);
+    void handleVoiceConnectedEventForWebsocket(bool isVoiceConnected);
 
-    /**
-     * Handles an incoming websocket message.
-     *
-     * @param payload The unparsed JSON payload of the incoming message.
-     */
-    void handleIncomingWebSocketRequest(const std::string& payload);
+    static nlohmann::json buildStationStateJson(
+        const std::optional<std::string>& callsign, const int& frequencyHz);
 
-    /**handleIncomingWebSocketRequest
-     * Handles the SDK call received in the request.
-     *
-     * @param req The request handle.
-     * @return The status of the request handling.
-     */
-    restinio::request_handling_status_t handleRxSDKCall(const restinio::request_handle_t& req);
-
-    /**
-     * Handles the SDK call.
-     *
-     * @param req The request handle.
-     * @return The request handling status.
-     */
-    restinio::request_handling_status_t handleTxSDKCall(const restinio::request_handle_t& req);
-
-    /**
-     * Handles a WebSocket SDK call.
-     *
-     * @param req The request handle.
-     * @return The status of the request handling.
-     */
-    restinio::request_handling_status_t handleWebSocketSDKCall(
-        const restinio::request_handle_t& req);
-
-    /**
-     * Handles the SDK call to set a station status.
-     *
-     * @param json The incoming JSON with the station status.
-     */
-    void handleSetStationState(const nlohmann::json& json);
-
-    /**
-     * Handles the SDK call to publish all the current station states.
-     *
-     */
-    void handleGetStationStates();
-
-    /**
-     * Handles the SDK call to publish the current station state for a single station.
-     *
-     */
-    void handleGetStationState(const std::string& callsign);
-
-    /**
-     * Handles the SDK call to add a station.
-     *
-     * @param json The incoming JSON with the station information.
-     */
-    void handleAddStation(const nlohmann::json& json);
+    void publishStationState(const nlohmann::json& state, bool broadcastToElectron = true);
+    void publishMainVolumeChange(const float& volume, bool broadcastToElectron = true);
+    void publishStationAdded(const std::string& callsign, const int& frequencyHz);
+    void publishFrequencyRemoved(const int& frequencyHz);
 };

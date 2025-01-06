@@ -47,6 +47,19 @@ public:
     }
 
     /**
+     * Converts volume to a gain value.
+     *
+     */
+
+    static float ConvertVolumeToGain(float volume) { return pow(10.0f, (volume - 100.0f) / 20.0f); }
+
+    /**
+     * Converts a gain value to a volume.
+     */
+
+    static float ConvertGainToVolume(float gain) { return 20.0f * log10f(gain) + 100.0f; }
+
+    /**
      * @brief Converts a JSON property that is either true, false, or "toggle" to a boolean value.
      *
      * @param incomingValue The JSON property to convert.
@@ -93,8 +106,8 @@ public:
         NapiHelpers::callbackAvailable = true;
     }
 
-    static void callElectron(
-        const std::string& eventName, const std::string& data = "", const std::string& data2 = "")
+    static void callElectron(const std::string& eventName, const std::string& data = "",
+        const std::string& data2 = "", const std::string& data3 = "")
     {
         if (!NapiHelpers::callbackAvailable || NapiHelpers::callbackRef == nullptr
             || NapiHelpers::_requestExit.load()) {
@@ -104,11 +117,121 @@ public:
         std::lock_guard<std::mutex> lock(_callElectronMutex);
 
         callbackRef->NonBlockingCall(
-            [eventName, data, data2](Napi::Env env, Napi::Function jsCallback) {
-                PLOGV << "Event name: " << eventName << ", data: " << data << ", data2: " << data2;
+            [eventName, data, data2, data3](Napi::Env env, Napi::Function jsCallback) {
+                PLOGV << "Event name: " << eventName << ", data: " << data << ", data2: " << data2
+                      << ", data3: " << data3;
                 jsCallback.Call({ Napi::String::New(env, eventName), Napi::String::New(env, data),
-                    Napi::String::New(env, data2) });
+                    Napi::String::New(env, data2), Napi::String::New(env, data3) });
             });
+    }
+
+    static void callElectronWithStringArray(const std::string& eventName, const std::string& data,
+        const std::string& data2, const std::vector<std::string>& arr)
+    {
+        if (!NapiHelpers::callbackAvailable || NapiHelpers::callbackRef == nullptr
+            || NapiHelpers::_requestExit.load()) {
+            return;
+        }
+
+        std::lock_guard<std::mutex> lock(_callElectronMutex);
+
+        callbackRef->NonBlockingCall(
+            [eventName, data, data2, arr](Napi::Env env, Napi::Function jsCallback) {
+                auto napiArr = Napi::Array::New(env, arr.size());
+                for (size_t i = 0; i < arr.size(); i++) {
+                    napiArr[i] = Napi::String::New(env, arr[i]);
+                }
+                jsCallback.Call({ Napi::String::New(env, eventName), Napi::String::New(env, data),
+                    Napi::String::New(env, data2), napiArr });
+            });
+    }
+
+    template <typename ResultType> class SimplePromiseWorker : public Napi::AsyncWorker {
+    public:
+        template <typename F>
+        SimplePromiseWorker(Napi::Env env, std::string eventName, F&& f)
+            : Napi::AsyncWorker(env)
+            , deferred(Napi::Promise::Deferred::New(env))
+            , workFn(std::forward<F>(f))
+            , event(eventName) // Store the event name
+        {
+        }
+
+        void Execute() override
+        {
+            try {
+                result = workFn();
+            } catch (const std::exception& e) {
+                SetError(e.what());
+            }
+        }
+
+        void OnOK() override
+        {
+            Napi::HandleScope scope(Env());
+            // Create object with event and data properties
+            auto obj = Napi::Object::New(Env());
+            obj.Set("event", event);
+            obj.Set("data", JsonToNapiValue(Env(), result));
+            deferred.Resolve(obj);
+        }
+
+        void OnError(const Napi::Error& error) override
+        {
+            Napi::HandleScope scope(Env());
+            deferred.Reject(error.Value());
+        }
+
+        Napi::Promise GetPromise() { return deferred.Promise(); }
+
+    private:
+        Napi::Promise::Deferred deferred;
+        std::function<ResultType()> workFn;
+        ResultType result;
+        std::string event; // Added event name storage
+    };
+
+    template <typename ResultType, typename F>
+    static Napi::Promise HandleSimplePromise(
+        Napi::Env env, const std::string& eventName, F&& workFn)
+    {
+        auto worker = new SimplePromiseWorker<ResultType>(env, eventName, std::forward<F>(workFn));
+        worker->Queue();
+        return worker->GetPromise();
+    }
+
+    static Napi::Value JsonToNapiValue(Napi::Env env, const nlohmann::json& j)
+    {
+        try {
+            if (j.is_array()) {
+                Napi::Array arr = Napi::Array::New(env, j.size());
+                size_t index = 0;
+                for (const auto& element : j) {
+                    arr[index++] = JsonToNapiValue(env, element);
+                }
+                return arr;
+
+            } else if (j.is_object()) {
+                Napi::Object obj = Napi::Object::New(env);
+                for (auto it = j.begin(); it != j.end(); ++it) {
+                    obj.Set(it.key(), JsonToNapiValue(env, it.value()));
+                }
+                return obj;
+            } else if (j.is_string()) {
+                return Napi::String::New(env, j.get<std::string>());
+            } else if (j.is_number_integer()) {
+                return Napi::Number::New(env, j.get<int>());
+            } else if (j.is_number_float()) {
+                return Napi::Number::New(env, j.get<double>());
+            } else if (j.is_boolean()) {
+                return Napi::Boolean::New(env, j.get<bool>());
+            } else {
+                return env.Null();
+            }
+        } catch (const std::exception& e) {
+            PLOGE << "Error converting JSON to Napi::Value: " << e.what();
+            return env.Null();
+        }
     }
 
     static void sendErrorToElectron(const std::string& message) { callElectron("error", message); }

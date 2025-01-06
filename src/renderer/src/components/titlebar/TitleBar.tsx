@@ -146,28 +146,26 @@ const TitleBar: React.FC<TitleBarProps> & {
       });
     });
   }, [children, calculateAvailableSpace, calculateGap, sectionRefs, elementRefs]);
+  const handleFocus = useCallback(() => {
+    setFocused(true);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocused(false);
+  }, []);
 
   useEffect(() => {
     handleResize();
-
     window.addEventListener('resize', handleResize);
-    window.addEventListener('focus', () => {
-      setFocused(true);
-    });
-    window.addEventListener('blur', () => {
-      setFocused(false);
-    });
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('focus', () => {
-        setFocused(true);
-      });
-      window.removeEventListener('blur', () => {
-        setFocused(false);
-      });
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
     };
-  }, [children, handleResize]);
+  }, [handleFocus, handleBlur]);
 
   const isTitleBarElement = (
     element: React.ReactNode

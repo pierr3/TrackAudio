@@ -17,12 +17,14 @@ export interface RadioType {
   onSpeaker: boolean;
   selected: boolean;
   transceiverCount: number;
-  lastReceivedCallsign?: string;
+  lastReceivedCallsigns: string[];
   lastReceivedCallsignHistory?: string[];
   station: string;
   position: string;
   subPosition: string;
   isPendingDeleting: boolean;
+  outputVolume: number;
+  isOutputMuted: boolean;
 }
 
 export interface FrequencyState {
@@ -31,28 +33,34 @@ export interface FrequencyState {
   xc: boolean;
   crossCoupleAcross: boolean;
   onSpeaker: boolean;
+  outputVolume: number;
+  isOutputMuted: boolean;
 }
 
 interface RadioState {
   radios: RadioType[];
   radiosSelected: RadioType[];
   pttIsOn: boolean;
+  showingUnicomBar: boolean;
   addRadio: (frequency: number, callsign: string, stationCallsign: string) => void;
   removeRadio: (frequency: number) => void;
   setRadioState: (frequency: number, frequencyState: FrequencyState) => void;
   setCurrentlyTx: (value: boolean) => void;
   setCurrentlyRx: (frequency: number, value: boolean) => void;
+  setOutputVolume: (frequency: number, volume: number) => void;
   selectRadio: (frequency: number) => void;
   getSelectedRadio: () => RadioType | undefined;
   isRadioUnique: (frequency: number) => boolean;
   isInactive: (frequency: number) => boolean;
-  setLastReceivedCallsign(frequency: number, callsign: string): void;
+  getLastReceivedCallsigns: (frequency: number) => string[];
+  setLastReceivedCallsigns(frequency: number, callsigns: string[]): void;
   setTransceiverCountForStationCallsign: (callsign: string, count: number) => void;
   setPendingDeletion: (frequency: number, value: boolean) => void;
   reset: () => void;
   addOrRemoveRadioToBeDeleted: (radio: RadioType) => void;
   clearRadiosToBeDeleted: () => void;
   getRadioByFrequency: (frequency: number) => RadioType | undefined;
+  setShowingUnicomBar: (value: boolean) => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -82,6 +90,13 @@ const useRadioState = create<RadioState>((set, get) => ({
   radios: [],
   radiosSelected: [],
   pttIsOn: false,
+  showingUnicomBar: false,
+
+  setShowingUnicomBar: (value) => {
+    set(() => ({
+      showingUnicomBar: value
+    }));
+  },
   addRadio: (frequency, callsign, stationCallsign) => {
     if (get().getRadioByFrequency(frequency)) {
       if (frequency !== UnicomFrequency && frequency !== GuardFrequency) {
@@ -113,7 +128,10 @@ const useRadioState = create<RadioState>((set, get) => ({
           onSpeaker: false,
           selected: false,
           transceiverCount: 0,
-          isPendingDeleting: false
+          isPendingDeleting: false,
+          outputVolume: 100,
+          isOutputMuted: false,
+          lastReceivedCallsigns: []
         }
       ].sort((a, b) => radioCompare(a, b, stationCallsign))
     }));
@@ -153,8 +171,9 @@ const useRadioState = create<RadioState>((set, get) => ({
   isRadioUnique: (frequency): boolean => {
     return !RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency);
   },
-  setLastReceivedCallsign: (frequency, callsign) => {
-    if (callsign === useSessionStore.getState().stationCallsign) {
+
+  setLastReceivedCallsigns: (frequency, callsigns) => {
+    if (callsigns.includes(useSessionStore.getState().stationCallsign)) {
       return; // Ignore our transmissions
     }
     set((state) => ({
@@ -162,16 +181,19 @@ const useRadioState = create<RadioState>((set, get) => ({
         radio.frequency === frequency
           ? {
               ...radio,
-              lastReceivedCallsign: callsign,
-              lastReceivedCallsignHistory: radio.lastReceivedCallsign
-                ? [...(radio.lastReceivedCallsignHistory ?? []), radio.lastReceivedCallsign].slice(
-                    -5
-                  ) // Ensure maximum of 5 values in the array
-                : radio.lastReceivedCallsignHistory
+              lastReceivedCallsigns: callsigns,
+              lastReceivedCallsignHistory: [
+                ...(radio.lastReceivedCallsignHistory ?? []),
+                ...callsigns
+              ].slice(-5)
             }
           : radio
       )
     }));
+  },
+  getLastReceivedCallsigns: (frequency: number): string[] => {
+    const radio = useRadioState.getState().radios.find((radio) => radio.frequency === frequency);
+    return radio ? radio.lastReceivedCallsigns : [];
   },
   reset: () => {
     set(() => ({
@@ -210,6 +232,13 @@ const useRadioState = create<RadioState>((set, get) => ({
       )
     }));
   },
+  setOutputVolume: (frequency, volume) => {
+    set((state) => ({
+      radios: state.radios.map((radio) =>
+        radio.frequency === frequency ? { ...radio, outputVolume: volume } : radio
+      )
+    }));
+  },
   getRadioByFrequency: (frequency) => {
     return get().radios.find((radio) => radio.frequency === frequency);
   },
@@ -225,7 +254,9 @@ const useRadioState = create<RadioState>((set, get) => ({
               crossCoupleAcross: frequencyState.crossCoupleAcross,
               onSpeaker: frequencyState.onSpeaker,
               currentlyRx: frequencyState.rx ? radio.currentlyRx : false,
-              currentlyTx: frequencyState.tx ? radio.currentlyTx : false
+              currentlyTx: frequencyState.tx ? radio.currentlyTx : false,
+              outputVolume: frequencyState.outputVolume,
+              isOutputMuted: frequencyState.isOutputMuted
             }
           : radio
       )

@@ -1,4 +1,4 @@
-#include "sdk.hpp"
+#include "SDK.hpp"
 #include "Helpers.hpp"
 #include "RadioHelper.hpp"
 #include "Shared.hpp"
@@ -8,13 +8,21 @@ SDK::SDK() { this->buildServer(); }
 
 SDK::~SDK()
 {
-    for (auto [id, ws] : this->pWsRegistry) {
-        ws->shutdown();
-        ws.reset();
+    std::lock_guard<std::mutex> lock(BroadcastMutex);
+    for (auto& [id, conn] : this->pWsRegistry) {
+        if (conn.handle) {
+            try {
+                conn.handle->get()->shutdown();
+            } catch (const std::exception& ex) {
+                PLOG_ERROR << "Error shutting down websocket: " << ex.what();
+            }
+        }
     }
     this->pWsRegistry.clear();
-    this->pSDKServer->stop();
-    this->pSDKServer.reset();
+
+    if (this->pSDKServer) {
+        this->pSDKServer->stop();
+    }
 }
 
 void SDK::buildServer()
@@ -31,6 +39,79 @@ void SDK::buildServer()
     }
 }
 
+void SDK::sendMessage(uint64_t clientId, const std::string& data)
+{
+    std::lock_guard<std::mutex> lock(BroadcastMutex);
+    auto it = this->pWsRegistry.find(clientId);
+    if (it != this->pWsRegistry.end() && it->second.handle) {
+        try {
+            restinio::websocket::basic::message_t message;
+            message.set_opcode(restinio::websocket::basic::opcode_t::text_frame);
+            message.set_payload(data);
+            it->second.handle->get()->send_message(message);
+            it->second.lastActivity = std::chrono::system_clock::now();
+        } catch (const std::exception& ex) {
+            PLOG_ERROR << "Error sending message to client " << clientId << ": " << ex.what();
+        }
+    }
+}
+
+void SDK::broadcastMessage(const std::string& data, MessageScope scope,
+    const std::optional<std::string>& electronEventName)
+{
+    std::lock_guard<std::mutex> lock(BroadcastMutex);
+
+    restinio::websocket::basic::message_t message;
+    message.set_opcode(restinio::websocket::basic::opcode_t::text_frame);
+    message.set_payload(data);
+
+    for (auto& [id, conn] : this->pWsRegistry) {
+        if (conn.handle) {
+            try {
+                conn.handle->get()->send_message(message);
+                conn.lastActivity = std::chrono::system_clock::now();
+            } catch (const std::exception& ex) {
+                PLOG_ERROR << "Error broadcasting to client " << id << ": " << ex.what();
+            }
+        }
+    }
+
+    if (scope == MessageScope::AllWithElectron && electronEventName) {
+        NapiHelpers::callElectron(electronEventName.value(), data);
+    }
+}
+
+restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
+    const restinio::request_handle_t& req)
+{
+    if (restinio::http_connection_header_t::upgrade != req->header().connection()) {
+        return restinio::request_rejected();
+    }
+
+    auto wsh = restinio::websocket::basic::upgrade<serverTraits>(
+        *req, restinio::websocket::basic::activation_t::immediate, [this](auto wsh, auto message) {
+            if (restinio::websocket::basic::opcode_t::text_frame == message->opcode()) {
+                this->handleIncomingWebSocketRequest(message->payload(), wsh->connection_id());
+            } else if (restinio::websocket::basic::opcode_t::ping_frame == message->opcode()) {
+                auto resp = *message;
+                resp.set_opcode(restinio::websocket::basic::opcode_t::pong_frame);
+                wsh->send_message(resp);
+            } else if (restinio::websocket::basic::opcode_t::connection_close_frame
+                == message->opcode()) {
+                this->pWsRegistry.erase(wsh->connection_id());
+            }
+        });
+
+    WebSocketConnection conn { std::make_shared<restinio::websocket::basic::ws_handle_t>(wsh),
+        "client_" + std::to_string(wsh->connection_id()), std::chrono::system_clock::now() };
+    this->pWsRegistry.emplace(wsh->connection_id(), std::move(conn));
+
+    this->handleAFVEventForWebsocket(
+        sdk::types::Event::kFrequencyStateUpdate, std::nullopt, std::nullopt);
+
+    return restinio::request_accepted();
+}
+
 nlohmann::json SDK::buildStationStateJson(
     const std::optional<std::string>& callsign, const int& frequencyHz)
 {
@@ -40,6 +121,7 @@ nlohmann::json SDK::buildStationStateJson(
     if (callsign.has_value()) {
         jsonMessage["value"]["callsign"] = callsign.value();
     }
+
     jsonMessage["value"]["frequency"] = frequencyHz;
     jsonMessage["value"]["tx"] = mClient->GetTxState(frequencyHz);
     jsonMessage["value"]["rx"] = mClient->GetRxState(frequencyHz);
@@ -47,6 +129,8 @@ nlohmann::json SDK::buildStationStateJson(
     jsonMessage["value"]["xca"] = mClient->GetCrossCoupleAcrossState(frequencyHz);
     jsonMessage["value"]["headset"] = mClient->GetOnHeadset(frequencyHz);
     jsonMessage["value"]["isAvailable"] = true;
+    jsonMessage["value"]["isOutputMuted"] = mClient->GetIsOutputMutedState(frequencyHz);
+    jsonMessage["value"]["outputVolume"] = RadioHelper::getRadioVolume(frequencyHz);
 
     return jsonMessage;
 }
@@ -55,24 +139,22 @@ void SDK::handleVoiceConnectedEventForWebsocket(bool isVoiceConnected)
 {
     nlohmann::json jsonMessage
         = WebsocketMessage::buildMessage(WebsocketMessageType::kVoiceConnectedState);
-
     jsonMessage["value"]["connected"] = isVoiceConnected;
-    this->broadcastOnWebsocket(jsonMessage.dump());
+    broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
 }
 
-// NOLINTNEXTLINE
 void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
-    const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz)
+    const std::optional<std::string>& callsign, const std::optional<int>& frequencyHz,
+    const std::optional<std::vector<std::string>>& parameter3)
 {
+
     if (event == sdk::types::Event::kDisconnectFrequencyStateUpdate) {
         nlohmann::json jsonMessage
             = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyStateUpdate);
-
         jsonMessage["value"]["rx"] = nlohmann::json::array();
         jsonMessage["value"]["tx"] = nlohmann::json::array();
         jsonMessage["value"]["xc"] = nlohmann::json::array();
-
-        this->broadcastOnWebsocket(jsonMessage.dump());
+        broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
         return;
     }
 
@@ -84,18 +166,20 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kRxBegin);
         jsonMessage["value"]["callsign"] = *callsign;
         jsonMessage["value"]["pFrequencyHz"] = *frequencyHz;
-        this->broadcastOnWebsocket(jsonMessage.dump());
+        jsonMessage["value"]["activeTransmitters"] = *parameter3;
+        broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
 
         std::lock_guard<std::mutex> lock(TransmittingMutex);
         CurrentlyTransmittingData.insert(*callsign);
         return;
     }
 
-    if (event == sdk::types::Event::kRxEnd && callsign && frequencyHz) {
+    if (event == sdk::types::Event::kRxEnd && callsign && frequencyHz && parameter3) {
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kRxEnd);
         jsonMessage["value"]["callsign"] = *callsign;
         jsonMessage["value"]["pFrequencyHz"] = *frequencyHz;
-        this->broadcastOnWebsocket(jsonMessage.dump());
+        jsonMessage["value"]["activeTransmitters"] = *parameter3;
+        broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
 
         std::lock_guard<std::mutex> lock(TransmittingMutex);
         CurrentlyTransmittingData.erase(*callsign);
@@ -103,32 +187,14 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
     }
 
     if (event == sdk::types::Event::kTxBegin) {
-        // auto allRadios = mClient->getRadioState();
-        // std::vector<unsigned int> allTxRadioFreqs;
-        // for (const auto& [freq, state] : allRadios) {
-        //     if (state.tx) {
-        //         allTxRadioFreqs.push_back(freq);
-        //     }
-        // }
-
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kTxBegin);
-        // jsonMessage["value"]["pFrequenciesHz"] = allTxRadioFreqs;
-        this->broadcastOnWebsocket(jsonMessage.dump());
+        broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
         return;
     }
 
     if (event == sdk::types::Event::kTxEnd) {
-        // auto allRadios = mClient->getRadioState();
-        // std::vector<unsigned int> allTxRadioFreqs;
-        // for (const auto& [freq, state] : allRadios) {
-        //     if (state.tx) {
-        //         allTxRadioFreqs.push_back(freq);
-        //     }
-        // }
-
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kTxEnd);
-        // jsonMessage["value"]["pFrequenciesHz"] = allTxRadioFreqs;
-        this->broadcastOnWebsocket(jsonMessage.dump());
+        broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
         return;
     }
 
@@ -140,8 +206,8 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         std::vector<ns::Station> txBar;
         std::vector<ns::Station> xcBar;
         auto allRadios = mClient->getRadioState();
+
         for (const auto& [frequency, state] : allRadios) {
-            // NOLINTNEXTLINE
             ns::Station stationObject = ns::Station::build(state.stationName, frequency);
             if (state.rx) {
                 rxBar.push_back(stationObject);
@@ -158,8 +224,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         jsonMessage["value"]["tx"] = std::move(txBar);
         jsonMessage["value"]["xc"] = std::move(xcBar);
 
-        this->broadcastOnWebsocket(jsonMessage.dump());
-
+        broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
         return;
     }
 
@@ -169,29 +234,62 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
             return;
         }
 
-        this->broadcastOnWebsocket(
-            this->buildStationStateJson(callsign, frequencyHz.value()).dump());
+        broadcastMessage(this->buildStationStateJson(callsign, frequencyHz.value()).dump(),
+            MessageScope::AllWithElectron);
         return;
     }
-};
+}
+
+void SDK::publishStationState(const nlohmann::json& state, bool broadcastToElectron)
+{
+    broadcastMessage(state.dump(),
+        broadcastToElectron ? MessageScope::AllWithElectron : MessageScope::AllClients,
+        "station-state-update");
+}
+
+void SDK::publishMainVolumeChange(const float& volume, bool broadcastToElectron)
+{
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kMainVolumeChange);
+    jsonMessage["value"]["volume"] = volume;
+    broadcastMessage(jsonMessage.dump(),
+        broadcastToElectron ? MessageScope::AllWithElectron : MessageScope::AllClients,
+        "main-volume-change");
+}
+
+void SDK::publishStationAdded(const std::string& callsign, const int& frequencyHz)
+{
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kStationAdded);
+    jsonMessage["value"]["callsign"] = callsign;
+    jsonMessage["value"]["frequency"] = frequencyHz;
+    broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
+}
+
+void SDK::publishFrequencyRemoved(const int& frequencyHz)
+{
+    nlohmann::json jsonMessage
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyRemoved);
+    jsonMessage["value"]["frequency"] = frequencyHz;
+    broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
+}
 
 std::unique_ptr<restinio::router::express_router_t<>> SDK::buildRouter()
 {
-
     auto routeMap = getSDKCallUrlMap();
-    std::unique_ptr<restinio::router::express_router_t<>> router;
-    router = std::make_unique<restinio::router::express_router_t<>>();
+    auto router = std::make_unique<restinio::router::express_router_t<>>();
+
     router->http_get(routeMap[sdkCall::kTransmitting],
-        [&](const auto& req, auto /*params*/) { return SDK::handleTransmittingSDKCall(req); });
+        [&](const auto& req, auto) { return SDK::handleTransmittingSDKCall(req); });
 
-    router->http_get(routeMap[sdkCall::kRx],
-        [&](const auto& req, auto /*params*/) { return this->handleRxSDKCall(req); });
+    router->http_get(
+        routeMap[sdkCall::kRx], [&](const auto& req, auto) { return this->handleRxSDKCall(req); });
 
-    router->http_get(routeMap[sdkCall::kTx],
-        [&](const auto& req, auto /*params*/) { return this->handleTxSDKCall(req); });
+    router->http_get(
+        routeMap[sdkCall::kTx], [&](const auto& req, auto) { return this->handleTxSDKCall(req); });
 
     router->http_get(routeMap[sdkCall::kWebSocket],
-        [&](const auto& req, auto /*params*/) { return handleWebSocketSDKCall(req); });
+        [&](const auto& req, auto) { return handleWebSocketSDKCall(req); });
 
     router->non_matched_request_handler(
         [](const auto& req) { return req->create_response().set_body(CLIENT_NAME).done(); });
@@ -205,7 +303,7 @@ std::unique_ptr<restinio::router::express_router_t<>> SDK::buildRouter()
     router->add_handler(
         restinio::router::none_of_methods(restinio::http_method_get()), "/", methodNotAllowed);
 
-    return std::move(router);
+    return router;
 }
 
 restinio::request_handling_status_t SDK::handleTransmittingSDKCall(
@@ -214,9 +312,8 @@ restinio::request_handling_status_t SDK::handleTransmittingSDKCall(
     const std::lock_guard<std::mutex> lock(TransmittingMutex);
     std::string out = absl::StrJoin(CurrentlyTransmittingData, ",");
     return req->create_response().set_body(out).done();
-};
+}
 
-// NOLINTNEXTLINE
 restinio::request_handling_status_t SDK::handleRxSDKCall(const restinio::request_handle_t& req)
 {
     if (!mClient->IsVoiceConnected()) {
@@ -232,9 +329,8 @@ restinio::request_handling_status_t SDK::handleRxSDKCall(const restinio::request
     }
 
     return req->create_response().set_body(absl::StrJoin(outData, ",")).done();
-};
+}
 
-// NOLINTNEXTLINE
 restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request_handle_t& req)
 {
     if (!mClient->IsVoiceConnected()) {
@@ -252,8 +348,39 @@ restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request
     return req->create_response().set_body(absl::StrJoin(outData, ",")).done();
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity)
-void SDK::handleSetStationState(const nlohmann::json& json)
+void SDK::handleIncomingWebSocketRequest(const std::string& payload, uint64_t clientId)
+{
+    try {
+        auto json = nlohmann::json::parse(payload);
+        std::string messageType = json["type"];
+
+        if (messageType == "kSetStationState") {
+            this->handleSetStationState(json, clientId);
+        } else if (messageType == "kGetStationStates") {
+            this->handleGetStationStates(clientId);
+        } else if (messageType == "kGetStationState") {
+            this->handleGetStationState(json["value"]["callsign"], clientId);
+        } else if (messageType == "kGetMainVolume") {
+            this->handleGetMainVolume(clientId);
+        } else if (messageType == "kPttPressed") {
+            mClient->SetPtt(true);
+        } else if (messageType == "kPttReleased") {
+            mClient->SetPtt(false);
+        } else if (messageType == "kGetVoiceConnectedState") {
+            this->handleVoiceConnectedEventForWebsocket(mClient->IsVoiceConnected());
+        } else if (messageType == "kAddStation") {
+            this->handleAddStation(json, clientId);
+        } else if (messageType == "kChangeStationVolume") {
+            this->handleChangeStationVolume(json, clientId);
+        } else if (messageType == "kChangeMainVolume") {
+            this->handleChangeMainVolume(json, clientId);
+        }
+    } catch (const std::exception& e) {
+        PLOG_ERROR << "Error parsing incoming message JSON: " << e.what();
+    }
+}
+
+void SDK::handleSetStationState(const nlohmann::json& json, uint64_t clientId)
 {
     if (!json["value"].contains("frequency")) {
         PLOG_ERROR << "kSetStationState requires a frequency";
@@ -267,69 +394,80 @@ void SDK::handleSetStationState(const nlohmann::json& json)
 
     radioState.frequency = frequency;
 
-    auto currentValue = mClient->GetRxState(frequency);
+    auto rxValue = mClient->GetRxState(frequency);
     if (json["value"].contains("rx")) {
-        radioState.rx = Helpers::ConvertBoolOrToggleToBool(json["value"]["rx"], currentValue);
+        radioState.rx = Helpers::ConvertBoolOrToggleToBool(json["value"]["rx"], rxValue);
     } else {
-        radioState.rx = currentValue;
+        radioState.rx = rxValue;
     }
 
-    currentValue = mClient->GetTxState(frequency);
+    auto txValue = mClient->GetTxState(frequency);
     if (json["value"].contains("tx")) {
-        radioState.tx = Helpers::ConvertBoolOrToggleToBool(json["value"]["tx"], currentValue);
+        radioState.tx = Helpers::ConvertBoolOrToggleToBool(json["value"]["tx"], txValue);
 
         if (radioState.tx) {
             radioState.rx = true;
         }
-    }
-    // Special case for when the rx message is provided and set to false, which should
-    // force the tx value to false as well.
-    else if (json["value"].contains("rx") && !radioState.rx) {
+    } else if (json["value"].contains("rx") && !radioState.rx) {
         radioState.tx = false;
     } else {
-        radioState.tx = currentValue;
+        radioState.tx = txValue;
     }
 
-    currentValue = mClient->GetXcState(frequency);
+    auto xcValue = mClient->GetXcState(frequency);
     if (json["value"].contains("xc")) {
-        radioState.xc = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], currentValue);
+        radioState.xc = Helpers::ConvertBoolOrToggleToBool(json["value"]["xc"], xcValue);
 
         if (radioState.xc) {
             radioState.tx = true;
             radioState.rx = true;
         }
     } else {
-        radioState.xc = currentValue;
+        radioState.xc = xcValue;
     }
 
-    currentValue = mClient->GetCrossCoupleAcrossState(frequency);
+    auto xcaValue = mClient->GetCrossCoupleAcrossState(frequency);
     if (json["value"].contains("xca")) {
-        radioState.xca = Helpers::ConvertBoolOrToggleToBool(json["value"]["xca"], currentValue);
+        radioState.xca = Helpers::ConvertBoolOrToggleToBool(json["value"]["xca"], xcaValue);
 
         if (radioState.xca) {
             radioState.tx = true;
             radioState.rx = true;
         }
     } else {
-        radioState.xca = currentValue;
+        radioState.xca = xcaValue;
     }
 
-    currentValue = mClient->GetOnHeadset(frequency);
+    auto headsetValue = mClient->GetOnHeadset(frequency);
     if (json["value"].contains("headset")) {
         radioState.headset
-            = Helpers::ConvertBoolOrToggleToBool(json["value"]["headset"], currentValue);
+            = Helpers::ConvertBoolOrToggleToBool(json["value"]["headset"], headsetValue);
     } else {
-        radioState.headset = currentValue;
+        radioState.headset = headsetValue;
+    }
+
+    auto mutedValue = mClient->GetIsOutputMutedState(frequency);
+    if (json["value"].contains("isOutputMuted")) {
+        radioState.isOutputMuted
+            = Helpers::ConvertBoolOrToggleToBool(json["value"]["isOutputMuted"], mutedValue);
+    } else {
+        radioState.isOutputMuted = mutedValue;
+    }
+
+    auto gainValue = RadioHelper::getRadioVolume(frequency);
+    if (json["value"].contains("outputVolume")) {
+        radioState.outputVolume = json["value"]["outputVolume"];
+    } else {
+        radioState.outputVolume = gainValue;
     }
 
     RadioHelper::SetRadioState(shared_from_this(), radioState);
 }
 
-void SDK::handleGetStationStates()
+void SDK::handleGetStationStates(uint64_t requesterId)
 {
     std::vector<nlohmann::json> stationStates;
 
-    // Collect the states for all the radios
     auto allRadios = mClient->getRadioState();
     stationStates.reserve(allRadios.size());
     for (const auto& [frequency, state] : allRadios) {
@@ -337,159 +475,46 @@ void SDK::handleGetStationStates()
             this->buildStationStateJson(state.stationName, static_cast<int>(frequency)));
     }
 
-    // Send the message
     nlohmann::json jsonMessage
         = WebsocketMessage::buildMessage(WebsocketMessageType::kStationStates);
     jsonMessage["value"]["stations"] = stationStates;
-    this->broadcastOnWebsocket(jsonMessage.dump());
+    sendMessage(requesterId, jsonMessage.dump());
 }
 
-void SDK::handleGetStationState(const std::string& callsign)
+void SDK::handleGetStationState(const std::string& callsign, uint64_t requesterId)
 {
     if (!mClient->IsVoiceConnected()) {
         PLOG_ERROR << "kGetStationState requires a voice connection";
         return;
     }
 
-    // Look for the station and if found send the state.
     auto allRadios = mClient->getRadioState();
     for (const auto& [frequency, state] : allRadios) {
         if (state.stationName == callsign) {
-            this->publishStationState(
-                this->buildStationStateJson(callsign, static_cast<int>(frequency)));
+            sendMessage(requesterId,
+                this->buildStationStateJson(callsign, static_cast<int>(frequency)).dump());
             return;
         }
     }
 
-    // Since the station wasn't found send a kGetStationState message with isAvailable false
     nlohmann::json jsonMessage
         = WebsocketMessage::buildMessage(WebsocketMessageType::kStationStateUpdate);
-
     jsonMessage["value"]["callsign"] = callsign;
     jsonMessage["value"]["isAvailable"] = false;
-    this->publishStationState(jsonMessage);
+    sendMessage(requesterId, jsonMessage.dump());
 
     PLOG_ERROR << "Station " << callsign << " not found";
 }
 
-void SDK::publishStationState(const nlohmann::json& state)
-{
-    this->broadcastOnWebsocket(state.dump());
-}
-
-void SDK::publishStationAdded(const std::string& callsign, const int& frequencyHz)
+void SDK::handleGetMainVolume(uint64_t requesterId)
 {
     nlohmann::json jsonMessage
-        = WebsocketMessage::buildMessage(WebsocketMessageType::kStationAdded);
-
-    jsonMessage["value"]["callsign"] = callsign;
-    jsonMessage["value"]["frequency"] = frequencyHz;
-
-    this->broadcastOnWebsocket(jsonMessage.dump());
+        = WebsocketMessage::buildMessage(WebsocketMessageType::kMainVolumeChange);
+    jsonMessage["value"]["volume"] = UserSession::currentMainVolume;
+    sendMessage(requesterId, jsonMessage.dump());
 }
 
-void SDK::publishFrequencyRemoved(const int& frequencyHz)
-{
-    nlohmann::json jsonMessage
-        = WebsocketMessage::buildMessage(WebsocketMessageType::kFrequencyRemoved);
-
-    jsonMessage["value"]["frequency"] = frequencyHz;
-
-    this->broadcastOnWebsocket(jsonMessage.dump());
-}
-
-void SDK::handleIncomingWebSocketRequest(const std::string& payload)
-{
-    try {
-        auto json = nlohmann::json::parse(payload);
-        std::string messageType = json["type"];
-
-        if (messageType == "kSetStationState") {
-            this->handleSetStationState(json);
-            return;
-        }
-        if (messageType == "kGetStationStates") {
-            this->handleGetStationStates();
-            return;
-        }
-        if (messageType == "kGetStationState") {
-            this->handleGetStationState(json["value"]["callsign"]);
-            return;
-        }
-        if (messageType == "kPttPressed") {
-            mClient->SetPtt(true);
-            return;
-        }
-        if (messageType == "kPttReleased") {
-            mClient->SetPtt(false);
-            return;
-        }
-        if (messageType == "kGetVoiceConnectedState") {
-            this->handleVoiceConnectedEventForWebsocket(mClient->IsVoiceConnected());
-            return;
-        }
-        if (messageType == "kAddStation") {
-            this->handleAddStation(json);
-            return;
-        }
-    } catch (const std::exception& e) {
-        // Handle JSON parsing error
-        PLOG_ERROR << "Error parsing incoming message JSON: " << e.what();
-    }
-}
-
-restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
-    const restinio::request_handle_t& req)
-{
-    if (restinio::http_connection_header_t::upgrade != req->header().connection()) {
-        return restinio::request_rejected();
-    }
-
-    auto wsh = restinio::websocket::basic::upgrade<serverTraits>(
-        *req, restinio::websocket::basic::activation_t::immediate, [&](auto wsh, auto message) {
-            if (restinio::websocket::basic::opcode_t::ping_frame == message->opcode()) {
-                // Ping-Pong
-                auto resp = *message;
-                resp.set_opcode(restinio::websocket::basic::opcode_t::pong_frame);
-                wsh->send_message(resp);
-            } else if (restinio::websocket::basic::opcode_t::connection_close_frame
-                == message->opcode()) {
-                // Close connection
-                this->pWsRegistry.erase(wsh->connection_id());
-            } else if (restinio::websocket::basic::opcode_t::text_frame == message->opcode()) {
-                this->handleIncomingWebSocketRequest(message->payload());
-            }
-        });
-
-    // Store websocket connection
-    this->pWsRegistry.emplace(wsh->connection_id(), wsh);
-
-    // Upon connection, send the status of frequencies straight away
-    {
-        this->handleAFVEventForWebsocket(
-            sdk::types::Event::kFrequencyStateUpdate, std::nullopt, std::nullopt);
-    }
-
-    return restinio::request_accepted();
-};
-
-void SDK::broadcastOnWebsocket(const std::string& data)
-{
-    std::lock_guard<std::mutex> lock(BroadcastMutex);
-    restinio::websocket::basic::message_t outgoingMessage;
-    outgoingMessage.set_opcode(restinio::websocket::basic::opcode_t::text_frame);
-    outgoingMessage.set_payload(data);
-
-    for (auto& [id, ws] : this->pWsRegistry) {
-        try {
-            ws->send_message(outgoingMessage);
-        } catch (const std::exception& ex) {
-            PLOG_ERROR << "Error while sending message to websocket: " << ex.what();
-        }
-    }
-};
-
-void SDK::handleAddStation(const nlohmann::json& json)
+void SDK::handleAddStation(const nlohmann::json& json, uint64_t clientId)
 {
     if (!mClient->IsVoiceConnected()) {
         PLOG_ERROR << "Voice must be connected before adding a station.";
@@ -507,19 +532,85 @@ void SDK::handleAddStation(const nlohmann::json& json)
 
         PLOG_INFO << "Adding callsign: " << callsign;
 
-        // See if the station or frequency is already added. if yes, just publish the current
-        // state and return.
+        // Check if station already exists
         for (const auto& [freq, state] : allRadios) {
             if (state.stationName == callsign) {
-                this->publishStationState(
-                    this->buildStationStateJson(state.stationName, static_cast<int>(freq)));
+                sendMessage(clientId,
+                    this->buildStationStateJson(state.stationName, static_cast<int>(freq)).dump());
                 return;
             }
         }
 
-        // Since it wasn't already added, add it.
+        // Add new station
         mClient->GetStation(callsign);
     } catch (const nlohmann::json::exception& e) {
         PLOG_ERROR << "Failed to read the callsign: " << e.what();
+    }
+}
+
+void SDK::handleChangeStationVolume(const nlohmann::json& json, uint64_t clientId)
+{
+    if (!mClient->IsVoiceConnected()) {
+        PLOG_ERROR << "Voice must be connected before adding a station.";
+        return;
+    }
+
+    if (!json.contains("value") || !json["value"].contains("frequency")
+        || !json["value"].contains("amount")) {
+        PLOG_ERROR << "Frequency and amount must be specified.";
+        return;
+    }
+
+    try {
+        auto frequency = json["value"]["frequency"].get<int>();
+        auto amount = json["value"]["amount"].get<double>();
+        auto allRadios = mClient->getRadioState();
+
+        if (allRadios.find(frequency) == allRadios.end()) {
+            PLOG_ERROR << "Frequency not found.";
+            return;
+        }
+
+        auto currentVolume = RadioHelper::getRadioVolume(frequency);
+        float newVolume = static_cast<float>(std::clamp(currentVolume + amount, 0.0, 100.0));
+
+        RadioHelper::setRadioVolume(frequency, newVolume);
+
+        // Get updated state and broadcast to all clients
+        auto updatedRadios = mClient->getRadioState();
+        auto radioState = updatedRadios[frequency];
+        auto stateJson = this->buildStationStateJson(radioState.stationName, frequency);
+        broadcastMessage(stateJson.dump(), MessageScope::AllWithElectron);
+
+    } catch (const nlohmann::json::exception& e) {
+        PLOG_ERROR << "Failed to process volume change: " << e.what();
+    }
+}
+
+void SDK::handleChangeMainVolume(const nlohmann::json& json, uint64_t clientId)
+{
+    if (!mClient->IsVoiceConnected()) {
+        PLOG_ERROR << "Voice must be connected to change volume.";
+        return;
+    }
+
+    if (!json.contains("value") || !json["value"].contains("amount")) {
+        PLOG_ERROR << "Amount must be specified.";
+        return;
+    }
+
+    try {
+        auto amount = json["value"]["amount"].get<double>();
+        auto currentVolume = UserSession::currentMainVolume;
+        float newVolume = static_cast<float>(std::clamp(currentVolume + amount, 0.0, 100.0));
+
+        UserSession::currentMainVolume = newVolume;
+        RadioHelper::setAllRadioVolumes();
+
+        // Broadcast volume change to all clients
+        this->publishMainVolumeChange(newVolume, true);
+
+    } catch (const nlohmann::json::exception& e) {
+        PLOG_ERROR << "Failed to change main volume: " << e.what();
     }
 }

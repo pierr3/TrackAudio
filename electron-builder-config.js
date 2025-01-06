@@ -22,6 +22,7 @@ module.exports = {
   asarUnpack: ['resources/**', './src/renderer/src/assets/md80_error.mp3'],
   win: {
     executableName: 'trackaudio',
+
     extraFiles: [
       {
         from: 'backend/build/Release/',
@@ -40,7 +41,7 @@ module.exports = {
     shortcutName: '${productName}',
     uninstallDisplayName: '${productName}',
     createDesktopShortcut: 'always',
-    include: 'build/installer.nsh',
+    include: 'build/installer.nsh'
   },
   mac: {
     entitlementsInherit: 'build/entitlements.mac.plist',

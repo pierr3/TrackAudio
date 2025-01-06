@@ -20,7 +20,7 @@ export const defaultConfiguration = {
   callsign: '',
   radioEffects: 'on' as RadioEffects,
   hardwareType: 0,
-  radioGain: 0,
+  mainRadioVolume: 100,
   alwaysOnTop: 'never' as AlwaysOnTopMode,
   showExpandedRx: false,
   transparentMiniMode: false
