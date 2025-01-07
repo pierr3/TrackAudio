@@ -39,7 +39,6 @@ const MainRadioVolume: React.FC = () => {
   };
 
   const handleRadioVolumeMouseWheel = (event: React.WheelEvent<HTMLInputElement>): void => {
-    event.preventDefault();
     const newValue = Math.min(Math.max(mainRadioVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
 
     setMainRadioVolume(newValue);
