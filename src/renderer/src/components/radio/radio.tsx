@@ -510,6 +510,15 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         >
           <Sliders2 />
         </button>
+
+        {!isSettingsOpen && radio.humanFrequencyAlias && (
+          <div
+            className={clsx('radio-alias-freq text-muted')}
+            title="This radio has a paired frequency"
+          >
+            {getFrequencyTypeDisplay()}
+          </div>
+        )}
       </div>
 
       <div className={clsx('radio-settings-overlay', isSettingsOpen && 'active')}>
@@ -524,14 +533,6 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
         )}
       </div>
 
-      {radio.humanFrequencyAlias && (
-        <div
-          className={clsx('radio-alias-freq text-muted')}
-          title="This radio has a paired frequency"
-        >
-          {getFrequencyTypeDisplay()}
-        </div>
-      )}
       <div className="radio-content">
         <div className="radio-left">
           <button
