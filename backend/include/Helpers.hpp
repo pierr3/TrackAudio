@@ -46,18 +46,19 @@ public:
         return temp.substr(0, 3) + "." + temp.substr(3, 7);
     }
 
-    /**
-     * Converts volume to a gain value.
-     *
-     */
+    static float ConvertVolumeToGain(float volume)
+    {
+        float v = volume / 100.0f;
+        // Apply quarter-circle scaling
+        return 1.0f - sqrt(1.0f - (v * v));
+    }
 
-    static float ConvertVolumeToGain(float volume) { return pow(10.0f, (volume - 100.0f) / 20.0f); }
-
-    /**
-     * Converts a gain value to a volume.
-     */
-
-    static float ConvertGainToVolume(float gain) { return 20.0f * log10f(gain) + 100.0f; }
+    static float ConvertGainToVolume(float gain)
+    {
+        // Reverse the quarter-circle scaling
+        float v = sqrt(1.0f - pow(1.0f - gain, 2));
+        return v * 100.0f;
+    }
 
     /**
      * @brief Converts a JSON property that is either true, false, or "toggle" to a boolean value.
