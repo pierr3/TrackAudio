@@ -633,7 +633,6 @@ ipcMain.handle('clear-ptt', (_, pttIndex: number) => {
 });
 
 ipcMain.handle('set-main-radio-volume', (_, mainRadioVolume: number) => {
-  console.log('set-main-radio-volume', mainRadioVolume);
   configManager.updateConfig({ mainRadioVolume });
   TrackAudioAfv.SetMainRadioVolume(mainRadioVolume);
 });

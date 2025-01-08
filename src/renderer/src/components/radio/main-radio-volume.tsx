@@ -16,7 +16,6 @@ const MainRadioVolume: React.FC = () => {
         window.api
           .SetMainRadioVolume(config.mainRadioVolume)
           .then(() => {
-            console.log('Main radio volume set to', config.mainRadioVolume);
             setMainRadioVolume(config.mainRadioVolume);
           })
           .catch((err: unknown) => {
