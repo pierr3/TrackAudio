@@ -1,4 +1,5 @@
 import useRadioState from '@renderer/store/radioStore';
+import clsx from 'clsx';
 import React, { useMemo } from 'react';
 
 const ExpandedRxInfo: React.FC = () => {
@@ -11,7 +12,9 @@ const ExpandedRxInfo: React.FC = () => {
       {radiosWithRx.map((radio) => (
         <div className="h-100 rx-bar-container d-flex w-100" key={radio.frequency}>
           <div className="d-flex justify-content-start align-items-center align-self-start text-truncate">
-            <span className="unicom-text">{radio.callsign}:</span>
+            <span className={clsx('unicom-text', radio.isOutputMuted && 'text-danger')}>
+              {radio.callsign}:
+            </span>
           </div>
           <div className="flex-grow-1 d-flex justify-content-end align-items-center text-truncate">
             {radio.lastReceivedCallsigns.length > 0 ? (

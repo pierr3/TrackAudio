@@ -184,7 +184,7 @@ const createWindow = (): void => {
   // };
 
   const options: Electron.BrowserWindowConstructorOptions = {
-    show: false,
+    // show: false,
     height: defaultWindowSize.height,
     width: defaultWindowSize.width,
     minWidth: 250,
@@ -277,7 +277,7 @@ const createWindow = (): void => {
   });
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow?.show();
+    // mainWindow?.show();
     mainWindow?.focus();
   });
 

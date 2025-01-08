@@ -224,7 +224,7 @@ void RemoveFrequency(const Napi::CallbackInfo& info)
     newState.isOutputMuted = false;
     newState.outputVolume = 100;
 
-    RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState);
+    RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, "", false);
     mClient->RemoveFrequency(newState.frequency);
 
     MainThreadShared::mApiServer->publishFrequencyRemoved(newState.frequency);

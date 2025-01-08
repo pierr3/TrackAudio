@@ -28,7 +28,7 @@ public:
      * @return false The state was not set successfully
      */
     static bool SetRadioState(const std::shared_ptr<SDK>& mApiServer, const RadioState& newState,
-        const std::string& stationCallsign = "")
+        const std::string& stationCallsign = "", const bool sendToElectron = true)  
     {
         if (!mClient->IsVoiceConnected()) {
             PLOGV << "Voice is not connected, not setting radio state";
@@ -80,7 +80,7 @@ public:
         std::optional<std::string> optionalCallsign
             = stationCallsign.empty() ? std::nullopt : std::optional<std::string>(stationCallsign);
         auto stateJson = mApiServer->buildStationStateJson(optionalCallsign, newState.frequency);
-        mApiServer->publishStationState(stateJson);
+        mApiServer->publishStationState(stateJson, sendToElectron);
 
         return true;
     }
