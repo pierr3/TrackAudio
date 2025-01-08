@@ -247,12 +247,6 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
     newState.isOutputMuted = info.Length() > 6 ? info[6].As<Napi::Boolean>().Value() : false;
     newState.outputVolume = info.Length() > 7 ? info[7].As<Napi::Number>().FloatValue() : 100;
 
-    std::optional<float> radioGain = std::nullopt;
-    if (info.Length() > 6) {
-        if (!info[6].IsNull()) {
-            radioGain = info[6].As<Napi::Number>().FloatValue();
-        }
-    }
     // SetGuardAndUnicomTransceivers();
 
     auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, "");

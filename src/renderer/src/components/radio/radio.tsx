@@ -208,17 +208,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
 
     if (isHoveringFrequency && canToggleOnHover) {
       return {
-        displayValue: (showAliasFrequency
-          ? radio.humanFrequency
-          : radio.humanFrequencyAlias) as string,
+        displayValue: showAliasFrequency ? radio.humanFrequency : radio.humanFrequencyAlias,
         isShowingAlias: !showAliasFrequency
       };
     }
 
     return {
-      displayValue: (showAliasFrequency
-        ? radio.humanFrequencyAlias
-        : radio.humanFrequency) as string,
+      displayValue: showAliasFrequency ? radio.humanFrequencyAlias : radio.humanFrequency,
       isShowingAlias: showAliasFrequency
     };
   };
