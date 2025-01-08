@@ -185,6 +185,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
 
     int frequency = info[0].As<Napi::Number>().Int32Value();
     auto callsign = info[1].As<Napi::String>().Utf8Value();
+    auto outputVolume = info.Length() > 2 ? info[2].As<Napi::Number>().FloatValue() : 100;
     auto hasBeenAddded = mClient->AddFrequency(frequency, callsign);
     if (!hasBeenAddded) {
         NapiHelpers::sendErrorToElectron("Could not add frequency: it already exists");
@@ -201,7 +202,7 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
     newState.headset = true;
     newState.xca = false;
     newState.isOutputMuted = false;
-    newState.outputVolume = 100;
+    newState.outputVolume = outputVolume;
 
     // Issue 227: Make sure to publish the frequency was added to any connected clients.
     MainThreadShared::mApiServer->publishStationAdded(callsign, frequency);

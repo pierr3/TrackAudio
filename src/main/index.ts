@@ -487,6 +487,10 @@ ipcMain.on('set-transparent-mini-mode', (_, transparentMiniMode: boolean) => {
   mainWindow?.setBackgroundMaterial('none');
 });
 
+ipcMain.on('set-radio-to-max-volume-on-tx', (_, radioToMaxVolumeOnTx: boolean) => {
+  configManager.updateConfig({ radioToMaxVolumeOnTx });
+});
+
 ipcMain.handle('audio-get-apis', () => {
   return TrackAudioAfv.GetAudioApis();
 });
@@ -564,9 +568,15 @@ ipcMain.handle('disconnect', () => {
   TrackAudioAfv.Disconnect();
 });
 
-ipcMain.handle('audio-add-frequency', (_, frequency: number, callsign: string) => {
-  return TrackAudioAfv.AddFrequency(frequency, callsign);
-});
+ipcMain.handle(
+  'audio-add-frequency',
+  (_, frequency: number, callsign: string, outputVolume?: number) => {
+    if (outputVolume) {
+      return TrackAudioAfv.AddFrequency(frequency, callsign, outputVolume);
+    }
+    return TrackAudioAfv.AddFrequency(frequency, callsign);
+  }
+);
 
 ipcMain.handle('audio-remove-frequency', (_, frequency: number) => {
   TrackAudioAfv.RemoveFrequency(frequency);
@@ -623,6 +633,7 @@ ipcMain.handle('clear-ptt', (_, pttIndex: number) => {
 });
 
 ipcMain.handle('set-main-radio-volume', (_, mainRadioVolume: number) => {
+  console.log('set-main-radio-volume', mainRadioVolume);
   configManager.updateConfig({ mainRadioVolume });
   TrackAudioAfv.SetMainRadioVolume(mainRadioVolume);
 });

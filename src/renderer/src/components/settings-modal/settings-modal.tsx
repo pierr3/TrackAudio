@@ -9,7 +9,6 @@ import useUtilStore from '../../store/utilStore';
 import AudioApis from './audio-apis';
 import AudioInput from './audio-input';
 import AudioOutputs from './audio-outputs';
-
 export interface SettingsModalProps {
   closeModal: () => void;
 }
@@ -30,6 +29,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
   const [transparentMiniMode, setLocalTransparentMiniMode] = useState(false);
+  const [radioToMaxVolumeOnTX, setLocalRadioToMaxVolumeOnTX] = useState(false);
   const [cid, setCid] = useState('');
   const [password, setPassword] = useState('');
 
@@ -48,7 +48,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     showExpandedRxInfo,
     setShowExpandedRxInfo,
     setTransparentMiniMode,
-    setPendingRestart
+    setPendingRestart,
+    setRadioToMaxVolumeOnTX
   ] = useUtilStore((state) => [
     state.vu,
     state.peakVu,
@@ -62,7 +63,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     state.showExpandedRxInfo,
     state.setShowExpandedRxInfo,
     state.setTransparentMiniMode,
-    state.setPendingRestart
+    state.setPendingRestart,
+    state.setRadioToMaxVolumeOnTX
   ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
@@ -79,6 +81,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setShowExpandedRxInfo(config.showExpandedRx);
         setTransparentMiniMode(config.transparentMiniMode);
         setLocalTransparentMiniMode(config.transparentMiniMode);
+        setRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
+        setLocalRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -208,6 +212,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saved);
   };
 
+  const handleSetRadioToMaxVolumeOnTX = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    if (e.target.value === 'true') {
+      window.api.setRadioToMaxVolumeOnTX(true);
+      setLocalRadioToMaxVolumeOnTX(true);
+    } else {
+      window.api.setRadioToMaxVolumeOnTX(false);
+      setLocalRadioToMaxVolumeOnTX(false);
+    }
+    setChangesSaved(SaveStatus.Saved);
+  };
+
   const handleSetPtt = (pttIndex: number, shouldListenForJoysticks: boolean) => {
     if (pttIndex === 1) {
       updatePtt1KeySet(false);
@@ -313,7 +329,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       onChange={(e) => debouncedPassword(e.target.value)}
                     ></input>
 
-                    <label className="mt-1">Radio effects</label>
+                    <label className="mt-2">Radio effects</label>
                     <select
                       id=""
                       className="form-control mt-1"
@@ -400,17 +416,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       setInputDevice(device.id);
                     }}
                   />
+                  <label className="mt-2">Transparent mini mode</label>
+                  <select
+                    id=""
+                    className="form-control mt-1"
+                    onChange={handleTransparentMiniMode}
+                    value={transparentMiniMode.toString()}
+                  >
+                    <option value="true">Always</option>
+                    <option value="false">Never</option>
+                  </select>
+                  <label className="mt-2">Set radio to max volume on TX</label>
+                  <select
+                    id=""
+                    className="form-control mt-1"
+                    onChange={handleSetRadioToMaxVolumeOnTX}
+                    value={radioToMaxVolumeOnTX.toString()}
+                  >
+                    <option value="true">Always</option>
+                    <option value="false">Never</option>
+                  </select>
                 </div>
-                <label className="mt-2">Transparent mini mode</label>
-                <select
-                  id=""
-                  className="form-control mt-1"
-                  onChange={handleTransparentMiniMode}
-                  value={transparentMiniMode.toString()}
-                >
-                  <option value="true">Always</option>
-                  <option value="false">Never</option>
-                </select>
               </div>
             </div>
             <div className="modal-body" style={{ paddingTop: '0' }}>

@@ -42,8 +42,12 @@ class IPCInterface {
 
     window.api.on('station-data-received', (station: string, frequency: string) => {
       const freq = parseInt(frequency);
+      const storedStationVolume = window.localStorage.getItem(station + 'StationVolume');
+      const storedStationVolumeInt = storedStationVolume
+        ? parseInt(storedStationVolume)
+        : undefined;
       window.api
-        .addFrequency(freq, station)
+        .addFrequency(freq, station, storedStationVolumeInt)
         .then((ret) => {
           if (!ret) {
             window.api.log.error(
@@ -52,7 +56,6 @@ class IPCInterface {
             return;
           }
           radioStoreState.addRadio(freq, station, sessionStoreState.getStationCallsign());
-          void window.api.SetMainRadioVolume(sessionStoreState.mainRadioVolume);
         })
         .catch((err: unknown) => {
           window.api.log.error(err as string);
@@ -65,7 +68,6 @@ class IPCInterface {
     // state in AFV.
     window.api.on('station-state-update', (data: string) => {
       const update = JSON.parse(data) as StationStateUpdate;
-
       const radio = radioStoreState.getRadioByFrequency(update.value.frequency);
 
       if (!radio) {

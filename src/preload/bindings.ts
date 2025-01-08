@@ -37,6 +37,9 @@ export const api = {
   setTransparentMiniMode: (state: boolean) => {
     ipcRenderer.send('set-transparent-mini-mode', state);
   },
+  setRadioToMaxVolumeOnTX: (state: boolean) => {
+    ipcRenderer.send('set-radio-to-max-volume-on-tx', state);
+  },
   getAudioApis: () => ipcRenderer.invoke('audio-get-apis'),
   getAudioInputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-input-devices', apiId),
   getAudioOutputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-output-devices', apiId),
@@ -58,8 +61,8 @@ export const api = {
   GetStation: (callsign: string) => ipcRenderer.invoke('get-station', callsign),
   RefreshStation: (callsign: string) => ipcRenderer.invoke('refresh-station', callsign),
 
-  addFrequency: (frequency: number, callsign: string) =>
-    ipcRenderer.invoke('audio-add-frequency', frequency, callsign),
+  addFrequency: (frequency: number, callsign: string, outputVolume?: number) =>
+    ipcRenderer.invoke('audio-add-frequency', frequency, callsign, outputVolume),
   removeFrequency: (frequency: number) => ipcRenderer.invoke('audio-remove-frequency', frequency),
   IsFrequencyActive: (frequency: number) =>
     ipcRenderer.invoke('audio-is-frequency-active', frequency),

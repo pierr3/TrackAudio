@@ -81,7 +81,6 @@ public:
             = stationCallsign.empty() ? std::nullopt : std::optional<std::string>(stationCallsign);
         auto stateJson = mApiServer->buildStationStateJson(optionalCallsign, newState.frequency);
         mApiServer->publishStationState(stateJson);
-        NapiHelpers::callElectron("station-state-update", stateJson.dump());
 
         return true;
     }

@@ -14,6 +14,7 @@ interface UtilStore {
   isEditMode: boolean;
   pendingRestart: boolean;
   transparentMiniMode: boolean;
+  radioToMaxVolumeOnTX: boolean;
   time: Date;
   setIsEditMode: (isEditMode: boolean) => void;
   setPtt1KeyName: (ptt1KeyName: string) => void;
@@ -27,6 +28,7 @@ interface UtilStore {
   setShowExpandedRxInfo: (showExpandedRxInfo: boolean) => void;
   setTransparentMiniMode: (transparentMiniMode: boolean) => void;
   setPendingRestart: (pendingRestart: boolean) => void;
+  setRadioToMaxVolumeOnTX: (maxVolume: boolean) => void;
   setTime: (time: Date) => void;
 }
 
@@ -44,6 +46,7 @@ const useUtilStore = create<UtilStore>((set) => ({
   isEditMode: false,
   transparentMiniMode: false,
   pendingRestart: false,
+  radioToMaxVolumeOnTX: false,
   time: new Date(),
   setIsEditMode: (isEditMode: boolean) => {
     set({ isEditMode });
@@ -83,6 +86,9 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   setTime(time: Date): void {
     set({ time });
+  },
+  setRadioToMaxVolumeOnTX: (maxVolume: boolean): void => {
+    set({ radioToMaxVolumeOnTX: maxVolume });
   }
 }));
 

@@ -215,46 +215,41 @@ const UnicomGuardBar = () => {
         removeRadio(GuardFrequency);
       });
     } else if (!unicom || !guard) {
-      // Setup UNICOM
-      void window.api.addFrequency(UnicomFrequency, 'UNICOM').then(async (ret) => {
-        if (!ret) {
-          console.error('Failed to add UNICOM frequency');
-          return;
-        }
+      const storedUnicomStationVolume = window.localStorage.getItem('UNICOMGUARDStationVolume');
+      const stationUnicomVolumeToSet = storedUnicomStationVolume?.length
+        ? parseInt(storedUnicomStationVolume)
+        : 100;
 
-        // Get stored volume before adding radio
-        const storedStationVolume = window.localStorage.getItem('UNICOMStationVolume');
-        const stationVolumeToSet = storedStationVolume?.length
-          ? parseInt(storedStationVolume)
-          : 100;
+      void window.api
+        .addFrequency(UnicomFrequency, 'UNICOM', stationUnicomVolumeToSet)
+        .then((ret) => {
+          if (!ret) {
+            console.error('Failed to add UNICOM frequency');
+            return;
+          }
 
-        // Create radio object with initial volume
-        addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
-
-        // Set volume in store immediately after adding radio
-        setOutputVolume(UnicomFrequency, stationVolumeToSet);
-
-        // Set volume in API
-        await window.api.SetFrequencyRadioVolume(UnicomFrequency, stationVolumeToSet);
-      });
+          addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
+        });
 
       // Setup GUARD with same volume as UNICOM
-      void window.api.addFrequency(GuardFrequency, 'GUARD').then(async (ret) => {
-        if (!ret) {
-          console.error('Failed to add GUARD frequency');
-          return;
-        }
+      void window.api
+        .addFrequency(GuardFrequency, 'GUARD', stationUnicomVolumeToSet)
+        .then(async (ret) => {
+          if (!ret) {
+            console.error('Failed to add GUARD frequency');
+            return;
+          }
 
-        // Get the same stored volume as UNICOM
-        const storedStationVolume = window.localStorage.getItem('UNICOMStationVolume');
-        const stationVolumeToSet = storedStationVolume?.length
-          ? parseInt(storedStationVolume)
-          : 100;
+          // Get the same stored volume as UNICOM
+          const storedStationVolume = window.localStorage.getItem('UNICOMStationVolume');
+          const stationVolumeToSet = storedStationVolume?.length
+            ? parseInt(storedStationVolume)
+            : 100;
 
-        addRadio(GuardFrequency, 'GUARD', 'GUARD');
-        setOutputVolume(GuardFrequency, stationVolumeToSet);
-        await window.api.SetFrequencyRadioVolume(GuardFrequency, stationVolumeToSet);
-      });
+          addRadio(GuardFrequency, 'GUARD', 'GUARD');
+          setOutputVolume(GuardFrequency, stationVolumeToSet);
+          await window.api.SetFrequencyRadioVolume(GuardFrequency, stationVolumeToSet);
+        });
     }
   }, [isConnected]);
 
@@ -279,7 +274,7 @@ const UnicomGuardBar = () => {
     try {
       await window.api.SetFrequencyRadioVolume(unicom.frequency, newStationVolume);
       await window.api.SetFrequencyRadioVolume(guard.frequency, newStationVolume);
-      window.localStorage.setItem('UNICOMStationVolume', newStationVolume.toString());
+      window.localStorage.setItem('UNICOMGUARDStationVolume', newStationVolume.toString());
     } catch (err) {
       // On error, revert to previous state
       setLocalUnicomStationVolume(unicom.outputVolume);
