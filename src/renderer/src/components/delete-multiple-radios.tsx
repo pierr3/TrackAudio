@@ -1,8 +1,8 @@
 import useRadioState from '@renderer/store/radioStore';
 import useSessionStore from '@renderer/store/sessionStore';
 import useUtilStore from '@renderer/store/utilStore';
+import { Trash2 } from 'lucide-react';
 import React from 'react';
-import { TrashFill } from 'react-bootstrap-icons';
 
 const DeleteMultipleRadios: React.FC = () => {
   const [isConnected] = useSessionStore((state) => [state.isConnected]);
@@ -67,7 +67,7 @@ const DeleteMultipleRadios: React.FC = () => {
           handleDeleteRadios();
         }}
       >
-        <TrashFill />
+        <Trash2 size={15} />
       </button>
     </div>
   );

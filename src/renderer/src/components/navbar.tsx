@@ -6,13 +6,13 @@ import Clock from './clock';
 import MiniModeToggleButton from './MiniModeToggleButton';
 import SettingsModal from './settings-modal/settings-modal';
 import TitleBar from './titlebar/TitleBar';
-import { GearFill, PencilSquare, PlusCircleFill } from 'react-bootstrap-icons';
 import SessionStatus from './titlebar/session-status/SessionStatus';
 import useUtilStore from '@renderer/store/utilStore';
 import AddStationModal from './add-station-model/station-modal';
 import DeleteMultipleRadios from './delete-multiple-radios';
 import useRadioState from '@renderer/store/radioStore';
 import RefreshMultipleRadios from './refresh-multiple-radios';
+import { CirclePlus, Settings, SquarePen } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -63,7 +63,7 @@ const Navbar: React.FC = () => {
                   clearRadiosToBeDeleted();
                 }}
               >
-                <PencilSquare />
+                <SquarePen size={15} />
               </button>
             </div>
           </TitleBar.Element>
@@ -81,14 +81,14 @@ const Navbar: React.FC = () => {
             <TitleBar.Element priority={2}>
               <div className="d-flex h-100 align-items-center">
                 <button
-                  className="btn btn-primary hide-settings-flex"
+                  className="btn btn-primary hide-settings-flex "
                   disabled={!isConnected}
                   onClick={() => {
                     if (showSettingsModal || !isConnected) return;
                     setShowAddStationModal(true);
                   }}
                 >
-                  <PlusCircleFill />
+                  <CirclePlus size={15} />
                 </button>
               </div>
             </TitleBar.Element>
@@ -97,14 +97,14 @@ const Navbar: React.FC = () => {
             <TitleBar.Element priority={3}>
               <div className="d-flex h-100 align-items-center">
                 <button
-                  className="btn btn-primary hide-settings-flex"
+                  className="btn btn-primary hide-settings-flex "
                   disabled={isConnected || isConnecting}
                   onClick={() => {
                     if (showAddStationModal) return;
                     setShowSettingsModal(true);
                   }}
                 >
-                  <GearFill />
+                  <Settings size={15} />
                 </button>
               </div>
             </TitleBar.Element>

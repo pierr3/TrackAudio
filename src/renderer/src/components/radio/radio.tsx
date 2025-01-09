@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import useErrorStore from '../../store/errorStore';
 import useSessionStore from '../../store/sessionStore';
 import useUtilStore from '../../store/utilStore';
-import { Sliders2, VolumeMute, VolumeUp, VolumeMuteFill } from 'react-bootstrap-icons';
+import { SlidersVertical, Volume2, VolumeX } from 'lucide-react';
 
 export interface RadioProps {
   radio: RadioType;
@@ -48,7 +48,7 @@ const VolumeControls = memo(
         onClick={onToggleMute}
         title="Toggle mute output audio"
       >
-        {isOutputMuted ? <VolumeMute size={18} color="red" /> : <VolumeUp size={18} />}
+        {isOutputMuted ? <VolumeX size={16} color="red" /> : <Volume2 size={16} />}
       </button>
     </div>
   )
@@ -508,7 +508,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
           onClick={toggleSettings}
           title="Adjust individual radio volume"
         >
-          <Sliders2 />
+          <SlidersVertical size={10} />
         </button>
 
         {!isSettingsOpen && radio.humanFrequencyAlias && (

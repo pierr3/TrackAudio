@@ -13,6 +13,11 @@
   background-color: $body-color;
 }
 
+/* stylelint-disable scss/empty-rules */
+button:focus:not(:focus-visible) {
+  font-weight: normal;
+}
+/* stylelint-enable scss/empty-rules */
 .toolbar-item {
   position: relative;
   // margin-right: 20px;
