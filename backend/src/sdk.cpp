@@ -438,6 +438,17 @@ void SDK::handleSetStationState(const nlohmann::json& json, uint64_t clientId)
         radioState.xca = xcaValue;
     }
 
+    if (!radioState.rx) {
+        radioState.tx = false;
+        radioState.xc = false;
+        radioState.xca = false;
+    }
+
+    if (!radioState.tx) {
+        radioState.xc = false;
+        radioState.xca = false;
+    }
+
     auto headsetValue = mClient->GetOnHeadset(frequency);
     if (json["value"].contains("headset")) {
         radioState.headset
