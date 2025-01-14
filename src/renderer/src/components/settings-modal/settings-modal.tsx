@@ -29,7 +29,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
   const [transparentMiniMode, setLocalTransparentMiniMode] = useState(false);
-  const [radioToMaxVolumeOnTX, setLocalRadioToMaxVolumeOnTX] = useState(false);
   const [cid, setCid] = useState('');
   const [password, setPassword] = useState('');
 
@@ -46,6 +45,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     updatePtt1KeySet,
     updatePtt2KeySet,
     showExpandedRxInfo,
+    radioToMaxVolumeOnTX,
     setShowExpandedRxInfo,
     setTransparentMiniMode,
     setPendingRestart,
@@ -61,6 +61,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     state.updatePtt1KeySet,
     state.updatePtt2KeySet,
     state.showExpandedRxInfo,
+    state.radioToMaxVolumeOnTX,
     state.setShowExpandedRxInfo,
     state.setTransparentMiniMode,
     state.setPendingRestart,
@@ -82,7 +83,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setTransparentMiniMode(config.transparentMiniMode);
         setLocalTransparentMiniMode(config.transparentMiniMode);
         setRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
-        setLocalRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -216,10 +216,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saving);
     if (e.target.value === 'true') {
       window.api.setRadioToMaxVolumeOnTX(true);
-      setLocalRadioToMaxVolumeOnTX(true);
+      setRadioToMaxVolumeOnTX(true);
     } else {
       window.api.setRadioToMaxVolumeOnTX(false);
-      setLocalRadioToMaxVolumeOnTX(false);
+      setRadioToMaxVolumeOnTX(false);
     }
     setChangesSaved(SaveStatus.Saved);
   };
