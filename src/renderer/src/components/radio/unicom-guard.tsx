@@ -6,7 +6,7 @@ import useSessionStore from '@renderer/store/sessionStore';
 import useErrorStore from '@renderer/store/errorStore';
 import { GuardFrequency, UnicomFrequency } from '../../../../shared/common';
 import { useMediaQuery } from 'react-responsive';
-import { VolumeMuteFill } from 'react-bootstrap-icons';
+import { VolumeX } from 'lucide-react';
 
 const UnicomGuardBar = () => {
   const [radios, setRadioState, addRadio, removeRadio, setOutputVolume] = useRadioState((state) => [
@@ -307,7 +307,7 @@ const UnicomGuardBar = () => {
         </span>
         <button
           className={clsx(
-            'btn sm-button',
+            'btn sm-button h-full d-flex align-items-center justify-content-center',
             unicom?.isOutputMuted && 'btn-danger',
             !unicom?.rx && !unicom?.isOutputMuted && 'btn-info',
             unicom?.rx && !unicom.isOutputMuted && unicom.currentlyRx && 'btn-warning',
@@ -321,7 +321,7 @@ const UnicomGuardBar = () => {
             toggleMute(unicom);
           }}
         >
-          {unicom?.isOutputMuted ? <VolumeMuteFill className="text-white" size={14} /> : 'RX'}
+          {unicom?.isOutputMuted ? <VolumeX size={15} /> : 'RX'}
         </button>
         <button
           className={clsx(
@@ -360,7 +360,7 @@ const UnicomGuardBar = () => {
         </span>
         <button
           className={clsx(
-            'btn sm-button',
+            'btn sm-button h-full d-flex align-items-center justify-content-center',
             guard?.isOutputMuted && 'btn-danger',
             !guard?.rx && !guard?.isOutputMuted && 'btn-info',
             guard?.rx && !guard.isOutputMuted && guard.currentlyRx && 'btn-warning',
@@ -374,7 +374,7 @@ const UnicomGuardBar = () => {
             toggleMute(guard);
           }}
         >
-          {guard?.isOutputMuted ? <VolumeMuteFill className="text-white" size={14} /> : 'RX'}
+          {guard?.isOutputMuted ? <VolumeX size={15} /> : 'RX'}
         </button>
         <button
           className={clsx(

@@ -597,7 +597,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             onClick={clickRx}
             onContextMenu={toggleMute}
           >
-            {radio.isOutputMuted ? <VolumeMuteFill className="text-white" size={20} /> : 'RX'}
+            {radio.isOutputMuted ? <VolumeX size={16} /> : 'RX'}
           </button>
 
           <button
