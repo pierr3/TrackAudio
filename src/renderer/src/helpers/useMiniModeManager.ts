@@ -1,95 +1,155 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useMediaQuery } from 'react-responsive';
 import useRadioState from '@renderer/store/radioStore';
 import useSessionStore from '@renderer/store/sessionStore';
 import useUtilStore from '@renderer/store/utilStore';
-import { useState, useEffect } from 'react';
-import { useMediaQuery } from 'react-responsive';
+
+// Constants for window dimensions
+const WINDOW_DIMENSIONS = {
+  MINI: {
+    WIDTH: 250,
+    MIN_HEIGHT: 42,
+    BASE_HEIGHT: 22,
+    RADIO_HEIGHT: 24
+  },
+  REGULAR: {
+    MIN_WIDTH: 455,
+    MIN_HEIGHT: 120
+  },
+  BREAKPOINTS: {
+    MINI_MODE: 455,
+    APPROACHING_MINI: 560
+  }
+} as const;
 
 const useMiniModeManager = () => {
   const [radios] = useRadioState((state) => [state.radios]);
   const [isConnected] = useSessionStore((state) => [state.isConnected]);
-  const [platform] = useUtilStore((state) => [state.platform]);
-  const [transparencyMiniMode] = useUtilStore((state) => [state.transparentMiniMode]);
+  const [platform, transparentMiniMode] = useUtilStore((state) => [
+    state.platform,
+    state.transparentMiniMode
+  ]);
 
-  const isMiniMode = useMediaQuery({ maxWidth: '455px' });
-  const isApproachingMiniMode = useMediaQuery({ maxWidth: '560px', maxHeight: '240px' });
-
-  const [previousWindowState, setPreviousWindowState] = useState({
-    wasConnected: false,
-    wasInMiniMode: false,
-    wasApproachingMini: false
+  // State to track window dimensions and mode
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
   });
 
-  // const REGULAR_SIZE = { width: 530, height: 240 };
-  const MINI_SIZE = { width: 250, height: 120 };
+  // Use media queries for responsive breakpoints
+  const isMiniMode = useMediaQuery({
+    maxWidth: WINDOW_DIMENSIONS.BREAKPOINTS.MINI_MODE
+  });
 
-  const calculateMiniModeHeight = () => {
+  const isApproachingMiniMode = useMediaQuery({
+    maxWidth: WINDOW_DIMENSIONS.BREAKPOINTS.APPROACHING_MINI,
+    maxHeight: WINDOW_DIMENSIONS.REGULAR.MIN_HEIGHT * 2
+  });
+
+  // Calculate mini mode height based on active radios
+  const calculateMiniModeHeight = useCallback(() => {
     const activeRadios = radios.filter((r) => r.rx).length;
-    return 22 + 24 * Math.max(activeRadios, 1);
-  };
+    const numRadios = Math.max(activeRadios, 1);
+    return WINDOW_DIMENSIONS.MINI.BASE_HEIGHT + WINDOW_DIMENSIONS.MINI.RADIO_HEIGHT * numRadios;
+  }, [radios]);
 
-  const updateWindowSize = (width, height) => {
-    window.api.window.setMinimumSize(width as number, height as number);
-  };
-
-  const updateWindowAppearance = (inMiniMode) => {
-    if (platform === 'darwin') {
-      window.api.window.setWindowButtonVisibility(!inMiniMode);
-    }
-
-    document.body.style.backgroundColor =
-      inMiniMode && transparencyMiniMode ? 'transparent' : '#2c2f45';
-  };
-
-  useEffect(() => {
-    const handleWindowStateChange = () => {
-      // Case 1: Connection state change
-      // if (isConnected !== previousWindowState.wasConnected) {
-      //   console.log('Case 1');
-      //   updateWindowSize(
-      //     isConnected ? MINI_SIZE.width : REGULAR_SIZE.width,
-      //     isConnected ? MINI_SIZE.height : REGULAR_SIZE.height
-      //   );
-      //   setPreviousWindowState((prev) => ({ ...prev, wasConnected: isConnected }));
-      // }
-
-      // // Case 2: User is approaching mini mode // Fix this
-      // if (isApproachingMiniMode && isConnected && !isMiniMode) {
-      //   console.log('Case 2', MINI_SIZE.width, MINI_SIZE.height);
-      //   updateWindowSize(MINI_SIZE.width, MINI_SIZE.height);
-      // }
-
-      // Case 3: User has entered mini mode
-      if (isMiniMode && !previousWindowState.wasInMiniMode) {
+  // Update window size constraints
+  const updateWindowConstraints = useCallback(
+    (miniMode: boolean) => {
+      if (miniMode) {
         const miniHeight = calculateMiniModeHeight();
+        window.api.window.setMinimumSize(
+          WINDOW_DIMENSIONS.MINI.WIDTH,
+          Math.max(miniHeight, WINDOW_DIMENSIONS.MINI.MIN_HEIGHT)
+        );
+      } else {
+        window.api.window.setMinimumSize(
+          WINDOW_DIMENSIONS.REGULAR.MIN_WIDTH,
+          WINDOW_DIMENSIONS.REGULAR.MIN_HEIGHT
+        );
+      }
+    },
+    [calculateMiniModeHeight]
+  );
 
-        updateWindowSize(MINI_SIZE.width, miniHeight);
-        updateWindowAppearance(true);
-        setPreviousWindowState((prev) => ({ ...prev, wasInMiniMode: true }));
+  // Update window appearance for mini mode
+  const updateWindowAppearance = useCallback(
+    (miniMode: boolean) => {
+      if (platform === 'darwin') {
+        window.api.window.setWindowButtonVisibility(!miniMode);
       }
 
-      // Case 4: User has exited mini mode
-      if (!isMiniMode && previousWindowState.wasInMiniMode) {
-        updateWindowSize(MINI_SIZE.width, MINI_SIZE.height);
-        updateWindowAppearance(false);
-        setPreviousWindowState((prev) => ({ ...prev, wasInMiniMode: false }));
+      // Set background transparency
+      document.body.style.backgroundColor =
+        miniMode && transparentMiniMode ? 'transparent' : '#2c2f45';
+    },
+    [platform, transparentMiniMode]
+  );
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Handle mini mode transitions
+  useEffect(() => {
+    const handleMiniModeTransition = () => {
+      try {
+        updateWindowConstraints(isMiniMode);
+        updateWindowAppearance(isMiniMode);
+
+        // If approaching mini mode, prepare constraints
+        if (isApproachingMiniMode && !isMiniMode) {
+          window.api.window.setMinimumSize(
+            WINDOW_DIMENSIONS.MINI.WIDTH,
+            WINDOW_DIMENSIONS.MINI.MIN_HEIGHT
+          );
+        }
+
+        // Log for debugging
+        console.debug('Mini mode transition:', {
+          isMiniMode,
+          isApproachingMini: isApproachingMiniMode,
+          dimensions: windowDimensions,
+          calculatedHeight: calculateMiniModeHeight()
+        });
+      } catch (error) {
+        console.error('Error during mini mode transition:', error);
       }
     };
 
-    handleWindowStateChange();
+    handleMiniModeTransition();
   }, [
-    isConnected,
     isMiniMode,
     isApproachingMiniMode,
-    radios,
-    platform,
-    transparencyMiniMode,
-    previousWindowState
+    windowDimensions,
+    updateWindowConstraints,
+    updateWindowAppearance,
+    calculateMiniModeHeight
   ]);
+
+  // Handle active radio count changes
+  useEffect(() => {
+    if (isMiniMode) {
+      updateWindowConstraints(true);
+    }
+  }, [radios, isMiniMode, updateWindowConstraints]);
 
   return {
     isMiniMode,
     isApproachingMiniMode,
-    isConnected
+    isConnected,
+    windowDimensions
   };
 };
 

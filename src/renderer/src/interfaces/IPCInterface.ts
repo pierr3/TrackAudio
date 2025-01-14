@@ -58,7 +58,6 @@ class IPCInterface {
           useRadioState
             .getState()
             .addRadioByStation(radio, useSessionStore.getState().getStationCallsign());
-          void window.api.SetMainRadioVolume(sessionStoreState.mainRadioVolume);
         })
 
         .catch((err: unknown) => {
