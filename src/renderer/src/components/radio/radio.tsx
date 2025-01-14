@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef, memo, useCallback } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import useRadioState, { RadioType } from '../../store/radioStore';
-import clsx from 'clsx';
 import useErrorStore from '../../store/errorStore';
 import useSessionStore from '../../store/sessionStore';
 import useUtilStore from '../../store/utilStore';
 import { SlidersVertical, Volume2, VolumeX } from 'lucide-react';
+import clsx from 'clsx';
+import { useVolumeManagement } from './hooks/useVolumeManagement';
 
 export interface RadioProps {
   radio: RadioType;
@@ -13,12 +14,14 @@ export interface RadioProps {
 // Extract volume controls into a separate memoized component
 const VolumeControls = memo(
   ({
+    isManualMode,
     localVolume,
     onVolumeChange,
     onVolumeWheel,
     isOutputMuted,
     onToggleMute
   }: {
+    isManualMode: boolean;
     localVolume: number;
     onVolumeChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onVolumeWheel: (event: React.WheelEvent<HTMLInputElement>) => void;
@@ -26,7 +29,14 @@ const VolumeControls = memo(
     onToggleMute: () => void;
   }) => (
     <div className="d-flex flex-row align-items-center px-3">
-      <span className="me-3 text-white d-flex align-items-center">VOLUME</span>
+      <span
+        className={clsx(
+          'me-3 d-flex align-items-center',
+          isManualMode ? 'text-warning' : 'text-white'
+        )}
+      >
+        {isManualMode ? 'MANUAL' : 'VOLUME'}
+      </span>
       <div className="flex-grow-1 d-flex align-items-center">
         <input
           type="range"
@@ -60,144 +70,34 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
   const postError = useErrorStore((state) => state.postError);
   const [isHoveringFrequency, setIsHoveringFrequency] = useState(false);
   const [showAliasFrequency, setShowAliasFrequency] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [canToggleOnHover, setCanToggleOnHover] = useState(true);
 
-  const [
-    setRadioState,
-    selectRadio,
-    removeRadio,
-    setPendingDeletion,
-    addOrRemoveRadioToBeDeleted,
-    setOutputVolume
-  ] = useRadioState((state) => [
-    state.setRadioState,
-    state.selectRadio,
-    state.removeRadio,
-    state.setPendingDeletion,
-    state.addOrRemoveRadioToBeDeleted,
-    state.setOutputVolume
-  ]);
+  // Get necessary state management functions
+  const [setRadioState, selectRadio, removeRadio, setPendingDeletion, addOrRemoveRadioToBeDeleted] =
+    useRadioState((state) => [
+      state.setRadioState,
+      state.selectRadio,
+      state.removeRadio,
+      state.setPendingDeletion,
+      state.addOrRemoveRadioToBeDeleted
+    ]);
 
   const radiosToBeDeleted = useRadioState((state) => state.radiosSelected);
-  const radioToMaxVolumeOnTX = useUtilStore((state) => state.radioToMaxVolumeOnTX);
   const isEditMode = useUtilStore((state) => state.isEditMode);
   const isATC = useSessionStore((state) => state.isAtc);
 
-  const [localVolume, setLocalVolume] = useState(100);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const isInternalUpdate = useRef(false);
-
-  // Initial setup from localStorage
-  useEffect(() => {
-    const storedVolume = window.localStorage.getItem(radio.callsign + 'StationVolume');
-    const initialVolume = storedVolume ? parseInt(storedVolume) : 100;
-    isInternalUpdate.current = true;
-    setLocalVolume(initialVolume);
-    isInternalUpdate.current = false;
-  }, [radio.callsign]);
-
-  useEffect(() => {
-    if (radio.tx) {
-      if (radioToMaxVolumeOnTX) {
-        isInternalUpdate.current = true;
-        setLocalVolume(100);
-        setOutputVolume(radio.frequency, 100);
-        if (radio.isOutputMuted) {
-          toggleMute();
-        }
-        window.api
-          .SetFrequencyRadioVolume(radio.frequency, 100)
-          .catch((err: unknown) => {
-            console.error(err);
-          })
-          .finally(() => {
-            isInternalUpdate.current = false;
-          });
-      }
-    } else {
-      if (radioToMaxVolumeOnTX) {
-        const storedVolume = window.localStorage.getItem(radio.callsign + 'StationVolume');
-        const restoredVolume = storedVolume ? parseInt(storedVolume) : 100;
-        isInternalUpdate.current = true;
-        setLocalVolume(restoredVolume);
-        setOutputVolume(radio.frequency, restoredVolume);
-        if (!radio.isOutputMuted) {
-          window.api
-            .SetFrequencyRadioVolume(radio.frequency, restoredVolume)
-            .catch((err: unknown) => {
-              console.error(err);
-            })
-            .finally(() => {
-              isInternalUpdate.current = false;
-            });
-        } else {
-          isInternalUpdate.current = false;
-        }
-      }
+  // Initialize volume management hook
+  const { localVolume, handleVolumeChange, handleVolumeWheel, isManualMode } = useVolumeManagement({
+    radio: {
+      frequency: radio.frequency,
+      callsign: radio.callsign,
+      tx: radio.tx,
+      isOutputMuted: radio.isOutputMuted,
+      outputVolume: radio.outputVolume
     }
-  }, [radio.tx, radio.frequency, radio.callsign, radio.isOutputMuted, radioToMaxVolumeOnTX]);
+  });
 
-  useEffect(() => {
-    if (isInternalUpdate.current) {
-      setOutputVolume(radio.frequency, localVolume);
-      if (!radio.isOutputMuted) {
-        window.api
-          .SetFrequencyRadioVolume(radio.frequency, localVolume)
-          .catch((err: unknown) => {
-            console.error(err);
-          })
-          .finally(() => {
-            isInternalUpdate.current = false;
-          });
-      } else {
-        isInternalUpdate.current = false;
-      }
-    }
-  }, [localVolume, radio.frequency, radio.isOutputMuted]);
-  const [canToggleOnHover, setCanToggleOnHover] = useState(true);
-
-  useEffect(() => {
-    if (!isInternalUpdate.current && radio.outputVolume !== localVolume) {
-      const currentStoredVolume = window.localStorage.getItem(radio.callsign + 'StationVolume');
-      const storedVolumeNum = currentStoredVolume ? parseInt(currentStoredVolume) : null;
-
-      if (storedVolumeNum !== radio.outputVolume) {
-        window.localStorage.setItem(
-          radio.callsign + 'StationVolume',
-          radio.outputVolume.toString()
-        );
-      }
-
-      isInternalUpdate.current = true;
-      setLocalVolume(radio.outputVolume);
-      isInternalUpdate.current = false;
-    }
-  }, [radio.outputVolume, radio.callsign]);
-
-  const handleStationVolumeChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (radio.isOutputMuted) {
-        toggleMute();
-      }
-      const newVolume = event.target.valueAsNumber;
-      isInternalUpdate.current = true;
-      setLocalVolume(newVolume);
-      window.localStorage.setItem(radio.callsign + 'StationVolume', newVolume.toString());
-    },
-    [radio.isOutputMuted, radio.callsign]
-  );
-
-  const handleStationVolumeMouseWheel = useCallback(
-    (event: React.WheelEvent<HTMLInputElement>) => {
-      if (radio.isOutputMuted) {
-        toggleMute();
-      }
-      const newVolume = Math.min(Math.max(localVolume + (event.deltaY > 0 ? -1 : 1), 0), 100);
-      isInternalUpdate.current = true;
-      setLocalVolume(newVolume);
-      window.localStorage.setItem(radio.callsign + 'StationVolume', newVolume.toString());
-    },
-    [localVolume, radio.isOutputMuted, radio.callsign]
-  );
   const getDisplayFrequencyInfo = () => {
     if (!radio.humanFrequencyAlias) {
       return {
@@ -230,7 +130,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     if (radio.transceiverCount === 0 && radio.callsign !== 'MANUAL') {
       void window.api.RefreshStation(radio.callsign);
     }
-  }, [isEditMode, radio, addOrRemoveRadioToBeDeleted, selectRadio]);
+  }, [isEditMode, radio, addOrRemoveRadioToBeDeleted, selectRadio, showAliasFrequency]);
 
   const toggleMute = useCallback(() => {
     const newState = !radio.isOutputMuted;
@@ -288,7 +188,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
 
     return showAliasFrequency ? 'VHF' : 'HF';
   };
-  const clickRx = () => {
+
+  const clickRx = useCallback(() => {
     clickRadioHeader();
     const newState = !radio.rx;
 
@@ -322,21 +223,21 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       .catch((err: unknown) => {
         console.error(err);
       });
-  };
+  }, [radio, clickRadioHeader, setRadioState, removeRadio, postError]);
 
-  const clickTx = () => {
+  const clickTx = useCallback(() => {
     const newState = !radio.tx;
 
     window.api
       .setFrequencyState(
         radio.frequency,
-        newState ? true : radio.rx, // If tx is true, rx must be true
+        newState ? true : radio.rx,
         newState,
-        !newState ? false : radio.xc, // If tx is false, xc must be false
+        !newState ? false : radio.xc,
         radio.onSpeaker,
         !newState ? false : radio.crossCoupleAcross,
         radio.isOutputMuted,
-        radio.outputVolume // If tx is false, crossCoupleAcross must be false
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret) {
@@ -356,20 +257,20 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       .catch((err: unknown) => {
         console.error(err);
       });
-  };
+  }, [radio, setRadioState, postError]);
 
-  const clickXc = () => {
+  const clickXc = useCallback(() => {
     const newState = !radio.xc;
     window.api
       .setFrequencyState(
         radio.frequency,
-        newState ? true : radio.rx, // If xc is true, rx must be true
-        newState ? true : radio.tx, // If xc is true, tx must be true
+        newState ? true : radio.rx,
+        newState ? true : radio.tx,
         newState,
         radio.onSpeaker,
         false,
         radio.isOutputMuted,
-        radio.outputVolume // If xc is true, crossCoupleAcross must be false
+        radio.outputVolume
       )
       .then((ret) => {
         if (!ret) {
@@ -389,16 +290,16 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       .catch((err: unknown) => {
         console.error(err);
       });
-  };
+  }, [radio, setRadioState, postError]);
 
-  const clickCrossCoupleAcross = () => {
+  const clickCrossCoupleAcross = useCallback(() => {
     const newState = !radio.crossCoupleAcross;
     window.api
       .setFrequencyState(
         radio.frequency,
-        newState ? true : radio.rx, // If crossCoupleAcross is true, rx must be true
-        newState ? true : radio.tx, // If crossCoupleAcross is true, tx must be true
-        false, // If crossCoupleAcross is true, xc must be false
+        newState ? true : radio.rx,
+        newState ? true : radio.tx,
+        false,
         radio.onSpeaker,
         newState,
         radio.isOutputMuted,
@@ -422,9 +323,9 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       .catch((err: unknown) => {
         console.error(err);
       });
-  };
+  }, [radio, setRadioState, postError]);
 
-  const clickSpK = () => {
+  const clickSpK = useCallback(() => {
     const newState = !radio.onSpeaker;
     window.api
       .setFrequencyState(
@@ -456,37 +357,42 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       .catch((err: unknown) => {
         console.error(err);
       });
-  };
+  }, [radio, setRadioState, removeRadio, postError]);
 
-  const awaitEndOfRxForDeletion = (frequency: number): void => {
-    const interval = setInterval(
-      (frequency: number) => {
-        const radio = useRadioState.getState().radios.find((r) => r.frequency === frequency);
-        if (!radio) {
-          clearInterval(interval);
-          return;
-        }
+  const awaitEndOfRxForDeletion = useCallback(
+    (frequency: number): void => {
+      const interval = setInterval(
+        (frequency: number) => {
+          const radio = useRadioState.getState().radios.find((r) => r.frequency === frequency);
+          if (!radio) {
+            clearInterval(interval);
+            return;
+          }
 
-        if (!radio.currentlyRx && !radio.currentlyTx) {
-          void window.api.removeFrequency(radio.frequency);
-          removeRadio(radio.frequency);
-          clearInterval(interval);
-        }
-      },
-      60,
-      frequency
-    );
+          if (!radio.currentlyRx && !radio.currentlyTx) {
+            void window.api.removeFrequency(radio.frequency);
+            removeRadio(radio.frequency);
+            clearInterval(interval);
+          }
+        },
+        60,
+        frequency
+      );
 
-    // Clear the interval after 5 seconds
-    setTimeout(() => {
-      clearInterval(interval);
-    }, 10000);
-  };
+      setTimeout(() => {
+        clearInterval(interval);
+      }, 10000);
+    },
+    [removeRadio]
+  );
 
-  const toggleSettings = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event from bubbling up
-    setIsSettingsOpen(!isSettingsOpen);
-  };
+  const toggleSettings = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setIsSettingsOpen(!isSettingsOpen);
+    },
+    [isSettingsOpen]
+  );
 
   return (
     <div
@@ -524,9 +430,10 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       <div className={clsx('radio-settings-overlay', isSettingsOpen && 'active')}>
         {isSettingsOpen && (
           <VolumeControls
+            isManualMode={isManualMode}
             localVolume={localVolume}
-            onVolumeChange={handleStationVolumeChange}
-            onVolumeWheel={handleStationVolumeMouseWheel}
+            onVolumeChange={handleVolumeChange}
+            onVolumeWheel={handleVolumeWheel}
             isOutputMuted={radio.isOutputMuted}
             onToggleMute={toggleMute}
           />

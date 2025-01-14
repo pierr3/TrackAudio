@@ -24,6 +24,7 @@ class IPCInterface {
       .then((config: Configuration) => {
         utilStoreState.setShowExpandedRxInfo(config.showExpandedRx);
         utilStoreState.setTransparentMiniMode(config.transparentMiniMode);
+        utilStoreState.setRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
       })
       .catch((err: unknown) => {
         window.api.log.error(err as string);
