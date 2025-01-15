@@ -1,8 +1,8 @@
 import useRadioState from '@renderer/store/radioStore';
 import useSessionStore from '@renderer/store/sessionStore';
 import useUtilStore from '@renderer/store/utilStore';
+import { RefreshCw } from 'lucide-react';
 import React from 'react';
-import { ArrowClockwise } from 'react-bootstrap-icons';
 
 const RefreshMultipleRadios: React.FC = () => {
   const [isConnected] = useSessionStore((state) => [state.isConnected]);
@@ -29,7 +29,7 @@ const RefreshMultipleRadios: React.FC = () => {
           refreshMultipleRadios();
         }}
       >
-        <ArrowClockwise />
+        <RefreshCw size={15} />
       </button>
     </div>
   );

@@ -12,8 +12,10 @@ const FocusBar = () => {
     state.connectTimestamp
   ]);
   const [pendingRestart] = useUtilStore((state) => [state.pendingRestart]);
-  const isWideScreen = useMediaQuery({ minWidth: '800px' });
-  const isSmallScreen = useMediaQuery({ maxWidth: '490px' });
+  // const isWideScreen = useMediaQuery({ minWidth: '800px' });
+  // const isSmallScreen = useMediaQuery({ maxWidth: '490px' });
+  const isWideScreen = useMediaQuery({ minWidth: '755px' });
+  const isSmallScreen = useMediaQuery({ maxWidth: '615px' });
 
   const restartApp = () => {
     if (isConnected) {

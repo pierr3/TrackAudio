@@ -1,9 +1,9 @@
 import useRadioState from '@renderer/store/radioStore';
 import { useMemo, useState, useEffect } from 'react';
 import type { RadioType } from '@renderer/store/radioStore';
-import { LayoutSidebarInsetReverse, LayoutSidebarReverse } from 'react-bootstrap-icons';
 import useUtilStore from '@renderer/store/utilStore';
 import clsx from 'clsx';
+import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 
 const RxInfo = () => {
   const radios = useRadioState((state) => state.radios);
@@ -87,7 +87,7 @@ const RxInfo = () => {
             setShowExpandedRxInfo(!showExpandedRxInfo);
           }}
         >
-          {!showExpandedRxInfo ? <LayoutSidebarInsetReverse /> : <LayoutSidebarReverse />}
+          {!showExpandedRxInfo ? <PanelRightOpen size={15} /> : <PanelRightClose size={15} />}
         </button>
       </div>
     </div>

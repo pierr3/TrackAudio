@@ -1,7 +1,7 @@
 import useRadioState from '@renderer/store/radioStore';
 import useSessionStore from '@renderer/store/sessionStore';
+import { Maximize, Minimize } from 'lucide-react';
 import React, { useCallback } from 'react';
-import { Fullscreen, FullscreenExit } from 'react-bootstrap-icons';
 
 interface MiniModeToggleButtonProps {
   showRestoreButton: boolean;
@@ -29,15 +29,9 @@ const MiniModeToggleButton: React.FC<MiniModeToggleButtonProps> = ({
       disabled={!isConnected && !alwaysEnabled}
     >
       {showRestoreButton ? (
-        <Fullscreen
-          title={'Switch to large mode'}
-          style={{ strokeWidth: '0.5px', stroke: 'white' }}
-        />
+        <Maximize size={15} xlinkTitle="Switch to mini mode" />
       ) : (
-        <FullscreenExit
-          title={'Switch to mini mode'}
-          style={{ strokeWidth: '0.5px', stroke: 'white' }}
-        />
+        <Minimize size={15} xlinkTitle="Switch to mini mode" />
       )}
     </button>
   );

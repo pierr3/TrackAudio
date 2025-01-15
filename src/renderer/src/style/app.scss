@@ -13,6 +13,11 @@
   background-color: $body-color;
 }
 
+/* stylelint-disable scss/empty-rules */
+button:focus:not(:focus-visible) {
+  font-weight: normal;
+}
+/* stylelint-enable scss/empty-rules */
 .toolbar-item {
   position: relative;
   // margin-right: 20px;
@@ -354,11 +359,21 @@ button:disabled {
   all: unset;
   font-size: 11px;
   font-weight: 600;
-  height: 12px;
+  height: 11px;
 
   :hover {
     color: white;
   }
+}
+
+.radio-alias-freq {
+  font-size: 11px;
+  font-weight: 600;
+  // width: 7px;
+  // height: 7px;
+  // border-radius: 50%;
+  // background-color: $primary;
+  z-index: 1000;
 }
 
 .radio {
@@ -420,6 +435,7 @@ button:disabled {
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      // margin-top: 2px;
       // gap: 1px;
     }
 
@@ -427,6 +443,7 @@ button:disabled {
       font-size: 15px;
       line-height: 1;
       font-weight: 500;
+      width: 55px;
     }
 
     .callsign {
