@@ -573,7 +573,7 @@ void HandleAfvEvents()
 
             NapiHelpers::callElectron("StationDataReceived", callsign, stationJson.dump());
             MainThreadShared::mApiServer->publishStationAdded(
-                callsign, static_cast<int>(frequency));
+                callsign, static_cast<int>(frequency), static_cast<int>(station.frequencyAlias));
         });
 
     event.AddHandler<afv_native::VccsReceivedEvent>(
@@ -597,7 +597,7 @@ void HandleAfvEvents()
 
                 NapiHelpers::callElectron("StationDataReceived", callsign, stationJson.dump());
                 MainThreadShared::mApiServer->publishStationAdded(
-                    callsign, static_cast<int>(frequency));
+                    callsign, static_cast<int>(frequency), static_cast<int>(frequencyAlias));
             }
         });
 
