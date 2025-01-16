@@ -40,6 +40,10 @@ Ask your FE to define the station in the AFV database. Per the AFV FE manual, al
 
 Yes! @KingfuChan has updated the RDF plugin for EuroScope to include support for TrackAudio. Find the plugin [in this repo](https://github.com/KingfuChan/RDF/).
 
+### Is there Stream Deck support?
+
+Yes! @neilenns has created a dedicated TrackAudio Stream Deck plugin (which includes volume dial support). Find the plugin [in this repo](https://github.com/neilenns/streamdeck-trackaudio) or [in the Stream Deck marketplace](https://marketplace.elgato.com/product/trackaudio-e913a0ca-4c12-411d-a5a6-acf5f6c4bdea).
+
 ### Does TrackAudio support HF Simulation?
 
 Yes, but only if you add a frequency by callsign (must be defined in database). HF Squelch is enabled by default
