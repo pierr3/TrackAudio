@@ -264,7 +264,7 @@ void SDK::publishStationAdded(
         = WebsocketMessage::buildMessage(WebsocketMessageType::kStationAdded);
     jsonMessage["value"]["callsign"] = callsign;
     jsonMessage["value"]["frequency"] = frequencyHz;
-    if (frequencyAlias.has_value()) {
+    if (frequencyAlias.has_value() && frequencyAlias.value() != 0) {
         jsonMessage["value"]["frequencyAlias"] = frequencyAlias.value();
     }
 
