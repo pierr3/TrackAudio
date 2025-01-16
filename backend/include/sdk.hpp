@@ -119,7 +119,7 @@ public:
 
     void publishStationState(const nlohmann::json& state, bool broadcastToElectron = true);
     void publishMainVolumeChange(const float& volume, bool broadcastToElectron = true);
-    void publishStationAdded(
-        const std::string& callsign, const int& frequencyHz, const int& frequencyAlias);
+    void publishStationAdded(const std::string& callsign, const int& frequencyHz,
+        const std::optional<int>& frequencyAlias = std::nullopt);
     void publishFrequencyRemoved(const int& frequencyHz);
 };

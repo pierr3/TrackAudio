@@ -596,8 +596,8 @@ void HandleAfvEvents()
                 stationJson["frequencyAlias"] = station.frequencyAlias;
 
                 NapiHelpers::callElectron("StationDataReceived", callsign, stationJson.dump());
-                MainThreadShared::mApiServer->publishStationAdded(
-                    callsign, static_cast<int>(frequency), static_cast<int>(frequencyAlias));
+                MainThreadShared::mApiServer->publishStationAdded(callsign,
+                    static_cast<int>(frequency), static_cast<int>(station.frequencyAlias));
             }
         });
 

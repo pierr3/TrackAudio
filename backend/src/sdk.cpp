@@ -258,13 +258,16 @@ void SDK::publishMainVolumeChange(const float& volume, bool broadcastToElectron)
 }
 
 void SDK::publishStationAdded(
-    const std::string& callsign, const int& frequencyHz, const int& frequencyAlias)
+    const std::string& callsign, const int& frequencyHz, const std::optional<int>& frequencyAlias)
 {
     nlohmann::json jsonMessage
         = WebsocketMessage::buildMessage(WebsocketMessageType::kStationAdded);
     jsonMessage["value"]["callsign"] = callsign;
     jsonMessage["value"]["frequency"] = frequencyHz;
-    jsonMessage["value"]["frequencyAlias"] = frequencyAlias;
+    if (frequencyAlias.has_value()) {
+        jsonMessage["value"]["frequencyAlias"] = frequencyAlias.value();
+    }
+
     broadcastMessage(jsonMessage.dump(), MessageScope::AllClients);
 }
 
