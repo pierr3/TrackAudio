@@ -179,6 +179,11 @@ bool RemoteData::parseSlurper(const std::string& sluper_data)
 
 void RemoteData::updateSessionStatus(const std::string& previousCallsign, bool isConnected)
 {
+    if (!RemoteDataStatus::isSlurperAvailable) {
+        // Don't do anything if the slurper is not available.
+        return;
+    }
+
     if (UserSession::isConnectedToTheNetwork && UserSession::callsign != previousCallsign
         && !previousCallsign.empty() && isConnected && mClient->IsVoiceConnected()) {
         PLOG_INFO << "Callsign changed during an active session, disconnecting ("
@@ -239,9 +244,11 @@ void RemoteData::notifyUserOfSlurperUnavalability()
         userHasBeenNotifiedOfSlurperUnavailability = true;
     }
 
-    NapiHelpers::sendErrorToElectron("Error while parsing slurper data, check the log file. "
-                                     "This means your internet may be down or the VATSIM servers "
-                                     "may experience an outage. You will not be able to connect "
-                                     "until this is resolved. TrackAudio will keep retrying in the "
-                                     "background.");
+    NapiHelpers::sendErrorToElectron(
+        "Error while parsing slurper data, check the log file. "
+        "This means your internet may be down or the VATSIM servers "
+        "may experience an outage. Auto-disconnect will not be triggered, "
+        "you may need to disconnect afv manually when disconnect from the network, "
+        "until the service back online. TrackAudio will keep retrying "
+        "in the background.");
 };
