@@ -586,6 +586,7 @@ ipcMain.handle(
   'audio-set-frequency-state',
   (
     _,
+    callsign: string,
     frequency: number,
     rx: boolean,
     tx: boolean,
@@ -596,6 +597,7 @@ ipcMain.handle(
     outputVolume?: number
   ) => {
     return TrackAudioAfv.SetFrequencyState(
+      callsign,
       frequency,
       rx,
       tx,

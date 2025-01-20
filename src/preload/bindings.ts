@@ -67,6 +67,7 @@ export const api = {
   IsFrequencyActive: (frequency: number) =>
     ipcRenderer.invoke('audio-is-frequency-active', frequency),
   setFrequencyState: (
+    callsign: string,
     frequency: number,
     rx: boolean,
     tx: boolean,
@@ -78,6 +79,7 @@ export const api = {
   ) =>
     ipcRenderer.invoke(
       'audio-set-frequency-state',
+      callsign,
       frequency,
       rx,
       tx,

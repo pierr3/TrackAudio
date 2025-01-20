@@ -136,6 +136,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     const newState = !radio.isOutputMuted;
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         radio.rx,
         radio.tx,
@@ -195,6 +196,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
 
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         newState,
         newState ? radio.tx : false,
@@ -230,6 +232,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
 
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         newState ? true : radio.rx,
         newState,
@@ -263,6 +266,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     const newState = !radio.xc;
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         newState ? true : radio.rx,
         newState ? true : radio.tx,
@@ -296,6 +300,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     const newState = !radio.crossCoupleAcross;
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         newState ? true : radio.rx,
         newState ? true : radio.tx,
@@ -329,6 +334,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     const newState = !radio.onSpeaker;
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         radio.rx,
         radio.tx,

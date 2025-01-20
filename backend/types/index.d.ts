@@ -71,6 +71,7 @@ declare namespace TrackAudioAfv {
   export function RefreshStation(callsign: string): void;
 
   export function SetFrequencyState(
+    callsign: string,
     frequency: number,
     rx: boolean,
     tx: boolean,

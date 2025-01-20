@@ -237,19 +237,20 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 {
     RadioState newState {};
 
-    newState.frequency = info[0].As<Napi::Number>().Int32Value();
-    newState.rx = info[1].As<Napi::Boolean>().Value();
-    newState.tx = info[2].As<Napi::Boolean>().Value();
-    newState.xc = info[3].As<Napi::Boolean>().Value();
+    auto callsign = info[0].As<Napi::String>().Utf8Value();
+    newState.frequency = info[1].As<Napi::Number>().Int32Value();
+    newState.rx = info[2].As<Napi::Boolean>().Value();
+    newState.tx = info[3].As<Napi::Boolean>().Value();
+    newState.xc = info[4].As<Napi::Boolean>().Value();
     // Note the negation here, as the API uses the opposite of what is saved internally
-    newState.headset = !info[4].As<Napi::Boolean>().Value();
-    newState.xca = info[5].As<Napi::Boolean>().Value(); // Not used
-    newState.isOutputMuted = info.Length() > 6 ? info[6].As<Napi::Boolean>().Value() : false;
-    newState.outputVolume = info.Length() > 7 ? info[7].As<Napi::Number>().FloatValue() : 100;
+    newState.headset = !info[5].As<Napi::Boolean>().Value();
+    newState.xca = info[6].As<Napi::Boolean>().Value(); // Not used
+    newState.isOutputMuted = info.Length() > 7 ? info[7].As<Napi::Boolean>().Value() : false;
+    newState.outputVolume = info.Length() > 8 ? info[8].As<Napi::Number>().FloatValue() : 100;
 
     // SetGuardAndUnicomTransceivers();
 
-    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, "");
+    auto result = RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, callsign);
     return Napi::Boolean::New(info.Env(), result);
 }
 

@@ -31,7 +31,7 @@ enum class Event : std::uint8_t {
     kTxEnd,
     kFrequencyStateUpdate,
     kDisconnectFrequencyStateUpdate,
-    kStationStateUpdated,
+    kStationStateUpdate,
     kVoiceConnectedState,
 };
 }
