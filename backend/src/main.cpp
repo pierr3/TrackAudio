@@ -217,6 +217,7 @@ void RemoveFrequency(const Napi::CallbackInfo& info)
     RadioState newState {};
 
     newState.frequency = info[0].As<Napi::Number>().Int32Value();
+    auto callsign = info.Length() > 1 ? info[1].As<Napi::String>().Utf8Value() : "";
     newState.rx = false;
     newState.tx = false;
     newState.xc = false;
@@ -225,7 +226,7 @@ void RemoveFrequency(const Napi::CallbackInfo& info)
     newState.isOutputMuted = false;
     newState.outputVolume = 100;
 
-    RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, "", false);
+    RadioHelper::SetRadioState(MainThreadShared::mApiServer, newState, callsign, false);
     mClient->RemoveFrequency(newState.frequency);
 
     MainThreadShared::mApiServer->publishFrequencyRemoved(newState.frequency);

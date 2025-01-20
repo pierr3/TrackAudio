@@ -578,9 +578,15 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle('audio-remove-frequency', (_, frequency: number) => {
-  TrackAudioAfv.RemoveFrequency(frequency);
-});
+ipcMain.handle(
+  'audio-remove-frequency',
+  (_, frequency: number, callsign?: string) => {
+    if (callsign) {
+      TrackAudioAfv.RemoveFrequency(frequency, callsign);
+    }
+    TrackAudioAfv.RemoveFrequency(frequency);
+  }
+);
 
 ipcMain.handle(
   'audio-set-frequency-state',
