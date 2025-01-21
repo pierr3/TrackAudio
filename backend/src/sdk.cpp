@@ -228,7 +228,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         return;
     }
 
-    if (event == sdk::types::Event::kStationStateUpdate) {
+    if (event == sdk::types::Event::kStationStateUpdated) {
         if (!frequencyHz.has_value()) {
             PLOG_ERROR << "kStationStateUpdated requires a frequencyHz";
             return;
