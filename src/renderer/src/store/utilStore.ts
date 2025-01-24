@@ -15,6 +15,7 @@ interface UtilStore {
   pendingRestart: boolean;
   transparentMiniMode: boolean;
   radioToMaxVolumeOnTX: boolean;
+  updateChannel: string;
   time: Date;
   setIsEditMode: (isEditMode: boolean) => void;
   setPtt1KeyName: (ptt1KeyName: string) => void;
@@ -30,6 +31,7 @@ interface UtilStore {
   setPendingRestart: (pendingRestart: boolean) => void;
   setRadioToMaxVolumeOnTX: (maxVolume: boolean) => void;
   setTime: (time: Date) => void;
+  setUpdateChannel: (updateChannel: string) => void;
 }
 
 const useUtilStore = create<UtilStore>((set) => ({
@@ -48,6 +50,7 @@ const useUtilStore = create<UtilStore>((set) => ({
   pendingRestart: false,
   radioToMaxVolumeOnTX: false,
   time: new Date(),
+  updateChannel: 'stable',
   setIsEditMode: (isEditMode: boolean) => {
     set({ isEditMode });
   },
@@ -89,6 +92,10 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   setRadioToMaxVolumeOnTX: (maxVolume: boolean): void => {
     set({ radioToMaxVolumeOnTX: maxVolume });
+  },
+  setUpdateChannel: (updateChannel: string): void => {
+    if (updateChannel !== 'stable' && updateChannel !== 'beta') return;
+    set({ updateChannel });
   }
 }));
 

@@ -637,6 +637,10 @@ ipcMain.handle('set-main-radio-volume', (_, mainRadioVolume: number) => {
   TrackAudioAfv.SetMainRadioVolume(mainRadioVolume);
 });
 
+ipcMain.handle('set-update-channel', (_, channel: string) => {
+  configManager.updateConfig({ updateChannel: channel });
+});
+
 ipcMain.handle('set-frequency-radio-volume', (_, frequency: number, stationVolume: number) => {
   TrackAudioAfv.SetFrequencyRadioVolume(frequency, stationVolume);
 });
@@ -687,12 +691,21 @@ ipcMain.handle('restart', () => {
 });
 
 ipcMain.on('check-for-updates', (event) => {
-  if (process.platform === 'win32') {
-    event.reply('update-not-available');
-    return;
-  }
+  // if (process.platform === 'win32') {
+  //   event.reply('update-not-available');
+  //   return;
+  // }
 
   if (app.isPackaged) {
+    if (
+      configManager.config.updateChannel !== 'beta' &&
+      configManager.config.updateChannel !== 'stable'
+    ) {
+      event.reply('update-not-available');
+      console.error("Invalid update channel, can't check for updates");
+      return;
+    }
+    updater.autoUpdater.channel = configManager.config.updateChannel;
     updater.autoUpdater.autoInstallOnAppQuit = false;
     updater.autoUpdater.checkForUpdatesAndNotify().catch(() => {
       console.error(`Error checking for updates`);

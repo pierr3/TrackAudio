@@ -8,14 +8,17 @@ import Mini from './components/mini';
 import './index.scss';
 import './style/app.scss';
 import FocusBar from './components/focusBar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import IPCInterface from './interfaces/IPCInterface';
+import Updater from './components/updater/Updater';
+import { UpdateInfo } from 'electron-updater';
 
 function App() {
+  const [updateAvailable, setUpdateAvailable] = useState<UpdateInfo | null>(null);
+
   useEffect(() => {
     IPCInterface.init();
     window.api.log.info('IPCInterface initialized');
-
     return () => {
       window.api.log.info('IPCInterface destroyed');
       IPCInterface.destroy();
@@ -23,18 +26,23 @@ function App() {
   }, []);
 
   return (
-    <>
-      <Navbar />
-      <ErrorDialog />
-      <div className="structure">
-        <Mini />
-        <div className="sub-structure d-flex flex-column">
-          <RadioContainer />
-          <FocusBar />
+    <div className="absolute">
+      <div>
+        <Navbar updateAvailable={updateAvailable !== null} />
+        <ErrorDialog />
+        <div className="structure">
+          <Mini />
+          <div className="position-relative structure">
+            <div className={`blur-overlay ${updateAvailable ? 'active' : ''}`} />
+            <Updater onUpdateFound={setUpdateAvailable} />
+            <div className="sub-structure d-flex flex-column h-full">
+              <RadioContainer />
+              <FocusBar />
+            </div>
+          </div>
         </div>
-        {/* <Sidebar /> */}
       </div>
-    </>
+    </div>
   );
 }
 

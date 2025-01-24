@@ -27,6 +27,25 @@ button:focus:not(:focus-visible) {
   font-weight: 500;
 }
 
+.blur-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 50;
+  &.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 .toolbar-btn {
   height: 100%;
   margin: 0px;
