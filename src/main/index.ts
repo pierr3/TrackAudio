@@ -699,10 +699,10 @@ ipcMain.handle('restart', () => {
 });
 
 ipcMain.on('check-for-updates', (event) => {
-  // if (process.platform === 'win32') {
-  //   event.reply('update-not-available');
-  //   return;
-  // }
+  if (process.platform !== 'win32') {
+    event.reply('update-not-available');
+    return;
+  }
 
   if (app.isPackaged) {
     if (
