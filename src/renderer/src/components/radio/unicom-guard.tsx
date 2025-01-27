@@ -70,6 +70,7 @@ const UnicomGuardBar = () => {
 
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         newState,
         newState ? radio.tx : false,
@@ -105,6 +106,7 @@ const UnicomGuardBar = () => {
 
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         newState ? true : radio.rx, // If tx is true, rx must be true
         newState,
@@ -139,6 +141,7 @@ const UnicomGuardBar = () => {
     const newState = !radio.onSpeaker;
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         radio.rx,
         radio.tx,
@@ -174,6 +177,7 @@ const UnicomGuardBar = () => {
     const newState = !radio.isOutputMuted;
     window.api
       .setFrequencyState(
+        radio.callsign,
         radio.frequency,
         radio.rx,
         radio.tx,
