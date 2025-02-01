@@ -1,5 +1,4 @@
 <!-- markdownlint-disable MD033 MD045 MD007 -->
-<!-- no toc -->
 <h1>
   <img src="https://raw.githubusercontent.com/pierr3/TrackAudio/main/build/icon.png" width="50" valign="middle">
   <span style="font-size: 2em; font-weight: bold">TrackAudio</span>
