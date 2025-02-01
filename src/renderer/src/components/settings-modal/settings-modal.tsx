@@ -9,6 +9,8 @@ import useUtilStore from '../../store/utilStore';
 import AudioApis from './audio-apis';
 import AudioInput from './audio-input';
 import AudioOutputs from './audio-outputs';
+import { Info } from 'lucide-react';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 export interface SettingsModalProps {
   closeModal: () => void;
 }
@@ -285,6 +287,29 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     closeModal();
   };
 
+  const renderRadioTooltip = (props) => (
+    <Tooltip id="button-tooltip" {...props}>
+      <div className="text-white">
+        <p>
+          <strong>Schmid ED-137B:</strong>
+          <br />
+          Clear audio with slight distortion, emphasising lower frequencies.
+        </p>
+        <p>
+          <strong>Rockwell Collins 2100:</strong>
+          <br />
+          Typical radio-like distortion, commonly used in Boeing and Airbus aircraft (resembles the
+          &quot;Realistic ATC Audio Effect&quot; in the older AFV for Windows client).
+        </p>
+        <p>
+          <strong>Garex 220:</strong> <br />
+          Similar to the Schmid ED-137B, but with slightly less distortion and a greater emphasis on
+          higher frequencies.
+        </p>
+      </div>
+    </Tooltip>
+  );
+
   return (
     <>
       <div className="modal settingsModalBackground" role="dialog">
@@ -341,8 +366,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       <option value="output">Output only</option>
                       <option value="off">Off</option>
                     </select>
-
-                    <label className="mt-2">Radio hardware</label>
+                    <div className="d-flex justify-content-between align-items-center mt-2">
+                      <label>Radio hardware</label>
+                      <OverlayTrigger placement="right" overlay={renderRadioTooltip}>
+                        <button type="button" className="info-icon">
+                          <Info size={13} />
+                        </button>
+                      </OverlayTrigger>
+                    </div>
                     <select
                       id=""
                       className="form-control mt-1"
