@@ -36,6 +36,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
   const [pttIsOn] = useRadioState((state) => [state.pttIsOn]);
 
+  const [platform] = useUtilStore((state) => [state.platform]);
+
+  const isWindows = platform === 'win32';
+
   const [
     vu,
     vuPeak,
@@ -243,7 +247,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   };
 
   const handleUpdateChannelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (e.target.value !== 'stable' && e.target.value !== 'beta') {
+    if ((e.target.value !== 'stable' && e.target.value !== 'beta') || !isWindows) {
       return;
     }
     void window.api.SetUpdateChannel(e.target.value);
@@ -424,16 +428,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       <option value="false">Never</option>
                     </select>
 
-                    <label className="mt-2">Release channel</label>
-                    <select
-                      id=""
-                      className="form-control mt-1"
-                      onChange={handleUpdateChannelChange}
-                      value={updateChannel.toString()}
-                    >
-                      <option value="stable">Stable</option>
-                      <option value="beta">Beta</option>
-                    </select>
+                    {isWindows && (
+                      <>
+                        <label className="mt-2">Release channel</label>
+                        <select
+                          id=""
+                          className="form-control mt-1"
+                          onChange={handleUpdateChannelChange}
+                          value={updateChannel.toString()}
+                        >
+                          <option value="stable">Stable</option>
+                          <option value="beta">Beta</option>
+                        </select>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

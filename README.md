@@ -23,6 +23,7 @@
 - 🎮 Comprehensive Stream Deck integration
 - 🪟 Compact mini-mode with transparency options
 - 🔌 Developer-friendly SDK with WebSocket and HTTP support
+- 🔄 Automatic Updates [Windows]
 
 ## Table of Contents
 
