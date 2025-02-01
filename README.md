@@ -1,18 +1,66 @@
-# TrackAudio
+<!-- markdownlint-disable MD033 MD045 MD007 -->
+<!-- no toc -->
+<h1>
+  <img src="https://raw.githubusercontent.com/pierr3/TrackAudio/main/build/icon.png" width="50" valign="middle">
+  <span style="font-size: 2em; font-weight: bold">TrackAudio</span>
+</h1>
 
-A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows.
+[![Release](https://img.shields.io/github/v/release/pierr3/TrackAudio)](https://github.com/pierr3/TrackAudio/releases)
 
-![screengrab of application](https://raw.githubusercontent.com/pierr3/TrackAudio/main/docs/app_screenshot_jan2025.png)
+> **New to TrackAudio?** 📖 Check out the [Key Features](#key-features) and [FAQ](#faq) before getting started!
 
-## Releases
+🔊 A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows.
 
-See [releases](https://github.com/pierr3/TrackAudio/releases) for latest builds, remember that beta builds may be unstable. Please report any issues on GitHub.
+💡 Get the latest version from our [releases page](https://github.com/pierr3/TrackAudio/releases). Beta builds are available but may be unstable. Found an issue? [Report it](https://github.com/pierr3/TrackAudio/issues/new)!
+
+![screengrab of application](https://raw.githubusercontent.com/pierr3/TrackAudio/main/docs/app_screenshot_feb2025.png)
+
+## Key Features
+
+- 🖥️ Cross-platform support for macOS, Linux, and Windows
+- 🎚️ Independent volume and mute controls for each radio
+- 🕹️ Dual push-to-talk capability
+- 📡 Built-in Unicom & Guard support
+- 🎮 Comprehensive Stream Deck integration
+- 🪟 Compact mini-mode with transparency options
+- 🔌 Developer-friendly SDK with WebSocket and HTTP support
+
+## Table of Contents
+
+- [FAQ](#faq)
+  - [What's the difference between VectorAudio and TrackAudio?](#whats-the-difference-between-vectoraudio-and-trackaudio)
+  - [Why does the audio sound different compared to the older AFV for Windows client?](#why-does-the-audio-sound-different-compared-to-the-older-afv-for-windows-client)
+  - [My PTT does not work on macOS](#my-ptt-does-not-work-on-macos)
+  - [I attempted to set a PTT, but it displays the name 'Unknown (XXX)'](#i-attempted-to-set-a-ptt-but-it-displays-the-name-unknown-xxx)
+  - [I'm unable to set a PTT because it automatically assigns to my Joystick](#im-unable-to-set-a-ptt-because-it-automatically-assigns-to-my-joystick)
+  - [Where are the log and config files stored?](#where-are-the-log-and-config-files-stored)
+  - [The station I am trying to add is not found](#the-station-i-am-trying-to-add-is-not-found)
+  - [Is there RDF support in EuroScope?](#is-there-rdf-support-in-euroscope)
+  - [Is there Stream Deck support?](#is-there-stream-deck-support)
+  - [Does TrackAudio support HF Simulation?](#does-trackaudio-support-hf-simulation)
+  - [Can I add a frequency manually if it does not exist in the database?](#can-i-add-a-frequency-manually-if-it-does-not-exist-in-the-database)
+  - [What is XC and XCA?](#what-is-xc-and-xca)
+  - [Can I extend TrackAudio using a plugin/is there an SDK?](#can-i-extend-trackaudio-using-a-pluginis-there-an-sdk)
+  - [Ports and endpoints access required for TrackAudio](#ports-and-endpoints-access-required-for-trackaudio)
+  - [How to enable verbose logging (advanced)](#how-to-enable-verbose-logging-advanced)
+  - [I have an issue with TrackAudio](#i-have-an-issue-with-trackaudio)
+- [Installation](#installation)
+- [Build](#build)
+- [Contributing](#contributing)
 
 ## FAQ
 
 ### What's the difference between VectorAudio and TrackAudio?
 
 TrackAudio is simply the next iteration of VectorAudio, using a different set of technology. VectorAudio is no longer maintained and supported, so you should switch to TrackAudio as soon as possible.
+
+### Why does the audio sound different compared to the older AFV for Windows client?
+
+TrackAudio offers multiple types of radio hardware, Schmid ED-137B is set by default and can changed in settings, these dictate how the received audio from the network is processed.
+
+- Schmid ED-137B – Perceived as clearer audio with slight distortion, emphasising lower frequencies
+- Rockwell Collins 2100 – Typical radio-like distortion, commonly used in Boeing and Airbus aircraft (resembles the "Realistic ATC Audio Effect" in the older AFV for Windows client)
+- Garrex 220 – Similar to the Schmid ED-137B, but with slightly less distortion and a greater emphasis on higher frequencies.
 
 ### My PTT does not work on macOS
 
@@ -134,8 +182,6 @@ Download and install the [Visual Studio c++ Redistributable](https://aka.ms/vs/1
 Download the latest release on the [release page](https://github.com/pierr3/TrackAudio/releases) and run the executable. This should install TrackAudio.
 
 ## Build
-
-### Dependencies
 
 TrackAudio depends on afv-native and SFML (for input handling).
 
