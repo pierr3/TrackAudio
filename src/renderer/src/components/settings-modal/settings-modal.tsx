@@ -424,7 +424,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       <option value="false">Never</option>
                     </select>
 
-                    <label className="mt-2">Release Channel</label>
+                    <label className="mt-2">Release channel</label>
                     <select
                       id=""
                       className="form-control mt-1"
