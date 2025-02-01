@@ -42,7 +42,7 @@ const DeleteMultipleRadios: React.FC = () => {
         }
 
         if (!radio.currentlyRx && !radio.currentlyTx) {
-          void window.api.removeFrequency(radio.frequency);
+          void window.api.removeFrequency(radio.frequency, radio.callsign);
           removeRadio(radio.frequency);
           clearInterval(interval);
         }
