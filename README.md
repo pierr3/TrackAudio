@@ -30,6 +30,7 @@
 - [FAQ](#faq)
   - [What's the difference between VectorAudio and TrackAudio?](#whats-the-difference-between-vectoraudio-and-trackaudio)
   - [Why does the audio sound different compared to the older AFV for Windows client?](#why-does-the-audio-sound-different-compared-to-the-older-afv-for-windows-client)
+  - [I'm having an issue auto-updating on Windows?](#im-having-an-issue-auto-updating-on-windows)
   - [My PTT does not work on macOS](#my-ptt-does-not-work-on-macos)
   - [I attempted to set a PTT, but it displays the name 'Unknown (XXX)'](#i-attempted-to-set-a-ptt-but-it-displays-the-name-unknown-xxx)
   - [I'm unable to set a PTT because it automatically assigns to my Joystick](#im-unable-to-set-a-ptt-because-it-automatically-assigns-to-my-joystick)
@@ -61,6 +62,10 @@ TrackAudio offers multiple types of radio hardware, Schmid ED-137B is set by def
 - Schmid ED-137B – Perceived as clearer audio with slight distortion, emphasising lower frequencies
 - Rockwell Collins 2100 – Typical radio-like distortion, commonly used in Boeing and Airbus aircraft (resembles the "Realistic ATC Audio Effect" in the older AFV for Windows client)
 - Garrex 220 – Similar to the Schmid ED-137B, but with slightly less distortion and a greater emphasis on higher frequencies.
+
+### I'm having an issue auto-updating on Windows?
+
+There may have been an issue in the update logic that is causing your instance of TrackAudio to not be able to update. Please [report it](https://github.com/pierr3/TrackAudio/issues/new) with a copy of your log file, and in the meantime you should update manually using the latest version from our [releases page](https://github.com/pierr3/TrackAudio/releases).
 
 ### My PTT does not work on macOS
 
