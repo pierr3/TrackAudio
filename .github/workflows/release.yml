@@ -136,7 +136,7 @@ jobs:
       - name: Package app
         if: matrix.os == 'windows-2022'
         shell: bash
-        run: npm run build:win
+        run: npm run build:win -- --publish=always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -156,13 +156,13 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
-          npm run build:mac -- --${{ matrix.arch }}
+          npm run build:mac -- --${{ matrix.arch }} --publish=always
           rm ./.a.p8
 
       - name: Package app
         if: matrix.os == 'ubuntu-latest'
         shell: bash
-        run: npm run build:linux -- --${{ matrix.arch }}
+        run: npm run build:linux -- --${{ matrix.arch }} --publish=always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -175,19 +175,11 @@ jobs:
           mv $dmg_file $new_dmg_file
 
       - id: relinfo
+        if: matrix.os != 'windows-2022'
         uses: pozetroninc/github-action-get-latest-release@master
         with:
           repository: pierr3/TrackAudio
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload artifacts
-        uses: softprops/action-gh-release@v2
-        if: matrix.os == 'windows-2022'
-        with:
-          tag_name: ${{ steps.relinfo.outputs.release }}
-          files: |
-            dist/*.exe
-            dist/*.zip
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
