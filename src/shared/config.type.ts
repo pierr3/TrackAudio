@@ -1,6 +1,6 @@
 export type AlwaysOnTopMode = 'never' | 'always' | 'inMiniMode';
 export type RadioEffects = 'on' | 'input' | 'output' | 'off';
-export type Theme = 'default' | 'schmid';
+export type Theme = 'default' | 'schmid-ics';
 
 export interface Configuration {
   version?: number;

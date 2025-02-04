@@ -1,12 +1,12 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import Radio from './radio';
-import useRadioState, { RadioType } from '../../store/radioStore';
-import TopBarContainer from './top-bar-container';
+import useRadioState, { RadioType } from '../../../store/radioStore';
+import TopBarContainer from '../top-bar-container';
 import useSessionStore from '@renderer/store/sessionStore';
 import useUtilStore from '@renderer/store/utilStore';
 import ExpandedRxInfo from './expanded-rx-info';
-import AddStation from '../sidebar/add-station';
-import AddFrequency from '../sidebar/add-frequency';
+import AddStation from '../../sidebar/add-station';
+import AddFrequency from '../../sidebar/add-frequency';
 
 const EXCLUDED_FREQUENCIES = [0];
 const UNICOM_EXCLUDED_FREQUENCIES = [122.8e6, 121.5e6];

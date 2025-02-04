@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import Navbar from './components/navbar';
-import RadioContainer from './components/radio/radio-container';
+import RadioContainer from './components/radio/default/radio-container';
 
 import ErrorDialog from './components/error';
 import Mini from './components/mini';
@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import IPCInterface from './interfaces/IPCInterface';
 import Updater from './components/updater/Updater';
 import { UpdateInfo } from 'electron-updater';
-import ControlPanel from './components/schmid/RadioContainer';
+import ControlPanel from './components/radio/schmid-ics/RadioContainer';
 import useUtilStore from './store/utilStore';
 
 function App() {
@@ -26,10 +26,6 @@ function App() {
       IPCInterface.destroy();
     };
   }, []);
-
-  useEffect(() => {
-    console.log(theme);
-  }, [theme]);
 
   return (
     <div className="absolute">
@@ -47,7 +43,7 @@ function App() {
                 <FocusBar />
               </div>
             )}
-            {theme === 'schmid' && (
+            {theme === 'schmid-ics' && (
               <div className="structure d-flex flex-column h-full">
                 <ControlPanel />
               </div>

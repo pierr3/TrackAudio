@@ -246,7 +246,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   };
 
   const handleSetTheme = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (e.target.value !== 'default' && e.target.value !== 'schmid') {
+    if (e.target.value !== 'default' && e.target.value !== 'schmid-ics') {
       return;
     }
     setChangesSaved(SaveStatus.Saving);
@@ -523,7 +523,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     <option value="true">Always</option>
                     <option value="false">Never</option>
                   </select>
-                  <label className="mt-2">Theme</label>
+                  <label className="mt-2">VCCS Theme</label>
                   <select
                     id=""
                     className="form-control mt-1"
@@ -531,7 +531,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     value={theme}
                   >
                     <option value="default">Default</option>
-                    <option value="schmid">Schmid</option>
+                    <option value="schmid-ics">Schmid ICS 200 / 60</option>
                   </select>
                 </div>
               </div>

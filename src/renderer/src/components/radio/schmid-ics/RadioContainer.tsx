@@ -3,9 +3,9 @@ import useUtilStore from '@renderer/store/utilStore';
 import clsx from 'clsx';
 import useSessionStore from '@renderer/store/sessionStore';
 import { useRadioChannelsGrid } from './Radio';
-import UnicomGuardBar from '../radio/unicom-guard';
+import UnicomGuardBar from '../unicom-guard';
 import useRadioState from '@renderer/store/radioStore';
-
+import './Schmid.scss';
 // Interfaces for component props
 interface BaseProps {
   children?: React.ReactNode;
@@ -37,14 +37,14 @@ const BaseButton: FC<BaseProps & React.ButtonHTMLAttributes<HTMLButtonElement>> 
   className = '',
   ...props
 }) => (
-  <button className={clsx('schmid-button', 'fw-bold mb-1', className)} {...props}>
+  <button className={clsx('schmid-ics-button', 'fw-bold mb-1', className)} {...props}>
     {children}
   </button>
 );
 
 // Time display component
 const TimeDisplay: FC<TimeDisplayProps> = ({ time }) => (
-  <div className="schmid-time mb-2">
+  <div className="schmid-ics-time mb-2">
     <div className="h-100 text-black ms-2 fw-bold d-flex align-items-center justify-content-start">
       {time}
     </div>
@@ -54,7 +54,7 @@ const TimeDisplay: FC<TimeDisplayProps> = ({ time }) => (
 // Active location button component
 const ActiveLocation: FC<{ callsign: string }> = ({ callsign }) => (
   <div
-    className="schmid-button container-left blue text-white position-relative mb-1"
+    className="schmid-ics-button container-left blue text-white position-relative mb-1"
     style={{ height: '60px' }}
   >
     <div className="position-absolute" style={{ left: '5px', fontSize: '0.6rem' }}>
@@ -68,7 +68,7 @@ const ActiveLocation: FC<{ callsign: string }> = ({ callsign }) => (
 const EmptySlot: FC<EmptySlotProps> = ({ index }) => (
   <div
     key={index}
-    className="text-white p-2 mb-1 schmid-button container-left"
+    className="text-white p-2 mb-1 schmid-ics-button container-left"
     style={{ height: '60px' }}
   />
 );
@@ -91,7 +91,7 @@ const ControlColumn: FC<ControlColumnProps> = ({ title, phoneLabel }) => (
     <ControlButton label={title} />
     <div className="d-flex flex-column">
       {Array.from({ length: 7 }).map((_, index) => (
-        <ControlButton key={index} label="" className="schmid-middle-button" />
+        <ControlButton key={index} label="" className="schmid-ics-middle-button" />
       ))}
       <div className="col-2">
         <ControlButton label={phoneLabel} />
@@ -171,12 +171,12 @@ const ControlPanel: FC = () => {
   }
 
   return (
-    <div className="d-flex justify-content-center align-items-center main-container h-100">
-      <div className="schmid-container p-2 m-4">
+    <div className="d-flex justify-content-center align-items-center main-container h-100 hide-topbar">
+      <div className="schmid-ics-container p-2 m-4">
         <div className="d-flex justify-content-between h-full">
           {/* Left Column */}
-          <div className="schmid-left-column">
-            <div className="schmid-left-column">
+          <div className="schmid-ics-left-column">
+            <div className="schmid-ics-left-column">
               <TimeDisplay time={localTime} />
               <ActiveLocation callsign={callsign} />
               {Array.from({ length: 5 }).map((_, index) => (
@@ -184,29 +184,29 @@ const ControlPanel: FC = () => {
               ))}
             </div>
 
-            <div className="d-flex justify-content-between gap-1 schmid-left-column">
+            <div className="d-flex justify-content-between gap-1 schmid-ics-left-column">
               <ControlButton label="Conf." />
               <ControlButton label="Transfer" />
             </div>
-            <div className="d-flex justify-content-between gap-1 schmid-left-column">
+            <div className="d-flex justify-content-between gap-1 schmid-ics-left-column">
               <ControlButton label="Pickup" />
               <ControlButton label="Divert" />
             </div>
-            <div className="d-flex justify-content-between gap-1 schmid-left-column">
+            <div className="d-flex justify-content-between gap-1 schmid-ics-left-column">
               <ControlButton label="End Tel" />
               <ControlButton label="Prio" />
             </div>
           </div>
 
           {/* Middle Column - Control Grid */}
-          <div className="ms-2 schmid-middle-column d-flex">
+          <div className="ms-2 schmid-ics-middle-column d-flex">
             {controlColumns.map((column, index) => (
               <ControlColumn key={index} {...column} />
             ))}
           </div>
 
           {/* Right Column - Radio Channels */}
-          <div className="schmid-right-column">
+          <div className="schmid-ics-right-column">
             <div className="row g-2">
               {radioChannelsGrid}
 

@@ -1,16 +1,16 @@
 import React, { useState, useCallback, memo } from 'react';
-import useRadioState from '../../store/radioStore';
-import useSessionStore from '../../store/sessionStore';
-import useUtilStore from '../../store/utilStore';
+import useRadioState from '../../../store/radioStore';
+import useSessionStore from '../../../store/sessionStore';
+import useUtilStore from '../../../store/utilStore';
 import { SlidersVertical, Volume2, VolumeX } from 'lucide-react';
 import clsx from 'clsx';
-import { useVolumeManagement } from './hooks/useVolumeManagement';
+import { useVolumeManagement } from '../hooks/useVolumeManagement';
 import {
   useFrequencyDisplay,
   useRadioStateManagement,
   useRadioDeletion
-} from './hooks/useRadioManagement';
-import type { RadioType } from '../../store/radioStore';
+} from '../hooks/useRadioManagement';
+import type { RadioType } from '../../../store/radioStore';
 
 export interface RadioProps {
   radio: RadioType;

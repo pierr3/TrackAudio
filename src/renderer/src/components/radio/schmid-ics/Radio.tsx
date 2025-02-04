@@ -4,12 +4,12 @@ import { VolumeX } from 'lucide-react';
 import useRadioState, { RadioType } from '@renderer/store/radioStore';
 import useSessionStore from '@renderer/store/sessionStore';
 import useUtilStore from '@renderer/store/utilStore';
-import { useVolumeManagement } from '../radio/hooks/useVolumeManagement';
+import { useVolumeManagement } from '../hooks/useVolumeManagement';
 import {
   useFrequencyDisplay,
   useRadioDeletion,
   useRadioStateManagement
-} from '../radio/hooks/useRadioManagement';
+} from '../hooks/useRadioManagement';
 
 const TOTAL_RADIO_SLOTS = 14;
 
@@ -18,8 +18,8 @@ const BaseRadioChannel: FC<{ className?: string; children: React.ReactNode }> = 
   className,
   children
 }) => (
-  <div className={clsx('schmid-radio', className)}>
-    <div className="schmid-radio-inner h-100">
+  <div className={clsx('schmid-ics-radio', className)}>
+    <div className="schmid-ics-radio-inner h-100">
       <div className="d-flex flex-column h-100">{children}</div>
     </div>
   </div>
@@ -88,11 +88,11 @@ const ActiveRadioChannel: FC<{ radio: RadioType }> = ({ radio }) => {
 
   return (
     <BaseRadioChannel>
-      <div className="col schmid-radio-border">
-        <div className="schmid-row d-flex h-100">
+      <div className="col schmid-ics-radio-border">
+        <div className="schmid-ics-row d-flex h-100">
           <div
             className={clsx(
-              'col-4 schmid-radio-border-right d-flex justify-content-center align-items-center schmid-top-line',
+              'col-4 schmid-ics-radio-border-right d-flex justify-content-center align-items-center schmid-ics-top-line',
               { active: radio.tx }
             )}
           >
@@ -100,7 +100,7 @@ const ActiveRadioChannel: FC<{ radio: RadioType }> = ({ radio }) => {
           </div>
           <button
             className={clsx(
-              'col-8 d-flex justify-content-center align-items-center schmid-clean-button schmid-top-line h-100',
+              'col-8 d-flex justify-content-center align-items-center schmid-ics-clean-button schmid-ics-top-line h-100',
               { active: radio.tx }
             )}
             onMouseEnter={handleMouseEnterFrequency}
@@ -110,14 +110,14 @@ const ActiveRadioChannel: FC<{ radio: RadioType }> = ({ radio }) => {
           </button>
         </div>
       </div>
-      <div className="col schmid-radio-border w-100">
+      <div className="col schmid-ics-radio-border w-100">
         <button
           className={clsx(
             {
-              'schmid-radio-selected':
+              'schmid-ics-radio-selected':
                 isEditMode && radiosToBeDeleted.some((r) => r.frequency === radio.frequency)
             },
-            'schmid-clean-button schmid-middle-line schmid-row d-flex justify-content-center align-items-center'
+            'schmid-ics-clean-button schmid-ics-middle-line schmid-ics-row d-flex justify-content-center align-items-center'
           )}
           onKeyDown={(e) => {
             if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -130,11 +130,11 @@ const ActiveRadioChannel: FC<{ radio: RadioType }> = ({ radio }) => {
           {radio.callsign}
         </button>
       </div>
-      <div className="col schmid-radio-border">
-        <div className="schmid-row d-flex h-100">
+      <div className="col schmid-ics-radio-border">
+        <div className="schmid-ics-row d-flex h-100">
           <button
             className={clsx(
-              'w-50 col-6 schmid-radio-border-right d-flex justify-content-center align-items-center text-black schmid-bottom-line',
+              'w-50 col-6 schmid-ics-radio-border-right d-flex justify-content-center align-items-center text-black schmid-ics-bottom-line',
               !radio.tx && 'primary',
               radio.tx && radio.currentlyTx && 'warning',
               radio.tx && !radio.currentlyTx && 'active'
@@ -146,7 +146,7 @@ const ActiveRadioChannel: FC<{ radio: RadioType }> = ({ radio }) => {
           </button>
           <button
             className={clsx(
-              'w-50 col-6 d-flex justify-content-center align-items-center text-black schmid-bottom-line',
+              'w-50 col-6 d-flex justify-content-center align-items-center text-black schmid-ics-bottom-line',
               radio.isOutputMuted && 'danger',
               !radio.rx && !radio.isOutputMuted && 'primary',
               radio.rx && !radio.isOutputMuted && radio.currentlyRx && 'warning',
@@ -165,19 +165,19 @@ const ActiveRadioChannel: FC<{ radio: RadioType }> = ({ radio }) => {
 
 // Placeholder radio channel component
 const PlaceholderRadioChannel: FC = () => (
-  <BaseRadioChannel className="schmid-radio-disabled">
-    <div className="col schmid-radio-border">
-      <div className="schmid-row d-flex h-100">
-        <div className="col-4 schmid-radio-border-right d-flex justify-content-center align-items-center schmid-top-line" />
-        <div className="col-8 d-flex justify-content-center align-items-center schmid-top-line" />
+  <BaseRadioChannel className="schmid-ics-radio-disabled">
+    <div className="col schmid-ics-radio-border">
+      <div className="schmid-ics-row d-flex h-100">
+        <div className="col-4 schmid-ics-radio-border-right d-flex justify-content-center align-items-center schmid-ics-top-line" />
+        <div className="col-8 d-flex justify-content-center align-items-center schmid-ics-top-line" />
       </div>
     </div>
-    <div className="col schmid-radio-border">
-      <div className="schmid-row d-flex justify-content-center align-items-center schmid-middle-line" />
+    <div className="col schmid-ics-radio-border">
+      <div className="schmid-ics-row d-flex justify-content-center align-items-center schmid-ics-middle-line" />
     </div>
-    <div className="col schmid-radio-border">
-      <div className="schmid-row d-flex h-100">
-        <div className="col-6 schmid-radio-border-right d-flex justify-content-center align-items-center" />
+    <div className="col schmid-ics-radio-border">
+      <div className="schmid-ics-row d-flex h-100">
+        <div className="col-6 schmid-ics-radio-border-right d-flex justify-content-center align-items-center" />
         <div className="col-6 d-flex justify-content-center align-items-center" />
       </div>
     </div>

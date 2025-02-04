@@ -1,4 +1,4 @@
-import RxInfo from './rxinfo';
+import RxInfo from './default/rxinfo';
 import MainRadioVolume from './main-radio-volume';
 import UnicomGuardBar from './unicom-guard';
 import { useMediaQuery } from 'react-responsive';
