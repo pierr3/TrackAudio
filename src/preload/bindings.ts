@@ -81,7 +81,7 @@ export const api = {
     crossCoupleAcross: boolean,
     isOutputMuted?: boolean,
     outputVolume?: number
-  ) =>
+  ): Promise<boolean> =>
     ipcRenderer.invoke(
       'audio-set-frequency-state',
       callsign,
@@ -93,7 +93,7 @@ export const api = {
       crossCoupleAcross,
       isOutputMuted,
       outputVolume
-    ),
+    ) as Promise<boolean>,
   getFrequencyState: (frequency: number) =>
     ipcRenderer.invoke('audio-get-frequency-state', frequency),
 

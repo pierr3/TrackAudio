@@ -118,10 +118,6 @@ const ControlPanel: FC = () => {
     if (showingUnicomBar) {
       setShowUnicomBar(false);
     }
-
-    return () => {
-      setShowUnicomBar(true);
-    };
   }, [showingUnicomBar]);
 
   useEffect(() => {

@@ -1,11 +1,16 @@
 import React, { useState, useCallback, memo } from 'react';
-import useRadioState, { RadioType } from '../../store/radioStore';
-import useErrorStore from '../../store/errorStore';
+import useRadioState from '../../store/radioStore';
 import useSessionStore from '../../store/sessionStore';
 import useUtilStore from '../../store/utilStore';
 import { SlidersVertical, Volume2, VolumeX } from 'lucide-react';
 import clsx from 'clsx';
 import { useVolumeManagement } from './hooks/useVolumeManagement';
+import {
+  useFrequencyDisplay,
+  useRadioStateManagement,
+  useRadioDeletion
+} from './hooks/useRadioManagement';
+import type { RadioType } from '../../store/radioStore';
 
 export interface RadioProps {
   radio: RadioType;
@@ -67,25 +72,33 @@ const VolumeControls = memo(
 VolumeControls.displayName = 'VolumeControls';
 
 const Radio: React.FC<RadioProps> = ({ radio }) => {
-  const postError = useErrorStore((state) => state.postError);
-  const [isHoveringFrequency, setIsHoveringFrequency] = useState(false);
-  const [showAliasFrequency, setShowAliasFrequency] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [canToggleOnHover, setCanToggleOnHover] = useState(true);
 
   // Get necessary state management functions
-  const [setRadioState, selectRadio, removeRadio, setPendingDeletion, addOrRemoveRadioToBeDeleted] =
-    useRadioState((state) => [
-      state.setRadioState,
-      state.selectRadio,
-      state.removeRadio,
-      state.setPendingDeletion,
-      state.addOrRemoveRadioToBeDeleted
-    ]);
+  const [selectRadio, addOrRemoveRadioToBeDeleted, setPendingDeletion] = useRadioState((state) => [
+    state.selectRadio,
+    state.addOrRemoveRadioToBeDeleted,
+    state.setPendingDeletion
+  ]);
 
   const radiosToBeDeleted = useRadioState((state) => state.radiosSelected);
   const isEditMode = useUtilStore((state) => state.isEditMode);
   const isATC = useSessionStore((state) => state.isAtc);
+
+  // Use shared hooks
+  const {
+    handleMouseEnterFrequency,
+    handleMouseLeaveFrequency,
+    getDisplayFrequencyInfo,
+    showAliasFrequency,
+    setShowAliasFrequency,
+    setCanToggleOnHover
+  } = useFrequencyDisplay(radio);
+
+  const { toggleRx, toggleTx, toggleMute, toggleXc, toggleCrossCoupleAcross, toggleSpeaker } =
+    useRadioStateManagement(radio);
+
+  const { awaitEndOfRxForDeletion } = useRadioDeletion();
 
   // Initialize volume management hook
   const { localVolume, handleVolumeChange, handleVolumeWheel, isManualMode } = useVolumeManagement({
@@ -97,27 +110,6 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
       outputVolume: radio.outputVolume
     }
   });
-
-  const getDisplayFrequencyInfo = () => {
-    if (!radio.humanFrequencyAlias) {
-      return {
-        displayValue: radio.humanFrequency,
-        isShowingAlias: false
-      };
-    }
-
-    if (isHoveringFrequency && canToggleOnHover) {
-      return {
-        displayValue: showAliasFrequency ? radio.humanFrequency : radio.humanFrequencyAlias,
-        isShowingAlias: !showAliasFrequency
-      };
-    }
-
-    return {
-      displayValue: showAliasFrequency ? radio.humanFrequencyAlias : radio.humanFrequency,
-      isShowingAlias: showAliasFrequency
-    };
-  };
 
   const clickRadioHeader = useCallback(() => {
     if (isEditMode) {
@@ -132,264 +124,28 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     }
   }, [isEditMode, radio, addOrRemoveRadioToBeDeleted, selectRadio, showAliasFrequency]);
 
-  const toggleMute = useCallback(() => {
-    const newState = !radio.isOutputMuted;
-    window.api
-      .setFrequencyState(
-        radio.callsign,
-        radio.frequency,
-        radio.rx,
-        radio.tx,
-        radio.xc,
-        radio.onSpeaker,
-        radio.crossCoupleAcross,
-        newState,
-        radio.outputVolume
-      )
-      .then((ret) => {
-        if (!ret) {
-          postError('Invalid action on invalid radio: Mute.');
-          removeRadio(radio.frequency);
-          return;
-        }
-        setRadioState(radio.frequency, {
-          rx: radio.rx,
-          tx: radio.tx,
-          xc: radio.xc,
-          crossCoupleAcross: radio.crossCoupleAcross,
-          onSpeaker: radio.onSpeaker,
-          outputVolume: radio.outputVolume,
-          isOutputMuted: newState
-        });
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, [radio, setRadioState, removeRadio, postError]);
-
-  const handleMouseEnterFrequency = () => {
-    if (radio.humanFrequencyAlias) {
-      setIsHoveringFrequency(true);
-    }
-  };
-
-  const handleMouseLeaveFrequency = () => {
-    setCanToggleOnHover(true);
-    setIsHoveringFrequency(false);
-  };
-
-  const { displayValue } = getDisplayFrequencyInfo();
-
-  const getFrequencyTypeDisplay = () => {
-    if (!radio.humanFrequencyAlias) return null;
-
-    if (isHoveringFrequency && canToggleOnHover) {
-      return showAliasFrequency ? 'HF' : 'VHF';
-    }
-
-    return showAliasFrequency ? 'VHF' : 'HF';
-  };
-
   const clickRx = useCallback(() => {
     clickRadioHeader();
-    const newState = !radio.rx;
-
-    window.api
-      .setFrequencyState(
-        radio.callsign,
-        radio.frequency,
-        newState,
-        newState ? radio.tx : false,
-        newState ? radio.xc : false,
-        radio.onSpeaker,
-        newState ? radio.crossCoupleAcross : false,
-        radio.isOutputMuted,
-        radio.outputVolume
-      )
-      .then((ret) => {
-        if (!ret) {
-          postError('Invalid action on invalid radio: RX.');
-          removeRadio(radio.frequency);
-          return;
-        }
-        setRadioState(radio.frequency, {
-          rx: newState,
-          tx: !newState ? false : radio.tx,
-          xc: !newState ? false : radio.xc,
-          crossCoupleAcross: !newState ? false : radio.crossCoupleAcross,
-          onSpeaker: radio.onSpeaker,
-          outputVolume: radio.outputVolume,
-          isOutputMuted: radio.isOutputMuted
-        });
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, [radio, clickRadioHeader, setRadioState, removeRadio, postError]);
+    void toggleRx();
+  }, [clickRadioHeader, toggleRx]);
 
   const clickTx = useCallback(() => {
-    const newState = !radio.tx;
+    if (!isATC) return;
+    void toggleTx();
+  }, [toggleTx, isATC]);
 
-    window.api
-      .setFrequencyState(
-        radio.callsign,
-        radio.frequency,
-        newState ? true : radio.rx,
-        newState,
-        !newState ? false : radio.xc,
-        radio.onSpeaker,
-        !newState ? false : radio.crossCoupleAcross,
-        radio.isOutputMuted,
-        radio.outputVolume
-      )
-      .then((ret) => {
-        if (!ret) {
-          postError('Invalid action on invalid radio: TX.');
-          return;
-        }
-        setRadioState(radio.frequency, {
-          rx: !radio.rx && newState ? true : radio.rx,
-          tx: newState,
-          xc: !newState ? false : radio.xc,
-          crossCoupleAcross: !newState ? false : radio.crossCoupleAcross,
-          onSpeaker: radio.onSpeaker,
-          outputVolume: radio.outputVolume,
-          isOutputMuted: radio.isOutputMuted
-        });
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, [radio, setRadioState, postError]);
+  const clickXcButton = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (!isATC) return;
 
-  const clickXc = useCallback(() => {
-    const newState = !radio.xc;
-    window.api
-      .setFrequencyState(
-        radio.callsign,
-        radio.frequency,
-        newState ? true : radio.rx,
-        newState ? true : radio.tx,
-        newState,
-        radio.onSpeaker,
-        false,
-        radio.isOutputMuted,
-        radio.outputVolume
-      )
-      .then((ret) => {
-        if (!ret) {
-          postError('Invalid action on invalid radio: XC.');
-          return;
-        }
-        setRadioState(radio.frequency, {
-          rx: !radio.rx && newState ? true : radio.rx,
-          tx: !radio.tx && newState ? true : radio.tx,
-          xc: newState,
-          crossCoupleAcross: false,
-          onSpeaker: radio.onSpeaker,
-          outputVolume: radio.outputVolume,
-          isOutputMuted: radio.isOutputMuted
-        });
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, [radio, setRadioState, postError]);
-
-  const clickCrossCoupleAcross = useCallback(() => {
-    const newState = !radio.crossCoupleAcross;
-    window.api
-      .setFrequencyState(
-        radio.callsign,
-        radio.frequency,
-        newState ? true : radio.rx,
-        newState ? true : radio.tx,
-        false,
-        radio.onSpeaker,
-        newState,
-        radio.isOutputMuted,
-        radio.outputVolume
-      )
-      .then((ret) => {
-        if (!ret) {
-          postError('Invalid action on invalid radio: XC across.');
-          return;
-        }
-        setRadioState(radio.frequency, {
-          rx: !radio.rx && newState ? true : radio.rx,
-          tx: !radio.tx && newState ? true : radio.tx,
-          xc: false,
-          crossCoupleAcross: newState,
-          onSpeaker: radio.onSpeaker,
-          outputVolume: radio.outputVolume,
-          isOutputMuted: radio.isOutputMuted
-        });
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, [radio, setRadioState, postError]);
-
-  const clickSpK = useCallback(() => {
-    const newState = !radio.onSpeaker;
-    window.api
-      .setFrequencyState(
-        radio.callsign,
-        radio.frequency,
-        radio.rx,
-        radio.tx,
-        radio.xc,
-        newState,
-        radio.crossCoupleAcross,
-        radio.isOutputMuted,
-        radio.outputVolume
-      )
-      .then((ret) => {
-        if (!ret) {
-          postError('Invalid action on invalid radio: OnSPK.');
-          removeRadio(radio.frequency);
-          return;
-        }
-        setRadioState(radio.frequency, {
-          rx: radio.rx,
-          tx: radio.tx,
-          xc: radio.xc,
-          crossCoupleAcross: radio.crossCoupleAcross,
-          onSpeaker: newState,
-          outputVolume: radio.outputVolume,
-          isOutputMuted: radio.isOutputMuted
-        });
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, [radio, setRadioState, removeRadio, postError]);
-
-  const awaitEndOfRxForDeletion = useCallback(
-    (frequency: number): void => {
-      const interval = setInterval(
-        (frequency: number) => {
-          const radio = useRadioState.getState().radios.find((r) => r.frequency === frequency);
-          if (!radio) {
-            clearInterval(interval);
-            return;
-          }
-
-          if (!radio.currentlyRx && !radio.currentlyTx) {
-            void window.api.removeFrequency(radio.frequency, radio.callsign);
-            removeRadio(radio.frequency);
-            clearInterval(interval);
-          }
-        },
-        60,
-        frequency
-      );
-
-      setTimeout(() => {
-        clearInterval(interval);
-      }, 10000);
+      if (e.type === 'contextmenu') {
+        void toggleXc();
+      } else {
+        void toggleCrossCoupleAcross();
+      }
     },
-    [removeRadio]
+    [isATC, toggleXc, toggleCrossCoupleAcross]
   );
 
   const toggleSettings = useCallback(
@@ -399,6 +155,13 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
     },
     [isSettingsOpen]
   );
+
+  const { displayValue } = getDisplayFrequencyInfo();
+
+  const getFrequencyTypeDisplay = useCallback(() => {
+    if (!radio.humanFrequencyAlias) return null;
+    return showAliasFrequency ? 'VHF' : 'HF';
+  }, [radio.humanFrequencyAlias, showAliasFrequency]);
 
   return (
     <div
@@ -441,7 +204,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
             onVolumeChange={handleVolumeChange}
             onVolumeWheel={handleVolumeWheel}
             isOutputMuted={radio.isOutputMuted}
-            onToggleMute={toggleMute}
+            onToggleMute={() => void toggleMute()}
           />
         )}
       </div>
@@ -478,8 +241,8 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
                 radio.xc && 'btn-success',
                 radio.crossCoupleAcross && 'btn-warning'
               )}
-              onClick={clickCrossCoupleAcross}
-              onContextMenu={clickXc}
+              onClick={clickXcButton}
+              onContextMenu={clickXcButton}
               disabled={!isATC}
             >
               {radio.xc ? 'XC' : 'XCA'}
@@ -491,7 +254,7 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
                 !radio.onSpeaker && 'btn-primary',
                 radio.onSpeaker && 'btn-success'
               )}
-              onClick={clickSpK}
+              onClick={() => void toggleSpeaker()}
             >
               SPK
             </button>
@@ -508,7 +271,10 @@ const Radio: React.FC<RadioProps> = ({ radio }) => {
               radio.rx && !radio.isOutputMuted && !radio.currentlyRx && 'btn-success'
             )}
             onClick={clickRx}
-            onContextMenu={toggleMute}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              void toggleMute();
+            }}
           >
             {radio.isOutputMuted ? <VolumeX size={16} /> : 'RX'}
           </button>
