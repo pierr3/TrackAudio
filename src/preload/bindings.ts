@@ -103,6 +103,8 @@ export const api = {
   SetupPtt: (pttIndex: number, shouldListenForJoysticks: boolean) =>
     ipcRenderer.invoke('setup-ptt', pttIndex, shouldListenForJoysticks),
 
+  SetUpdateChannel: (channel: string) => ipcRenderer.invoke('set-update-channel', channel),
+
   ClearPtt: (pttIndex: number) => ipcRenderer.invoke('clear-ptt', pttIndex),
 
   SetFrequencyRadioVolume: (frequency: number, stationVolume: number) =>

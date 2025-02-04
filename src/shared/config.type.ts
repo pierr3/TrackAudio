@@ -24,4 +24,6 @@ export interface Configuration {
   transparentMiniMode: boolean;
 
   radioToMaxVolumeOnTx: boolean;
+
+  updateChannel: string;
 }

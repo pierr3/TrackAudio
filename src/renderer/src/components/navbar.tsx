@@ -13,8 +13,11 @@ import DeleteMultipleRadios from './delete-multiple-radios';
 import useRadioState from '@renderer/store/radioStore';
 import RefreshMultipleRadios from './refresh-multiple-radios';
 import { CirclePlus, Settings, SquarePen } from 'lucide-react';
+interface NavbarProps {
+  updateAvailable: boolean;
+}
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<NavbarProps> = ({ updateAvailable }: NavbarProps) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAddStationModal, setShowAddStationModal] = useState(false);
   const [platform, isEditMode, setIsEditMode] = useUtilStore((state) => [
@@ -43,6 +46,11 @@ const Navbar: React.FC = () => {
     });
   }, []);
 
+  const buttonClass = clsx('btn', {
+    'opacity-0 pointer-events-none transition-opacity duration-300': updateAvailable,
+    'transition-opacity duration-300': !updateAvailable
+  });
+
   return (
     <>
       <TitleBar className="d-flex flex-md-row align-items-center custom-navbar hide-topbar">
@@ -54,11 +62,13 @@ const Navbar: React.FC = () => {
             <div className="d-flex h-100 align-items-center">
               <button
                 className={clsx(
+                  buttonClass,
                   'btn hide-settings-flex',
                   isEditMode ? 'btn-warning' : 'btn-primary'
                 )}
                 disabled={!isConnected}
                 onClick={() => {
+                  if (updateAvailable) return;
                   setIsEditMode(!isEditMode);
                   clearRadiosToBeDeleted();
                 }}
@@ -67,12 +77,12 @@ const Navbar: React.FC = () => {
               </button>
             </div>
           </TitleBar.Element>
-          {isEditMode && (
+          {isEditMode && !updateAvailable && (
             <TitleBar.Element priority={2}>
               <DeleteMultipleRadios />
             </TitleBar.Element>
           )}
-          {isEditMode && (
+          {isEditMode && !updateAvailable && (
             <TitleBar.Element priority={3}>
               <RefreshMultipleRadios />
             </TitleBar.Element>
@@ -81,10 +91,10 @@ const Navbar: React.FC = () => {
             <TitleBar.Element priority={2}>
               <div className="d-flex h-100 align-items-center">
                 <button
-                  className="btn btn-primary hide-settings-flex "
+                  className={clsx(buttonClass, 'btn btn-primary hide-settings-flex ')}
                   disabled={!isConnected}
                   onClick={() => {
-                    if (showSettingsModal || !isConnected) return;
+                    if (showSettingsModal || !isConnected || updateAvailable) return;
                     setShowAddStationModal(true);
                   }}
                 >
@@ -97,10 +107,10 @@ const Navbar: React.FC = () => {
             <TitleBar.Element priority={3}>
               <div className="d-flex h-100 align-items-center">
                 <button
-                  className="btn btn-primary hide-settings-flex "
+                  className={clsx(buttonClass, 'btn btn-primary hide-settings-flex ')}
                   disabled={isConnected || isConnecting}
                   onClick={() => {
-                    if (showAddStationModal) return;
+                    if (showAddStationModal || updateAvailable) return;
                     setShowSettingsModal(true);
                   }}
                 >
@@ -124,28 +134,34 @@ const Navbar: React.FC = () => {
         <TitleBar.Section name="right" priority={0}>
           {/* {isNetworkConnected && ( */}
           <TitleBar.Element priority={2}>
-            <div className="d-flex h-100 align-items-center">
-              <MiniModeToggleButton showRestoreButton={false} />
-              {platform === 'linux' && (
-                <button
-                  className="btn btn-danger m-1 hide-volume-value"
-                  onClick={() => void window.api.CloseMe()}
-                >
-                  X
-                </button>
+            <div className={clsx(buttonClass, 'd-flex h-100 align-items-center')}>
+              {!updateAvailable && (
+                <>
+                  <MiniModeToggleButton showRestoreButton={false} />
+                  {platform === 'linux' && (
+                    <button
+                      className="btn btn-danger m-1 hide-volume-value"
+                      onClick={() => void window.api.CloseMe()}
+                    >
+                      X
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </TitleBar.Element>
           {/* )} */}
           {/* {isNetworkConnected && ( */}
           <TitleBar.Element priority={1}>
-            <SessionStatus />
+            <div className={clsx(buttonClass)}>
+              <SessionStatus />
+            </div>
           </TitleBar.Element>
           {/* )} */}
         </TitleBar.Section>
       </TitleBar>
 
-      {showSettingsModal && (
+      {showSettingsModal && !updateAvailable && (
         <SettingsModal
           closeModal={() => {
             setShowSettingsModal(false);
@@ -153,7 +169,7 @@ const Navbar: React.FC = () => {
         />
       )}
 
-      {showAddStationModal && (
+      {showAddStationModal && !updateAvailable && (
         <AddStationModal
           closeModal={() => {
             setShowAddStationModal(false);
