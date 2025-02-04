@@ -61,6 +61,10 @@ $transition-speed: 0.1s;
     transform: translateX(-50%);
     text-align: center;
   }
+
+  &.right {
+    gap: 0px;
+  }
 }
 
 .toolbar-item {

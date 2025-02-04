@@ -1,3 +1,4 @@
+import { Theme } from 'src/shared/config.type';
 import { create } from 'zustand';
 
 interface UtilStore {
@@ -16,6 +17,7 @@ interface UtilStore {
   transparentMiniMode: boolean;
   radioToMaxVolumeOnTX: boolean;
   updateChannel: string;
+  theme: Theme;
   time: Date;
   setIsEditMode: (isEditMode: boolean) => void;
   setPtt1KeyName: (ptt1KeyName: string) => void;
@@ -32,6 +34,7 @@ interface UtilStore {
   setRadioToMaxVolumeOnTX: (maxVolume: boolean) => void;
   setTime: (time: Date) => void;
   setUpdateChannel: (updateChannel: string) => void;
+  setTheme: (theme: Theme) => void;
 }
 
 const useUtilStore = create<UtilStore>((set) => ({
@@ -51,6 +54,7 @@ const useUtilStore = create<UtilStore>((set) => ({
   radioToMaxVolumeOnTX: false,
   time: new Date(),
   updateChannel: 'stable',
+  theme: 'default',
   setIsEditMode: (isEditMode: boolean) => {
     set({ isEditMode });
   },
@@ -96,6 +100,9 @@ const useUtilStore = create<UtilStore>((set) => ({
   setUpdateChannel: (updateChannel: string): void => {
     if (updateChannel !== 'stable' && updateChannel !== 'beta') return;
     set({ updateChannel });
+  },
+  setTheme: (theme: Theme): void => {
+    set({ theme });
   }
 }));
 

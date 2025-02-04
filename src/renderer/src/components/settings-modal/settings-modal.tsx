@@ -3,7 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { AudioApi, AudioDevice } from 'trackaudio-afv';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { AlwaysOnTopMode, Configuration, RadioEffects } from '../../../../shared/config.type';
+import {
+  AlwaysOnTopMode,
+  Configuration,
+  RadioEffects,
+  Theme
+} from '../../../../shared/config.type';
 import useRadioState from '../../store/radioStore';
 import useUtilStore from '../../store/utilStore';
 import AudioApis from './audio-apis';
@@ -53,11 +58,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     showExpandedRxInfo,
     radioToMaxVolumeOnTX,
     updateChannel,
+    theme,
     setShowExpandedRxInfo,
     setTransparentMiniMode,
     setPendingRestart,
     setRadioToMaxVolumeOnTX,
-    setUpdateChannel
+    setUpdateChannel,
+    setTheme
   ] = useUtilStore((state) => [
     state.vu,
     state.peakVu,
@@ -71,11 +78,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     state.showExpandedRxInfo,
     state.radioToMaxVolumeOnTX,
     state.updateChannel,
+    state.theme,
     state.setShowExpandedRxInfo,
     state.setTransparentMiniMode,
     state.setPendingRestart,
     state.setRadioToMaxVolumeOnTX,
-    state.setUpdateChannel
+    state.setUpdateChannel,
+    state.setTheme
   ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
@@ -94,6 +103,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setLocalTransparentMiniMode(config.transparentMiniMode);
         setRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
         setUpdateChannel(config.updateChannel);
+        setTheme(config.theme);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -232,6 +242,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       window.api.setRadioToMaxVolumeOnTX(false);
       setRadioToMaxVolumeOnTX(false);
     }
+    setChangesSaved(SaveStatus.Saved);
+  };
+
+  const handleSetTheme = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value !== 'default' && e.target.value !== 'schmid') {
+      return;
+    }
+    setChangesSaved(SaveStatus.Saving);
+
+    const newTheme = e.target.value as Theme;
+    window.api.setTheme(newTheme);
+    setTheme(newTheme);
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -500,6 +522,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                   >
                     <option value="true">Always</option>
                     <option value="false">Never</option>
+                  </select>
+                  <label className="mt-2">Theme</label>
+                  <select
+                    id=""
+                    className="form-control mt-1"
+                    onChange={handleSetTheme}
+                    value={theme}
+                  >
+                    <option value="default">Default</option>
+                    <option value="schmid">Schmid</option>
                   </select>
                 </div>
               </div>

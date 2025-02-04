@@ -153,7 +153,7 @@ const Navbar: React.FC<NavbarProps> = ({ updateAvailable }: NavbarProps) => {
           {/* )} */}
           {/* {isNetworkConnected && ( */}
           <TitleBar.Element priority={1}>
-            <div className={clsx(buttonClass)}>
+            <div className={clsx(buttonClass, 'h-100 d-flex justify-content-center')}>
               <SessionStatus />
             </div>
           </TitleBar.Element>

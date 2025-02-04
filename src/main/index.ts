@@ -18,7 +18,7 @@ import updater from 'electron-updater';
 import log from 'electron-log/main';
 import { ENV } from './env';
 import configManager from './config';
-import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
+import { AlwaysOnTopMode, RadioEffects, Theme } from '../shared/config.type';
 import { MainVolumeChange } from '../shared/MainVolumeChange';
 
 type WindowMode = 'mini' | 'maxi';
@@ -491,6 +491,10 @@ ipcMain.on('set-radio-to-max-volume-on-tx', (_, radioToMaxVolumeOnTx: boolean) =
   configManager.updateConfig({ radioToMaxVolumeOnTx });
 });
 
+ipcMain.on('set-theme', (_, theme: Theme) => {
+  configManager.updateConfig({ theme });
+});
+
 ipcMain.handle('audio-get-apis', () => {
   return TrackAudioAfv.GetAudioApis();
 });
@@ -578,15 +582,12 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle(
-  'audio-remove-frequency',
-  (_, frequency: number, callsign?: string) => {
-    if (callsign) {
-      TrackAudioAfv.RemoveFrequency(frequency, callsign);
-    }
-    TrackAudioAfv.RemoveFrequency(frequency);
+ipcMain.handle('audio-remove-frequency', (_, frequency: number, callsign?: string) => {
+  if (callsign) {
+    TrackAudioAfv.RemoveFrequency(frequency, callsign);
   }
-);
+  TrackAudioAfv.RemoveFrequency(frequency);
+});
 
 ipcMain.handle(
   'audio-set-frequency-state',

@@ -12,10 +12,12 @@ import { useEffect, useState } from 'react';
 import IPCInterface from './interfaces/IPCInterface';
 import Updater from './components/updater/Updater';
 import { UpdateInfo } from 'electron-updater';
+import ControlPanel from './components/schmid/RadioContainer';
+import useUtilStore from './store/utilStore';
 
 function App() {
   const [updateAvailable, setUpdateAvailable] = useState<UpdateInfo | null>(null);
-
+  const [theme] = useUtilStore((state) => [state.theme]);
   useEffect(() => {
     IPCInterface.init();
     window.api.log.info('IPCInterface initialized');
@@ -24,6 +26,10 @@ function App() {
       IPCInterface.destroy();
     };
   }, []);
+
+  useEffect(() => {
+    console.log(theme);
+  }, [theme]);
 
   return (
     <div className="absolute">
@@ -35,10 +41,17 @@ function App() {
           <div className="position-relative structure">
             <div className={`blur-overlay ${updateAvailable ? 'active' : ''}`} />
             <Updater onUpdateFound={setUpdateAvailable} />
-            <div className="sub-structure d-flex flex-column h-full">
-              <RadioContainer />
-              <FocusBar />
-            </div>
+            {theme === 'default' && (
+              <div className="sub-structure d-flex flex-column h-full">
+                <RadioContainer />
+                <FocusBar />
+              </div>
+            )}
+            {theme === 'schmid' && (
+              <div className="structure d-flex flex-column h-full">
+                <ControlPanel />
+              </div>
+            )}
           </div>
         </div>
       </div>

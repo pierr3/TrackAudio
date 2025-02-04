@@ -1,6 +1,6 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 
-import { AlwaysOnTopMode, RadioEffects } from '../shared/config.type';
+import { AlwaysOnTopMode, RadioEffects, Theme } from '../shared/config.type';
 import { ProgressInfo, UpdateDownloadedEvent, UpdateInfo } from 'electron-updater';
 
 export const api = {
@@ -53,6 +53,10 @@ export const api = {
   setSpeakerOutputDevice: (deviceId: string) =>
     ipcRenderer.invoke('set-speaker-output-device', deviceId),
 
+  setTheme(theme: Theme) {
+    ipcRenderer.send('set-theme', theme);
+  },
+
   connect: () => ipcRenderer.invoke('connect'),
   disconnect: () => ipcRenderer.invoke('disconnect'),
   setCid: (cid: string) => ipcRenderer.invoke('set-cid', cid),
@@ -63,15 +67,8 @@ export const api = {
 
   addFrequency: (frequency: number, callsign: string, outputVolume?: number) =>
     ipcRenderer.invoke('audio-add-frequency', frequency, callsign, outputVolume),
-  removeFrequency: (
-    frequency: number,
-    callsign?: string
-  ) =>
-    ipcRenderer.invoke(
-      'audio-remove-frequency',
-      frequency,
-      callsign
-    ),
+  removeFrequency: (frequency: number, callsign?: string) =>
+    ipcRenderer.invoke('audio-remove-frequency', frequency, callsign),
   IsFrequencyActive: (frequency: number) =>
     ipcRenderer.invoke('audio-is-frequency-active', frequency),
   setFrequencyState: (

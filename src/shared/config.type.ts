@@ -1,5 +1,6 @@
 export type AlwaysOnTopMode = 'never' | 'always' | 'inMiniMode';
 export type RadioEffects = 'on' | 'input' | 'output' | 'off';
+export type Theme = 'default' | 'schmid';
 
 export interface Configuration {
   version?: number;
@@ -26,4 +27,6 @@ export interface Configuration {
   radioToMaxVolumeOnTx: boolean;
 
   updateChannel: string;
+
+  theme: Theme;
 }
