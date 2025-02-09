@@ -3,6 +3,10 @@ name: Release
 on:
   workflow_dispatch:
 
+env:
+  ELECTRON_CACHE: .cache/electron
+  ELECTRON_BUILDER_CACHE: .cache/electron-builder
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -34,10 +38,15 @@ jobs:
           cd ../libuiohook
           git checkout unregister-hook-when-debugging
 
+      - name: Restore cache
+        id: restore-cache
+        uses: ./.github/actions/restore-cache
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
       - name: Install Python 3.x
         uses: actions/setup-python@v5
@@ -94,7 +103,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y desktop-file-utils ninja-build gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64 python3-jinja2:amd64 libgcrypt20:arm64 libgcrypt20-dev:arm64 libgpg-error-dev:arm64 libx11-dev:arm64 libxrandr-dev:arm64 libxcursor-dev:arm64 libxi-dev:arm64 libudev-dev:arm64 libgl1-mesa-dev:arm64
 
-      - name: Install dependencies and building backend (x64)
+      - name: Build backend (x64)
         if: matrix.arch == 'x64'
         run: |
           npm -g i cmake-js
@@ -105,9 +114,8 @@ jobs:
           npm pack
           cd ..
           npm install ./backend/trackaudio-afv-1.0.0.tgz
-          npm install
 
-      - name: Install dependencies and building backend (macOs arm64)
+      - name: Build backend (macOs arm64)
         if: matrix.arch == 'arm64' && matrix.os == 'macos-latest'
         run: |
           npm -g i cmake-js
@@ -118,9 +126,8 @@ jobs:
           npm pack
           cd ..
           npm install ./backend/trackaudio-afv-1.0.0.tgz
-          npm install
 
-      - name: Install dependencies and building backend (linux arm64 cross compile)
+      - name: Build backend (linux arm64 cross compile)
         if: matrix.arch == 'arm64' && matrix.os == 'ubuntu-latest'
         run: |
           npm -g i cmake-js
@@ -131,7 +138,6 @@ jobs:
           npm pack
           cd ..
           npm install ./backend/trackaudio-afv-1.0.0.tgz
-          npm install
 
       - name: Package app
         if: matrix.os == 'windows-2022'
