@@ -1,7 +1,7 @@
 {
   "name": "trackaudio",
   "productName": "TrackAudio",
-  "version": "1.3.0-beta.5",
+  "version": "1.3.0-beta.6",
   "main": "./out/main/index.js",
   "author": "github.com/pierr3",
   "description": "TrackAudio - Audio for VATSIM Client",
@@ -20,7 +20,6 @@
     "build:win": "npm run build && electron-builder --win -c electron-builder-config.js",
     "build:mac": "npm run build && electron-builder --mac -c electron-builder-config.js",
     "build:linux": "npm run build && electron-builder --linux -c electron-builder-config.js",
-    "build:publish": "npm run build && electron-builder  --win -c electron-builder-config.js --publish=always",
     "build:backend": "cd backend && npm install && npm run build:release && cd .. && npm install ./backend/trackaudio-afv-1.0.0.tgz",
     "build:backend-fast": "cd backend && npm install && npm run build:release-fast && cd .. && npm install ./backend/trackaudio-afv-1.0.0.tgz",
     "build:backend-debug": "cd backend && npm install && npm run build:debug && cd .. && npm install ./backend/trackaudio-afv-1.0.0.tgz"

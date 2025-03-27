@@ -5,9 +5,11 @@ module.exports = {
     buildResources: 'build'
   },
   publish: {
-    provider: 's3',
-    bucket: 'trackaudio',
-    region: 'eu-west-2'
+    provider: 'github',
+    owner: 'pierr3',
+    repo: 'TrackAudio',
+    releaseType: 'draft',
+    vPrefixedTagName: false
   },
   files: [
     '!**/.vscode/*',
@@ -22,7 +24,6 @@ module.exports = {
   asarUnpack: ['resources/**', './src/renderer/src/assets/md80_error.mp3'],
   win: {
     executableName: 'trackaudio',
-
     extraFiles: [
       {
         from: 'backend/build/Release/',

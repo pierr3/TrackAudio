@@ -24,7 +24,8 @@ export const defaultConfiguration = {
   alwaysOnTop: 'never' as AlwaysOnTopMode,
   showExpandedRx: false,
   transparentMiniMode: false,
-  radioToMaxVolumeOnTx: false
+  radioToMaxVolumeOnTx: false,
+  updateChannel: 'stable'
 };
 
 class ConfigManager {

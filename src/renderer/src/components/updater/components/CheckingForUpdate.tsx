@@ -1,4 +1,3 @@
-import Loader from './Loader';
 import { useEffect } from 'react';
 import { UpdateInfo } from 'electron-updater';
 import useUtilStore from '@renderer/store/utilStore';
@@ -73,7 +72,7 @@ const CheckingForUpdates = ({
     }
   };
 
-  return <Loader />;
+  return null;
 };
 
 export default CheckingForUpdates;

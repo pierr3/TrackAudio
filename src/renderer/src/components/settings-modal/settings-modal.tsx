@@ -36,6 +36,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
   const [pttIsOn] = useRadioState((state) => [state.pttIsOn]);
 
+  const [platform] = useUtilStore((state) => [state.platform]);
+
+  const isWindows = platform === 'win32';
+
   const [
     vu,
     vuPeak,
@@ -48,10 +52,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     updatePtt2KeySet,
     showExpandedRxInfo,
     radioToMaxVolumeOnTX,
+    updateChannel,
     setShowExpandedRxInfo,
     setTransparentMiniMode,
     setPendingRestart,
-    setRadioToMaxVolumeOnTX
+    setRadioToMaxVolumeOnTX,
+    setUpdateChannel
   ] = useUtilStore((state) => [
     state.vu,
     state.peakVu,
@@ -64,10 +70,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     state.updatePtt2KeySet,
     state.showExpandedRxInfo,
     state.radioToMaxVolumeOnTX,
+    state.updateChannel,
     state.setShowExpandedRxInfo,
     state.setTransparentMiniMode,
     state.setPendingRestart,
-    state.setRadioToMaxVolumeOnTX
+    state.setRadioToMaxVolumeOnTX,
+    state.setUpdateChannel
   ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
 
@@ -80,11 +88,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setPassword(config.password);
         setRadioEffects(config.radioEffects);
         setHardwareType(config.hardwareType);
-        setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode); // Type assertion since the config will never be a boolean at this point
+        setAlwaysOnTop(config.alwaysOnTop as AlwaysOnTopMode);
         setShowExpandedRxInfo(config.showExpandedRx);
         setTransparentMiniMode(config.transparentMiniMode);
         setLocalTransparentMiniMode(config.transparentMiniMode);
         setRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
+        setUpdateChannel(config.updateChannel);
       })
       .catch((err: unknown) => {
         console.error(err);
@@ -235,6 +244,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
 
     setChangesSaved(SaveStatus.Saved);
     void window.api.SetupPtt(pttIndex, shouldListenForJoysticks);
+  };
+
+  const handleUpdateChannelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if ((e.target.value !== 'stable' && e.target.value !== 'beta') || !isWindows) {
+      return;
+    }
+    void window.api.SetUpdateChannel(e.target.value);
+    setPendingRestart(true);
+    setUpdateChannel(e.target.value);
+    setChangesSaved(SaveStatus.Saved);
   };
 
   const handleClearPtt = (pttIndex: number) => {
@@ -408,6 +427,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       <option value="true">Always</option>
                       <option value="false">Never</option>
                     </select>
+
+                    {isWindows && (
+                      <>
+                        <label className="mt-2">Release channel</label>
+                        <select
+                          id=""
+                          className="form-control mt-1"
+                          onChange={handleUpdateChannelChange}
+                          value={updateChannel.toString()}
+                        >
+                          <option value="stable">Stable</option>
+                          <option value="beta">Beta</option>
+                        </select>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
