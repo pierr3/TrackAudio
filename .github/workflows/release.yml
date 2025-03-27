@@ -7,6 +7,8 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     environment: Release
+    env:
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
     strategy:
       matrix:
@@ -20,6 +22,12 @@ jobs:
             arch: arm64
 
     steps:
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -42,7 +50,7 @@ jobs:
       - name: Install Python 3.x
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.x'
+          python-version: "3.11.x"
 
       - name: Update cmake
         if: matrix.os != 'macos-latest'
@@ -152,7 +160,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLE_API_KEY: './.a.p8'
+          APPLE_API_KEY: "./.a.p8"
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
@@ -186,7 +194,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         with:
           tag_name: ${{ steps.relinfo.outputs.release }}
-          files: 'dist/*.dmg'
+          files: "dist/*.dmg"
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
