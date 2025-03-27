@@ -7,9 +7,6 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     environment: Release
-    env:
-      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2022]
@@ -22,12 +19,6 @@ jobs:
             arch: arm64
 
     steps:
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -63,6 +54,7 @@ jobs:
         run: |
           brew update
           brew upgrade cmake
+          brew install utf8proc
           cmake --version
 
       - name: Installing codesign certificates
@@ -106,13 +98,7 @@ jobs:
         if: matrix.arch == 'x64'
         run: |
           npm -g i cmake-js
-          cd backend/
-          npm install
-          cmake-js compile -B Release -a x64
-          node custom_build.mjs
-          npm pack
-          cd ..
-          npm install ./backend/trackaudio-afv-1.0.0.tgz
+          npm run build:backend
           npm install
 
       - name: Install dependencies and building backend (macOs arm64)
