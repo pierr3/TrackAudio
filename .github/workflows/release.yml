@@ -169,11 +169,19 @@ jobs:
           mv $dmg_file $new_dmg_file
 
       - id: relinfo
-        if: matrix.os != 'windows-2022'
         uses: pozetroninc/github-action-get-latest-release@master
         with:
           repository: pierr3/TrackAudio
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: softprops/action-gh-release@v2
+        if: matrix.os == 'windows-2022'
+        with:
+          tag_name: ${{ steps.relinfo.outputs.release }}
+          files: |
+            "dist/*.exe"
+            "dist/latest-win.yml"
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
