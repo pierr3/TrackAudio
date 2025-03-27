@@ -130,7 +130,7 @@ jobs:
       - name: Package app
         if: matrix.os == 'windows-2022'
         shell: bash
-        run: npm run build:win -- --publish=always
+        run: npm run build:win -- --publish=never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -150,13 +150,13 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
-          npm run build:mac -- --${{ matrix.arch }} --publish=always
+          npm run build:mac -- --${{ matrix.arch }} --publish=never
           rm ./.a.p8
 
       - name: Package app
         if: matrix.os == 'ubuntu-latest'
         shell: bash
-        run: npm run build:linux -- --${{ matrix.arch }} --publish=always
+        run: npm run build:linux -- --${{ matrix.arch }} --publish=never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
