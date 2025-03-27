@@ -25,9 +25,9 @@ jobs:
       - name: Checkout submodules
         shell: bash
         run: |
-          git submodule update --init --remote backend/vcpkg
-          git submodule update --init --remote backend/extern/afv-native
-          git submodule update --init --remote backend/extern/libuiohook
+          git submodule update --init --recursive backend/vcpkg
+          git submodule update --init --recursive backend/extern/afv-native
+          git submodule update --init --recursive backend/extern/libuiohook
           cd backend/extern/afv-native
           git checkout develop-trackaudio
           cd ../libuiohook
