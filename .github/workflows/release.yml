@@ -181,7 +181,7 @@ jobs:
           tag_name: ${{ steps.relinfo.outputs.release }}
           files: |
             "dist/*.exe"
-            "dist/latest-win.yml"
+            "dist/*.zip"
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2

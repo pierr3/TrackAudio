@@ -713,11 +713,11 @@ ipcMain.on('check-for-updates', (event) => {
       console.error("Invalid update channel, can't check for updates");
       return;
     }
-    updater.autoUpdater.channel = configManager.config.updateChannel;
-    updater.autoUpdater.autoInstallOnAppQuit = false;
-    updater.autoUpdater.checkForUpdatesAndNotify().catch(() => {
-      console.error(`Error checking for updates`);
-    });
+    // updater.autoUpdater.channel = configManager.config.updateChannel;
+    // updater.autoUpdater.autoInstallOnAppQuit = false;
+    // updater.autoUpdater.checkForUpdatesAndNotify().catch(() => {
+    //   console.error(`Error checking for updates`);
+    // });
   } else {
     event.reply('update-not-available');
   }
