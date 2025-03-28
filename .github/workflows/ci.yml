@@ -59,19 +59,19 @@ jobs:
         with:
           python-version: "3.11.x"
 
-      - name: Update cmake
-        if: matrix.os != 'macos-latest'
-        run: |
-          pip install cmake
-          cmake --version
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.30.x'
+
+      - name: Use cmake
+        run: cmake --version
 
       - name: Setup environment
         if: matrix.os == 'macos-latest'
         run: |
           brew update
-          brew upgrade cmake
           brew install utf8proc
-          cmake --version
 
       - name: Install SFML native dependencies
         if: matrix.os == 'ubuntu-latest'
