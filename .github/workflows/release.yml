@@ -98,8 +98,13 @@ jobs:
         if: matrix.arch == 'x64'
         run: |
           npm -g i cmake-js
-          npm run build:backend
+          cd backend/
           npm install
+          cmake-js compile -B Release -a x64
+          node custom_build.mjs
+          npm pack
+          cd ..
+          npm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Install dependencies and building backend (macOs arm64)
         if: matrix.arch == 'arm64' && matrix.os == 'macos-latest'
