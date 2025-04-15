@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AudioApi, AudioDevice } from 'trackaudio-afv';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -306,6 +306,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     closeModal();
   };
 
+  const isSpeakerDeviceValid = useMemo(() => {
+    return (
+      config.speakerOutputDeviceId &&
+      audioOutputDevices.some((device) => device.id === config.speakerOutputDeviceId)
+    );
+  }, [audioOutputDevices, config.speakerOutputDeviceId]);
+  const isHeadsetDeviceValid = useMemo(() => {
+    return (
+      config.headsetOutputDeviceId &&
+      audioOutputDevices.some((device) => device.id === config.headsetOutputDeviceId)
+    );
+  }, [audioOutputDevices, config.headsetOutputDeviceId]);
+  const isInputDeviceValid = useMemo(() => {
+    return (
+      config.audioInputDeviceId &&
+      audioInputDevices.some((device) => device.id === config.audioInputDeviceId)
+    );
+  }, [audioInputDevices, config.audioInputDeviceId]);
+
   const renderRadioTooltip = (props) => (
     <Tooltip id="button-tooltip" {...props}>
       <div className="text-white">
@@ -448,7 +467,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
               <div className="col-6" style={{ float: 'right' }}>
                 <div className="form-group">
                   <h5>Audio configuration</h5>
-
                   <label className="mt-2">Audio API</label>
                   <AudioApis
                     apis={audioApis}
@@ -457,7 +475,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       changeAudioApi(apiId);
                     }}
                   />
-                  <label className="mt-2">Headset device</label>
+                  <label className={`mt-2 ${!isHeadsetDeviceValid ? 'text-danger' : ''}`}>
+                    Headset device
+                    {!isHeadsetDeviceValid ? ' (*)' : ''}
+                  </label>
                   <AudioOutputs
                     devices={audioOutputDevices}
                     selectedDeviceId={config.headsetOutputDeviceId}
@@ -465,7 +486,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       setHeadsetDevice(device.id);
                     }}
                   />
-                  <label className="mt-2">Speaker device</label>
+                  <label className={`mt-2 ${!isSpeakerDeviceValid ? 'text-danger' : ''}`}>
+                    Speaker device
+                    {!isSpeakerDeviceValid ? ' (*)' : ''}
+                  </label>
                   <AudioOutputs
                     devices={audioOutputDevices}
                     selectedDeviceId={config.speakerOutputDeviceId}
@@ -473,7 +497,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       setSpeakerDevice(device.id);
                     }}
                   />
-                  <label className="mt-2">Input device</label>
+                  <label className={`mt-2 ${!isInputDeviceValid ? 'text-danger' : ''}`}>
+                    Input device
+                    {!isInputDeviceValid ? ' (*)' : ''}
+                  </label>
                   <AudioInput
                     devices={audioInputDevices}
                     selectedDeviceId={config.audioInputDeviceId}
