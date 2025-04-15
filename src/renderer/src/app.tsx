@@ -32,7 +32,7 @@ function App() {
         <ErrorDialog />
         <div className="structure">
           <Mini />
-          <div className="position-relative structure">
+          <div className="position-relative structure hide-main-block">
             <div className={`blur-overlay ${updateAvailable ? 'active' : ''}`} />
             <Updater onUpdateFound={setUpdateAvailable} />
             <div className="sub-structure d-flex flex-column h-full">

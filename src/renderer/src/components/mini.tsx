@@ -1,72 +1,37 @@
-import React, { useState } from 'react';
+import React from 'react';
 import useRadioState from '../store/radioStore';
 import MiniModeToggleButton from './MiniModeToggleButton';
 import useMiniModeManager from '@renderer/helpers/useMiniModeManager';
 
 const Mini: React.FC = () => {
   const [radios] = useRadioState((state) => [state.radios]);
-  const [isHovered, setIsHovered] = useState(false);
 
   const { isConnected } = useMiniModeManager();
 
-  if (!isConnected) {
+  if (!isConnected || radios.filter((r) => r.rx).length === 0) {
     return (
-      <div
-        className="box-container-blank transparent-bg mini draggable w-100"
-        onMouseEnter={() => {
-          setIsHovered(true);
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-        }}
-      >
+      <div className="box-container-blank transparent-bg mini draggable w-100">
         <div className="container radio-list">
           <div className="d-flex gap-1 justify-content-center">
-            <span style={{ color: 'red' }}>Disconnected</span>
+            <span style={{ color: 'red' }}>
+              {!isConnected
+                ? 'Not connected'
+                : radios.filter((r) => r.rx).length === 0
+                  ? 'No RX radios'
+                  : ''}
+            </span>
           </div>
         </div>
         {/* Make only the button container no-drag */}
-        <div className={`exit-mini-mode-container no-drag ${isHovered ? 'visible' : 'hidden'}`}>
+        <div className={`exit-mini-mode-container no-drag`}>
           <MiniModeToggleButton showRestoreButton={true} alwaysEnabled />
         </div>
       </div>
     );
   }
 
-  if (radios.filter((r) => r.rx).length === 0) {
-    return (
-      <div
-        className="box-container-blank transparent-bg mini draggable w-100"
-        onMouseEnter={() => {
-          setIsHovered(true);
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-        }}
-      >
-        <div className="container radio-list">
-          <div className="d-flex gap-1 justify-content-center">
-            <span style={{ color: 'red' }}>No RX radios</span>
-          </div>
-        </div>
-        {/* Make only the button container no-drag */}
-        <div className={`exit-mini-mode-container no-drag ${isHovered ? 'visible' : 'hidden'}`}>
-          <MiniModeToggleButton showRestoreButton={true} />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div
-      className="box-container-blank transparent-bg mini draggable w-100"
-      onMouseEnter={() => {
-        setIsHovered(true);
-      }}
-      onMouseLeave={() => {
-        setIsHovered(false);
-      }}
-    >
+    <div className="box-container-blank transparent-bg mini draggable w-100">
       <div className="container radio-list">
         {radios
           .filter((r) => r.rx)
@@ -81,7 +46,6 @@ const Mini: React.FC = () => {
               <div
                 key={radio.frequency}
                 className="d-flex gap-1 justify-content-between"
-                style={{ width: '100%' }}
               >
                 <span
                   style={{
@@ -110,7 +74,7 @@ const Mini: React.FC = () => {
           })}
       </div>
       {/* Make only the button container no-drag */}
-      <div className={`exit-mini-mode-container no-drag ${isHovered ? 'visible' : 'hidden'}`}>
+      <div className={`exit-mini-mode-container no-drag`}>
         <MiniModeToggleButton showRestoreButton={true} />
       </div>
     </div>
