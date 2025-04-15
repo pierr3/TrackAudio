@@ -435,11 +435,8 @@ app
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-  app.quit();
-});
-
-app.on('quit', () => {
   TrackAudioAfv.Exit();
+  app.quit();
 });
 
 /**

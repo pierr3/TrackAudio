@@ -664,14 +664,11 @@ select:disabled {
   right: 10px;
   display: inline-block;
   transition: opacity 0.3s ease-in-out;
-}
-
-.exit-mini-mode-container.visible {
-  opacity: 1;
-}
-
-.exit-mini-mode-container.hidden {
   opacity: 0;
+}
+
+.exit-mini-mode-container:hover {
+  opacity: 1;
 }
 
 ::-webkit-scrollbar {

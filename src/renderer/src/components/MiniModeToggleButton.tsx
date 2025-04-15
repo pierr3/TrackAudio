@@ -24,7 +24,7 @@ const MiniModeToggleButton: React.FC<MiniModeToggleButtonProps> = ({
   return (
     <button
       className="btn btn-primary"
-      style={{ lineHeight: 0, fontSize: '14px' }}
+      style={{ lineHeight: 0, fontSize: '14px', zIndex: 10000 }}
       onClick={toggleMiniMode}
       disabled={!isConnected && !alwaysEnabled}
     >
