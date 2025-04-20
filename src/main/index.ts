@@ -431,11 +431,18 @@ app
     console.log(`Error initializing app: ${err.message}`);
   });
 
+app.on('before-quit', () => {
+  // Perform cleanup
+  if (TrackAudioAfv.IsConnected()) {
+    TrackAudioAfv.Disconnect();
+  }
+  TrackAudioAfv.Exit();
+});
+
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-  TrackAudioAfv.Exit();
   app.quit();
 });
 
@@ -575,15 +582,12 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle(
-  'audio-remove-frequency',
-  (_, frequency: number, callsign?: string) => {
-    if (callsign) {
-      TrackAudioAfv.RemoveFrequency(frequency, callsign);
-    }
-    TrackAudioAfv.RemoveFrequency(frequency);
+ipcMain.handle('audio-remove-frequency', (_, frequency: number, callsign?: string) => {
+  if (callsign) {
+    TrackAudioAfv.RemoveFrequency(frequency, callsign);
   }
-);
+  TrackAudioAfv.RemoveFrequency(frequency);
+});
 
 ipcMain.handle(
   'audio-set-frequency-state',

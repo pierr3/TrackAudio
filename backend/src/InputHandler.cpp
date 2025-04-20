@@ -16,7 +16,11 @@ InputHandler::InputHandler()
     timer.start(Poco::TimerCallback<InputHandler>(*this, &InputHandler::onTimer));
 }
 
-InputHandler::~InputHandler() { timer.stop(); }
+InputHandler::~InputHandler()
+{
+    timer.stop();
+    uioHookWrapper_->stop();
+}
 
 void InputHandler::startPttSetup(int pttIndex, bool listenForJoysticks)
 {

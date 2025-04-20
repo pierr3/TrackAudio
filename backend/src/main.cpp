@@ -838,15 +838,24 @@ void SetSession(const Napi::CallbackInfo& info)
 Napi::Boolean Exit(const Napi::CallbackInfo& info)
 {
     PLOGI << "Awaiting to exit TrackAudio...";
+
+    MainThreadShared::mApiServer.reset();
+    MainThreadShared::mRemoteDataHandler.reset();
+    MainThreadShared::inputHandler.reset();
+    MainThreadShared::vuMeterThread.reset();
+
     NapiHelpers::_requestExit.store(true);
     if (mClient->IsVoiceConnected()) {
         PLOGI << "Connection to network detected, forcing disconnect...";
         mClient->Disconnect();
     }
 
-    MainThreadShared::mApiServer.reset();
-    MainThreadShared::mRemoteDataHandler.reset();
-    MainThreadShared::inputHandler.reset();
+    if (mClient->IsAudioRunning()) {
+        PLOGI << "Audio running, stopping...";
+        mClient->StopAudio();
+    }
+
+
 
     mClient.reset();
     PLOGI << "Exiting TrackAudio...";
