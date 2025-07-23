@@ -1,7 +1,8 @@
 #include "Shared.hpp"
 #include "Helpers.hpp"
+#include <semver.hpp>
 
-const semver::version VERSION = semver::version { 1, 3, 3 };
+const semver::version VERSION = semver::version { 1, 3, 4, semver::prerelease::beta, 1 };
 const std::string CLIENT_NAME = std::string("TrackAudio-") + VERSION.to_string();
 std::unique_ptr<afv_native::api::atcClient> mClient = nullptr;
 
