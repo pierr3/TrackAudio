@@ -3,7 +3,10 @@
     "version": "1.0.0",
     "dependencies": [
         "cpp-httplib",
-        "poco",
+        {
+            "name": "poco",
+            "features": ["netssl", "net", "util", "crypto", "jwt"]
+        },
         "node-addon-api",
         "abseil",
         "neargye-semver",
@@ -25,5 +28,10 @@
         "nlohmann-json",
         "openssl",
         "libevent"
-    ]
+    ],
+    "overrides": [
+        { "name": "cpp-httplib", "version": "0.21.0" },
+        { "name": "sfml", "version": "2.6.1" }
+    ],
+    "builtin-baseline": "f5800a22acb14d7f753e8be12fe5ec2bc999ab44"
 }
