@@ -553,12 +553,13 @@ void HandleAfvEvents()
 
     event.AddHandler<afv_native::StationDataReceivedEvent>(
         [&](const afv_native::StationDataReceivedEvent& event) {
-            if (!event.found || !event.stationData.has_value()) {
+            if (!event.found || !event.stationData.second.has_value()) {
                 NapiHelpers::sendErrorToElectron("Station not found");
                 return;
             }
 
-            const auto& [callsign, station] = event.stationData.value();
+            const auto& callsign = event.stationData.first;
+            const auto& station = event.stationData.second.value();
             const auto frequency = station.frequency;
 
             if (mClient->IsFrequencyActive(frequency)) {
