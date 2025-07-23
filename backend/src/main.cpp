@@ -782,6 +782,9 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
 
     PLOGI << "Version check successful, continuing...";
 
+    if (info.Length() < 1 || !info[0].IsString()) {
+        throw Napi::Error::New(info.Env(), "Resource path is required");
+    }
     std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
     if (info.Length() > 1 && info[1].IsString()) {
         std::string request = info[1].As<Napi::String>().Utf8Value();
@@ -790,13 +793,19 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
         mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath);
     }
 
-    MainThreadShared::mRemoteDataHandler = std::make_unique<RemoteData>();
+    try {
+      MainThreadShared::mRemoteDataHandler = std::make_unique<RemoteData>();
+      PLOGI << "Remote data handler created successfully";
+      MainThreadShared::mApiServer = std::make_shared<SDK>();
+      PLOGI << "SDK server created successfully";
+    } catch (const std::exception& e) {
+        outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
+        PLOGE << "Error creating remote data handler: " << e.what();
+    }
 
     // Setup afv
-
     HandleAfvEvents();
-
-    MainThreadShared::mApiServer = std::make_shared<SDK>();
+    PLOGI << "AFV events handlers set up successfully";
 
     try {
         MainThreadShared::inputHandler = std::make_unique<InputHandler>();
