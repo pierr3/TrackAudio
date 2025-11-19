@@ -454,7 +454,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                           id=""
                           className="form-control mt-1"
                           onChange={handleUpdateChannelChange}
-                          value={updateChannel.toString()}
+                          value={updateChannel}
                         >
                           <option value="stable">Stable</option>
                           <option value="beta">Beta</option>

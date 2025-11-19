@@ -39,6 +39,7 @@ const CheckingForUpdates = ({
       }
     } catch (error) {
       onError('Unknown Error!', 'An unknown error occurred while checking for updates.');
+      console.error('Error checking for updates: ', error);
     }
   };
 

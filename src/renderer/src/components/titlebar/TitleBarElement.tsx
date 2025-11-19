@@ -5,7 +5,7 @@ export interface TitleBarElementProps {
   priority: number;
 }
 
-const TitleBarElement = ({ children, priority }: TitleBarElementProps): JSX.Element => {
+const TitleBarElement = ({ children, priority }: TitleBarElementProps) => {
   const calculatedChildren = useMemo(() => {
     return (
       <div className="h-100" data-priority={priority}>

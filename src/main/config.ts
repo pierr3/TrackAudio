@@ -58,9 +58,7 @@ class ConfigManager {
    * @returns The config manager instance
    */
   public static getInstance(): ConfigManager {
-    if (!ConfigManager._instance) {
-      ConfigManager._instance = new ConfigManager();
-    }
+    ConfigManager._instance ??= new ConfigManager();
 
     return ConfigManager._instance;
   }
@@ -157,6 +155,7 @@ class ConfigManager {
 
       // Upgrade the alwaysOnTop property from yes/no to the three mode version
       if (typeof config.alwaysOnTop === 'boolean') {
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         config.alwaysOnTop ? (config.alwaysOnTop = 'always') : (config.alwaysOnTop = 'never');
       }
 

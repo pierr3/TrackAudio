@@ -9,10 +9,10 @@ interface SectionRef {
 
 const useTitleBarUtils = (
   children: React.ReactNode,
-  titleBarRef: React.RefObject<HTMLDivElement>
+  titleBarRef: React.RefObject<HTMLDivElement | null> | null
 ): {
-  sectionRefs: React.MutableRefObject<Record<string, SectionRef | null>>;
-  elementRefs: React.MutableRefObject<Record<string, Record<number, HTMLDivElement | null>>>;
+  sectionRefs: React.RefObject<Record<string, SectionRef | null>>;
+  elementRefs: React.RefObject<Record<string, Record<number, HTMLDivElement | null>>>;
   calculateAvailableSpace: () => number;
   calculateGap: (sectionName: string) => number;
   getSectionRef: (name: string) => (ref: HTMLDivElement | null) => void;
@@ -22,7 +22,7 @@ const useTitleBarUtils = (
   const elementRefs = useRef<Record<string, Record<number, HTMLDivElement | null>>>({});
 
   const calculateAvailableSpace = useCallback((): number => {
-    const titleBarWidth = titleBarRef.current?.offsetWidth ?? 0;
+    const titleBarWidth = titleBarRef?.current?.offsetWidth ?? 0;
     const sections = React.Children.toArray(children) as React.ReactElement[];
     const spacing = 15;
 

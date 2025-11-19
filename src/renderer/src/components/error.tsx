@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
 import React, { useEffect } from 'react';
 import useErrorStore from '../store/errorStore';
 import useSound from 'use-sound';

@@ -9,7 +9,7 @@ const ConnectTimer = () => {
 
   useEffect(() => {
     if (!connectTimestamp) return;
-    const difference = Number(time) - Number(connectTimestamp);
+    const difference = Number(time) - connectTimestamp;
 
     const hours = Math.floor(difference / (1000 * 60 * 60));
     const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));

@@ -39,7 +39,10 @@ const AddFrequency: React.FC<AddFrequencyProps> = ({ onAddFrequency }) => {
         console.error(err);
       });
 
-    frequencyInputRef.current.value = '';
+    if (frequencyInputRef.current) {
+      frequencyInputRef.current.value = '';
+    }
+
     setPreviousValue('');
     setReadyToAdd(false);
     if (onAddFrequency) {

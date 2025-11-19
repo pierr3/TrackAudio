@@ -13,6 +13,7 @@ export const api = {
     });
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   onIpc<T>(channel: string, func: (data: T) => void): () => void {
     const subscription = (_event: IpcRendererEvent, args: unknown): void => {
       func(args as T);

@@ -123,12 +123,7 @@ const restoreWindowBounds = (mode: WindowMode, numOfRadios = 0) => {
     ) {
       // Reset window into existing screenarea
       const computedHeight = mode === 'mini' ? miniModeHeight : defaultWindowSize.height;
-      mainWindow?.setBounds({
-        x: 0,
-        y: 0,
-        width: defaultWindowSize.width,
-        height: computedHeight
-      });
+      mainWindow?.setBounds({ x: 0, y: 0, width: defaultWindowSize.width, height: computedHeight });
     } else {
       const computedHeight = mode === 'mini' ? miniModeHeight : boundsRectangle.height;
       mainWindow?.setBounds({
@@ -194,10 +189,7 @@ const createWindow = (): void => {
     titleBarStyle: 'hidden',
     title: 'TrackAudio',
     frame: false,
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
+    webPreferences: { preload: join(__dirname, '../preload/index.js'), sandbox: false }
   };
 
   if (configManager.config.transparentMiniMode) {
@@ -348,12 +340,7 @@ app
 
     app.on('web-contents-created', (_, webContents) => {
       webContents.setWindowOpenHandler(() => {
-        return {
-          action: 'allow',
-          overrideBrowserWindowOptions: {
-            title: 'TrackAudio'
-          }
-        };
+        return { action: 'allow', overrideBrowserWindowOptions: { title: 'TrackAudio' } };
       });
     });
 
@@ -412,7 +399,6 @@ app
         _e[_v('VklURV9ERUJVR19MQVQ=')] &&
         _e[_v('VklURV9ERUJVR19MT04=')]
       ) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         TrackAudioAfv.SetSession({
           calos: _e[_v('VklURV9ERUJVR19DQUxMU0lHTg==')],
           fab: _e[_v('VklURV9ERUJVR19GUkVR')],
@@ -750,12 +736,7 @@ ipcMain.handle(
       return;
     }
 
-    return dialog.showMessageBox(mainWindow, {
-      type,
-      title,
-      buttons,
-      message
-    });
+    return dialog.showMessageBox(mainWindow, { type, title, buttons, message });
   }
 );
 

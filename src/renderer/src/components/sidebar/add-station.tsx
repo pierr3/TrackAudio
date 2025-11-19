@@ -33,7 +33,7 @@ const AddStation: React.FC<AddStationProps> = ({ className, style, onAddStation 
   };
 
   return (
-    <div className={`form-group ${className ? className : ''}`} style={style}>
+    <div className={`form-group ${className ?? ''}`} style={style}>
       <h5>Add a Station</h5>
       <input
         type="text"
@@ -42,9 +42,10 @@ const AddStation: React.FC<AddStationProps> = ({ className, style, onAddStation 
         placeholder="XXXX_XXX"
         ref={stationInputRef}
         onChange={(e) => {
-          e.target.value.length !== 0 ? setReadyToAdd(true) : setReadyToAdd(false);
+          setReadyToAdd(e.target.value.length !== 0);
         }}
         onKeyDown={(e) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           e.key === 'Enter' && addStation();
         }}
         autoFocus

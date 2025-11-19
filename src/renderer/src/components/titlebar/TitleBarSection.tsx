@@ -7,7 +7,7 @@ export interface TitleBarSectionProps {
   name: string;
 }
 
-const TitleBarSection = ({ children }: TitleBarSectionProps): JSX.Element => {
+const TitleBarSection = ({ children }: TitleBarSectionProps) => {
   const childrenWithPriorities = useMemo(() => {
     return React.Children.map(children, (child) => {
       if (React.isValidElement(child) && child.type === TitleBarElement) {

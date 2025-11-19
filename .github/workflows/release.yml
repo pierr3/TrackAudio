@@ -135,7 +135,7 @@ jobs:
       - name: Package app
         if: matrix.os == 'windows-2022'
         shell: bash
-        run: npm run build:win -- --publish=never
+        run: npm run build:win -- --publish=never --${{ matrix.arch }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
