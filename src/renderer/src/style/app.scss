@@ -563,6 +563,32 @@ select:disabled {
   border-radius: var(--bs-modal-border-radius);
 }
 
+/* Settings modal tabs */
+.nav-tabs {
+  border-bottom: 2px solid lighten($dark, 10%);
+
+  .nav-link {
+    color: darken($body-color, 20%);
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    padding: 6px 14px;
+    margin-bottom: -2px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      color: $body-color;
+      border-bottom-color: lighten($dark, 25%);
+    }
+
+    &.active {
+      color: $body-color;
+      background: transparent;
+      border-bottom: 2px solid $info;
+    }
+  }
+}
+
 .btn-no-interact,
 .btn-no-interact:focus,
 .btn-no-interact:hover,
