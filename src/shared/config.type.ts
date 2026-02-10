@@ -25,5 +25,11 @@ export interface Configuration {
 
   radioToMaxVolumeOnTx: boolean;
 
+  pttReleaseSoundEnabled: boolean;
+
+  loopbackEnabled: boolean;
+  loopbackTarget: number;
+  loopbackGain: number;
+
   updateChannel: string;
 }

@@ -5,7 +5,7 @@ import { AlwaysOnTopMode, Configuration, RadioEffects } from '../shared/config.t
 
 // Used to check for older settings that need upgrading. This should get
 // increased any time the Configuration object has a breaking change.
-export const currentSettingsVersion = 3;
+export const currentSettingsVersion = 4;
 
 // Default application configuration. Used as a fallback when any of the properties
 // are missing from the saved configuration.
@@ -25,6 +25,10 @@ export const defaultConfiguration = {
   showExpandedRx: false,
   transparentMiniMode: false,
   radioToMaxVolumeOnTx: false,
+  pttReleaseSoundEnabled: false,
+  loopbackEnabled: false,
+  loopbackTarget: 0,
+  loopbackGain: 50,
   updateChannel: 'stable'
 };
 

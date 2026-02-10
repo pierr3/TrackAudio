@@ -41,6 +41,18 @@ export const api = {
   setRadioToMaxVolumeOnTX: (state: boolean) => {
     ipcRenderer.send('set-radio-to-max-volume-on-tx', state);
   },
+  setPttReleaseSoundEnabled: (enabled: boolean) => {
+    ipcRenderer.send('set-ptt-release-sound-enabled', enabled);
+  },
+  setLoopbackEnabled: (enabled: boolean) => {
+    ipcRenderer.send('set-loopback-enabled', enabled);
+  },
+  setLoopbackTarget: (target: number) => {
+    ipcRenderer.send('set-loopback-target', target);
+  },
+  setLoopbackGain: (gain: number) => {
+    ipcRenderer.send('set-loopback-gain', gain);
+  },
   getAudioApis: () => ipcRenderer.invoke('audio-get-apis'),
   getAudioInputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-input-devices', apiId),
   getAudioOutputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-output-devices', apiId),
@@ -121,6 +133,10 @@ export const api = {
 
   StartMicTest: () => ipcRenderer.invoke('start-mic-test'),
   StopMicTest: () => ipcRenderer.invoke('stop-mic-test'),
+
+  PlayAdHocSound: (wavFileName: string, gain: number, target: number) =>
+    ipcRenderer.invoke('play-ad-hoc-sound', wavFileName, gain, target),
+  StopAdHocSounds: () => ipcRenderer.invoke('stop-ad-hoc-sounds'),
 
   UpdatePlatform: () => ipcRenderer.invoke('update-platform'),
 

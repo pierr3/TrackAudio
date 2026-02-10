@@ -31,6 +31,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [config, setConfig] = useState({} as Configuration);
   const [alwaysOnTop, setAlwaysOnTop] = useState<AlwaysOnTopMode>('never');
   const [transparentMiniMode, setLocalTransparentMiniMode] = useState(false);
+  const [pttReleaseSoundEnabled, setPttReleaseSoundEnabled] = useState(false);
+  const [loopbackEnabled, setLoopbackEnabled] = useState(false);
+  const [loopbackTarget, setLoopbackTarget] = useState(0);
+  const [loopbackGain, setLoopbackGain] = useState(50);
   const [cid, setCid] = useState('');
   const [password, setPassword] = useState('');
 
@@ -93,6 +97,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setTransparentMiniMode(config.transparentMiniMode);
         setLocalTransparentMiniMode(config.transparentMiniMode);
         setRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
+        setPttReleaseSoundEnabled(config.pttReleaseSoundEnabled);
+        setLoopbackEnabled(config.loopbackEnabled);
+        setLoopbackTarget(config.loopbackTarget);
+        setLoopbackGain(config.loopbackGain);
         setUpdateChannel(config.updateChannel);
       })
       .catch((err: unknown) => {
@@ -232,6 +240,38 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       window.api.setRadioToMaxVolumeOnTX(false);
       setRadioToMaxVolumeOnTX(false);
     }
+    setChangesSaved(SaveStatus.Saved);
+  };
+
+  const handlePttReleaseSoundChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    const enabled = e.target.value === 'true';
+    setPttReleaseSoundEnabled(enabled);
+    window.api.setPttReleaseSoundEnabled(enabled);
+    setChangesSaved(SaveStatus.Saved);
+  };
+
+  const handleLoopbackEnabledChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    const enabled = e.target.value === 'true';
+    setLoopbackEnabled(enabled);
+    window.api.setLoopbackEnabled(enabled);
+    setChangesSaved(SaveStatus.Saved);
+  };
+
+  const handleLoopbackTargetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    const target = parseInt(e.target.value);
+    setLoopbackTarget(target);
+    window.api.setLoopbackTarget(target);
+    setChangesSaved(SaveStatus.Saved);
+  };
+
+  const handleLoopbackGainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    const gain = parseInt(e.target.value);
+    setLoopbackGain(gain);
+    window.api.setLoopbackGain(gain);
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -422,6 +462,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                       <option value="1">Rockwell Collins 2100</option>
                       <option value="2">Garex 220</option>
                     </select>
+                    <label className="mt-2">PTT release click sound</label>
+                    <select
+                      className="form-control mt-1"
+                      value={pttReleaseSoundEnabled.toString()}
+                      onChange={handlePttReleaseSoundChange}
+                    >
+                      <option value="true">Enabled</option>
+                      <option value="false">Disabled</option>
+                    </select>
                   </div>
                   <div className="col-lg">
                     <label className="mt-2">Keep window on top</label>
@@ -528,6 +577,37 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                     <option value="true">Always</option>
                     <option value="false">Never</option>
                   </select>
+                  <label className="mt-2">Microphone loopback (sidetone)</label>
+                  <select
+                    className="form-control mt-1"
+                    value={loopbackEnabled.toString()}
+                    onChange={handleLoopbackEnabledChange}
+                  >
+                    <option value="true">Enabled</option>
+                    <option value="false">Disabled</option>
+                  </select>
+                  {loopbackEnabled && (
+                    <>
+                      <label className="mt-2">Loopback output</label>
+                      <select
+                        className="form-control mt-1"
+                        value={loopbackTarget.toString()}
+                        onChange={handleLoopbackTargetChange}
+                      >
+                        <option value="0">Headset</option>
+                        <option value="1">Speakers</option>
+                      </select>
+                      <label className="mt-2">Loopback volume</label>
+                      <input
+                        type="range"
+                        className="form-range mt-1"
+                        min="0"
+                        max="100"
+                        value={loopbackGain}
+                        onChange={handleLoopbackGainChange}
+                      />
+                    </>
+                  )}
                 </div>
               </div>
             </div>

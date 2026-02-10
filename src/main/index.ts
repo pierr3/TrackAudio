@@ -75,6 +75,11 @@ const isInMiniMode = () => {
   return mainWindow.getContentSize()[0] <= miniModeWidthBreakpoint;
 };
 
+const applyLoopbackSettings = () => {
+  const { loopbackEnabled, loopbackTarget, loopbackGain } = configManager.config;
+  TrackAudioAfv.SetLoopback(loopbackEnabled, loopbackTarget, loopbackGain / 100);
+};
+
 const setAudioSettings = () => {
   TrackAudioAfv.SetAudioSettings(
     configManager.config.audioApi,
@@ -84,6 +89,7 @@ const setAudioSettings = () => {
   );
   TrackAudioAfv.SetRadioEffects(configManager.config.radioEffects);
   TrackAudioAfv.SetHardwareType(configManager.config.hardwareType);
+  applyLoopbackSettings();
 };
 
 /**
@@ -481,6 +487,34 @@ ipcMain.on('set-radio-to-max-volume-on-tx', (_, radioToMaxVolumeOnTx: boolean) =
   configManager.updateConfig({ radioToMaxVolumeOnTx });
 });
 
+ipcMain.on('set-ptt-release-sound-enabled', (_, pttReleaseSoundEnabled: boolean) => {
+  configManager.updateConfig({ pttReleaseSoundEnabled });
+});
+
+ipcMain.on('set-loopback-enabled', (_, loopbackEnabled: boolean) => {
+  configManager.updateConfig({ loopbackEnabled });
+  applyLoopbackSettings();
+});
+
+ipcMain.on('set-loopback-target', (_, loopbackTarget: number) => {
+  configManager.updateConfig({ loopbackTarget });
+  applyLoopbackSettings();
+});
+
+ipcMain.on('set-loopback-gain', (_, loopbackGain: number) => {
+  configManager.updateConfig({ loopbackGain });
+  applyLoopbackSettings();
+});
+
+ipcMain.handle('play-ad-hoc-sound', (_, wavFileName: string, gain: number, target: number) => {
+  const wavPath = join(process.resourcesPath, wavFileName);
+  TrackAudioAfv.PlayAdHocSound(wavPath, gain, target);
+});
+
+ipcMain.handle('stop-ad-hoc-sounds', () => {
+  TrackAudioAfv.StopAdHocSounds();
+});
+
 ipcMain.handle('audio-get-apis', () => {
   return TrackAudioAfv.GetAudioApis();
 });
@@ -845,10 +879,16 @@ const handleEvent = (arg: string, arg2: string, arg3: string, arg4: string) => {
 
   if (arg == AfvEventTypes.PttState) {
     mainWindow?.webContents.send('PttState', arg2);
+    if (arg2 === '0' && configManager.config.pttReleaseSoundEnabled) {
+      const wavPath = join(process.resourcesPath, 'Click_f32.wav');
+      TrackAudioAfv.PlayAdHocSound(wavPath, 1.0, 0);
+    }
   }
 
   if (arg == AfvEventTypes.Error) {
     mainWindow?.webContents.send('error', arg2);
+    const wavPath = join(process.resourcesPath, 'md80_error.wav');
+    TrackAudioAfv.PlayAdHocSound(wavPath, 1.0, 2);
   }
 
   if (arg == AfvEventTypes.VoiceConnected) {

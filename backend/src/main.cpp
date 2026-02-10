@@ -383,6 +383,36 @@ void SetMainRadioVolume(const Napi::CallbackInfo& info)
     MainThreadShared::mApiServer->publishMainVolumeChange(volume, false);
 }
 
+void PlayAdHocSound(const Napi::CallbackInfo& info)
+{
+    if (!mClient) {
+        return;
+    }
+    std::string wavFilePath = info[0].As<Napi::String>().Utf8Value();
+    float gain = info[1].As<Napi::Number>().FloatValue();
+    int target = info[2].As<Napi::Number>().Int32Value();
+    mClient->PlayAdHocSound(wavFilePath, gain, static_cast<afv_native::AdHocOutputTarget>(target));
+}
+
+void StopAdHocSounds(const Napi::CallbackInfo& /*info*/)
+{
+    if (!mClient) {
+        return;
+    }
+    mClient->StopAdHocSounds();
+}
+
+void SetLoopback(const Napi::CallbackInfo& info)
+{
+    if (!mClient) {
+        return;
+    }
+    bool enabled = info[0].As<Napi::Boolean>().Value();
+    int target = info[1].As<Napi::Number>().Int32Value();
+    float gain = info[2].As<Napi::Number>().FloatValue();
+    mClient->SetLoopback(enabled, static_cast<afv_native::AdHocOutputTarget>(target), gain);
+}
+
 Napi::Promise SetFrequencyRadioVolume(const Napi::CallbackInfo& info)
 {
     Napi::Env env = info.Env();
@@ -964,6 +994,14 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     exports.Set(
         Napi::String::New(env, "GetLoggerFilePath"), Napi::Function::New(env, GetLoggerFilePath));
+
+    exports.Set(
+        Napi::String::New(env, "PlayAdHocSound"), Napi::Function::New(env, PlayAdHocSound));
+
+    exports.Set(
+        Napi::String::New(env, "StopAdHocSounds"), Napi::Function::New(env, StopAdHocSounds));
+
+    exports.Set(Napi::String::New(env, "SetLoopback"), Napi::Function::New(env, SetLoopback));
 
     exports.Set(Napi::String::New(env, "Exit"), Napi::Function::New(env, Exit));
 
