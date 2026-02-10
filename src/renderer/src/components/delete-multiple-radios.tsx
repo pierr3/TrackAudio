@@ -18,7 +18,7 @@ const DeleteMultipleRadios: React.FC = () => {
   const handleDeleteRadios = () => {
     if (radiosToBeDeleted.length == 0) {
       radios.forEach((radio) => {
-        if (radio.callsign !== 'UNICOM' && radio.callsign !== 'GUARD') {
+        if (radio.callsign !== 'ADVISORY' && radio.callsign !== 'GUARD') {
           setPendingDeletion(radio.frequency, false);
           awaitEndOfRxForDeletion(radio.frequency);
         }

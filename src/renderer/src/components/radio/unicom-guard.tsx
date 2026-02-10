@@ -37,7 +37,7 @@ const UnicomGuardBar = () => {
   const reAddRadio = (radio: RadioType, eventType: 'RX' | 'TX' | 'SPK') => {
     const radioName =
       radio.frequency === UnicomFrequency
-        ? 'UNICOM'
+        ? 'ADVISORY'
         : radio.frequency === GuardFrequency
           ? 'GUARD'
           : 'INVALIDUNIGUARD';
@@ -226,17 +226,17 @@ const UnicomGuardBar = () => {
         : 100;
 
       void window.api
-        .addFrequency(UnicomFrequency, 'UNICOM', stationUnicomVolumeToSet)
+        .addFrequency(UnicomFrequency, 'ADVISORY', stationUnicomVolumeToSet)
         .then((ret) => {
           if (!ret) {
-            console.error('Failed to add UNICOM frequency');
+            console.error('Failed to add ADVISORY frequency');
             return;
           }
 
-          addRadio(UnicomFrequency, 'UNICOM', 'UNICOM');
+          addRadio(UnicomFrequency, 'ADVISORY', 'ADVISORY');
         });
 
-      // Setup GUARD with same volume as UNICOM
+      // Setup GUARD with same volume as ADVISORY
       void window.api
         .addFrequency(GuardFrequency, 'GUARD', stationUnicomVolumeToSet)
         .then(async (ret) => {
@@ -245,7 +245,7 @@ const UnicomGuardBar = () => {
             return;
           }
 
-          // Get the same stored volume as UNICOM
+          // Get the same stored volume as ADVISORY
           const storedStationVolume = window.localStorage.getItem('UNICOMStationVolume');
           const stationVolumeToSet = storedStationVolume?.length
             ? parseInt(storedStationVolume)
@@ -307,7 +307,7 @@ const UnicomGuardBar = () => {
     <div className="unicom-bar-container">
       <span className="unicom-line-item">
         <span className="unicom-text " style={{ marginRight: '5px' }}>
-          UNICOM
+          ADVISORY
         </span>
         <button
           className={clsx(
