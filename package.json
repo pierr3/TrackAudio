@@ -59,7 +59,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@vitejs/plugin-react": "^5.1.1",
-    "electron": "^39.0.0",
+    "electron": "^40.2.1",
     "electron-builder": "26.6.0",
     "electron-vite": "^4.0.0",
     "eslint": "^9.0.0",
