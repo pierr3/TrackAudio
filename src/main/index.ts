@@ -76,8 +76,8 @@ const isInMiniMode = () => {
 };
 
 const applyLoopbackSettings = () => {
-  const { loopbackEnabled, loopbackTarget, loopbackGain } = configManager.config;
-  TrackAudioAfv.SetLoopback(loopbackEnabled, loopbackTarget, loopbackGain / 100);
+  const { loopbackEnabled, loopbackTarget, loopbackGain, hardwareType } = configManager.config;
+  TrackAudioAfv.SetLoopback(loopbackEnabled, loopbackTarget, loopbackGain / 100, hardwareType);
 };
 
 const setAudioSettings = () => {
@@ -681,6 +681,7 @@ ipcMain.handle('set-radio-effects', (_, radioEffects: RadioEffects) => {
 ipcMain.handle('set-hardware-type', (_, hardwareType: number) => {
   configManager.updateConfig({ hardwareType });
   TrackAudioAfv.SetHardwareType(hardwareType);
+  applyLoopbackSettings();
 });
 
 ipcMain.handle('start-mic-test', () => {

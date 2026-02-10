@@ -421,7 +421,8 @@ void SetLoopback(const Napi::CallbackInfo& info)
     bool enabled = info[0].As<Napi::Boolean>().Value();
     int target = info[1].As<Napi::Number>().Int32Value();
     float gain = info[2].As<Napi::Number>().FloatValue();
-    mClient->SetLoopback(enabled, static_cast<afv_native::AdHocOutputTarget>(target), gain);
+    int hardware = info[3].As<Napi::Number>().Int32Value();
+    mClient->SetLoopback(enabled, static_cast<afv_native::AdHocOutputTarget>(target), gain, static_cast<afv_native::HardwareType>(hardware));
 }
 
 Napi::Promise SetFrequencyRadioVolume(const Napi::CallbackInfo& info)

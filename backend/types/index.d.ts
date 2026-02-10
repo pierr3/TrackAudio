@@ -111,7 +111,7 @@ declare namespace TrackAudioAfv {
 
   export function PlayAdHocSound(wavFilePath: string, gain: number, target: number): void;
   export function StopAdHocSounds(): void;
-  export function SetLoopback(enabled: boolean, target: number, gain: number): void;
+  export function SetLoopback(enabled: boolean, target: number, gain: number, hardware: number): void;
 
   export function RegisterCallback(
     func: (arg: string, arg2: string, arg3: string, arg4: string) => void
