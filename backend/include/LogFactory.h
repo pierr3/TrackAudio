@@ -28,7 +28,7 @@ public:
         // NOLINTNEXTLINE this cannot be solved here but in afv
         afv_native::api::setLogger(
             // NOLINTNEXTLINE
-            [&](std::string subsystem, std::string file, int line, std::string lineOut) {
+            [](std::string subsystem, std::string file, int line, std::string lineOut) {
                 auto strippedFiledName = file.substr(file.find_last_of('/') + 1);
                 PLOG_INFO << "[afv_native] " << subsystem << ":" << strippedFiledName << ":" << line
                           << ": " << lineOut;
@@ -36,7 +36,11 @@ public:
     }
 
     static void createLoggers() { m_instance = std::make_unique<LogFactory>(); }
-    static void destroyLoggers() { m_instance.reset(); }
+    static void destroyLoggers()
+    {
+        afv_native::api::setLogger(nullptr);
+        m_instance.reset();
+    }
 
     static std::string getLoggerFilePath()
     {

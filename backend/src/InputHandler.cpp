@@ -47,12 +47,7 @@ void InputHandler::stopPttSetup()
 
 void InputHandler::handleKeyEvent(const uiohook_event* event)
 {
-
     if (handlePttSetup(event)) {
-        return;
-    }
-
-    if (UserSettings::PttKey1 == -1) {
         return;
     }
 
@@ -65,6 +60,12 @@ void InputHandler::handleKeyEvent(const uiohook_event* event)
 
     int keycode = event->data.keyboard.keycode;
 
+    std::lock_guard<std::mutex> lock(m);
+
+    if (UserSettings::PttKey1 == -1) {
+        return;
+    }
+
     checkKeyboardPtt(
         1, UserSettings::PttKey1, UserSettings::isJoystickButton1, isKeyPressed, keycode);
     checkKeyboardPtt(
@@ -74,6 +75,13 @@ void InputHandler::handleKeyEvent(const uiohook_event* event)
 bool InputHandler::handlePttSetup(const uiohook_event* event)
 {
     if (!isPttSetupRunning || event->type != EVENT_KEY_PRESSED) {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(m);
+
+    // Re-check after acquiring lock
+    if (!isPttSetupRunning) {
         return false;
     }
 
@@ -89,7 +97,7 @@ bool InputHandler::handlePttSetup(const uiohook_event* event)
 void InputHandler::checkKeyboardPtt(
     int pttIndex, int pttKey, bool isJoystickButton, bool isKeyPressed, int keycode)
 {
-    if (isJoystickButton || (activePtt != 0 && activePtt != pttIndex)) {
+    if (!mClient || isJoystickButton || (activePtt != 0 && activePtt != pttIndex)) {
         return;
     }
 
@@ -111,7 +119,8 @@ void InputHandler::checkKeyboardPtt(
 
 void InputHandler::checkJoystickPtt(int pttIndex, int key, int joystickId)
 {
-    if ((activePtt != 0 && activePtt != pttIndex) || !sf::Joystick::isConnected(joystickId)) {
+    if (!mClient || (activePtt != 0 && activePtt != pttIndex)
+        || !sf::Joystick::isConnected(joystickId)) {
         return;
     }
 
@@ -130,9 +139,20 @@ void InputHandler::checkJoystickPtt(int pttIndex, int key, int joystickId)
 void InputHandler::onTimer(Poco::Timer& /*timer*/)
 {
     sf::Joystick::update();
-    // sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Unknown); // Required for SFML stability
 
     std::lock_guard<std::mutex> lock(m);
+
+    // If PTT is active on a joystick that got disconnected, force-release PTT
+    if (mClient && isPttOpen
+        && ((activePtt == 1 && UserSettings::isJoystickButton1
+                && !sf::Joystick::isConnected(UserSettings::JoystickId1))
+            || (activePtt == 2 && UserSettings::isJoystickButton2
+                && !sf::Joystick::isConnected(UserSettings::JoystickId2)))) {
+        PLOGW << "Joystick disconnected during active PTT, forcing release";
+        mClient->SetPtt(false);
+        isPttOpen = false;
+        activePtt = 0;
+    }
 
     if (handleJoystickSetup()) {
         return;

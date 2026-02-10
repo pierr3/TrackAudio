@@ -117,9 +117,12 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info)
 
     auto password = info[0].As<Napi::String>().Utf8Value();
 
-    mClient->SetCallsign(UserSession::callsign);
-    mClient->SetCredentials(UserSession::cid, password);
-    mClient->SetClientPosition(UserSession::lat, UserSession::lon, 150, 150);
+    {
+        std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
+        mClient->SetCallsign(UserSession::callsign);
+        mClient->SetCredentials(UserSession::cid, password);
+        mClient->SetClientPosition(UserSession::lat, UserSession::lon, 150, 150);
+    }
     return Napi::Boolean::New(env, mClient->Connect());
 }
 
@@ -311,6 +314,7 @@ Napi::Boolean IsFrequencyActive(const Napi::CallbackInfo& info)
 void SetCid(const Napi::CallbackInfo& info)
 {
     auto cid = info[0].As<Napi::String>().Utf8Value();
+    std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
     UserSession::cid = cid;
 }
 
@@ -363,9 +367,12 @@ void SetPtt(const Napi::CallbackInfo& info)
         return;
     }
 
-    if (!UserSession::xy) {
-        mClient->SetPtt(false);
-        return;
+    {
+        std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
+        if (!UserSession::xy) {
+            mClient->SetPtt(false);
+            return;
+        }
     }
 
     bool state = info[0].As<Napi::Boolean>().Value();
@@ -376,7 +383,11 @@ void SetPtt(const Napi::CallbackInfo& info)
 void SetMainRadioVolume(const Napi::CallbackInfo& info)
 {
     float volume = info[0].As<Napi::Number>().FloatValue();
-    UserSession::currentMainVolume = volume;
+
+    {
+        std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
+        UserSession::currentMainVolume = volume;
+    }
 
     RadioHelper::setAllRadioVolumes();
 
@@ -751,6 +762,8 @@ VersionCheckResponse CheckVersionSync()
 
     try {
         httplib::Client client(VERSION_CHECK_BASE_URL);
+        client.set_connection_timeout(10);
+        client.set_read_timeout(10);
         auto res = client.Get(VERSION_CHECK_ENDPOINT);
         if (!res || res->status != httplib::StatusCode::OK_200) {
             std::string errorDetail;
@@ -825,13 +838,17 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     }
 
     try {
-      MainThreadShared::mRemoteDataHandler = std::make_unique<RemoteData>();
-      PLOGI << "Remote data handler created successfully";
-      MainThreadShared::mApiServer = std::make_shared<SDK>();
-      PLOGI << "SDK server created successfully";
+        MainThreadShared::mRemoteDataHandler = std::make_unique<RemoteData>();
+        PLOGI << "Remote data handler created successfully";
+        MainThreadShared::mApiServer = std::make_shared<SDK>();
+        PLOGI << "SDK server created successfully";
     } catch (const std::exception& e) {
+        MainThreadShared::mRemoteDataHandler.reset();
+        MainThreadShared::mApiServer.reset();
+        mClient.reset();
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
-        PLOGE << "Error creating remote data handler: " << e.what();
+        PLOGE << "Error creating remote data handler or SDK: " << e.what();
+        return outObject;
     }
 
     // Setup afv
@@ -841,8 +858,13 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     try {
         MainThreadShared::inputHandler = std::make_unique<InputHandler>();
     } catch (const std::exception& e) {
+        MainThreadShared::inputHandler.reset();
+        MainThreadShared::mApiServer.reset();
+        MainThreadShared::mRemoteDataHandler.reset();
+        mClient.reset();
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
         PLOGE << "Error creating input handler: " << e.what();
+        return outObject;
     }
 
     UserSettings::load();
@@ -865,6 +887,7 @@ void SetSession(const Napi::CallbackInfo& info)
     auto lon = object.Get("linstal").As<Napi::Number>().DoubleValue();
     auto isAtc = object.Get("ianto").As<Napi::Boolean>().Value();
 
+    std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
     UserSession::isDebug = true;
     UserSession::xy = isAtc;
 
@@ -879,23 +902,31 @@ Napi::Boolean Exit(const Napi::CallbackInfo& info)
 {
     PLOGI << "Awaiting to exit TrackAudio...";
 
-    MainThreadShared::mApiServer.reset();
-    MainThreadShared::mRemoteDataHandler.reset();
-    MainThreadShared::inputHandler.reset();
+    // 1. Signal exit first so callbacks stop being queued
+    NapiHelpers::_requestExit.store(true);
+
+    // 2. Stop VU meter thread properly (signal + join)
+    MainThreadShared::runVuMeterCallback = false;
+    if (MainThreadShared::vuMeterThread && MainThreadShared::vuMeterThread->joinable()) {
+        MainThreadShared::vuMeterThread->join();
+    }
     MainThreadShared::vuMeterThread.reset();
 
-    NapiHelpers::_requestExit.store(true);
-    if (mClient->IsVoiceConnected()) {
+    // 3. Stop subsystems in reverse creation order (they access mClient in their threads)
+    MainThreadShared::inputHandler.reset();
+    MainThreadShared::mRemoteDataHandler.reset();
+    MainThreadShared::mApiServer.reset();
+
+    // 4. Now safe to disconnect and destroy mClient
+    if (mClient && mClient->IsVoiceConnected()) {
         PLOGI << "Connection to network detected, forcing disconnect...";
         mClient->Disconnect();
     }
 
-    if (mClient->IsAudioRunning()) {
+    if (mClient && mClient->IsAudioRunning()) {
         PLOGI << "Audio running, stopping...";
         mClient->StopAudio();
     }
-
-
 
     mClient.reset();
     PLOGI << "Exiting TrackAudio...";

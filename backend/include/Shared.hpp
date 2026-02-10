@@ -3,6 +3,7 @@
 #include <SimpleIni.h>
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <napi.h>
 #include <plog/Log.h>
 #include <sago/platform_folders.h>
@@ -51,6 +52,7 @@ public:
     static float currentMainVolume;
     static bool isDebug;
     static std::map<unsigned int, float> stationVolumes;
+    static std::mutex mtx;
 };
 
 struct RemoteDataStatus {
@@ -68,10 +70,12 @@ public:
     static int JoystickId2;
     static bool isJoystickButton2;
     static CSimpleIniA ini;
+    static std::mutex mtx;
 
     static void load();
     static void save();
 
 protected:
     static void _load();
+    static void _save();
 };

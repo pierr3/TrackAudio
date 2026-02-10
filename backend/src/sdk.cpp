@@ -21,7 +21,11 @@ SDK::~SDK()
     this->pWsRegistry.clear();
 
     if (this->pSDKServer) {
-        this->pSDKServer->stop();
+        try {
+            this->pSDKServer->stop();
+        } catch (const std::exception& ex) {
+            PLOG_ERROR << "Error stopping SDK server: " << ex.what();
+        }
     }
 }
 
@@ -98,13 +102,17 @@ restinio::request_handling_status_t SDK::handleWebSocketSDKCall(
                 wsh->send_message(resp);
             } else if (restinio::websocket::basic::opcode_t::connection_close_frame
                 == message->opcode()) {
+                std::lock_guard<std::mutex> lock(BroadcastMutex);
                 this->pWsRegistry.erase(wsh->connection_id());
             }
         });
 
-    WebSocketConnection conn { std::make_shared<restinio::websocket::basic::ws_handle_t>(wsh),
-        "client_" + std::to_string(wsh->connection_id()), std::chrono::system_clock::now() };
-    this->pWsRegistry.emplace(wsh->connection_id(), std::move(conn));
+    {
+        std::lock_guard<std::mutex> lock(BroadcastMutex);
+        WebSocketConnection conn { std::make_shared<restinio::websocket::basic::ws_handle_t>(wsh),
+            "client_" + std::to_string(wsh->connection_id()), std::chrono::system_clock::now() };
+        this->pWsRegistry.emplace(wsh->connection_id(), std::move(conn));
+    }
 
     this->handleAFVEventForWebsocket(
         sdk::types::Event::kFrequencyStateUpdate, std::nullopt, std::nullopt);
@@ -158,7 +166,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         return;
     }
 
-    if (!this->pSDKServer || !mClient->IsVoiceConnected()) {
+    if (!this->pSDKServer || !mClient || !mClient->IsVoiceConnected()) {
         return;
     }
 
@@ -321,7 +329,7 @@ restinio::request_handling_status_t SDK::handleTransmittingSDKCall(
 
 restinio::request_handling_status_t SDK::handleRxSDKCall(const restinio::request_handle_t& req)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         return req->create_response().set_body("").done();
     }
 
@@ -338,7 +346,7 @@ restinio::request_handling_status_t SDK::handleRxSDKCall(const restinio::request
 
 restinio::request_handling_status_t SDK::handleTxSDKCall(const restinio::request_handle_t& req)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         return req->create_response().set_body("").done();
     }
 
@@ -368,11 +376,15 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload, uint64_t cl
         } else if (messageType == "kGetMainVolume") {
             this->handleGetMainVolume(clientId);
         } else if (messageType == "kPttPressed") {
-            mClient->SetPtt(true);
+            if (mClient) {
+                mClient->SetPtt(true);
+            }
         } else if (messageType == "kPttReleased") {
-            mClient->SetPtt(false);
+            if (mClient) {
+                mClient->SetPtt(false);
+            }
         } else if (messageType == "kGetVoiceConnectedState") {
-            this->handleVoiceConnectedEventForWebsocket(mClient->IsVoiceConnected());
+            this->handleVoiceConnectedEventForWebsocket(mClient && mClient->IsVoiceConnected());
         } else if (messageType == "kAddStation") {
             this->handleAddStation(json, clientId);
         } else if (messageType == "kChangeStationVolume") {
@@ -499,7 +511,7 @@ void SDK::handleGetStationStates(uint64_t requesterId)
 
 void SDK::handleGetStationState(const std::string& callsign, uint64_t requesterId)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         PLOG_ERROR << "kGetStationState requires a voice connection";
         return;
     }
@@ -526,13 +538,16 @@ void SDK::handleGetMainVolume(uint64_t requesterId)
 {
     nlohmann::json jsonMessage
         = WebsocketMessage::buildMessage(WebsocketMessageType::kMainVolumeChange);
-    jsonMessage["value"]["volume"] = UserSession::currentMainVolume;
+    {
+        std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
+        jsonMessage["value"]["volume"] = UserSession::currentMainVolume;
+    }
     sendMessage(requesterId, jsonMessage.dump());
 }
 
 void SDK::handleAddStation(const nlohmann::json& json, uint64_t clientId)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         PLOG_ERROR << "Voice must be connected before adding a station.";
         return;
     }
@@ -566,7 +581,7 @@ void SDK::handleAddStation(const nlohmann::json& json, uint64_t clientId)
 
 void SDK::handleChangeStationVolume(const nlohmann::json& json, uint64_t clientId)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         PLOG_ERROR << "Voice must be connected before adding a station.";
         return;
     }
@@ -605,7 +620,7 @@ void SDK::handleChangeStationVolume(const nlohmann::json& json, uint64_t clientI
 
 void SDK::handleChangeMainVolume(const nlohmann::json& json, uint64_t clientId)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         PLOG_ERROR << "Voice must be connected to change volume.";
         return;
     }
@@ -617,10 +632,13 @@ void SDK::handleChangeMainVolume(const nlohmann::json& json, uint64_t clientId)
 
     try {
         auto amount = json["value"]["amount"].get<double>();
-        auto currentVolume = UserSession::currentMainVolume;
-        float newVolume = static_cast<float>(std::clamp(currentVolume + amount, 0.0, 100.0));
-
-        UserSession::currentMainVolume = newVolume;
+        float newVolume = 0;
+        {
+            std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
+            auto currentVolume = UserSession::currentMainVolume;
+            newVolume = static_cast<float>(std::clamp(currentVolume + amount, 0.0, 100.0));
+            UserSession::currentMainVolume = newVolume;
+        }
         RadioHelper::setAllRadioVolumes();
 
         // Broadcast volume change to all clients

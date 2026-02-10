@@ -30,7 +30,7 @@ public:
     static bool SetRadioState(const std::shared_ptr<SDK>& mApiServer, const RadioState& newState,
         const std::string& stationCallsign = "", const bool sendToElectron = true)  
     {
-        if (!mClient->IsVoiceConnected()) {
+        if (!mClient || !mClient->IsVoiceConnected()) {
             PLOGV << "Voice is not connected, not setting radio state";
             return false;
         }
@@ -49,7 +49,12 @@ public:
 
         setRadioVolume(newState.frequency, newState.outputVolume);
 
-        if (UserSession::xy) {
+        bool isXy = false;
+        {
+            std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
+            isXy = UserSession::xy;
+        }
+        if (isXy) {
             mClient->SetTx(newState.frequency, newState.tx);
             mClient->SetXc(newState.frequency, newState.xc);
             mClient->SetCrossCoupleAcross(newState.frequency, newState.xca);
@@ -97,19 +102,24 @@ public:
     static void setRadioVolume(
         const unsigned int frequency, const std::optional<float> volume = std::nullopt)
     {
-
         float stationVolume = 100;
-        if (volume.has_value()) {
-            stationVolume = volume.value();
-            UserSession::stationVolumes.insert_or_assign(frequency, stationVolume);
-        } else {
-            auto stationVolumeIterator = UserSession::stationVolumes.find(frequency);
-            if (stationVolumeIterator != UserSession::stationVolumes.end()) {
-                stationVolume = stationVolumeIterator->second;
+        float mainVolume = 100;
+
+        {
+            std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
+            if (volume.has_value()) {
+                stationVolume = volume.value();
+                UserSession::stationVolumes.insert_or_assign(frequency, stationVolume);
+            } else {
+                auto stationVolumeIterator = UserSession::stationVolumes.find(frequency);
+                if (stationVolumeIterator != UserSession::stationVolumes.end()) {
+                    stationVolume = stationVolumeIterator->second;
+                }
             }
+            mainVolume = UserSession::currentMainVolume;
         }
-        float combinedVolume
-            = (UserSession::currentMainVolume / 100.0f) * (stationVolume / 100.0f) * 100.0f;
+
+        float combinedVolume = (mainVolume / 100.0f) * (stationVolume / 100.0f) * 100.0f;
 
         // Clamp it to ensure it stays within 0-100
         combinedVolume = std::min(100.0f, std::max(0.0f, combinedVolume));
@@ -122,6 +132,7 @@ public:
 
     static double getRadioVolume(const unsigned int frequency)
     {
+        std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
         auto stationVolumeIterator = UserSession::stationVolumes.find(frequency);
         if (stationVolumeIterator != UserSession::stationVolumes.end()) {
             return stationVolumeIterator->second;

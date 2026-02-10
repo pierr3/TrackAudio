@@ -14,6 +14,7 @@ RemoteData::RemoteData()
 void RemoteData::onTimer(Poco::Timer& /*timer*/)
 {
     std::lock_guard<std::mutex> lock(m); // Prevent double updates in case of a slow network
+    std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
     auto previousCallsign = UserSession::callsign;
     if (UserSession::isDebug) {
         updateSessionStatus(previousCallsign, true);
@@ -49,6 +50,8 @@ std::string RemoteData::getSlurperData()
 
     httplib::Client slurperCli(SLURPER_BASE_URL);
     slurperCli.set_follow_location(true);
+    slurperCli.set_connection_timeout(10);
+    slurperCli.set_read_timeout(10);
     auto res = slurperCli.Get(SLURPER_DATA_ENDPOINT + std::string("?cid=") + UserSession::cid);
 
     if (!res) {
@@ -179,6 +182,10 @@ bool RemoteData::parseSlurper(const std::string& sluper_data)
 
 void RemoteData::updateSessionStatus(const std::string& previousCallsign, bool isConnected)
 {
+    if (!mClient) {
+        return;
+    }
+
     if (UserSession::isConnectedToTheNetwork && UserSession::callsign != previousCallsign
         && !previousCallsign.empty() && isConnected && mClient->IsVoiceConnected()) {
         PLOG_INFO << "Callsign changed during an active session, disconnecting ("

@@ -22,6 +22,7 @@ bool UserSession::isConnectedToTheNetwork = false;
 float UserSession::currentMainVolume = 100;
 bool UserSession::isDebug = false;
 std::map<unsigned int, float> UserSession::stationVolumes = {};
+std::mutex UserSession::mtx;
 
 bool RemoteDataStatus::isSlurperAvailable = false;
 
@@ -33,6 +34,7 @@ int UserSettings::PttKey2 = -1;
 int UserSettings::JoystickId2 = 0;
 bool UserSettings::isJoystickButton2 = false;
 CSimpleIniA UserSettings::ini;
+std::mutex UserSettings::mtx;
 
 std::filesystem::path FileSystem::GetStateFolderPath()
 {
@@ -47,6 +49,7 @@ bool UserAudioSetting::CheckAudioSettings()
 
 void UserSettings::load()
 {
+    std::lock_guard<std::mutex> lock(mtx);
     try {
         _load();
     } catch (const std::exception& e) {
@@ -55,6 +58,12 @@ void UserSettings::load()
 }
 
 void UserSettings::save()
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    _save();
+}
+
+void UserSettings::_save()
 {
     std::string settingsFilePath = (FileSystem::GetStateFolderPath() / "settings.ini").string();
 
@@ -85,7 +94,7 @@ void UserSettings::_load()
     if (err != SI_OK) {
         if (err == SI_FILE) {
             PLOG_WARNING << "Settings.ini file not found, creating it";
-            save();
+            _save();
         } else {
             PLOG_ERROR << "Error loading settings.ini: " << err;
         }
@@ -95,7 +104,7 @@ void UserSettings::_load()
     if (configVersion != CONFIG_VERSION) {
         configVersion = CONFIG_VERSION;
         PLOG_WARNING << "Settings.ini version mismatch, recreating it";
-        save();
+        _save();
         NapiHelpers::callElectron("open-settings-modal");
         NapiHelpers::sendErrorToElectron(
             "Settings file is outdated. Please reconfigure your PTT settings.");

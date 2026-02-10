@@ -3,6 +3,7 @@
 #include "Shared.hpp"
 
 #include "afv-native/types.h"
+#include <atomic>
 #include <cmath>
 #include <mutex>
 #include <nlohmann/json.hpp>
@@ -99,7 +100,7 @@ public:
 class NapiHelpers {
 public:
     inline static std::unique_ptr<Napi::ThreadSafeFunction> callbackRef = nullptr;
-    inline static bool callbackAvailable = false;
+    inline static std::atomic<bool> callbackAvailable = false;
 
     static void setCallbackRef(Napi::ThreadSafeFunction callbackRef)
     {
