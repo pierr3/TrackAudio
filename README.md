@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD033 MD045 MD007 -->
+<!-- markdownlint-disable MD033 MD045 MD007 MD028 -->
 <h1>
   <img src="https://raw.githubusercontent.com/pierr3/TrackAudio/main/build/icon.png" width="50" valign="middle">
   <span style="font-size: 2em; font-weight: bold">TrackAudio</span>
@@ -7,6 +7,8 @@
 [![Release](https://img.shields.io/github/v/release/pierr3/TrackAudio)](https://github.com/pierr3/TrackAudio/releases)
 
 > **New to TrackAudio?** 📖 Check out the [Key Features](#key-features) and [FAQ](#faq) before getting started!
+>
+> **Having trouble?** Check the [Troubleshooting](#troubleshooting) section.
 
 🔊 A next generation Audio-For-VATSIM ATC Client for macOS, Linux and Windows.
 
@@ -31,9 +33,6 @@
   - [What's the difference between VectorAudio and TrackAudio?](#whats-the-difference-between-vectoraudio-and-trackaudio)
   - [Why does the audio sound different compared to the older AFV for Windows client?](#why-does-the-audio-sound-different-compared-to-the-older-afv-for-windows-client)
   - [I'm having an issue auto-updating on Windows?](#im-having-an-issue-auto-updating-on-windows)
-  - [My PTT does not work on macOS](#my-ptt-does-not-work-on-macos)
-  - [I attempted to set a PTT, but it displays the name 'Unknown (XXX)'](#i-attempted-to-set-a-ptt-but-it-displays-the-name-unknown-xxx)
-  - [I'm unable to set a PTT because it automatically assigns to my Joystick](#im-unable-to-set-a-ptt-because-it-automatically-assigns-to-my-joystick)
   - [Where are the log and config files stored?](#where-are-the-log-and-config-files-stored)
   - [The station I am trying to add is not found](#the-station-i-am-trying-to-add-is-not-found)
   - [Is there RDF support in EuroScope?](#is-there-rdf-support-in-euroscope)
@@ -44,7 +43,15 @@
   - [Can I extend TrackAudio using a plugin/is there an SDK?](#can-i-extend-trackaudio-using-a-pluginis-there-an-sdk)
   - [Ports and endpoints access required for TrackAudio](#ports-and-endpoints-access-required-for-trackaudio)
   - [How to enable verbose logging (advanced)](#how-to-enable-verbose-logging-advanced)
-  - [I have an issue with TrackAudio](#i-have-an-issue-with-trackaudio)
+  - [Before opening an issue](#before-opening-an-issue)
+- [Troubleshooting](#troubleshooting)
+  - [TrackAudio won't start or crashes on launch (Windows)](#trackaudio-wont-start-or-crashes-on-launch-windows)
+  - ["Error starting audio devices" or no sound](#error-starting-audio-devices-or-no-sound)
+  - [TrackAudio cannot connect or frequently disconnects](#trackaudio-cannot-connect-or-frequently-disconnects)
+  - [My microphone is too quiet](#my-microphone-is-too-quiet)
+  - [Push-to-Talk (PTT) not working](#push-to-talk-ptt-not-working)
+  - [TrackAudio does not work on Linux with Wayland](#trackaudio-does-not-work-on-linux-with-wayland)
+- [Known Issues and Limitations](#known-issues-and-limitations)
 - [Installation](#installation)
 - [Build](#build)
 - [Contributing](#contributing)
@@ -65,19 +72,7 @@ TrackAudio offers multiple types of radio hardware, Schmid ED-137B is set by def
 
 ### I'm having an issue auto-updating on Windows?
 
-There may have been an issue in the update logic that is causing your instance of TrackAudio to not be able to update. Please [report it](https://github.com/pierr3/TrackAudio/issues/new) with a copy of your log file, and in the meantime you should update manually using the latest version from our [releases page](https://github.com/pierr3/TrackAudio/releases).
-
-### My PTT does not work on macOS
-
-macOS has strict permissioning around background keyboard inputs. TrackAudio should prompt you on first launch to request input monitoring permissions. Sometimes, upon updating the app, this setting will undo itself. In that case, please go to your Settings -> Privacy & Security -> Input Monitoring and add TrackAudio in the list (remove it if it was already there). This is required purely because otherwise, your Push to Talk would not work when the window is not in focus (if you use a keyboard push to talk, a Joystick push to talk does not require this permission)
-
-### I attempted to set a PTT, but it displays the name 'Unknown (XXX)'
-
-This issue arises because the PTT system could not determine the name of the key you attempted to bind. The key will still function as a normal push-to-talk. However, to enable us to support the key you selected, please open a GitHub issue. Include the operating system you are using, a copy of your `trackaudio.log` file (refer to the FAQ below for the file location), and the actual name of the key you intended to bind.
-
-### I'm unable to set a PTT because it automatically assigns to my Joystick
-
-This issue occurs because some joysticks send a constant key down command. To address this, we have implemented a method to temporarily disable joystick key presses while you select a PTT key on your keyboard. To use this feature, right-click on the 'Set new PTT' button in the settings dialog instead of left-clicking it. This will prevent the key listener from registering joystick inputs while you set your PTT key.
+If the auto-updater is not working, download and install the latest version manually from the [releases page](https://github.com/pierr3/TrackAudio/releases). If the issue persists after a manual update, try deleting the config folder at `%LocalAppData%\trackaudio` and reinstalling. If you are still having trouble, please [open an issue](https://github.com/pierr3/TrackAudio/issues/new) with a copy of your log file.
 
 ### Where are the log and config files stored?
 
@@ -138,9 +133,78 @@ Your system date and time must also be synced properly to reflect the actual cur
 
 On request, you can enable verbose logging of the backend which may provide some useful debug information. To do so, create an empty file called verbose.enable in the folder where the config and log file is stored.
 
-### I have an issue with TrackAudio
+### Before opening an issue
 
-Read this document entirely first. If you can't find the answer to your problem, please [open an issue](https://github.com/pierr3/TrackAudio/issues/new) on GitHub, attaching relevant lines from the afv.log file that should be in the same folder as the executable.
+Before creating a new GitHub issue, please:
+
+1. Make sure you are running the [latest version](https://github.com/pierr3/TrackAudio/releases) of TrackAudio
+2. Check the [Troubleshooting](#troubleshooting) section below
+3. Search [existing issues](https://github.com/pierr3/TrackAudio/issues) to see if your problem has already been reported
+
+If you still need help, [open an issue](https://github.com/pierr3/TrackAudio/issues/new) and **always include**:
+
+- Your operating system and version (e.g. Windows 11, macOS 15.2, Ubuntu 24.04)
+- Your TrackAudio version
+- A copy of your log file (see [Where are the log and config files stored?](#where-are-the-log-and-config-files-stored))
+- Clear steps to reproduce the problem
+
+## Troubleshooting
+
+### TrackAudio won't start or crashes on launch (Windows)
+
+1. Make sure you have installed the [Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe) — TrackAudio will not start without it
+2. Delete the config folder at `%LocalAppData%\trackaudio` and reinstall TrackAudio
+3. Check that your antivirus or firewall is not blocking TrackAudio
+4. Try the [latest release or beta](https://github.com/pierr3/TrackAudio/releases) — older versions may have Windows-specific bugs that have since been fixed
+
+### "Error starting audio devices" or no sound
+
+1. Open TrackAudio Settings and make sure **both** your input (microphone) **and** output (speaker/headset) devices are selected. TrackAudio requires both to be set and will not work otherwise
+2. If your audio device does not appear in the list, check that it is not disabled in your operating system's sound settings
+3. On Windows, make sure no other application has exclusive access to your audio device
+
+### TrackAudio cannot connect or frequently disconnects
+
+1. Make sure your system clock is accurate — TrackAudio requires your date and time to be synced correctly (regardless of timezone)
+2. Check that your firewall or antivirus is not blocking the required connections (see [Ports and endpoints](#ports-and-endpoints-access-required-for-trackaudio))
+3. If you experience frequent disconnects, try using a wired internet connection. TrackAudio requires stable UDP connectivity to VATSIM servers, and unstable Wi-Fi or mobile connections can cause drops
+
+### My microphone is too quiet
+
+TrackAudio does not have a built-in microphone gain control — it uses your system's microphone volume.
+
+1. **Windows**: Go to Settings > System > Sound > Input, select your microphone, and increase the volume. If your device supports it, look for a "Microphone Boost" option in the advanced sound settings
+2. **macOS**: Go to System Settings > Sound > Input and adjust the input volume slider
+3. **Linux**: Use your distribution's sound settings or a tool like `pavucontrol` to adjust the microphone input level
+4. Some USB headsets and microphones have their own gain controls — check the manufacturer's software or hardware controls
+
+### Push-to-Talk (PTT) not working
+
+**On macOS — PTT does not work when TrackAudio is not focused:**
+macOS requires Input Monitoring permissions for background keyboard input. Go to Settings > Privacy & Security > Input Monitoring and add TrackAudio to the list. If TrackAudio is already listed, remove it and add it again — this permission can reset after app updates. Note: this is only needed for keyboard PTT. Joystick PTT does not require this permission.
+
+**PTT only works when TrackAudio window is focused:**
+On macOS, this is the Input Monitoring permissions issue described above. On other platforms, try binding a different key.
+
+**Joystick automatically assigns itself when setting PTT:**
+Some joysticks continuously send a key-down signal, which gets picked up when you try to set a new PTT. To work around this, **right-click** (instead of left-click) the "Set new PTT" button in settings. This temporarily blocks joystick inputs so you can set a keyboard key instead.
+
+**PTT key shows as "Unknown (XXX)":**
+This means TrackAudio could not determine the name of the key you bound. The key will still work as a normal push-to-talk. If you would like the key name to be added, please open a [GitHub issue](https://github.com/pierr3/TrackAudio/issues/new) with your operating system, log file, and the actual name of the key you intended to bind.
+
+**PTT gets stuck while transmitting:**
+This can happen if you switch windows or alt-tab while holding the PTT key. Release the key and press it again to reset.
+
+### TrackAudio does not work on Linux with Wayland
+
+TrackAudio does **not** support Wayland due to limitations in upstream libraries used for input handling. You must run TrackAudio under an X11/Xorg session. On most Linux distributions, you can select X11 as the session type on the login screen before signing in.
+
+## Known Issues and Limitations
+
+- **Wayland is not supported on Linux** — you must use an X11/Xorg session (see [Troubleshooting](#trackaudio-does-not-work-on-linux-with-wayland) above)
+- **HF Simulation** requires the frequency to be added by callsign, and the station must exist in the AFV database
+- **Manually added (ad-hoc) frequencies** only create a single transceiver at your center of visibility, which gives limited radio coverage compared to stations defined in the AFV database
+- **Always-on-top in mini mode** may not work reliably on some Linux window managers
 
 ## Installation
 
@@ -182,9 +246,9 @@ Depending on your system, the cask will install the ARM version or the x86_64 ve
 
 ### Windows
 
-Download and install the [Visual Studio c++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe), which is a requirement for TrackAudio to run on
+**Important:** You must first download and install the [Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe). TrackAudio will not start without it.
 
-Download the latest release on the [release page](https://github.com/pierr3/TrackAudio/releases) and run the executable. This should install TrackAudio.
+Then download the latest release from the [releases page](https://github.com/pierr3/TrackAudio/releases) and run the installer.
 
 ## Build
 
