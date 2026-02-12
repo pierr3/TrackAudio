@@ -104,10 +104,10 @@ jobs:
         run: |
           pnpm add -g cmake-js
           cd backend/
-          pnpm install
+          npm install
           cmake-js compile -B Release -a x64
           node custom_build.mjs
-          pnpm pack
+          npm pack
           cd ..
           pnpm install ./backend/trackaudio-afv-1.0.0.tgz
 
@@ -116,10 +116,10 @@ jobs:
         run: |
           pnpm add -g cmake-js
           cd backend/
-          pnpm install
+          npm install
           cmake-js compile -B Release -a arm64
           node custom_build.mjs
-          pnpm pack
+          npm pack
           cd ..
           pnpm install ./backend/trackaudio-afv-1.0.0.tgz
           pnpm install
