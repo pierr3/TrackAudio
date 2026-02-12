@@ -20,8 +20,10 @@
 
 - 🖥️ Cross-platform support for macOS, Linux, and Windows
 - 🎚️ Independent volume and mute controls for each radio
-- 🕹️ Dual push-to-talk capability
-- 📡 Built-in Unicom & Guard support
+- 🎙️ Built-in microphone gain control (0–200%)
+- 🔊 Microphone loopback / sidetone to hear yourself transmit
+- 🕹️ Dual push-to-talk capability with optional PTT release click sound
+- 📡 Built-in Advisory (122.800) & Guard support
 - 🎮 Comprehensive Stream Deck integration
 - 🪟 Compact mini-mode with transparency options
 - 🔌 Developer-friendly SDK with WebSocket and HTTP support
@@ -171,12 +173,16 @@ If you still need help, [open an issue](https://github.com/pierr3/TrackAudio/iss
 
 ### My microphone is too quiet
 
-TrackAudio does not have a built-in microphone gain control — it uses your system's microphone volume.
+TrackAudio has a built-in **Microphone gain** slider in Settings > Audio. You can boost your microphone from 0% up to 200%. Try increasing this first.
+
+If the built-in gain is not enough:
 
 1. **Windows**: Go to Settings > System > Sound > Input, select your microphone, and increase the volume. If your device supports it, look for a "Microphone Boost" option in the advanced sound settings
 2. **macOS**: Go to System Settings > Sound > Input and adjust the input volume slider
 3. **Linux**: Use your distribution's sound settings or a tool like `pavucontrol` to adjust the microphone input level
 4. Some USB headsets and microphones have their own gain controls — check the manufacturer's software or hardware controls
+
+You can also enable **Microphone loopback (sidetone)** in Settings > Audio to hear your own microphone through your headset or speakers, which helps verify your audio level in real time.
 
 ### Push-to-Talk (PTT) not working
 
