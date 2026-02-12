@@ -1,3 +1,4 @@
+@use 'sass:color';
 @import 'variables';
 $transition-speed: 0.1s;
 
@@ -10,8 +11,8 @@ $transition-speed: 0.1s;
 .custom-navbar {
   height: $navbar-height;
   background-color: $navbar;
-  border-color: lighten($disabled, 5%);
-  outline: lighten($disabled, 5%) solid 2px;
+  border-color: color.adjust($disabled, $lightness: 5%);
+  outline: color.adjust($disabled, $lightness: 5%) solid 2px;
   font-size: 18px;
   color: $body-color;
   line-height: $navbar-height;

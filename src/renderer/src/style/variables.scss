@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 $primary: #436384;
 $secondary: #6c757d;
 $success: #28a745;
@@ -7,9 +9,9 @@ $danger: #dc3545;
 $light: #f8f9fa;
 $dark: #212431;
 $bg-color: #2c2f45;
-$disabled: darken($dark, 3%);
+$disabled: color.adjust($dark, $lightness: -3%);
 $secondary-bg: #2c2f45;
-$dark-border: var(--navbar-color, darken($dark, 10));
+$dark-border: var(--navbar-color, color.adjust($dark, $lightness: -10%));
 $navbar: var(--navbar-color, $dark);
 $theme-colors: (
   'primary': $primary,
@@ -23,7 +25,7 @@ $theme-colors: (
 );
 $alias: var(--alias-color, #5eb1bf);
 
-$disabled: darken($dark, 3);
+$disabled: color.adjust($dark, $lightness: -3%);
 
 $font-fam: 'Ubuntu Mono', monospace;
 $font-size-base: 18px;
@@ -70,15 +72,15 @@ $card-bg: $dark;
 $card-body-bg: $bg-color;
 $card-border-width: 0px;
 $card-border-radius: 5px;
-$card-border-color: darken($dark, 2%);
+$card-border-color: color.adjust($dark, $lightness: -2%);
 
 /* List Group */
 
 $list-group-bg: $bg-color;
-$list-group-border-color: darken($dark, 2%);
+$list-group-border-color: color.adjust($dark, $lightness: -2%);
 
 /* Accordion */
-$accordion-bg: lighten($dark, 3%);
+$accordion-bg: color.adjust($dark, $lightness: 3%);
 $accordion-color: $body-color;
 $accordion-border-width: 0;
 $accordion-border-color: none;

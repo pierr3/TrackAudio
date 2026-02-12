@@ -27,6 +27,7 @@ export default [
       'mocks/**/*',
       'docs/**/*',
       '*-config.js',
+      'electron.vite.config.*.mjs',
       'eslint.config.mjs'
     ]
   },

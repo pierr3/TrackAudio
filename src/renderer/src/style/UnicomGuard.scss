@@ -1,3 +1,4 @@
+@use 'sass:color';
 @import 'variables';
 
 .unicon-overall-container {
@@ -13,10 +14,10 @@
   width: fit-content;
   // margin: 10px;
 
-  background-color: lighten($disabled, 10%);
+  background-color: color.adjust($disabled, $lightness: 10%);
   border-radius: $card-border-radius;
-  border-color: lighten($disabled, 20%);
-  outline: lighten($disabled, 25%) solid 2px;
+  border-color: color.adjust($disabled, $lightness: 20%);
+  outline: color.adjust($disabled, $lightness: 25%) solid 2px;
   padding-left: 10px;
   display: flex;
   align-items: center;
@@ -32,10 +33,10 @@
   width: fit-content;
   margin: 7.5px 0px;
   line-height: 29px;
-  background-color: lighten($disabled, 10%);
+  background-color: color.adjust($disabled, $lightness: 10%);
   border-radius: $card-border-radius;
-  border-color: lighten($disabled, 20%);
-  outline: lighten($disabled, 25%) solid 2px;
+  border-color: color.adjust($disabled, $lightness: 20%);
+  outline: color.adjust($disabled, $lightness: 25%) solid 2px;
   padding: 0px 5px;
   display: flex;
   align-items: center;
@@ -82,19 +83,19 @@
   margin: 0 !important;
   line-height: 2px !important;
   font-size: 14px !important;
-  outline: darken($info, 15%) solid 1px !important;
+  outline: color.adjust($info, $lightness: -15%) solid 1px !important;
   margin-left: 5px !important;
 
   &.btn-success {
-    outline: darken($success, 15%) solid 1px !important;
+    outline: color.adjust($success, $lightness: -15%) solid 1px !important;
   }
 
   &.btn-danger {
-    outline: darken($danger, 15%) solid 1px !important;
+    outline: color.adjust($danger, $lightness: -15%) solid 1px !important;
   }
 
   &.btn-warning {
-    outline: darken($warning, 15%) solid 1px !important;
+    outline: color.adjust($warning, $lightness: -15%) solid 1px !important;
   }
 }
 

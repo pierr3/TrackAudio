@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../../style/variables.scss' as GlobalVars;
 
 $toolbar-border-radius: 4px;
@@ -77,9 +78,9 @@ $transition-speed: 0.1s;
   height: 100%;
   margin: 0px;
   font-size: GlobalVars.$main-font-size;
-  background-color: lighten(GlobalVars.$dark, 10);
+  background-color: color.adjust(GlobalVars.$dark, $lightness: 10%);
   color: GlobalVars.$body-color;
-  border: 2px solid darken(GlobalVars.$dark, 5);
+  border: 2px solid color.adjust(GlobalVars.$dark, $lightness: -5%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,22 +90,22 @@ $transition-speed: 0.1s;
   user-select: none;
 
   &.hover-enabled:hover {
-    background-color: lighten(GlobalVars.$dark, 15);
+    background-color: color.adjust(GlobalVars.$dark, $lightness: 15%);
   }
 
   &.dark {
-    background-color: darken(GlobalVars.$dark, 5);
+    background-color: color.adjust(GlobalVars.$dark, $lightness: -5%);
     &:hover {
-      background-color: darken(GlobalVars.$dark, 0);
+      background-color: color.adjust(GlobalVars.$dark, $lightness: 0%);
     }
   }
 
   &.info {
-    background-color: darken(GlobalVars.$info, 10) !important;
+    background-color: color.adjust(GlobalVars.$info, $lightness: -10%) !important;
   }
 
   &.active {
-    background-color: darken(GlobalVars.$success, 10) !important;
+    background-color: color.adjust(GlobalVars.$success, $lightness: -10%) !important;
   }
 
   &:last-child {
@@ -123,7 +124,7 @@ $transition-speed: 0.1s;
 }
 
 .unfocused-color {
-  color: darken(GlobalVars.$body-color, 10%) !important;
+  color: color.adjust(GlobalVars.$body-color, $lightness: -10%) !important;
 }
 
 .draggable {

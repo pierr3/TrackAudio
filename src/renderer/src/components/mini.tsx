@@ -43,10 +43,7 @@ const Mini: React.FC = () => {
             ];
 
             return (
-              <div
-                key={radio.frequency}
-                className="d-flex gap-1 justify-content-between"
-              >
+              <div key={radio.frequency} className="d-flex gap-1 justify-content-between">
                 <span
                   style={{
                     color: radio.isOutputMuted ? 'red' : radio.currentlyTx ? 'orange' : 'inherit',

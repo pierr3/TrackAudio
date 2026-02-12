@@ -76,15 +76,8 @@ export const api = {
 
   addFrequency: (frequency: number, callsign: string, outputVolume?: number) =>
     ipcRenderer.invoke('audio-add-frequency', frequency, callsign, outputVolume),
-  removeFrequency: (
-    frequency: number,
-    callsign?: string
-  ) =>
-    ipcRenderer.invoke(
-      'audio-remove-frequency',
-      frequency,
-      callsign
-    ),
+  removeFrequency: (frequency: number, callsign?: string) =>
+    ipcRenderer.invoke('audio-remove-frequency', frequency, callsign),
   IsFrequencyActive: (frequency: number) =>
     ipcRenderer.invoke('audio-is-frequency-active', frequency),
   setFrequencyState: (

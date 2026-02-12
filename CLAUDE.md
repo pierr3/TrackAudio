@@ -9,41 +9,46 @@ TrackAudio is a cross-platform (macOS, Linux, Windows) Audio-For-VATSIM ATC clie
 ## Build Commands
 
 ### Initial Setup (one-time)
+
 ```bash
 git submodule update --init --recursive backend/vcpkg
 git submodule update --init --recursive backend/extern/afv-native
 git submodule update --init --recursive backend/extern/libuiohook
-npm run build:backend    # Compile C++ native module
-npm install              # Install all dependencies (includes the built native module)
+pnpm run build:backend   # Compile C++ native module
+pnpm install             # Install all dependencies (includes the built native module)
 ```
 
 ### Development
+
 ```bash
-npm run dev              # Start Electron with hot-reload via electron-vite
+pnpm run dev             # Start Electron with hot-reload via electron-vite
 ```
 
 ### Rebuild After C++ Changes
+
 ```bash
-npm run build:backend    # Recompile native module
-npm install              # Re-install updated .tgz package
-npm run dev
+pnpm run build:backend   # Recompile native module
+pnpm install             # Re-install updated .tgz package
+pnpm run dev
 ```
 
 ### Code Quality
+
 ```bash
-npm run lint             # ESLint with auto-fix
-npm run format           # Prettier formatting
-npm run typecheck        # TypeScript checking (both node and web targets)
-npm run typecheck:node   # TypeScript check for main/preload only
-npm run typecheck:web    # TypeScript check for renderer only
+pnpm run lint            # ESLint with auto-fix
+pnpm run format          # Prettier formatting
+pnpm run typecheck       # TypeScript checking (both node and web targets)
+pnpm run typecheck:node  # TypeScript check for main/preload only
+pnpm run typecheck:web   # TypeScript check for renderer only
 ```
 
 ### Production Build
+
 ```bash
-npm run build            # typecheck + electron-vite build
-npm run build:win        # Package for Windows
-npm run build:mac        # Package for macOS
-npm run build:linux      # Package for Linux
+pnpm run build           # typecheck + electron-vite build
+pnpm run build:win       # Package for Windows
+pnpm run build:mac       # Package for macOS
+pnpm run build:linux     # Package for Linux
 ```
 
 There is no test suite configured.
@@ -51,6 +56,7 @@ There is no test suite configured.
 ## Architecture
 
 ### Layer Diagram
+
 ```
 React UI (src/renderer/src/)
     ↕ IPC via context bridge
@@ -62,6 +68,7 @@ VATSIM Voice Network
 ```
 
 ### Frontend (src/renderer/src/)
+
 - **React 18 + TypeScript** with Vite bundling
 - **Zustand** for state management with 4 stores:
   - `radioStore` — radio frequencies, rx/tx/xc state, PTT status
@@ -72,6 +79,7 @@ VATSIM Voice Network
 - Path alias: `@renderer/*` → `src/renderer/src/*`
 
 ### Electron Main Process (src/main/index.ts)
+
 - Window management with mini-mode (Ctrl/Cmd+M) and always-on-top
 - IPC handlers bridging renderer requests to native module calls
 - Event queue system: buffers native events until renderer signals ready via `settings-ready`
@@ -79,12 +87,14 @@ VATSIM Voice Network
 - Auto-update system via `electron-updater`
 
 ### Preload / IPC Bridge (src/preload/bindings.ts)
+
 - Exposes `window.api` object to renderer via Electron contextBridge
 - Two communication patterns:
   - **Invoke** (request/response): renderer calls `window.api.someMethod()` → `ipcRenderer.invoke` → `ipcMain.handle` → native function → returns result
   - **Events** (push from native): C++ calls registered callback → main process broadcasts via `webContents.send` → renderer listens via `window.api.on()`
 
 ### C++ Backend (backend/)
+
 - **Node-API (N-API v7)** native addon compiled with cmake-js
 - **backend/src/main.cpp** — N-API function exports and entry point
 - **backend/include/atcClientWrapper.h** — Wrapper around afv-native SDK client
@@ -95,6 +105,7 @@ VATSIM Voice Network
 - Key external submodules: `afv-native` (VATSIM voice SDK), `libuiohook` (input monitoring)
 
 ### Shared Types (src/shared/)
+
 - `config.type.ts` — Configuration interface used by both main process and renderer
 - `common.ts` — Frequency constants (UnicomFrequency, GuardFrequency)
 

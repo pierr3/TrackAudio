@@ -1,3 +1,4 @@
+@use 'sass:color';
 @import 'variables';
 
 .unicon-overall-container {
@@ -13,10 +14,10 @@
   line-height: 25px;
   width: fit-content;
   margin: 10px;
-  background-color: lighten($disabled, 10%);
+  background-color: color.adjust($disabled, $lightness: 10%);
   border-radius: $card-border-radius;
-  border-color: lighten($disabled, 20%);
-  outline: lighten($disabled, 25%) solid 2px;
+  border-color: color.adjust($disabled, $lightness: 20%);
+  outline: color.adjust($disabled, $lightness: 25%) solid 2px;
   padding-left: 10px;
   font-size: 14px;
   display: flex;
@@ -50,15 +51,15 @@
   margin: 0 !important;
   line-height: 2px !important;
   font-size: 14px !important;
-  outline: darken($info, 15%) solid 1px !important;
+  outline: color.adjust($info, $lightness: -15%) solid 1px !important;
   margin-left: 5px !important;
 
   &.btn-success {
-    outline: darken($success, 15%) solid 1px !important;
+    outline: color.adjust($success, $lightness: -15%) solid 1px !important;
   }
 
   &.btn-warning {
-    outline: darken($warning, 15%) solid 1px !important;
+    outline: color.adjust($warning, $lightness: -15%) solid 1px !important;
   }
 }
 

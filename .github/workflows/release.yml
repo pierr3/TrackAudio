@@ -38,10 +38,15 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
       - name: Install Python 3.x
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11.x"
+          python-version: '3.11.x'
 
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
@@ -97,45 +102,45 @@ jobs:
       - name: Install dependencies and building backend (x64)
         if: matrix.arch == 'x64'
         run: |
-          npm -g i cmake-js
+          pnpm add -g cmake-js
           cd backend/
-          npm install
+          pnpm install
           cmake-js compile -B Release -a x64
           node custom_build.mjs
-          npm pack
+          pnpm pack
           cd ..
-          npm install ./backend/trackaudio-afv-1.0.0.tgz
+          pnpm install ./backend/trackaudio-afv-1.0.0.tgz
 
       - name: Install dependencies and building backend (macOs arm64)
         if: matrix.arch == 'arm64' && matrix.os == 'macos-latest'
         run: |
-          npm -g i cmake-js
+          pnpm add -g cmake-js
           cd backend/
-          npm install
+          pnpm install
           cmake-js compile -B Release -a arm64
           node custom_build.mjs
-          npm pack
+          pnpm pack
           cd ..
-          npm install ./backend/trackaudio-afv-1.0.0.tgz
-          npm install
+          pnpm install ./backend/trackaudio-afv-1.0.0.tgz
+          pnpm install
 
       - name: Install dependencies and building backend (linux arm64 cross compile)
         if: matrix.arch == 'arm64' && matrix.os == 'ubuntu-latest'
         run: |
-          npm -g i cmake-js
+          pnpm add -g cmake-js
           cd backend/
-          npm install
+          pnpm install
           cmake-js compile -B Release -a arm64 --prefer-clang false --CD -DVCPKG_TARGET_TRIPLET=arm64-linux
           node custom_build.mjs
-          npm pack
+          pnpm pack
           cd ..
-          npm install ./backend/trackaudio-afv-1.0.0.tgz
-          npm install
+          pnpm install ./backend/trackaudio-afv-1.0.0.tgz
+          pnpm install
 
       - name: Package app
         if: matrix.os == 'windows-2022'
         shell: bash
-        run: npm run build:win -- --publish=never --${{ matrix.arch }}
+        run: pnpm run build:win -- --publish=never --${{ matrix.arch }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -151,17 +156,17 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLE_API_KEY: "./.a.p8"
+          APPLE_API_KEY: './.a.p8'
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
-          npm run build:mac -- --${{ matrix.arch }} --publish=never
+          pnpm run build:mac -- --${{ matrix.arch }} --publish=never
           rm ./.a.p8
 
       - name: Package app
         if: matrix.os == 'ubuntu-latest'
         shell: bash
-        run: npm run build:linux -- --${{ matrix.arch }} --publish=never
+        run: pnpm run build:linux -- --${{ matrix.arch }} --publish=never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

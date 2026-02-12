@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import fs from 'fs';
 
-// Requires npm install -g license-report
+// Requires pnpm add -g license-report
 
 const command = 'license-report --config license_report_config.json --relatedTo.value=UI';
 const outputFile = './LICENSES_COMPILED.md';

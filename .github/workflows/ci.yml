@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     env:
-      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+      VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
 
     strategy:
       matrix:
@@ -54,10 +54,15 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
       - name: Install Python 3.x
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11.x"
+          python-version: '3.11.x'
 
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
@@ -81,18 +86,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm -g i cmake-js
-          npm run build:backend
-          npm install
+          pnpm add -g cmake-js
+          pnpm run build:backend
+          pnpm install
 
       - name: Run eslint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Build and package
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:${{ matrix.platform }} -- --publish=never
+        run: pnpm run build:${{ matrix.platform }} -- --publish=never
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

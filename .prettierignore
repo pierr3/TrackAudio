@@ -8,3 +8,7 @@ backend
 node_modules
 resources
 scripts
+.vscode
+.idea
+*.log
+.claude

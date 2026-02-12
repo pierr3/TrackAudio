@@ -264,29 +264,29 @@ On Windows, Visual Studio is required (Community Edition is fine) with the `Desk
 
 ## Build process
 
-If `cmake-js` isn't already installed run `npm install -g cmake-js`. For the first build run the following:
+If `cmake-js` isn't already installed run `pnpm add -g cmake-js`. For the first build run the following:
 
 ```sh
 git submodule update --init --recursive backend/vcpkg
 git submodule update --init --recursive backend/extern/afv-native
 git submodule update --init --recursive backend/extern/libuiohook
-npm run build:backend
-npm install
-npm run dev
+pnpm run build:backend
+pnpm install
+pnpm run dev
 ```
 
-Subsequent builds only require the `npm run dev` command if you only wish to modify the frontend. Building the C++ backend will require running `npm run build:backend`.
+Subsequent builds only require the `pnpm run dev` command if you only wish to modify the frontend. Building the C++ backend will require running `pnpm run build:backend`.
 
 ## Packaging
 
 TrackAudio will be automatically packaged as a .dmg on macOs, .deb on Linux and .exe installer on windows. To package run the
 appropriate command for the desired platform.
 
-| Platform | Command               |
-| -------- | --------------------- |
-| Linux    | `npm run build:linux` |
-| Mac      | `npm run build:mac`   |
-| Windows  | `npm run build:win`   |
+| Platform | Command                |
+| -------- | ---------------------- |
+| Linux    | `pnpm run build:linux` |
+| Mac      | `pnpm run build:mac`   |
+| Windows  | `pnpm run build:win`   |
 
 ## Contributing
 
