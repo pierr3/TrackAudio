@@ -97,6 +97,7 @@ declare namespace TrackAudioAfv {
   export function SetCid(cid: string): void;
 
   export function SetMainRadioVolume(volume: number): void;
+  export function SetMicrophoneVolume(volume: number): void;
   export function SetFrequencyRadioVolume(frequency: number, stationVolume: number): void;
   export function SetPtt(activate: boolean): void;
 

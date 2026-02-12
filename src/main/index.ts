@@ -89,6 +89,7 @@ const setAudioSettings = () => {
   );
   TrackAudioAfv.SetRadioEffects(configManager.config.radioEffects);
   TrackAudioAfv.SetHardwareType(configManager.config.hardwareType);
+  TrackAudioAfv.SetMicrophoneVolume(configManager.config.microphoneGain / 100);
   applyLoopbackSettings();
 };
 
@@ -424,10 +425,13 @@ app
   });
 
 app.on('before-quit', () => {
-  // Perform cleanup
   if (TrackAudioAfv.IsConnected()) {
     TrackAudioAfv.Disconnect();
   }
+  // Stop mic test after disconnect to ensure the VU meter thread is joined
+  // before Exit() destroys the client. StopMicTest calls StopAudio(),
+  // so it must run after Disconnect which needs audio still active.
+  TrackAudioAfv.StopMicTest();
   TrackAudioAfv.Exit();
 });
 
@@ -504,6 +508,11 @@ ipcMain.on('set-loopback-target', (_, loopbackTarget: number) => {
 ipcMain.on('set-loopback-gain', (_, loopbackGain: number) => {
   configManager.updateConfig({ loopbackGain });
   applyLoopbackSettings();
+});
+
+ipcMain.on('set-microphone-gain', (_, microphoneGain: number) => {
+  configManager.updateConfig({ microphoneGain });
+  TrackAudioAfv.SetMicrophoneVolume(microphoneGain / 100);
 });
 
 ipcMain.handle('play-ad-hoc-sound', (_, wavFileName: string, gain: number, target: number) => {

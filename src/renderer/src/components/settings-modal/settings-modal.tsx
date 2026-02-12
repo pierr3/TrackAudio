@@ -35,6 +35,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
   const [loopbackEnabled, setLoopbackEnabled] = useState(false);
   const [loopbackTarget, setLoopbackTarget] = useState(0);
   const [loopbackGain, setLoopbackGain] = useState(50);
+  const [microphoneGain, setMicrophoneGain] = useState(100);
   const [cid, setCid] = useState('');
   const [password, setPassword] = useState('');
 
@@ -101,6 +102,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setLoopbackEnabled(config.loopbackEnabled);
         setLoopbackTarget(config.loopbackTarget);
         setLoopbackGain(config.loopbackGain);
+        setMicrophoneGain(config.microphoneGain);
         setUpdateChannel(config.updateChannel);
       })
       .catch((err: unknown) => {
@@ -272,6 +274,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     const gain = parseInt(e.target.value);
     setLoopbackGain(gain);
     window.api.setLoopbackGain(gain);
+    setChangesSaved(SaveStatus.Saved);
+  };
+
+  const handleMicrophoneGainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    const gain = parseInt(e.target.value);
+    setMicrophoneGain(gain);
+    window.api.setMicrophoneGain(gain);
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -492,6 +502,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                           role="progressbar"
                           style={{ width: (vuPeak - vu).toString() + '%' }}
                         ></div>
+                      </div>
+
+                      <label className="mt-2">Microphone gain</label>
+                      <div className="d-flex align-items-center gap-2">
+                        <input
+                          type="range"
+                          className="form-range flex-grow-1"
+                          min="0"
+                          max="200"
+                          value={microphoneGain}
+                          onChange={handleMicrophoneGainChange}
+                        />
+                        <span style={{ minWidth: '40px', textAlign: 'right' }}>
+                          {microphoneGain}%
+                        </span>
                       </div>
 
                       <label className="mt-3">Microphone loopback (sidetone)</label>

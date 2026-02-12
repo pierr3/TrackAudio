@@ -31,5 +31,7 @@ export interface Configuration {
   loopbackTarget: number;
   loopbackGain: number;
 
+  microphoneGain: number;
+
   updateChannel: string;
 }

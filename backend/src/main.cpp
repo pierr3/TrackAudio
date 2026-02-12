@@ -394,6 +394,15 @@ void SetMainRadioVolume(const Napi::CallbackInfo& info)
     MainThreadShared::mApiServer->publishMainVolumeChange(volume, false);
 }
 
+void SetMicrophoneVolume(const Napi::CallbackInfo& info)
+{
+    if (!mClient) {
+        return;
+    }
+    float volume = info[0].As<Napi::Number>().FloatValue();
+    mClient->SetMicrophoneVolume(volume);
+}
+
 void PlayAdHocSound(const Napi::CallbackInfo& info)
 {
     if (!mClient) {
@@ -993,6 +1002,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     exports.Set(
         Napi::String::New(env, "SetMainRadioVolume"), Napi::Function::New(env, SetMainRadioVolume));
+
+    exports.Set(
+        Napi::String::New(env, "SetMicrophoneVolume"), Napi::Function::New(env, SetMicrophoneVolume));
 
     exports.Set(
         Napi::String::New(env, "SetRadioEffects"), Napi::Function::New(env, SetRadioEffects));

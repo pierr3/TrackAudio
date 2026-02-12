@@ -53,6 +53,9 @@ export const api = {
   setLoopbackGain: (gain: number) => {
     ipcRenderer.send('set-loopback-gain', gain);
   },
+  setMicrophoneGain: (gain: number) => {
+    ipcRenderer.send('set-microphone-gain', gain);
+  },
   getAudioApis: () => ipcRenderer.invoke('audio-get-apis'),
   getAudioInputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-input-devices', apiId),
   getAudioOutputDevices: (apiId: number) => ipcRenderer.invoke('audio-get-output-devices', apiId),

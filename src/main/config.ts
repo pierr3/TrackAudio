@@ -29,6 +29,7 @@ export const defaultConfiguration = {
   loopbackEnabled: false,
   loopbackTarget: 0,
   loopbackGain: 50,
+  microphoneGain: 100,
   updateChannel: 'stable'
 };
 
