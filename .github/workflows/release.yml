@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2022]
         arch: [x64, arm64]
-        node-version: [20.x]
+        node-version: [22.x]
         exclude:
           - os: windows-2022
             arch: arm64
@@ -73,7 +73,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config libxtst-dev libxinerama-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev libxkbfile-dev libxt-dev
+          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config libxtst-dev libxinerama-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev libxkbfile-dev libxt-dev autoconf autoconf-archive automake libtool pkg-config libltdl-dev
 
       - name: Replace repositories with amd64 and arm64 repositories
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'
