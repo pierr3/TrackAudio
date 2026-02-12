@@ -57,6 +57,7 @@ const TitleBar: React.FC<TitleBarProps> & {
 
     sections.forEach((section) => {
       const sectionName = (section.props as TitleBarSectionProps).name;
+      if (!sectionRefs.current || !elementRefs.current) return;
       const sectionElement = sectionRefs.current[sectionName];
       const elements = Object.values(elementRefs.current[sectionName]).filter(Boolean);
 
@@ -94,6 +95,7 @@ const TitleBar: React.FC<TitleBarProps> & {
 
     sections.reverse().forEach((section) => {
       const sectionName = (section.props as TitleBarSectionProps).name;
+      if (!sectionRefs.current || !elementRefs.current) return;
       const sectionElement = sectionRefs.current[sectionName];
       const elements = Object.values(elementRefs.current[sectionName]).filter(Boolean);
 

@@ -7,7 +7,7 @@
   "description": "TrackAudio - Audio for VATSIM Client",
   "homepage": "https://github.com/pierr3/TrackAudio",
   "engines": {
-    "node": ">=22.0.0",
+    "node": ">=22.0.0 <=23.0.0",
     "electron": ">=37.6.0"
   },
   "scripts": {
@@ -37,18 +37,18 @@
     "bootstrap-typeahead": "^2.3.2",
     "clsx": "^2.1.1",
     "electron-log": "^5.4.3",
-    "electron-store": "^11.0.2",
+    "electron-store": "^8.2.0",
     "electron-updater": "^6.7.3",
     "lucide-react": "^0.563.0",
-    "react": "^19.2.4",
-    "react-bootstrap": "^2.10.10",
-    "react-dom": "^19.2.4",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.9",
+    "react-dom": "^18.3.1",
     "react-responsive": "^10.0.1",
     "scss": "^0.2.4",
     "trackaudio-afv": "file:backend/trackaudio-afv-1.0.0.tgz",
     "use-debounce": "^10.1.0",
-    "zod": "^4.3.6",
-    "zustand": "^5.0.11"
+    "zod": "^3.24.1",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "2.1.0",
@@ -57,7 +57,7 @@
     "@eslint/js": "^9.39.2",
     "@rushstack/eslint-patch": "^1.15.0",
     "@types/node": "^25.2.3",
-    "@types/react": "^19.2.14",
+    "@types/react": "^18.3.1",
     "@vitejs/plugin-react": "^5.1.4",
     "electron": "^40.4.0",
     "electron-builder": "26.6.0",
