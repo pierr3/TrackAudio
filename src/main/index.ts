@@ -417,6 +417,8 @@ app
       }
     }
 
+    TrackAudioAfv.SetPttReleaseSoundEnabled(configManager.config.pttReleaseSoundEnabled);
+
     createWindow();
   })
   .catch((e: unknown) => {
@@ -493,6 +495,7 @@ ipcMain.on('set-radio-to-max-volume-on-tx', (_, radioToMaxVolumeOnTx: boolean) =
 
 ipcMain.on('set-ptt-release-sound-enabled', (_, pttReleaseSoundEnabled: boolean) => {
   configManager.updateConfig({ pttReleaseSoundEnabled });
+  TrackAudioAfv.SetPttReleaseSoundEnabled(pttReleaseSoundEnabled);
 });
 
 ipcMain.on('set-loopback-enabled', (_, loopbackEnabled: boolean) => {
@@ -889,10 +892,6 @@ const handleEvent = (arg: string, arg2: string, arg3: string, arg4: string) => {
 
   if (arg == AfvEventTypes.PttState) {
     mainWindow?.webContents.send('PttState', arg2);
-    if (arg2 === '0' && configManager.config.pttReleaseSoundEnabled) {
-      const wavPath = join(process.resourcesPath, 'Click_f32.wav');
-      TrackAudioAfv.PlayAdHocSound(wavPath, 1.0, 0);
-    }
   }
 
   if (arg == AfvEventTypes.Error) {

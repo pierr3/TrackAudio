@@ -41,6 +41,9 @@ public:
     inline static std::atomic_bool runVuMeterCallback = false;
 
     inline static std::unique_ptr<InputHandler> inputHandler = nullptr;
+
+    inline static std::string resourcePath;
+    inline static std::atomic_bool pttReleaseSoundEnabled = false;
 };
 namespace {
 Napi::Array GetAudioApis(const Napi::CallbackInfo& info)
@@ -403,9 +406,14 @@ void SetMicrophoneVolume(const Napi::CallbackInfo& info)
     mClient->SetMicrophoneVolume(volume);
 }
 
+void SetPttReleaseSoundEnabled(const Napi::CallbackInfo& info)
+{
+    MainThreadShared::pttReleaseSoundEnabled = info[0].As<Napi::Boolean>().Value();
+}
+
 void PlayAdHocSound(const Napi::CallbackInfo& info)
 {
-    if (!mClient) {
+    if (!mClient || !mClient->IsAudioRunning()) {
         return;
     }
     std::string wavFilePath = info[0].As<Napi::String>().Utf8Value();
@@ -711,6 +719,16 @@ void HandleAfvEvents()
         NapiHelpers::callElectron("PttState", "0");
         MainThreadShared::mApiServer->handleAFVEventForWebsocket(
             sdk::types::Event::kTxEnd, std::nullopt, std::nullopt);
+
+        // Play the PTT release sound on a detached thread to avoid blocking the
+        // event callback with file I/O — PlayAdHocSound calls LoadWav() which
+        // reads the WAV file from disk.
+        if (MainThreadShared::pttReleaseSoundEnabled && mClient && mClient->IsAudioRunning()) {
+            std::thread([] {
+                auto wavPath = std::filesystem::path(MainThreadShared::resourcePath) / "Click_f32.wav";
+                mClient->PlayAdHocSound(wavPath.string(), 1.0f, afv_native::AdHocOutputTarget::Headset);
+            }).detach();
+        }
     });
 
     event.AddHandler<afv_native::AudioErrorEvent>([&](const afv_native::AudioErrorEvent& event) {
@@ -840,6 +858,7 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
         throw Napi::Error::New(info.Env(), "Resource path is required");
     }
     std::string resourcePath = info[0].As<Napi::String>().Utf8Value();
+    MainThreadShared::resourcePath = resourcePath;
     if (info.Length() > 1 && info[1].IsString()) {
         std::string request = info[1].As<Napi::String>().Utf8Value();
         mClient = std::make_unique<afv_native::api::atcClient>(CLIENT_NAME, resourcePath, request);
@@ -1044,6 +1063,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     exports.Set(
         Napi::String::New(env, "StopAdHocSounds"), Napi::Function::New(env, StopAdHocSounds));
+
+    exports.Set(
+        Napi::String::New(env, "SetPttReleaseSoundEnabled"), Napi::Function::New(env, SetPttReleaseSoundEnabled));
 
     exports.Set(Napi::String::New(env, "SetLoopback"), Napi::Function::New(env, SetLoopback));
 
