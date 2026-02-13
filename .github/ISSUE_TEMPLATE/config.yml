@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Troubleshooting & FAQ
+    url: https://github.com/pierr3/TrackAudio/blob/main/README.md#faq
+    about: Check the FAQ and Troubleshooting sections before opening an issue — your question might already be answered there!
+  - name: VATSIM Support
+    url: https://support.vatsim.net/
+    about: For general VATSIM account or network questions (not specific to TrackAudio)

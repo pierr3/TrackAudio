@@ -91,7 +91,7 @@ jobs:
           pnpm install
 
       - name: Run eslint
-        run: pnpm run lint
+        run: pnpm run lint:check
 
       - name: Build and package
         shell: bash

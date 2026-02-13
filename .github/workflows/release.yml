@@ -152,7 +152,7 @@ jobs:
           EOF
 
       - name: Package app
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-latest' && matrix.arch == 'x64'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -160,7 +160,19 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
-          pnpm run build:mac -- --${{ matrix.arch }} --publish=never
+          pnpm run build:mac:x64 -- --publish=never
+          rm ./.a.p8
+
+      - name: Package app
+        if: matrix.os == 'macos-latest' && matrix.arch == 'arm64'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_API_KEY: './.a.p8'
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          pnpm run build:mac -- --publish=never
           rm ./.a.p8
 
       - name: Package app

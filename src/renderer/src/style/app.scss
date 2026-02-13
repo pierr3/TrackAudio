@@ -717,7 +717,10 @@ select:disabled {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: color.adjust(rgb(50, 50, 58), $lightness: 10%); /* Color of the scrollbar thumb on hover */
+  background: color.adjust(
+    rgb(50, 50, 58),
+    $lightness: 10%
+  ); /* Color of the scrollbar thumb on hover */
 }
 
 .radio-text {

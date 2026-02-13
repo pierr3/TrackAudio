@@ -1,0 +1,36 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for TrackAudio? We'd love to hear it!
+
+        Please [search existing issues](https://github.com/pierr3/TrackAudio/issues) first to check if someone has already suggested something similar.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What would you like to see?
+      description: Describe the feature or improvement you have in mind.
+      placeholder: 'e.g. It would be great if TrackAudio could remember my last used frequencies...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Why would this be useful?
+      description: Help us understand how this would improve your experience. What problem does it solve or what workflow does it improve?
+      placeholder: 'e.g. When I log in for a session, I always have to re-add the same frequencies manually...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Any alternatives you've considered?
+      description: Are there any workarounds you're currently using, or other ways this could be solved?
+    validations:
+      required: false

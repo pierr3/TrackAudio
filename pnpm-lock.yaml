@@ -2933,7 +2933,7 @@ packages:
     engines: {node: '>=14.14'}
 
   trackaudio-afv@file:backend/trackaudio-afv-1.0.0.tgz:
-    resolution: {integrity: sha512-QyUCOzC6dROoNMdPeFq3CzJCmFDLnIzk+nwY6+/8neZh9O+0gp4m/GZtaEQH+fauMwDmieq3araF18phrebA+g==, tarball: file:backend/trackaudio-afv-1.0.0.tgz}
+    resolution: {integrity: sha512-LKFpm884VUUVSGUr/lEIIMRs7czgCVh9PcRB393V341SpKiUdrk8S8qBrmfYAjfg5KgM+VNI6Vj62Uq/sLmL+w==, tarball: file:backend/trackaudio-afv-1.0.0.tgz}
     version: 1.0.0
     engines: {node: '>=22.0.0 <=23.0.0'}
 
