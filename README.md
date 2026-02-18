@@ -201,13 +201,51 @@ This means TrackAudio could not determine the name of the key you bound. The key
 **PTT gets stuck while transmitting:**
 This can happen if you switch windows or alt-tab while holding the PTT key. Release the key and press it again to reset.
 
-### TrackAudio does not work on Linux with Wayland
+**TrackAudio does not work on Linux with Wayland**
 
-TrackAudio does **not** support Wayland due to limitations in upstream libraries used for input handling. You must run TrackAudio under an X11/Xorg session. On most Linux distributions, you can select X11 as the session type on the login screen before signing in.
+TrackAudio does **not natively** support Wayland due to limitations in upstream libraries used for input handling. You must run TrackAudio under an X11/Xorg session. On most Linux distributions, you can select X11 as the session type on the login screen before signing in.
+
+*HOWEVER*, you are able to run TrackAudio on Wayland through a container tool such as Distrobox. This is also helpful if you want to run TrackAudio on a Linux distribution that is not natively supported (e.g. Fedora).
+
+*1. Install Distrobox*
+Download the tool to your host system:
+```bash
+sudo dnf install distrobox   # Fedora
+sudo apt install distrobox   # Debian/Ubuntu
+```
+
+*2. Create and Enter the Container*
+```bash
+distrobox create --name=trackaudio --image=ubuntu:latest
+distrobox enter trackaudio```
+```
+*3. Install Dependencies and the App*
+```bash
+# Install audio compatibility layers first
+sudo apt update
+sudo apt install libasound2 libasound2-plugins
+
+# Install the TrackAudio .deb file (navigate to your download location first)
+sudo apt install ./trackaudio_*.deb```
+```
+*4. Create a Launch Script*
+Create a script at `~/.local/bin/trackaudio` on your ***host*** machine (not inside the container) with the following content:
+```bash
+#!/bin/bash
+xhost +si:localuser:$USER > /dev/null
+distrobox-enter -n trackaudio -- trackaudio "$@"```
+```
+*5. Make the Script Executable*
+```bash
+chmod +x ~/.local/bin/trackaudio
+```
+You can now run `trackaudio` from your terminal. Feel free to customize a desktop entry to run this script as well.
+> WARNING!
+> Your Mileage May Vary with this method, you may experience higher latency, audio issues and other glitches and bugs. This is not an officially supported method of running TrackAudio on wayland, please do not open issues if you experience problems with this method, as it is not guaranteed to work and may be very difficult to debug.
 
 ## Known Issues and Limitations
 
-- **Wayland is not supported on Linux** — you must use an X11/Xorg session (see [Troubleshooting](#trackaudio-does-not-work-on-linux-with-wayland) above)
+- **Wayland is not natively supported on Linux** — you must use an X11/Xorg session (see [Troubleshooting](#TrackAudio does not work on Linux with Wayland) above)
 - **HF Simulation** requires the frequency to be added by callsign, and the station must exist in the AFV database
 - **Manually added (ad-hoc) frequencies** only create a single transceiver at your center of visibility, which gives limited radio coverage compared to stations defined in the AFV database
 - **Always-on-top in mini mode** may not work reliably on some Linux window managers
