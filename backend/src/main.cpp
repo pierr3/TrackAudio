@@ -50,6 +50,9 @@ Napi::Array GetAudioApis(const Napi::CallbackInfo& info)
 {
     Napi::Env env = info.Env();
     Napi::Array arr = Napi::Array::New(env);
+    if (!mClient) {
+        return arr;
+    }
 
     for (const auto& [apiId, apiName] : mClient->GetAudioApis()) {
         Napi::Object obj = Napi::Object::New(env);
@@ -66,6 +69,9 @@ Napi::Array GetAudioInputDevices(const Napi::CallbackInfo& info)
     Napi::Env env = info.Env();
     int apiId = info[0].As<Napi::Number>().Int32Value();
     Napi::Array arr = Napi::Array::New(env);
+    if (!mClient) {
+        return arr;
+    }
 
     for (const auto& [deviceId, deviceName, isDefault] : mClient->GetAudioInputDevices(apiId)) {
         Napi::Object obj = Napi::Object::New(env);
@@ -83,6 +89,9 @@ Napi::Array GetAudioOutputDevices(const Napi::CallbackInfo& info)
     Napi::Env env = info.Env();
     int apiId = info[0].As<Napi::Number>().Int32Value();
     Napi::Array arr = Napi::Array::New(env);
+    if (!mClient) {
+        return arr;
+    }
 
     for (const auto& [deviceId, deviceName, isDefault] : mClient->GetAudioOutputDevices(apiId)) {
         Napi::Object obj = Napi::Object::New(env);
@@ -103,7 +112,7 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info)
 
     Napi::Env env = info.Env();
 
-    if (!UserSession::isConnectedToTheNetwork) {
+    if (!mClient || !UserSession::isConnectedToTheNetwork) {
         return Napi::Boolean::New(env, false);
     }
 
@@ -131,7 +140,7 @@ Napi::Boolean Connect(const Napi::CallbackInfo& info)
 
 void Disconnect(const Napi::CallbackInfo& /*info*/)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         return;
     }
     mClient->Disconnect();
@@ -141,6 +150,9 @@ void Disconnect(const Napi::CallbackInfo& /*info*/)
 
 void SetGuardAndUnicomTransceivers()
 {
+    if (!mClient) {
+        return;
+    }
     const auto transceivers = mClient->GetTransceivers();
     const auto states = mClient->getRadioState();
 
@@ -165,7 +177,7 @@ void SetGuardAndUnicomTransceivers()
 
 void SetAudioSettings(const Napi::CallbackInfo& info)
 {
-    if (mClient->IsVoiceConnected()) {
+    if (!mClient || mClient->IsVoiceConnected()) {
         return; // Don't allow changing audio settings while connected
     }
     int apiId = info[0].As<Napi::Number>().Int32Value();
@@ -186,7 +198,7 @@ void SetAudioSettings(const Napi::CallbackInfo& info)
 
 Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         return Napi::Boolean::New(info.Env(), false);
     }
 
@@ -220,6 +232,9 @@ Napi::Boolean AddFrequency(const Napi::CallbackInfo& info)
 
 void RemoveFrequency(const Napi::CallbackInfo& info)
 {
+    if (!mClient) {
+        return;
+    }
     RadioState newState {};
 
     newState.frequency = info[0].As<Napi::Number>().Int32Value();
@@ -238,10 +253,19 @@ void RemoveFrequency(const Napi::CallbackInfo& info)
     MainThreadShared::mApiServer->publishFrequencyRemoved(newState.frequency);
 }
 
-void Reset(const Napi::CallbackInfo& /*info*/) { mClient->reset(); }
+void Reset(const Napi::CallbackInfo& /*info*/)
+{
+    if (!mClient) {
+        return;
+    }
+    mClient->reset();
+}
 
 Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 {
+    if (!mClient) {
+        return Napi::Boolean::New(info.Env(), false);
+    }
     RadioState newState {};
 
     auto callsign = info[0].As<Napi::String>().Utf8Value();
@@ -264,8 +288,11 @@ Napi::Boolean SetFrequencyState(const Napi::CallbackInfo& info)
 Napi::Object GetFrequencyState(const Napi::CallbackInfo& info)
 {
     Napi::Env env = info.Env();
-    int frequency = info[0].As<Napi::Number>().Int32Value();
     Napi::Object obj = Napi::Object::New(env);
+    if (!mClient) {
+        return obj;
+    }
+    int frequency = info[0].As<Napi::Number>().Int32Value();
 
     obj.Set("rx", mClient->GetRxState(frequency));
     obj.Set("tx", mClient->GetTxState(frequency));
@@ -290,7 +317,7 @@ void RegisterCallback(const Napi::CallbackInfo& info)
 
 void GetStation(const Napi::CallbackInfo& info)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         return;
     }
 
@@ -301,7 +328,7 @@ void GetStation(const Napi::CallbackInfo& info)
 
 void RefreshStation(const Napi::CallbackInfo& info)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         return;
     }
     auto callsign = info[0].As<Napi::String>().Utf8Value();
@@ -310,6 +337,9 @@ void RefreshStation(const Napi::CallbackInfo& info)
 
 Napi::Boolean IsFrequencyActive(const Napi::CallbackInfo& info)
 {
+    if (!mClient) {
+        return Napi::Boolean::New(info.Env(), false);
+    }
     int frequency = info[0].As<Napi::Number>().Int32Value();
     return Napi::Boolean::New(info.Env(), mClient->IsFrequencyActive(frequency));
 }
@@ -323,6 +353,9 @@ void SetCid(const Napi::CallbackInfo& info)
 
 void SetRadioEffects(const Napi::CallbackInfo& info)
 {
+    if (!mClient) {
+        return;
+    }
     auto radioEffects = info[0].As<Napi::String>().Utf8Value();
     radioEffects = absl::AsciiStrToLower(radioEffects);
     bool enableInputFilters = false;
@@ -350,6 +383,9 @@ void SetRadioEffects(const Napi::CallbackInfo& info)
 
 void SetHardwareType(const Napi::CallbackInfo& info)
 {
+    if (!mClient) {
+        return;
+    }
     auto hardwareTypeIndex = info[0].As<Napi::Number>().Int32Value();
     auto hardware = afv_native::HardwareType::Schmid_ED_137B;
 
@@ -366,7 +402,7 @@ void SetHardwareType(const Napi::CallbackInfo& info)
 
 void SetPtt(const Napi::CallbackInfo& info)
 {
-    if (!mClient->IsVoiceConnected()) {
+    if (!mClient || !mClient->IsVoiceConnected()) {
         return;
     }
 
@@ -385,6 +421,9 @@ void SetPtt(const Napi::CallbackInfo& info)
 
 void SetMainRadioVolume(const Napi::CallbackInfo& info)
 {
+    if (!mClient) {
+        return;
+    }
     float volume = info[0].As<Napi::Number>().FloatValue();
 
     {
@@ -452,6 +491,10 @@ Napi::Promise SetFrequencyRadioVolume(const Napi::CallbackInfo& info)
         env, "station-state-update", [frequency, stationVolume]() {
             RadioHelper::setRadioVolume(frequency, stationVolume);
 
+            if (!mClient || !MainThreadShared::mApiServer) {
+                return nlohmann::json {};
+            }
+
             auto states = mClient->getRadioState();
             std::string stationName;
             if (states.find(frequency) != states.end()) {
@@ -474,6 +517,9 @@ Napi::String Version(const Napi::CallbackInfo& info)
 
 Napi::Boolean IsConnected(const Napi::CallbackInfo& info)
 {
+    if (!mClient) {
+        return Napi::Boolean::New(info.Env(), false);
+    }
     return Napi::Boolean::New(info.Env(), mClient->IsVoiceConnected());
 }
 
@@ -496,7 +542,7 @@ void StartMicTest(const Napi::CallbackInfo& /*info*/)
 #else
             Sleep(50); // std::this_thread::sleep_for is boinked on windows
 #endif
-            if (!mClient->IsAudioRunning()) {
+            if (!mClient || !mClient->IsAudioRunning()) {
                 break;
             }
 
@@ -550,6 +596,9 @@ void StopAudio(const Napi::CallbackInfo& /*info*/)
 
 void SetupPttBegin(const Napi::CallbackInfo& info)
 {
+    if (!MainThreadShared::inputHandler) {
+        return;
+    }
     int pttIndex = info[0].As<Napi::Number>().Int32Value();
     bool shouldListenForJoysticks = true;
 
@@ -562,6 +611,9 @@ void SetupPttBegin(const Napi::CallbackInfo& info)
 
 void ClearPtt(const Napi::CallbackInfo& info)
 {
+    if (!MainThreadShared::inputHandler) {
+        return;
+    }
     int pttIndex = info[0].As<Napi::Number>().Int32Value();
 
     MainThreadShared::inputHandler->clearPtt(pttIndex);
@@ -569,6 +621,9 @@ void ClearPtt(const Napi::CallbackInfo& info)
 
 void SetupPttEnd(const Napi::CallbackInfo& /*info*/)
 {
+    if (!MainThreadShared::inputHandler) {
+        return;
+    }
     MainThreadShared::inputHandler->stopPttSetup();
 }
 
@@ -584,18 +639,23 @@ void HandleAfvEvents()
     afv_native::event::EventBus& event = afv_native::api::getEventBus();
     event.AddHandler<afv_native::VoiceServerConnectedEvent>(
         [&](const afv_native::VoiceServerConnectedEvent& event) {
+            if (NapiHelpers::_requestExit.load()) return;
             NapiHelpers::callElectron("VoiceConnected");
-            MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(true);
+            if (MainThreadShared::mApiServer)
+                MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(true);
         });
 
     event.AddHandler<afv_native::VoiceServerDisconnectedEvent>(
         [&](const afv_native::VoiceServerDisconnectedEvent& event) {
+            if (NapiHelpers::_requestExit.load()) return;
             NapiHelpers::callElectron("VoiceDisconnected");
-            MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(false);
+            if (MainThreadShared::mApiServer)
+                MainThreadShared::mApiServer->handleVoiceConnectedEventForWebsocket(false);
         });
 
     event.AddHandler<afv_native::StationTransceiversUpdatedEvent>(
         [&](const afv_native::StationTransceiversUpdatedEvent& event) {
+            if (NapiHelpers::_requestExit.load() || !mClient) return;
             std::string station = event.stationName;
             auto transceiverCount = mClient->GetTransceiverCountForStation(station);
             auto states = mClient->getRadioState();
@@ -612,6 +672,7 @@ void HandleAfvEvents()
 
     event.AddHandler<afv_native::StationDataReceivedEvent>(
         [&](const afv_native::StationDataReceivedEvent& event) {
+            if (NapiHelpers::_requestExit.load() || !mClient) return;
             if (!event.found || !event.stationData.second.has_value()) {
                 NapiHelpers::sendErrorToElectron("Station not found");
                 return;
@@ -634,12 +695,14 @@ void HandleAfvEvents()
             stationJson["frequencyAlias"] = station.frequencyAlias;
 
             NapiHelpers::callElectron("StationDataReceived", callsign, stationJson.dump());
-            MainThreadShared::mApiServer->publishStationAdded(
-                callsign, static_cast<int>(frequency), static_cast<int>(station.frequencyAlias));
+            if (MainThreadShared::mApiServer)
+                MainThreadShared::mApiServer->publishStationAdded(
+                    callsign, static_cast<int>(frequency), static_cast<int>(station.frequencyAlias));
         });
 
     event.AddHandler<afv_native::VccsReceivedEvent>(
         [&](const afv_native::VccsReceivedEvent& event) {
+            if (NapiHelpers::_requestExit.load() || !mClient) return;
             const auto& stations = event.vccsData;
 
             for (const auto& [callsign, station] : stations) {
@@ -658,13 +721,15 @@ void HandleAfvEvents()
                 stationJson["frequencyAlias"] = station.frequencyAlias;
 
                 NapiHelpers::callElectron("StationDataReceived", callsign, stationJson.dump());
-                MainThreadShared::mApiServer->publishStationAdded(callsign,
-                    static_cast<int>(frequency), static_cast<int>(station.frequencyAlias));
+                if (MainThreadShared::mApiServer)
+                    MainThreadShared::mApiServer->publishStationAdded(callsign,
+                        static_cast<int>(frequency), static_cast<int>(station.frequencyAlias));
             }
         });
 
     event.AddHandler<afv_native::FrequencyRxBeginEvent>(
         [&](const afv_native::FrequencyRxBeginEvent& event) {
+            if (NapiHelpers::_requestExit.load() || !mClient) return;
             if (!mClient->IsFrequencyActive(event.frequency)) {
                 PLOGW << "FrequencyRxBegin: Frequency " << event.frequency
                       << " not active, skipping";
@@ -676,6 +741,7 @@ void HandleAfvEvents()
 
     event.AddHandler<afv_native::FrequencyRxEndEvent>(
         [&](const afv_native::FrequencyRxEndEvent& event) {
+            if (NapiHelpers::_requestExit.load() || !mClient) return;
             if (!mClient->IsFrequencyActive(event.frequency)) {
                 PLOGW << "FrequencyRxEnd: Frequency " << event.frequency << " not active, skipping";
                 return;
@@ -686,6 +752,7 @@ void HandleAfvEvents()
 
     event.AddHandler<afv_native::StationRxBeginEvent>(
         [&](const afv_native::StationRxBeginEvent& event) {
+            if (NapiHelpers::_requestExit.load() || !mClient) return;
             if (!mClient->IsFrequencyActive(event.frequency)) {
                 PLOGW << "StationRxBegin: Frequency " << event.frequency << " not active, skipping";
                 return;
@@ -693,41 +760,45 @@ void HandleAfvEvents()
 
             NapiHelpers::callElectronWithStringArray("StationRxBegin",
                 std::to_string(event.frequency), event.callsign, event.activeTransmitters);
-            MainThreadShared::mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxBegin,
-                event.callsign, event.frequency, event.activeTransmitters);
+            if (MainThreadShared::mApiServer)
+                MainThreadShared::mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxBegin,
+                    event.callsign, event.frequency, event.activeTransmitters);
         });
 
     event.AddHandler<afv_native::StationRxEndEvent>(
         [&](const afv_native::StationRxEndEvent& event) {
+            if (NapiHelpers::_requestExit.load() || !mClient) return;
             if (!mClient->IsFrequencyActive(event.frequency)) {
                 PLOGW << "StationRxEnd: Frequency " << event.frequency << " not active, skipping";
                 return;
             }
             NapiHelpers::callElectronWithStringArray("StationRxEnd",
                 std::to_string(event.frequency), event.callsign, event.activeTransmitters);
-            MainThreadShared::mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxEnd,
-                event.callsign, event.frequency, event.activeTransmitters);
+            if (MainThreadShared::mApiServer)
+                MainThreadShared::mApiServer->handleAFVEventForWebsocket(sdk::types::Event::kRxEnd,
+                    event.callsign, event.frequency, event.activeTransmitters);
         });
 
     event.AddHandler<afv_native::PttOpenEvent>([&](const afv_native::PttOpenEvent& event) {
+        if (NapiHelpers::_requestExit.load()) return;
         NapiHelpers::callElectron("PttState", "1");
-        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-            sdk::types::Event::kTxBegin, std::nullopt, std::nullopt);
+        if (MainThreadShared::mApiServer)
+            MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+                sdk::types::Event::kTxBegin, std::nullopt, std::nullopt);
     });
 
     event.AddHandler<afv_native::PttClosedEvent>([&](const afv_native::PttClosedEvent& event) {
+        if (NapiHelpers::_requestExit.load()) return;
         NapiHelpers::callElectron("PttState", "0");
-        MainThreadShared::mApiServer->handleAFVEventForWebsocket(
-            sdk::types::Event::kTxEnd, std::nullopt, std::nullopt);
+        if (MainThreadShared::mApiServer)
+            MainThreadShared::mApiServer->handleAFVEventForWebsocket(
+                sdk::types::Event::kTxEnd, std::nullopt, std::nullopt);
 
-        // Play the PTT release sound on a detached thread to avoid blocking the
-        // event callback with file I/O — PlayAdHocSound calls LoadWav() which
-        // reads the WAV file from disk.
-        if (MainThreadShared::pttReleaseSoundEnabled && mClient && mClient->IsAudioRunning()) {
-            std::thread([] {
-                auto wavPath = std::filesystem::path(MainThreadShared::resourcePath) / "Click_f32.wav";
-                mClient->PlayAdHocSound(wavPath.string(), 1.0f, afv_native::AdHocOutputTarget::Headset);
-            }).detach();
+        // Play the PTT release sound — check shutdown flag to avoid use-after-free
+        if (MainThreadShared::pttReleaseSoundEnabled && !NapiHelpers::_requestExit.load()
+            && mClient && mClient->IsAudioRunning()) {
+            auto wavPath = std::filesystem::path(MainThreadShared::resourcePath) / "Click_f32.wav";
+            mClient->PlayAdHocSound(wavPath.string(), 1.0f, afv_native::AdHocOutputTarget::Headset);
         }
     });
 

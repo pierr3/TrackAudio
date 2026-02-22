@@ -92,7 +92,9 @@ public:
 
     static void setAllRadioVolumes()
     {
-
+        if (!mClient) {
+            return;
+        }
         auto states = mClient->getRadioState();
         for (const auto& state : states) {
             setRadioVolume(state.first);

@@ -27,6 +27,7 @@ let version: string;
 let mainWindow: BrowserWindow | null;
 
 let isAppReady = false;
+let isNativeExited = false;
 
 const defaultWindowSize = { width: 800, height: 660 };
 const miniModeWidthBreakpoint = 455; // This must match the value for $mini-mode-width-breakpoint in variables.scss.
@@ -247,7 +248,7 @@ const createWindow = (): void => {
     if (!mainWindow) {
       return;
     }
-    if (TrackAudioAfv.IsConnected()) {
+    if (!isNativeExited && TrackAudioAfv.IsConnected()) {
       const response = dialog.showMessageBoxSync(mainWindow, {
         type: 'question',
         buttons: ['Yes', 'No'],
@@ -262,6 +263,10 @@ const createWindow = (): void => {
     }
 
     saveWindowBounds();
+  });
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
   });
 
   mainWindow.webContents.on('before-input-event', (e, input) => {
@@ -427,14 +432,22 @@ app
   });
 
 app.on('before-quit', () => {
-  if (TrackAudioAfv.IsConnected()) {
-    TrackAudioAfv.Disconnect();
+  if (isNativeExited) {
+    return;
   }
-  // Stop mic test after disconnect to ensure the VU meter thread is joined
-  // before Exit() destroys the client. StopMicTest calls StopAudio(),
-  // so it must run after Disconnect which needs audio still active.
-  TrackAudioAfv.StopMicTest();
-  TrackAudioAfv.Exit();
+  try {
+    if (TrackAudioAfv.IsConnected()) {
+      TrackAudioAfv.Disconnect();
+    }
+    // Stop mic test after disconnect to ensure the VU meter thread is joined
+    // before Exit() destroys the client. StopMicTest calls StopAudio(),
+    // so it must run after Disconnect which needs audio still active.
+    TrackAudioAfv.StopMicTest();
+    TrackAudioAfv.Exit();
+    isNativeExited = true;
+  } catch (error) {
+    log.error('Error during before-quit cleanup:', error);
+  }
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -716,11 +729,13 @@ ipcMain.handle('close-me', () => {
 
 ipcMain.handle('restart', () => {
   try {
-    // Perform cleanup
-    if (TrackAudioAfv.IsConnected()) {
-      TrackAudioAfv.Disconnect();
+    if (!isNativeExited) {
+      if (TrackAudioAfv.IsConnected()) {
+        TrackAudioAfv.Disconnect();
+      }
+      TrackAudioAfv.Exit();
+      isNativeExited = true;
     }
-    TrackAudioAfv.Exit();
 
     app.relaunch();
     app.exit();
@@ -758,15 +773,18 @@ ipcMain.on('check-for-updates', (event) => {
 });
 
 ipcMain.on('quit-and-install', () => {
-  // First disconnect TrackAudioAfv if connected
-  if (TrackAudioAfv.IsConnected()) {
-    TrackAudioAfv.Disconnect();
+  if (!isNativeExited) {
+    try {
+      if (TrackAudioAfv.IsConnected()) {
+        TrackAudioAfv.Disconnect();
+      }
+      TrackAudioAfv.Exit();
+      isNativeExited = true;
+    } catch (error) {
+      log.error('Error during quit-and-install cleanup:', error);
+    }
   }
 
-  // Call Exit to clean up resources
-  TrackAudioAfv.Exit();
-
-  // Then perform the update
   updater.autoUpdater.quitAndInstall();
 });
 
@@ -808,7 +826,9 @@ ipcMain.on('set-minimum-size', (_, width: number, height: number) => {
 });
 
 ipcMain.on('set-window-button-visibility', (_, status: boolean) => {
-  mainWindow?.setWindowButtonVisibility(status);
+  if (process.platform === 'darwin') {
+    mainWindow?.setWindowButtonVisibility(status);
+  }
 });
 
 ipcMain.on('close-window', () => {
@@ -820,7 +840,10 @@ ipcMain.on('is-window-fullscreen', () => {
 });
 
 ipcMain.handle('is-trusted-accessibility', () => {
-  return systemPreferences.isTrustedAccessibilityClient(true);
+  if (process.platform === 'darwin') {
+    return systemPreferences.isTrustedAccessibilityClient(true);
+  }
+  return true;
 });
 
 // Logger
@@ -841,17 +864,13 @@ ipcMain.on('log-error', (_, message: string) => {
 //
 
 const handleEvent = (arg: string, arg2: string, arg3: string, arg4: string) => {
-  if (!arg) return;
+  if (!arg || isNativeExited) return;
 
   if (!isAppReady) {
     eventQueue.push([arg, arg2, arg3, arg4]);
     return;
   }
 
-  // Your existing event handling logic
-  if (arg === AfvEventTypes.VuMeter) {
-    mainWindow?.webContents.send('VuMeter', arg2, arg3);
-  }
   if (arg === AfvEventTypes.VuMeter) {
     mainWindow?.webContents.send('VuMeter', arg2, arg3);
   }
@@ -896,8 +915,14 @@ const handleEvent = (arg: string, arg2: string, arg3: string, arg4: string) => {
 
   if (arg == AfvEventTypes.Error) {
     mainWindow?.webContents.send('error', arg2);
-    const wavPath = join(process.resourcesPath, 'md80_error.wav');
-    TrackAudioAfv.PlayAdHocSound(wavPath, 1.0, 2);
+    if (!isNativeExited) {
+      try {
+        const wavPath = join(process.resourcesPath, 'md80_error.wav');
+        TrackAudioAfv.PlayAdHocSound(wavPath, 1.0, 2);
+      } catch (error) {
+        log.error('Error playing ad hoc sound:', error);
+      }
+    }
   }
 
   if (arg == AfvEventTypes.VoiceConnected) {
