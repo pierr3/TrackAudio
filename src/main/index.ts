@@ -915,13 +915,11 @@ const handleEvent = (arg: string, arg2: string, arg3: string, arg4: string) => {
 
   if (arg == AfvEventTypes.Error) {
     mainWindow?.webContents.send('error', arg2);
-    if (!isNativeExited) {
-      try {
-        const wavPath = join(process.resourcesPath, 'md80_error.wav');
-        TrackAudioAfv.PlayAdHocSound(wavPath, 1.0, 2);
-      } catch (error) {
-        log.error('Error playing ad hoc sound:', error);
-      }
+    try {
+      const wavPath = join(process.resourcesPath, 'md80_error.wav');
+      TrackAudioAfv.PlayAdHocSound(wavPath, 1.0, 2);
+    } catch (error) {
+      log.error('Error playing ad hoc sound:', error);
     }
   }
 
