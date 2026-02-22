@@ -164,8 +164,17 @@ class IPCInterface {
     window.api.on('VoiceDisconnected', () => {
       sessionStoreState.setIsConnecting(false);
       sessionStoreState.setIsConnected(false);
+      sessionStoreState.setIsConnectionDegraded(false);
       radioStoreState.reset();
       utilStoreState.setIsEditMode(false);
+    });
+
+    window.api.on('VoiceConnectionDegraded', () => {
+      sessionStoreState.setIsConnectionDegraded(true);
+    });
+
+    window.api.on('VoiceConnectionResumed', () => {
+      sessionStoreState.setIsConnectionDegraded(false);
     });
 
     window.api.on('network-connected', (callsign: string, dataString: string) => {
@@ -232,6 +241,8 @@ class IPCInterface {
     window.api.removeAllListeners('ptt-key-set');
     window.api.removeAllListeners('station-state-update');
     window.api.removeAllListeners('main-volume-change');
+    window.api.removeAllListeners('VoiceConnectionDegraded');
+    window.api.removeAllListeners('VoiceConnectionResumed');
   }
 }
 

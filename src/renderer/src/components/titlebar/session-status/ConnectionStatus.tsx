@@ -13,6 +13,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ className = '' }) =
   const [
     isConnected,
     isConnecting,
+    isConnectionDegraded,
     setIsConnecting,
     setIsConnected,
     callsign,
@@ -22,6 +23,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ className = '' }) =
   ] = useSessionStore((state) => [
     state.isConnected,
     state.isConnecting,
+    state.isConnectionDegraded,
     state.setIsConnecting,
     state.setIsConnected,
     state.callsign,
@@ -89,15 +91,19 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ className = '' }) =
     <button
       className={clsx(
         `toolbar-btn connection-status btn static-item px-2 d-flex flex-row main-status ${className}`,
-        isConnected && 'btn-danger',
+        isConnected && !isConnectionDegraded && 'btn-danger',
+        isConnected && isConnectionDegraded && 'btn-warning',
         isConnecting && 'btn-warning',
         !isConnected && !isConnecting && isNetworkConnected && 'btn-success'
       )}
       onClick={handleConnectDisconnect}
       disabled={!isNetworkConnected}
+      title={isConnectionDegraded ? 'Voice connection quality is degraded' : undefined}
     >
       {isConnected && callsign
-        ? 'DISCONNECT'
+        ? isConnectionDegraded
+          ? 'POOR CONNECTION'
+          : 'DISCONNECT'
         : isConnecting
           ? 'CONNECTING'
           : callsign

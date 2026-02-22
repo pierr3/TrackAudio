@@ -950,6 +950,18 @@ const handleEvent = (arg: string, arg2: string, arg3: string, arg4: string) => {
   if (arg == AfvEventTypes.OpenSettingsModal) {
     mainWindow?.webContents.send('show-settings');
   }
+
+  if (arg == AfvEventTypes.AudioDeviceStopped) {
+    mainWindow?.webContents.send('error', `Audio device disconnected: ${arg2}`);
+  }
+
+  if (arg == AfvEventTypes.VoiceConnectionDegraded) {
+    mainWindow?.webContents.send('VoiceConnectionDegraded');
+  }
+
+  if (arg == AfvEventTypes.VoiceConnectionResumed) {
+    mainWindow?.webContents.send('VoiceConnectionResumed');
+  }
 };
 
 TrackAudioAfv.RegisterCallback(handleEvent);
