@@ -14,18 +14,31 @@ RemoteData::RemoteData()
 void RemoteData::onTimer(Poco::Timer& /*timer*/)
 {
     std::lock_guard<std::mutex> lock(m); // Prevent double updates in case of a slow network
-    std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
-    auto previousCallsign = UserSession::callsign;
-    if (UserSession::isDebug) {
+
+    // Copy CID under the session lock, then release it before the blocking HTTP call
+    std::string cid;
+    bool isDebug = false;
+    std::string previousCallsign;
+    {
+        std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
+        previousCallsign = UserSession::callsign;
+        isDebug = UserSession::isDebug;
+        cid = UserSession::cid;
+    }
+
+    if (isDebug) {
+        std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
         updateSessionStatus(previousCallsign, true);
         return;
     }
     try {
-        auto slurperData = getSlurperData();
+        auto slurperData = getSlurperData(cid);
         if (slurperData.empty() && enteredSlurperGracePeriod) {
             return; // We are in the grace period, we await another pass to see if the slurper will
                     // be back
         }
+        // Re-acquire session lock for parsing and updating session state
+        std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
         auto isConnected = parseSlurper(slurperData);
         updateSessionStatus(previousCallsign, isConnected);
     } catch (const std::exception& ex) {
@@ -42,9 +55,9 @@ void RemoteData::onTimer(Poco::Timer& /*timer*/)
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-std::string RemoteData::getSlurperData()
+std::string RemoteData::getSlurperData(const std::string& cid)
 {
-    if (UserSession::cid.empty()) {
+    if (cid.empty()) {
         return "";
     }
 
@@ -52,7 +65,7 @@ std::string RemoteData::getSlurperData()
     slurperCli.set_follow_location(true);
     slurperCli.set_connection_timeout(10);
     slurperCli.set_read_timeout(10);
-    auto res = slurperCli.Get(SLURPER_DATA_ENDPOINT + std::string("?cid=") + UserSession::cid);
+    auto res = slurperCli.Get(SLURPER_DATA_ENDPOINT + std::string("?cid=") + cid);
 
     if (!res) {
         // Notify the client the slurper is offline
