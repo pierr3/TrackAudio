@@ -1,7 +1,7 @@
 {
   "name": "trackaudio",
   "productName": "TrackAudio",
-  "version": "1.4.0-beta.2",
+  "version": "1.4.0-beta.3",
   "main": "./out/main/index.js",
   "author": "github.com/pierr3",
   "description": "TrackAudio - Audio for VATSIM Client",

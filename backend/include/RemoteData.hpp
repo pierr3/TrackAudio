@@ -36,7 +36,7 @@ public:
 protected:
     void onTimer(Poco::Timer& /*timer*/);
 
-    std::string getSlurperData();
+    std::string getSlurperData(const std::string& cid);
 
     // NOLINTNEXTLINE
     bool parseSlurper(const std::string& sluper_data);

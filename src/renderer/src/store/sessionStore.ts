@@ -6,6 +6,7 @@ interface sessionStore {
   isNetworkConnected: boolean;
   isConnected: boolean;
   isConnecting: boolean;
+  isConnectionDegraded: boolean;
   version: string;
   frequency: number;
   mainRadioVolume: number;
@@ -16,6 +17,7 @@ interface sessionStore {
   setIsAtc: (isAtc: boolean) => void;
   setIsConnected: (isConnected: boolean) => void;
   setIsConnecting: (isConnecting: boolean) => void;
+  setIsConnectionDegraded: (isDegraded: boolean) => void;
   setVersion: (version: string) => void;
   setNetworkConnected: (isConnected: boolean) => void;
   setFrequency: (frequency: number) => void;
@@ -30,6 +32,7 @@ const useSessionStore = create<sessionStore>((set) => ({
   isAtc: false,
   isConnected: false,
   isConnecting: false,
+  isConnectionDegraded: false,
   isNetworkConnected: false,
   frequency: 199998000,
   version: '0.0.0',
@@ -50,6 +53,9 @@ const useSessionStore = create<sessionStore>((set) => ({
   },
   setIsConnecting: (isConnecting) => {
     set({ isConnecting });
+  },
+  setIsConnectionDegraded: (isDegraded) => {
+    set({ isConnectionDegraded: isDegraded });
   },
   setVersion: (version) => {
     set({ version });

@@ -28,6 +28,9 @@ export declare const AfvEventTypes: {
   StationStateUpdate: string;
   OpenSettingsModal: string;
   MainVolumeChange: string;
+  AudioDeviceStopped: string;
+  VoiceConnectionDegraded: string;
+  VoiceConnectionResumed: string;
 };
 
 export declare interface Session {

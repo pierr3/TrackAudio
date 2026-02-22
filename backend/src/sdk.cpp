@@ -170,7 +170,7 @@ void SDK::handleAFVEventForWebsocket(sdk::types::Event event,
         return;
     }
 
-    if (event == sdk::types::Event::kRxBegin && callsign && frequencyHz) {
+    if (event == sdk::types::Event::kRxBegin && callsign && frequencyHz && parameter3) {
         nlohmann::json jsonMessage = WebsocketMessage::buildMessage(WebsocketMessageType::kRxBegin);
         jsonMessage["value"]["callsign"] = *callsign;
         jsonMessage["value"]["pFrequencyHz"] = *frequencyHz;
@@ -399,6 +399,9 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload, uint64_t cl
 
 void SDK::handleSetStationState(const nlohmann::json& json, uint64_t clientId)
 {
+    if (!mClient) {
+        return;
+    }
     if (!json["value"].contains("frequency")) {
         PLOG_ERROR << "kSetStationState requires a frequency";
         return;
@@ -494,6 +497,9 @@ void SDK::handleSetStationState(const nlohmann::json& json, uint64_t clientId)
 
 void SDK::handleGetStationStates(uint64_t requesterId)
 {
+    if (!mClient) {
+        return;
+    }
     std::vector<nlohmann::json> stationStates;
 
     auto allRadios = mClient->getRadioState();

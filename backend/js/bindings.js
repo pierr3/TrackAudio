@@ -17,4 +17,7 @@ exports.AfvEventTypes = {
   StationStateUpdate: "station-state-update",
   OpenSettingsModal: "open-settings-modal",
   MainVolumeChange: "main-volume-change",
+  AudioDeviceStopped: "AudioDeviceStopped",
+  VoiceConnectionDegraded: "VoiceConnectionDegraded",
+  VoiceConnectionResumed: "VoiceConnectionResumed",
 };
