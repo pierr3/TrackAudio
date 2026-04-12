@@ -33,10 +33,14 @@ void RemoteData::onTimer(Poco::Timer& /*timer*/)
     }
     try {
         auto slurperData = getSlurperData(cid);
-        if (slurperData.empty() && enteredSlurperGracePeriod) {
-            return; // We are in the grace period, we await another pass to see if the slurper will
-                    // be back
+        if (slurperData.empty()) {
+            // getSlurperData handles grace period and unavailability notifications
+            // internally. Never feed empty data into parseSlurper — it returns false
+            // which causes updateSessionStatus to disconnect the voice session.
+            return;
         }
+        // Successful fetch — reset grace period
+        enteredSlurperGracePeriod = false;
         // Re-acquire session lock for parsing and updating session state
         std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
         auto isConnected = parseSlurper(slurperData);
