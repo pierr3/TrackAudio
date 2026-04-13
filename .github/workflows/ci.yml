@@ -15,6 +15,7 @@ jobs:
       VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2022]
         node-version: [22.x]
@@ -67,7 +68,7 @@ jobs:
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.30.x'
+          cmake-version: '4.2.x'
 
       - name: Use cmake
         run: cmake --version
@@ -85,19 +86,26 @@ jobs:
           sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config libxtst-dev libxinerama-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev libxkbfile-dev libutf8proc-dev libxt-dev autoconf autoconf-archive automake libtool pkg-config libltdl-dev
 
       - name: Install dependencies
+        shell: bash
         run: |
+          set -e
           pnpm add -g cmake-js
           pnpm run build:backend
           pnpm install
 
       - name: Run eslint
-        run: pnpm run lint:check
+        shell: bash
+        run: |
+          set -e
+          pnpm run lint:check
 
       - name: Build and package
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:${{ matrix.platform }} -- --publish=never
+        run: |
+          set -e
+          pnpm run build:${{ matrix.platform }} -- --publish=never
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

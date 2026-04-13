@@ -32,5 +32,5 @@
         { "name": "cpp-httplib", "version": "0.21.0" },
         { "name": "sfml", "version": "2.6.1" }
     ],
-    "builtin-baseline": "f5800a22acb14d7f753e8be12fe5ec2bc999ab44"
+    "builtin-baseline": "0b88aacde46a853151730fbe7d0b7ee45f4b6864"
 }
