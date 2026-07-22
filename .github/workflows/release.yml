@@ -12,7 +12,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2022]
         arch: [x64, arm64]
-        node-version: [22.x]
+        node-version: [24.x]
         exclude:
           - os: windows-2022
             arch: arm64
