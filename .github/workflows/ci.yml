@@ -89,7 +89,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          pnpm add -g cmake-js
+          npm install -g cmake-js
           pnpm run build:backend
           pnpm install
 

@@ -105,7 +105,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          pnpm add -g cmake-js
+          npm install -g cmake-js
           cd backend/
           npm install
           cmake-js compile -B Release -a x64
@@ -119,7 +119,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          pnpm add -g cmake-js
+          npm install -g cmake-js
           cd backend/
           npm install
           cmake-js compile -B Release -a arm64
@@ -134,7 +134,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          pnpm add -g cmake-js
+          npm install -g cmake-js
           cd backend/
           pnpm install
           cmake-js compile -B Release -a arm64 --prefer-clang false --CD -DVCPKG_TARGET_TRIPLET=arm64-linux
