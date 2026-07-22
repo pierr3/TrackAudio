@@ -22,19 +22,28 @@ void UIOHookWrapper::run()
         return;
     }
 
+    // The previous thread may have exited on its own (e.g. hook_run failed
+    // because input monitoring permission was denied). It is then finished
+    // but still joinable, and assigning a new std::thread over a joinable
+    // one calls std::terminate. Reap it first.
+    if (pImpl->hookThread.joinable()) {
+        pImpl->hookThread.join();
+    }
+
     pImpl->running.store(true);
     pImpl->hookThread = std::thread(&UIOHookWrapper::threadProc, this);
 }
 
 void UIOHookWrapper::stop()
 {
-    if (!pImpl->running.load()) {
-        return;
+    if (pImpl->running.load()) {
+        pImpl->running.store(false);
+        hook_stop();
     }
 
-    pImpl->running.store(false);
-    hook_stop();
-
+    // Always join, even when the hook already stopped itself: threadProc
+    // clears `running` when hook_run returns on its own, and destroying a
+    // still-joinable std::thread calls std::terminate (SIGABRT on exit).
     if (pImpl->hookThread.joinable()) {
         pImpl->hookThread.join();
     }
