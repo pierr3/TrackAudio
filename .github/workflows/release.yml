@@ -72,7 +72,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config libxtst-dev libxinerama-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev libxkbfile-dev libxt-dev autoconf autoconf-archive automake libtool pkg-config libltdl-dev
+          sudo apt-get install -y rpm libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config libxtst-dev libxinerama-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev libxkbfile-dev libxt-dev autoconf autoconf-archive automake libtool pkg-config libltdl-dev
 
       - name: Replace repositories with amd64 and arm64 repositories
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'
@@ -96,7 +96,7 @@ jobs:
           sudo apt-get remove libgpg-error-dev
           sudo dpkg --add-architecture arm64
           sudo apt-get update
-          sudo apt-get install -y desktop-file-utils ninja-build gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64 python3-jinja2:amd64 libgcrypt20:arm64 libgcrypt20-dev:arm64 libgpg-error-dev:arm64 libx11-dev:arm64 libxrandr-dev:arm64 libxcursor-dev:arm64 libxi-dev:arm64 libudev-dev:arm64 libgl1-mesa-dev:arm64
+          sudo apt-get install -y rpm desktop-file-utils ninja-build gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64 python3-jinja2:amd64 libgcrypt20:arm64 libgcrypt20-dev:arm64 libgpg-error-dev:arm64 libx11-dev:arm64 libxrandr-dev:arm64 libxcursor-dev:arm64 libxi-dev:arm64 libudev-dev:arm64 libgl1-mesa-dev:arm64
 
       - name: Install dependencies and building backend (x64)
         if: matrix.arch == 'x64'
@@ -227,3 +227,4 @@ jobs:
             dist/*.AppImage
             dist/*.zsync
             dist/*.snap
+            dist/*.rpm
