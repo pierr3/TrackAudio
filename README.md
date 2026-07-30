@@ -270,6 +270,17 @@ If it does not open, you might want to make sure it has permission to run as an 
 
 Note: this will install libafv_native.so in /usr/lib, a required library for TrackAudio to run.
 
+#### Fedora / RHEL / openSUSE (RPM-based)
+
+Download the latest `.rpm` release from the [release page](https://github.com/pierr3/TrackAudio/releases) and install it:
+
+```bash
+sudo dnf install ./trackaudio-*.rpm    # Fedora/RHEL
+sudo zypper install ./trackaudio-*.rpm # openSUSE
+```
+
+Note: this will install `libafv_native.so` in `/usr/lib64`, a required library for TrackAudio to run.
+
 ### macOS
 
 Download the latest release on the [release page](https://github.com/pierr3/TrackAudio/releases) and install the .app into your applications folder.
@@ -300,7 +311,18 @@ TrackAudio depends on afv-native and SFML (for input handling).
 
 `cmake` is required to build the project. Dependencies will be downloaded through vcpkg at build time. See vcpkg.json for further details.
 
-On Linux, the following packages are required: `build-essentials libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config`, you may also need further packages to enable the different audio backends, such as Alsa, JACK or PulseAudio.
+On Linux, the following packages are required:
+
+- **Debian/Ubuntu**: `build-essential libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev pkg-config`
+- **Fedora/RHEL**: `gcc gcc-c++ cmake ninja-build pkgconf-pkg-config libX11-devel libXrandr-devel libXcursor-devel libXi-devel systemd-devel mesa-libGL-devel alsa-lib-devel`
+
+You may also need further packages to enable the different audio backends, such as Alsa, JACK or PulseAudio.
+
+> **Note (Fedora/RHEL build machines):** Building `deb`/`rpm` packages uses `fpm`, which bundles a Ruby binary linked against `libcrypt.so.1`. Fedora/RHEL ship `libxcrypt` instead, so you'll need to install the compatibility package first:
+> ```bash
+> sudo dnf install libxcrypt-compat
+> ```
+> Without this, packaging fails with `ruby: error while loading shared libraries: libcrypt.so.1: cannot open shared object file`.
 
 On macOS, XCode Command Line tools, CMake and Homebrew are required and the following homebrew package is required: `pkg-config`
 

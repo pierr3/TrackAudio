@@ -59,7 +59,7 @@ module.exports = {
     artifactName: '${name}-${version}-${arch}.${ext}'
   },
   linux: {
-    target: ['AppImage', 'snap', 'deb'],
+    target: ['AppImage', 'snap', 'deb', 'rpm'],
     maintainer: 'pierr3',
     category: 'Game',
     extraFiles: [
