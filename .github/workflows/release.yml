@@ -227,3 +227,4 @@ jobs:
             dist/*.AppImage
             dist/*.zsync
             dist/*.snap
+            dist/*.rpm
