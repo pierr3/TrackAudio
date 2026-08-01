@@ -2939,9 +2939,9 @@ packages:
     engines: {node: '>=14.14'}
 
   trackaudio-afv@file:backend/trackaudio-afv-1.0.0.tgz:
-    resolution: {integrity: sha512-Nn/4QvgQEcBzPQ+sld+4dw9KvfjrbDJ2M+nf0S3pikqEgE0CZeqGKbssTYqvjbXV86xLwNQcA0GnFwbLaBqvRQ==, tarball: file:backend/trackaudio-afv-1.0.0.tgz}
+    resolution: {integrity: sha512-YhJvymzJgftlli91IItk5KfSkJVMpyyXgeMRNOm6SAKNHq5BqPkl0s+zT1ponBW1vlm2Xc4FOv35Qq+ukknQ4w==, tarball: file:backend/trackaudio-afv-1.0.0.tgz}
     version: 1.0.0
-    engines: {node: '>=22.0.0 <=23.0.0'}
+    engines: {node: '>=24.0.0 <25.0.0'}
 
   truncate-utf8-bytes@1.0.2:
     resolution: {integrity: sha512-95Pu1QXQvruGEhv62XCMO3Mm90GscOCClvrIUwCM0PYOXK3kaF3l3sIHxx71ThJfcbM2O5Au6SO3AWCSEfW4mQ==}
