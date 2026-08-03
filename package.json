@@ -28,9 +28,11 @@
     "build:mac": "pnpm run build && electron-builder --mac -c electron-builder-config.js",
     "build:mac:x64": "pnpm run build && electron-builder --mac --x64 -c electron-builder-config.js",
     "build:linux": "pnpm run build && electron-builder --linux -c electron-builder-config.js",
-    "build:backend": "cd backend && npm install && npm run build:release && cd .. && pnpm install --force ./backend/trackaudio-afv-1.0.0.tgz",
-    "build:backend-fast": "cd backend && npm install && npm run build:release-fast && cd .. && pnpm install --force ./backend/trackaudio-afv-1.0.0.tgz",
-    "build:backend-debug": "cd backend && npm install && npm run build:debug && cd .. && pnpm install --force ./backend/trackaudio-afv-1.0.0.tgz"
+    "clean:afv-pkg": "node -e \"require('fs').rmSync('node_modules/trackaudio-afv',{recursive:true,force:true})\"",
+    "verify:afv-pkg": "node ./scripts/verify-afv-pkg.mjs",
+    "build:backend": "cd backend && npm install && npm run build:release && cd .. && pnpm run clean:afv-pkg && pnpm install --force ./backend/trackaudio-afv-1.0.0.tgz && pnpm run verify:afv-pkg",
+    "build:backend-fast": "cd backend && npm install && npm run build:release-fast && cd .. && pnpm run clean:afv-pkg && pnpm install --force ./backend/trackaudio-afv-1.0.0.tgz && pnpm run verify:afv-pkg",
+    "build:backend-debug": "cd backend && npm install && npm run build:debug && cd .. && pnpm run clean:afv-pkg && pnpm install --force ./backend/trackaudio-afv-1.0.0.tgz && pnpm run verify:afv-pkg"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
