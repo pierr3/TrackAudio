@@ -1,7 +1,7 @@
 {
   "name": "trackaudio",
   "productName": "TrackAudio",
-  "version": "1.4.0-beta.8",
+  "version": "1.4.0-beta.9",
   "main": "./out/main/index.js",
   "author": "github.com/pierr3",
   "description": "TrackAudio - Audio for VATSIM Client",
@@ -11,6 +11,11 @@
     "electron": ">=41.0.0"
   },
   "packageManager": "pnpm@10.33.2",
+  "pnpm": {
+    "overrides": {
+      "p-limit": "3.1.0"
+    }
+  },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "format": "prettier --write .",
@@ -30,6 +35,7 @@
     "build:linux": "pnpm run build && electron-builder --linux -c electron-builder-config.js",
     "clean:afv-pkg": "node -e \"require('fs').rmSync('node_modules/trackaudio-afv',{recursive:true,force:true})\"",
     "verify:afv-pkg": "node ./scripts/verify-afv-pkg.mjs",
+    "verify:asar-deps": "node ./scripts/verify-asar-deps.mjs",
     "build:backend": "cd backend && npm install && npm run build:release && cd .. && pnpm run clean:afv-pkg && pnpm install --force ./backend/trackaudio-afv-1.0.0.tgz && pnpm run verify:afv-pkg",
     "build:backend-fast": "cd backend && npm install && npm run build:release-fast && cd .. && pnpm run clean:afv-pkg && pnpm install --force ./backend/trackaudio-afv-1.0.0.tgz && pnpm run verify:afv-pkg",
     "build:backend-debug": "cd backend && npm install && npm run build:debug && cd .. && pnpm run clean:afv-pkg && pnpm install --force ./backend/trackaudio-afv-1.0.0.tgz && pnpm run verify:afv-pkg"
