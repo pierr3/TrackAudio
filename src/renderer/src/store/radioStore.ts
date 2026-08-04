@@ -4,10 +4,12 @@ import { radioCompare } from '../helpers/RadioHelper';
 import { getCallsignParts } from '../helpers/CallsignHelper';
 import { GuardFrequency, UnicomFrequency } from '../../../shared/common';
 import { Station } from '@renderer/interfaces/Station';
+import useUtilStore from './utilStore';
 
 export interface RadioType {
   frequency: number;
   frequencyAlias?: number;
+  afvOrder?: number;
   humanFrequency: string;
   humanFrequencyAlias?: string;
   callsign: string;
@@ -65,6 +67,7 @@ interface RadioState {
   clearRadiosToBeDeleted: () => void;
   getRadioByFrequency: (frequency: number) => RadioType | undefined;
   setShowingUnicomBar: (value: boolean) => void;
+  sortRadios: (stationCallsign: string, sortByAfvOrder: boolean) => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -99,6 +102,11 @@ const useRadioState = create<RadioState>((set, get) => ({
   setShowingUnicomBar: (value) => {
     set(() => ({
       showingUnicomBar: value
+    }));
+  },
+  sortRadios: (stationCallsign, sortByAfvOrder) => {
+    set((state) => ({
+      radios: [...state.radios].sort((a, b) => radioCompare(a, b, stationCallsign, sortByAfvOrder))
     }));
   },
   addRadio: (frequency, callsign, stationCallsign) => {
@@ -137,11 +145,13 @@ const useRadioState = create<RadioState>((set, get) => ({
           isOutputMuted: false,
           lastReceivedCallsigns: []
         }
-      ].sort((a, b) => radioCompare(a, b, stationCallsign))
+      ].sort((a, b) =>
+        radioCompare(a, b, stationCallsign, useUtilStore.getState().sortStationsByAfvOrder)
+      )
     }));
   },
   addRadioByStation: (radio: Station, stationCallsign: string) => {
-    const { frequency, name: callsign, frequencyAlias } = radio;
+    const { frequency, name: callsign, frequencyAlias, afvOrder } = radio;
 
     if (RadioHelper.doesRadioExist(useRadioState.getState().radios, frequency)) {
       if (frequency !== UnicomFrequency && frequency !== GuardFrequency) {
@@ -164,6 +174,7 @@ const useRadioState = create<RadioState>((set, get) => ({
         {
           frequency,
           frequencyAlias,
+          afvOrder,
           humanFrequencyAlias,
           humanFrequency: RadioHelper.convertHzToMhzString(frequency),
           callsign,
@@ -184,7 +195,9 @@ const useRadioState = create<RadioState>((set, get) => ({
           isOutputMuted: false,
           lastReceivedCallsigns: []
         }
-      ].sort((a, b) => radioCompare(a, b, stationCallsign))
+      ].sort((a, b) =>
+        radioCompare(a, b, stationCallsign, useUtilStore.getState().sortStationsByAfvOrder)
+      )
     }));
   },
   addOrRemoveRadioToBeDeleted: (radio) => {
