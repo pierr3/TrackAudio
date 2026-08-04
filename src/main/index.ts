@@ -506,6 +506,10 @@ ipcMain.on('set-radio-to-max-volume-on-tx', (_, radioToMaxVolumeOnTx: boolean) =
   configManager.updateConfig({ radioToMaxVolumeOnTx });
 });
 
+ipcMain.on('set-sort-stations-by-afv-order', (_, sortStationsByAfvOrder: boolean) => {
+  configManager.updateConfig({ sortStationsByAfvOrder });
+});
+
 ipcMain.on('set-ptt-release-sound-enabled', (_, pttReleaseSoundEnabled: boolean) => {
   configManager.updateConfig({ pttReleaseSoundEnabled });
   TrackAudioAfv.SetPttReleaseSoundEnabled(pttReleaseSoundEnabled);

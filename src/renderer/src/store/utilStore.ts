@@ -15,6 +15,7 @@ interface UtilStore {
   pendingRestart: boolean;
   transparentMiniMode: boolean;
   radioToMaxVolumeOnTX: boolean;
+  sortStationsByAfvOrder: boolean;
   updateChannel: string;
   time: Date;
   setIsEditMode: (isEditMode: boolean) => void;
@@ -30,6 +31,7 @@ interface UtilStore {
   setTransparentMiniMode: (transparentMiniMode: boolean) => void;
   setPendingRestart: (pendingRestart: boolean) => void;
   setRadioToMaxVolumeOnTX: (maxVolume: boolean) => void;
+  setSortStationsByAfvOrder: (sortByAfvOrder: boolean) => void;
   setTime: (time: Date) => void;
   setUpdateChannel: (updateChannel: string) => void;
 }
@@ -49,6 +51,7 @@ const useUtilStore = create<UtilStore>((set) => ({
   transparentMiniMode: false,
   pendingRestart: false,
   radioToMaxVolumeOnTX: false,
+  sortStationsByAfvOrder: false,
   time: new Date(),
   updateChannel: 'stable',
   setIsEditMode: (isEditMode: boolean) => {
@@ -92,6 +95,9 @@ const useUtilStore = create<UtilStore>((set) => ({
   },
   setRadioToMaxVolumeOnTX: (maxVolume: boolean): void => {
     set({ radioToMaxVolumeOnTX: maxVolume });
+  },
+  setSortStationsByAfvOrder: (sortByAfvOrder: boolean): void => {
+    set({ sortStationsByAfvOrder: sortByAfvOrder });
   },
   setUpdateChannel: (updateChannel: string): void => {
     if (updateChannel !== 'stable' && updateChannel !== 'beta') return;
