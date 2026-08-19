@@ -4,6 +4,7 @@
 #include <absl/strings/str_split.h>
 #include <cstddef>
 #include <mutex>
+#include <optional>
 #include <string>
 
 #define WIN32_LEAN_AND_MEAN
@@ -36,7 +37,11 @@ public:
 protected:
     void onTimer(Poco::Timer& /*timer*/);
 
-    std::string getSlurperData(const std::string& cid);
+    // Returns nullopt when the slurper could not be reached, so that an outage
+    // is not mistaken for the user having gone offline. A returned value is
+    // authoritative even when empty: an empty body means the CID has no active
+    // connection, which is a genuine disconnect.
+    std::optional<std::string> getSlurperData(const std::string& cid);
 
     // NOLINTNEXTLINE
     bool parseSlurper(const std::string& sluper_data);
