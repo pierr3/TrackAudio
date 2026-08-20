@@ -670,8 +670,8 @@ ipcMain.handle('audio-is-frequency-active', (_, frequency: number) => {
   return TrackAudioAfv.IsFrequencyActive(frequency);
 });
 
-ipcMain.handle('get-station', (_, callsign: string) => {
-  TrackAudioAfv.GetStation(callsign);
+ipcMain.handle('get-station', (_, callsign: string, getVccs: boolean) => {
+  TrackAudioAfv.GetStation(callsign, getVccs);
 });
 
 ipcMain.handle('refresh-station', (_, callsign: string) => {
