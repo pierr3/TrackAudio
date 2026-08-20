@@ -73,7 +73,7 @@ declare namespace TrackAudioAfv {
   ): void;
   export function IsFrequencyActive(frequency: number): boolean;
 
-  export function GetStation(callsign: string): void;
+  export function GetStation(callsign: string, includeVCCs: boolean): void;
   export function RefreshStation(callsign: string): void;
 
   export function SetFrequencyState(
