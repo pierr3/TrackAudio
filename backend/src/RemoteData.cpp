@@ -33,17 +33,19 @@ void RemoteData::onTimer(Poco::Timer& /*timer*/)
     }
     try {
         auto slurperData = getSlurperData(cid);
-        if (slurperData.empty()) {
-            // getSlurperData handles grace period and unavailability notifications
-            // internally. Never feed empty data into parseSlurper — it returns false
-            // which causes updateSessionStatus to disconnect the voice session.
+        if (!slurperData.has_value()) {
+            // The slurper could not be reached. getSlurperData handles the grace
+            // period and unavailability notifications internally; leave the session
+            // state untouched so an outage is not treated as a disconnect.
             return;
         }
         // Successful fetch — reset grace period
         enteredSlurperGracePeriod = false;
-        // Re-acquire session lock for parsing and updating session state
+        // Re-acquire session lock for parsing and updating session state.
+        // An empty body is authoritative: it means the CID has no active
+        // connection, so the session must be torn down.
         std::lock_guard<std::mutex> sessionLock(UserSession::mtx);
-        auto isConnected = parseSlurper(slurperData);
+        auto isConnected = parseSlurper(*slurperData);
         updateSessionStatus(previousCallsign, isConnected);
     } catch (const std::exception& ex) {
         RemoteDataStatus::isSlurperAvailable = false;
@@ -59,10 +61,10 @@ void RemoteData::onTimer(Poco::Timer& /*timer*/)
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-std::string RemoteData::getSlurperData(const std::string& cid)
+std::optional<std::string> RemoteData::getSlurperData(const std::string& cid)
 {
     if (cid.empty()) {
-        return "";
+        return std::nullopt;
     }
 
     httplib::Client slurperCli(SLURPER_BASE_URL);
@@ -76,13 +78,13 @@ std::string RemoteData::getSlurperData(const std::string& cid)
         if (!enteredSlurperGracePeriod) {
             enteredSlurperGracePeriod = true;
             PLOG_ERROR << "Cannot get data from the slurper. Giving it one more try";
-            return "";
+            return std::nullopt;
         }
         RemoteDataStatus::isSlurperAvailable = false;
         PLOG_ERROR << "Cannot get data from the slurper. Object is null.";
         notifyUserOfSlurperUnavalability();
         enteredSlurperGracePeriod = false;
-        return "";
+        return std::nullopt;
     }
 
     if (res->status != httplib::StatusCode::OK_200) {
@@ -90,14 +92,14 @@ std::string RemoteData::getSlurperData(const std::string& cid)
             enteredSlurperGracePeriod = true;
             PLOG_ERROR << "Slurper returned an HTTP error " << res->status
                        << ". Giving it one more try";
-            return "";
+            return std::nullopt;
         }
 
         RemoteDataStatus::isSlurperAvailable = false;
         PLOG_ERROR << "Slurper returned an HTTP error " << res->status;
         notifyUserOfSlurperUnavalability();
         enteredSlurperGracePeriod = false;
-        return "";
+        return std::nullopt;
     }
 
     if (!RemoteDataStatus::isSlurperAvailable) {
@@ -225,11 +227,13 @@ void RemoteData::updateSessionStatus(const std::string& previousCallsign, bool i
         return;
     } else {
         if (mClient->IsVoiceConnected()) {
+            // Notify before disconnecting: Disconnect() tears down the audio device
+            // synchronously, and the error sound is gated on audio still running.
+            NapiHelpers::sendErrorToElectron("No active connection found in the slurper data, "
+                                             "you have been disconnected.");
             mClient->Disconnect();
             PLOG_INFO << "Disconnected from the network because no active connection was found in "
                          "the slurper data.";
-            NapiHelpers::sendErrorToElectron("No active connection found in the slurper data, "
-                                             "you have been disconnected.");
         }
 
         UserSession::isConnectedToTheNetwork = false;
