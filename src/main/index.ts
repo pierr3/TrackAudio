@@ -570,18 +570,22 @@ ipcMain.handle('flashFrame', () => {
 
 ipcMain.handle('set-audio-input-device', (_, audioInputDeviceId: string) => {
   configManager.updateConfig({ audioInputDeviceId });
+  mainWindow?.webContents.send('configuration-updated', JSON.stringify(configManager.config));
 });
 
 ipcMain.handle('set-headset-output-device', (_, headsetOutputDeviceId: string) => {
   configManager.updateConfig({ headsetOutputDeviceId });
+  mainWindow?.webContents.send('configuration-updated', JSON.stringify(configManager.config));
 });
 
 ipcMain.handle('set-speaker-output-device', (_, speakerOutputDeviceId: string) => {
   configManager.updateConfig({ speakerOutputDeviceId });
+  mainWindow?.webContents.send('configuration-updated', JSON.stringify(configManager.config));
 });
 
 ipcMain.handle('set-audio-api', (_, audioApi: number) => {
   configManager.updateConfig({ audioApi });
+  mainWindow?.webContents.send('configuration-updated', JSON.stringify(configManager.config));
 });
 
 ipcMain.handle('toggle-mini-mode', (_, numberOfRadios: number) => {

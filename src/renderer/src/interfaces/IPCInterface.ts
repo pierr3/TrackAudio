@@ -25,6 +25,12 @@ class IPCInterface {
         utilStoreState.setShowExpandedRxInfo(config.showExpandedRx);
         utilStoreState.setTransparentMiniMode(config.transparentMiniMode);
         utilStoreState.setRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
+        utilStoreState.setAudioConfig({
+          audioApi: config.audioApi,
+          audioInputDeviceId: config.audioInputDeviceId,
+          headsetOutputDeviceId: config.headsetOutputDeviceId,
+          speakerOutputDeviceId: config.speakerOutputDeviceId
+        });
       })
       .catch((err: unknown) => {
         window.api.log.error(err as string);
@@ -98,6 +104,16 @@ class IPCInterface {
     window.api.on('main-volume-change', (data: string) => {
       const change = JSON.parse(data) as MainVolumeChange;
       sessionStoreState.setMainRadioVolume(change.value.volume);
+    });
+
+    window.api.on('configuration-updated', (data: string) => {
+      const config = JSON.parse(data) as Configuration;
+      utilStoreState.setAudioConfig({
+        audioApi: config.audioApi,
+        audioInputDeviceId: config.audioInputDeviceId,
+        headsetOutputDeviceId: config.headsetOutputDeviceId,
+        speakerOutputDeviceId: config.speakerOutputDeviceId
+      });
     });
 
     window.api.on('FrequencyRxBegin', (frequency: string) => {
@@ -241,6 +257,7 @@ class IPCInterface {
     window.api.removeAllListeners('ptt-key-set');
     window.api.removeAllListeners('station-state-update');
     window.api.removeAllListeners('main-volume-change');
+    window.api.removeAllListeners('configuration-updated');
     window.api.removeAllListeners('VoiceConnectionDegraded');
     window.api.removeAllListeners('VoiceConnectionResumed');
   }

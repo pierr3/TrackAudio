@@ -1,9 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { AudioDevice } from 'trackaudio-afv';
-import { Configuration } from '../../../../shared/config.type';
-
-export const AUDIO_CONFIG_CHANGED_EVENT = 'trackaudio-audio-config-changed';
+import useUtilStore from '@renderer/store/utilStore';
 
 type DeviceStatus =
   | { state: 'loading' }
@@ -53,77 +51,76 @@ const DeviceLine: React.FC<DeviceLineProps> = ({ label, status }) => {
 };
 
 const AudioHardwareSummary: React.FC = () => {
+  const audioApi = useUtilStore((state) => state.audioApi);
+  const audioInputDeviceId = useUtilStore((state) => state.audioInputDeviceId);
+  const headsetOutputDeviceId = useUtilStore((state) => state.headsetOutputDeviceId);
+  const speakerOutputDeviceId = useUtilStore((state) => state.speakerOutputDeviceId);
+  const audioConfigLoaded = useUtilStore((state) => state.audioConfigLoaded);
+
   const [inputStatus, setInputStatus] = useState<DeviceStatus>({ state: 'loading' });
   const [headsetStatus, setHeadsetStatus] = useState<DeviceStatus>({ state: 'loading' });
   const [speakerStatus, setSpeakerStatus] = useState<DeviceStatus>({ state: 'loading' });
-  const isActive = useRef(true);
-  const requestId = useRef(0);
 
-  const refresh = useCallback(() => {
-    const thisRequest = ++requestId.current;
-    const isStale = (): boolean => !isActive.current || thisRequest !== requestId.current;
+  useEffect(() => {
+    if (!audioConfigLoaded) {
+      return;
+    }
+
+    if (audioApi < 0) {
+      setInputStatus({ state: 'unset' });
+      setHeadsetStatus({ state: 'unset' });
+      setSpeakerStatus({ state: 'unset' });
+      return;
+    }
+
+    let cancelled = false;
 
     window.api
-      .getConfig()
-      .then((config: Configuration) => {
-        if (isStale()) {
+      .getAudioInputDevices(audioApi)
+      .then((devices: AudioDevice[]) => {
+        if (cancelled) {
           return;
         }
-
-        if (config.audioApi < 0) {
-          setInputStatus({ state: 'unset' });
-          setHeadsetStatus({ state: 'unset' });
-          setSpeakerStatus({ state: 'unset' });
-          return;
-        }
-
-        window.api
-          .getAudioInputDevices(config.audioApi)
-          .then((devices: AudioDevice[]) => {
-            if (isStale()) {
-              return;
-            }
-            setInputStatus(resolveDeviceStatus(devices, config.audioInputDeviceId));
-          })
-          .catch((err: unknown) => {
-            console.error(err);
-          });
-
-        window.api
-          .getAudioOutputDevices(config.audioApi)
-          .then((devices: AudioDevice[]) => {
-            if (isStale()) {
-              return;
-            }
-            setHeadsetStatus(resolveDeviceStatus(devices, config.headsetOutputDeviceId));
-            setSpeakerStatus(resolveDeviceStatus(devices, config.speakerOutputDeviceId));
-          })
-          .catch((err: unknown) => {
-            console.error(err);
-          });
+        setInputStatus(resolveDeviceStatus(devices, audioInputDeviceId));
       })
       .catch((err: unknown) => {
         console.error(err);
+        if (!cancelled) {
+          setInputStatus({ state: 'unavailable' });
+        }
       });
-  }, []);
 
-  useEffect(() => {
-    isActive.current = true;
-    refresh();
-
-    window.addEventListener('focus', refresh);
-    window.addEventListener(AUDIO_CONFIG_CHANGED_EVENT, refresh);
+    window.api
+      .getAudioOutputDevices(audioApi)
+      .then((devices: AudioDevice[]) => {
+        if (cancelled) {
+          return;
+        }
+        setHeadsetStatus(resolveDeviceStatus(devices, headsetOutputDeviceId));
+        setSpeakerStatus(resolveDeviceStatus(devices, speakerOutputDeviceId));
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+        if (!cancelled) {
+          setHeadsetStatus({ state: 'unavailable' });
+          setSpeakerStatus({ state: 'unavailable' });
+        }
+      });
 
     return () => {
-      isActive.current = false;
-      window.removeEventListener('focus', refresh);
-      window.removeEventListener(AUDIO_CONFIG_CHANGED_EVENT, refresh);
+      cancelled = true;
     };
-  }, [refresh]);
+  }, [
+    audioConfigLoaded,
+    audioApi,
+    audioInputDeviceId,
+    headsetOutputDeviceId,
+    speakerOutputDeviceId
+  ]);
 
   return (
     <div className="d-flex justify-content-center radio-sub-text mt-3">
-      <div className="d-flex flex-column gap-0.5">
+      <div className="d-flex flex-column gap-1">
         <DeviceLine label="Microphone" status={inputStatus} />
         <DeviceLine label="Headset" status={headsetStatus} />
         <DeviceLine label="Speaker" status={speakerStatus} />

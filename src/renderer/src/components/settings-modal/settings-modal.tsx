@@ -9,7 +9,6 @@ import useUtilStore from '../../store/utilStore';
 import AudioApis from './audio-apis';
 import AudioInput from './audio-input';
 import AudioOutputs from './audio-outputs';
-import { AUDIO_CONFIG_CHANGED_EVENT } from '../radio/audio-hardware-summary';
 import { Info } from 'lucide-react';
 import { Nav, OverlayTrigger, Tab, Tooltip } from 'react-bootstrap';
 export interface SettingsModalProps {
@@ -178,7 +177,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       .catch(() => {
         setAudioInputDevices([]);
       });
-    window.dispatchEvent(new Event(AUDIO_CONFIG_CHANGED_EVENT));
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -186,7 +184,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saving);
     void window.api.setAudioInputDevice(deviceId);
     setConfig({ ...config, audioInputDeviceId: deviceId });
-    window.dispatchEvent(new Event(AUDIO_CONFIG_CHANGED_EVENT));
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -194,7 +191,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saving);
     void window.api.setHeadsetOutputDevice(deviceId);
     setConfig({ ...config, headsetOutputDeviceId: deviceId });
-    window.dispatchEvent(new Event(AUDIO_CONFIG_CHANGED_EVENT));
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -202,7 +198,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saving);
     void window.api.setSpeakerOutputDevice(deviceId);
     setConfig({ ...config, speakerOutputDeviceId: deviceId });
-    window.dispatchEvent(new Event(AUDIO_CONFIG_CHANGED_EVENT));
     setChangesSaved(SaveStatus.Saved);
   };
 
