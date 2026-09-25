@@ -52,20 +52,17 @@ const AddStation: React.FC<AddStationProps> = ({ className, style, onAddStation 
         autoFocus
       ></input>
 
-      <div className="d-flex align-items-center mt-2">
-        <label htmlFor="vccsCheckbox" className="form-check-label mb-0">
-          Include Linked Stations
-        </label>
+      <label className="d-flex align-items-center mt-2 mb-0">
+        Include Linked Stations
         <input
           type="checkbox"
           className="form-check-input mt-0 ms-2"
-          id="vccsCheckbox"
           defaultChecked={addLinkedStation}
           onChange={(e) => {
             setAddLinkedStation(e.target.checked);
           }}
         />
-      </div>
+      </label>
 
       <button
         className="btn btn-primary mt-2 w-100"
