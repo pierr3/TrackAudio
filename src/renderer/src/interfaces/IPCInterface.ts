@@ -157,7 +157,7 @@ class IPCInterface {
       sessionStoreState.setIsConnecting(false);
       sessionStoreState.setIsConnected(true);
       if (sessionStoreState.getIsAtc()) {
-        void window.api.GetStation(sessionStoreState.getStationCallsign());
+        void window.api.GetStation(sessionStoreState.getStationCallsign(), true);
       }
     });
 

@@ -9,11 +9,12 @@ export interface AddStationProps {
 
 const AddStation: React.FC<AddStationProps> = ({ className, style, onAddStation }) => {
   const [readyToAdd, setReadyToAdd] = useState(false);
+  const [addLinkedStation, setAddLinkedStation] = useState(true);
   const [isConnected] = useSessionStore((state) => [state.version, state.isConnected]);
 
   const stationInputRef = useRef<HTMLInputElement>(null);
 
-  const addStation = () => {
+  const addStation = (addLinkedStation: boolean) => {
     if (!readyToAdd || !isConnected) {
       return;
     }
@@ -23,7 +24,7 @@ const AddStation: React.FC<AddStationProps> = ({ className, style, onAddStation 
       return;
     }
 
-    void window.api.GetStation(callsign);
+    void window.api.GetStation(callsign, addLinkedStation);
     stationInputRef.current.value = '';
     setReadyToAdd(false);
 
@@ -46,15 +47,29 @@ const AddStation: React.FC<AddStationProps> = ({ className, style, onAddStation 
         }}
         onKeyDown={(e) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-          e.key === 'Enter' && addStation();
+          e.key === 'Enter' && addStation(addLinkedStation);
         }}
         autoFocus
       ></input>
 
+      <label className="d-flex align-items-center mt-2 mb-0">
+        Include Linked Stations
+        <input
+          type="checkbox"
+          className="form-check-input mt-0 ms-2"
+          defaultChecked={addLinkedStation}
+          onChange={(e) => {
+            setAddLinkedStation(e.target.checked);
+          }}
+        />
+      </label>
+
       <button
         className="btn btn-primary mt-2 w-100"
         disabled={!readyToAdd || !isConnected}
-        onClick={addStation}
+        onClick={() => {
+          addStation(addLinkedStation);
+        }}
       >
         Add
       </button>

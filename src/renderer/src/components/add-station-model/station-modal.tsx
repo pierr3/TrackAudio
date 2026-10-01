@@ -21,14 +21,14 @@ const AddStationModal: React.FC<AddStationModalProps> = ({ closeModal }) => {
   return (
     <>
       <div className="modal settingsModalBackground" role="dialog">
-        <div className="modal-dialog settingsModal" role="document">
+        <div className="modal-dialog settingsModal stationModal" role="document">
           <div className="modal-content" style={{ border: '0' }}>
             <div className="modal-header">
               <h5 className="modal-title">Radio Setup</h5>
             </div>
             <div
               className="modal-body"
-              style={{ paddingBottom: '0', display: 'flex', justifyContent: 'space-between' }}
+              style={{ display: 'flex', justifyContent: 'space-between' }}
             >
               <div className="col" style={{ flex: '1', marginRight: '10px' }}>
                 <AddStation
@@ -46,7 +46,7 @@ const AddStationModal: React.FC<AddStationModalProps> = ({ closeModal }) => {
               </div>
             </div>
 
-            <div className="modal-footer mt-3">
+            <div className="modal-footer">
               <button type="button" className="btn btn-danger " onClick={closeHander}>
                 Close
               </button>

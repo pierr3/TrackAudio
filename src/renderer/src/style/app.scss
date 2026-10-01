@@ -564,6 +564,56 @@ select:disabled {
   border-radius: var(--bs-modal-border-radius);
 }
 
+/* Radio setup modal.
+ *
+ * The two columns hold a different number of controls, so left to themselves
+ * their Add buttons end up at different heights. Stretching both to a common
+ * height and pinning the buttons to the bottom keeps them on one line however
+ * many rows either side grows to.
+ *
+ * The max-height keeps the panel inside the window: in mini mode there is not
+ * much vertical room, and without it the bottom edge is simply clipped.
+ */
+.stationModal {
+  max-height: calc(100vh - 1rem);
+
+  .modal-content {
+    max-height: inherit;
+  }
+
+  .modal-body {
+    overflow-y: auto;
+
+    /* The Add buttons sit at the bottom of the body and carry a 2px outline
+       that reaches outside their box. Without room below, the footer's darker
+       background starts on top of it and clips the button edge. */
+    padding-bottom: 0.5rem;
+
+    > .col {
+      display: flex;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    /* Bootstrap's .mt-2 on the button is !important, so the auto margin that
+       pushes it to the bottom has to be too. */
+    .form-group > .btn {
+      margin-top: auto !important;
+    }
+
+    /* In the taller column the auto margin resolves to zero, which would leave
+       the button touching the control above it. Put the gap on that control
+       instead so both columns keep it. */
+    .form-group > *:has(+ .btn) {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
 /* Settings modal tabs */
 .nav-tabs {
   border-bottom: 2px solid color.adjust($dark, $lightness: 10%);

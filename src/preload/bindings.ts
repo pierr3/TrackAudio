@@ -74,7 +74,7 @@ export const api = {
   setCid: (cid: string) => ipcRenderer.invoke('set-cid', cid),
   setPassword: (password: string) => ipcRenderer.invoke('set-password', password),
 
-  GetStation: (callsign: string) => ipcRenderer.invoke('get-station', callsign),
+  GetStation: (callsign: string, getVccs: boolean) => ipcRenderer.invoke('get-station', callsign, getVccs),
   RefreshStation: (callsign: string) => ipcRenderer.invoke('refresh-station', callsign),
 
   addFrequency: (frequency: number, callsign: string, outputVolume?: number) =>

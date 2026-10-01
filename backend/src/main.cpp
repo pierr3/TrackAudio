@@ -317,13 +317,18 @@ void RegisterCallback(const Napi::CallbackInfo& info)
 
 void GetStation(const Napi::CallbackInfo& info)
 {
+    
     if (!mClient || !mClient->IsVoiceConnected()) {
         return;
     }
-
+    
     auto callsign = info[0].As<Napi::String>().Utf8Value();
     mClient->GetStation(callsign);
-    mClient->FetchStationVccs(callsign);
+    
+    bool addVccs = info[1].As<Napi::Boolean>().Value();
+    if (addVccs) {
+        mClient->FetchStationVccs(callsign);
+    }
 }
 
 void RefreshStation(const Napi::CallbackInfo& info)
