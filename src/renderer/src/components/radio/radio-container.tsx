@@ -7,6 +7,7 @@ import useUtilStore from '@renderer/store/utilStore';
 import ExpandedRxInfo from './expanded-rx-info';
 import AddStation from '../sidebar/add-station';
 import AddFrequency from '../sidebar/add-frequency';
+import AudioHardwareSummary from './audio-hardware-summary';
 
 const EXCLUDED_FREQUENCIES = [0];
 const UNICOM_EXCLUDED_FREQUENCIES = [122.8e6, 121.5e6];
@@ -30,6 +31,7 @@ const WaitingForConnectionMessage = () => (
     <div className="d-flex justify-content-center radio-sub-text text-muted text-center">
       Click the connect button to establish a connection to the VATSIM audio network.
     </div>
+    <AudioHardwareSummary />
   </div>
 );
 

@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 
+export interface AudioConfig {
+  audioApi: number;
+  audioInputDeviceId: string;
+  headsetOutputDeviceId: string;
+  speakerOutputDeviceId: string;
+}
+
 interface UtilStore {
   vu: number;
   peakVu: number;
@@ -16,6 +23,11 @@ interface UtilStore {
   transparentMiniMode: boolean;
   radioToMaxVolumeOnTX: boolean;
   updateChannel: string;
+  audioApi: number;
+  audioInputDeviceId: string;
+  headsetOutputDeviceId: string;
+  speakerOutputDeviceId: string;
+  audioConfigLoaded: boolean;
   time: Date;
   setIsEditMode: (isEditMode: boolean) => void;
   setPtt1KeyName: (ptt1KeyName: string) => void;
@@ -32,6 +44,7 @@ interface UtilStore {
   setRadioToMaxVolumeOnTX: (maxVolume: boolean) => void;
   setTime: (time: Date) => void;
   setUpdateChannel: (updateChannel: string) => void;
+  setAudioConfig: (audio: AudioConfig) => void;
 }
 
 const useUtilStore = create<UtilStore>((set) => ({
@@ -51,6 +64,11 @@ const useUtilStore = create<UtilStore>((set) => ({
   radioToMaxVolumeOnTX: false,
   time: new Date(),
   updateChannel: 'stable',
+  audioApi: -1,
+  audioInputDeviceId: '',
+  headsetOutputDeviceId: '',
+  speakerOutputDeviceId: '',
+  audioConfigLoaded: false,
   setIsEditMode: (isEditMode: boolean) => {
     set({ isEditMode });
   },
@@ -96,6 +114,9 @@ const useUtilStore = create<UtilStore>((set) => ({
   setUpdateChannel: (updateChannel: string): void => {
     if (updateChannel !== 'stable' && updateChannel !== 'beta') return;
     set({ updateChannel });
+  },
+  setAudioConfig: (audio: AudioConfig): void => {
+    set({ ...audio, audioConfigLoaded: true });
   }
 }));
 
