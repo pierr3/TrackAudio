@@ -20,4 +20,5 @@ exports.AfvEventTypes = {
   AudioDeviceStopped: "AudioDeviceStopped",
   VoiceConnectionDegraded: "VoiceConnectionDegraded",
   VoiceConnectionResumed: "VoiceConnectionResumed",
+  ConnectRequested: "ConnectRequested",
 };
