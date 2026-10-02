@@ -306,11 +306,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saved);
   };
 
-  const handleClearPtt = (pttIndex: number) => {
-    if (pttIndex === 1 && ptt2KeyName !== 'Not Set') {
-      return;
+  const isPttSet = (pttIndex: number): boolean => {
+    if (pttIndex == 1) {
+        return ptt1KeyName !== 'Not Set';
+    } else if (pttIndex == 2) {
+        return ptt2KeyName !== 'Not Set';
     }
 
+    return false;
+  }
+
+  const handleClearPtt = (pttIndex: number) => {
     if (pttIndex === 1) {
       updatePtt1KeySet(false);
     } else if (pttIndex === 2) {
@@ -626,6 +632,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                               <button
                                 type="button"
                                 className="btn btn-danger w-100"
+                                disabled={!isPttSet(1)}
                                 onClick={() => {
                                   handleClearPtt(1);
                                 }}
@@ -669,6 +676,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                               <button
                                 type="button"
                                 className="btn btn-danger w-100"
+                                disabled={!isPttSet(2)}
                                 onClick={() => {
                                   handleClearPtt(2);
                                 }}
