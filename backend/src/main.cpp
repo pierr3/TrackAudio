@@ -735,6 +735,11 @@ void HandleAfvEvents()
                 stationJson["name"] = station.name;
                 stationJson["frequency"] = station.frequency;
                 stationJson["frequencyAlias"] = station.frequencyAlias;
+                if (callsign == event.stationName) {
+                    stationJson["afvOrder"] = 0;
+                } else if (station.vccsOrder.has_value()) {
+                    stationJson["afvOrder"] = station.vccsOrder.value() + 1;
+                }
 
                 NapiHelpers::callElectron("StationDataReceived", callsign, stationJson.dump());
                 if (MainThreadShared::mApiServer)

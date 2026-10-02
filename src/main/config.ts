@@ -25,6 +25,7 @@ export const defaultConfiguration = {
   showExpandedRx: false,
   transparentMiniMode: false,
   radioToMaxVolumeOnTx: false,
+  sortStationsByAfvOrder: false,
   pttReleaseSoundEnabled: false,
   loopbackEnabled: false,
   loopbackTarget: 0,

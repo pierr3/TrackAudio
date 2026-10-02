@@ -5,6 +5,7 @@ import { useDebouncedCallback } from 'use-debounce';
 
 import { AlwaysOnTopMode, Configuration, RadioEffects } from '../../../../shared/config.type';
 import useRadioState from '../../store/radioStore';
+import useSessionStore from '../../store/sessionStore';
 import useUtilStore from '../../store/utilStore';
 import AudioApis from './audio-apis';
 import AudioInput from './audio-input';
@@ -57,11 +58,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     updatePtt2KeySet,
     showExpandedRxInfo,
     radioToMaxVolumeOnTX,
+    sortStationsByAfvOrder,
     updateChannel,
     setShowExpandedRxInfo,
     setTransparentMiniMode,
     setPendingRestart,
     setRadioToMaxVolumeOnTX,
+    setSortStationsByAfvOrder,
     setUpdateChannel
   ] = useUtilStore((state) => [
     state.vu,
@@ -75,11 +78,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     state.updatePtt2KeySet,
     state.showExpandedRxInfo,
     state.radioToMaxVolumeOnTX,
+    state.sortStationsByAfvOrder,
     state.updateChannel,
     state.setShowExpandedRxInfo,
     state.setTransparentMiniMode,
     state.setPendingRestart,
     state.setRadioToMaxVolumeOnTX,
+    state.setSortStationsByAfvOrder,
     state.setUpdateChannel
   ]);
   const [isMicTesting, setIsMicTesting] = useState(false);
@@ -98,6 +103,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
         setTransparentMiniMode(config.transparentMiniMode);
         setLocalTransparentMiniMode(config.transparentMiniMode);
         setRadioToMaxVolumeOnTX(config.radioToMaxVolumeOnTx);
+        setSortStationsByAfvOrder(config.sortStationsByAfvOrder);
         setPttReleaseSoundEnabled(config.pttReleaseSoundEnabled);
         setLoopbackEnabled(config.loopbackEnabled);
         setLoopbackTarget(config.loopbackTarget);
@@ -242,6 +248,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
       window.api.setRadioToMaxVolumeOnTX(false);
       setRadioToMaxVolumeOnTX(false);
     }
+    setChangesSaved(SaveStatus.Saved);
+  };
+
+  const handleStationSortingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setChangesSaved(SaveStatus.Saving);
+    const enabled = e.target.value === 'true';
+    window.api.setSortStationsByAfvOrder(enabled);
+    setSortStationsByAfvOrder(enabled);
+    setConfig({ ...config, sortStationsByAfvOrder: enabled });
+    useRadioState.getState().sortRadios(useSessionStore.getState().getStationCallsign(), enabled);
     setChangesSaved(SaveStatus.Saved);
   };
 
@@ -582,6 +598,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                         <option value="0">Schmid ED-137B</option>
                         <option value="1">Rockwell Collins 2100</option>
                         <option value="2">Garex 220</option>
+                      </select>
+                      <label className="mt-2">Station sorting</label>
+                      <select
+                        className="form-control mt-1"
+                        value={sortStationsByAfvOrder.toString()}
+                        onChange={handleStationSortingChange}
+                      >
+                        <option value="false">Position type</option>
+                        <option value="true">AFV editor order</option>
                       </select>
                       <label className="mt-2">PTT release click sound</label>
                       <select

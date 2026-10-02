@@ -41,6 +41,9 @@ export const api = {
   setRadioToMaxVolumeOnTX: (state: boolean) => {
     ipcRenderer.send('set-radio-to-max-volume-on-tx', state);
   },
+  setSortStationsByAfvOrder: (state: boolean) => {
+    ipcRenderer.send('set-sort-stations-by-afv-order', state);
+  },
   setPttReleaseSoundEnabled: (enabled: boolean) => {
     ipcRenderer.send('set-ptt-release-sound-enabled', enabled);
   },
