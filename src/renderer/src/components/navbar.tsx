@@ -12,6 +12,7 @@ import AddStationModal from './add-station-model/station-modal';
 import DeleteMultipleRadios from './delete-multiple-radios';
 import useRadioState from '@renderer/store/radioStore';
 import RefreshMultipleRadios from './refresh-multiple-radios';
+import MicLoopbackControl from './mic-loopback-control';
 import { CirclePlus, Settings, SquarePen } from 'lucide-react';
 interface NavbarProps {
   updateAvailable: boolean;
@@ -132,6 +133,13 @@ const Navbar: React.FC<NavbarProps> = ({ updateAvailable }: NavbarProps) => {
           </TitleBar.Element>
         </TitleBar.Section>
         <TitleBar.Section name="right" priority={0}>
+          {!updateAvailable && (
+            <TitleBar.Element priority={3}>
+              <div className="d-flex h-100 align-items-center">
+                <MicLoopbackControl />
+              </div>
+            </TitleBar.Element>
+          )}
           {/* {isNetworkConnected && ( */}
           <TitleBar.Element priority={2}>
             <div className={clsx(buttonClass, 'd-flex h-100 align-items-center')}>
