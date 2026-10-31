@@ -89,6 +89,8 @@ private:
     void handleAddStation(const nlohmann::json& json, uint64_t clientId);
     void handleChangeStationVolume(const nlohmann::json& json, uint64_t clientId);
     void handleChangeMainVolume(const nlohmann::json& json, uint64_t clientId);
+    static void handleConnect();
+    void handleDisconnect();
 
     static std::map<sdkCall, std::string>& getSDKCallUrlMap()
     {

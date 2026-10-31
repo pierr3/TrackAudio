@@ -31,6 +31,7 @@ export declare const AfvEventTypes: {
   AudioDeviceStopped: string;
   VoiceConnectionDegraded: string;
   VoiceConnectionResumed: string;
+  ConnectRequested: string;
 };
 
 export declare interface Session {
