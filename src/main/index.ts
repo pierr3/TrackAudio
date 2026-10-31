@@ -382,11 +382,21 @@ app
     }
 
     if (bootstrapOutput.needUpdate) {
-      dialog.showMessageBoxSync({
+      const releasesUrl = 'https://github.com/pierr3/TrackAudio/releases/latest';
+      const choice = dialog.showMessageBoxSync({
         type: 'error',
         message: 'A new mandatory version is available, please update in order to continue.',
-        buttons: ['OK']
+        detail: `Download the latest version from:\n${releasesUrl}`,
+        buttons: ['Open Releases Page', 'Close'],
+        defaultId: 0,
+        cancelId: 1
       });
+      if (choice === 0) {
+        shell.openExternal(releasesUrl).catch((e: unknown) => {
+          const err = e as Error;
+          console.log(`Error opening releases page: ${err.message}`);
+        });
+      }
       app.quit();
     }
 
