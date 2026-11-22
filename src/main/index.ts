@@ -964,6 +964,10 @@ const handleEvent = (arg: string, arg2: string, arg3: string, arg4: string) => {
   if (arg == AfvEventTypes.VoiceConnectionResumed) {
     mainWindow?.webContents.send('VoiceConnectionResumed');
   }
+
+  if (arg == AfvEventTypes.ConnectRequested) {
+    mainWindow?.webContents.send('connect-requested');
+  }
 };
 
 TrackAudioAfv.RegisterCallback(handleEvent);

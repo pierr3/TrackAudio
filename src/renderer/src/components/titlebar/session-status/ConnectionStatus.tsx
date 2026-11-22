@@ -1,7 +1,6 @@
 import React from 'react';
 import useSessionStore from '@renderer/store/sessionStore';
-import useErrorStore from '@renderer/store/errorStore';
-import { checkIfCallsignIsRelief, getCleanCallsign } from '../../../helpers/CallsignHelper';
+import { connect } from '../../../helpers/ConnectionHelper';
 import clsx from 'clsx';
 
 interface ConnectionStatusProps {
@@ -9,44 +8,14 @@ interface ConnectionStatusProps {
 }
 
 const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ className = '' }) => {
-  const postError = useErrorStore((state) => state.postError);
-  const [
-    isConnected,
-    isConnecting,
-    isConnectionDegraded,
-    setIsConnecting,
-    setIsConnected,
-    callsign,
-    isNetworkConnected,
-    isAtc,
-    setStationCallsign
-  ] = useSessionStore((state) => [
-    state.isConnected,
-    state.isConnecting,
-    state.isConnectionDegraded,
-    state.setIsConnecting,
-    state.setIsConnected,
-    state.callsign,
-    state.isNetworkConnected,
-    state.isAtc,
-    state.setStationCallsign
-  ]);
-
-  const doConnect = () => {
-    setIsConnecting(true);
-    window.api
-      .connect()
-      .then((ret) => {
-        if (!ret) {
-          postError('Error connecting to AFV, check your configuration and credentials.');
-          setIsConnecting(false);
-          setIsConnected(false);
-        }
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  };
+  const [isConnected, isConnecting, isConnectionDegraded, callsign, isNetworkConnected] =
+    useSessionStore((state) => [
+      state.isConnected,
+      state.isConnecting,
+      state.isConnectionDegraded,
+      state.callsign,
+      state.isNetworkConnected
+    ]);
 
   const handleConnectDisconnect = () => {
     if (isConnected) {
@@ -54,37 +23,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ className = '' }) =
       return;
     }
 
-    if (!isNetworkConnected) {
-      return;
-    }
-
-    if (checkIfCallsignIsRelief(callsign) && isAtc) {
-      const reliefCallsign = getCleanCallsign(callsign);
-      window.api
-        .dialog(
-          'question',
-          'Relief callsign detected',
-          'You might be using a relief callsign, please select which callsign you want to use.',
-          [callsign, reliefCallsign]
-        )
-        .then((ret) => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          if (ret.response === 0) {
-            setStationCallsign(callsign);
-          } else {
-            setStationCallsign(reliefCallsign);
-          }
-        })
-        .then(() => {
-          doConnect();
-        })
-        .catch((err: unknown) => {
-          console.error(err);
-        });
-    } else {
-      setStationCallsign(callsign);
-      doConnect();
-    }
+    connect();
   };
 
   return (

@@ -391,6 +391,10 @@ void SDK::handleIncomingWebSocketRequest(const std::string& payload, uint64_t cl
             this->handleChangeStationVolume(json, clientId);
         } else if (messageType == "kChangeMainVolume") {
             this->handleChangeMainVolume(json, clientId);
+        } else if (messageType == "kConnect") {
+            SDK::handleConnect();
+        } else if (messageType == "kDisconnect") {
+            this->handleDisconnect();
         }
     } catch (const std::exception& e) {
         PLOG_ERROR << "Error parsing incoming message JSON: " << e.what();
@@ -653,4 +657,31 @@ void SDK::handleChangeMainVolume(const nlohmann::json& json, uint64_t clientId)
     } catch (const nlohmann::json::exception& e) {
         PLOG_ERROR << "Failed to change main volume: " << e.what();
     }
+}
+
+void SDK::handleConnect()
+{
+    if (!mClient || mClient->IsVoiceConnected()) {
+        return;
+    }
+
+    if (!UserSession::isConnectedToTheNetwork) {
+        PLOG_ERROR << "Must be connected to the VATSIM network before connecting voice.";
+        return;
+    }
+
+    // The password and the relief callsign choice live on the Electron side, so the
+    // connection goes through the same flow as the Connect button.
+    NapiHelpers::callElectron("ConnectRequested");
+}
+
+void SDK::handleDisconnect()
+{
+    if (!mClient || !mClient->IsVoiceConnected()) {
+        return;
+    }
+
+    mClient->Disconnect();
+    this->handleAFVEventForWebsocket(
+        sdk::types::Event::kDisconnectFrequencyStateUpdate, std::nullopt, std::nullopt);
 }

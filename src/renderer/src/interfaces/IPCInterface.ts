@@ -6,6 +6,7 @@ import { StationStateUpdate } from './StationStateUpdate';
 import useErrorStore from '@renderer/store/errorStore';
 import { MainVolumeChange } from 'src/shared/MainVolumeChange';
 import { Station } from './Station';
+import { connect } from '@renderer/helpers/ConnectionHelper';
 
 class IPCInterface {
   public init() {
@@ -178,6 +179,10 @@ class IPCInterface {
       sessionStoreState.setIsConnectionDegraded(false);
     });
 
+    window.api.on('connect-requested', () => {
+      connect();
+    });
+
     window.api.on('network-connected', (callsign: string, dataString: string) => {
       sessionStoreState.setNetworkConnected(true);
       sessionStoreState.setCallsign(callsign);
@@ -244,6 +249,7 @@ class IPCInterface {
     window.api.removeAllListeners('main-volume-change');
     window.api.removeAllListeners('VoiceConnectionDegraded');
     window.api.removeAllListeners('VoiceConnectionResumed');
+    window.api.removeAllListeners('connect-requested');
   }
 }
 
