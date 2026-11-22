@@ -322,11 +322,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
     setChangesSaved(SaveStatus.Saved);
   };
 
-  const handleClearPtt = (pttIndex: number) => {
-    if (pttIndex === 1 && ptt2KeyName !== 'Not Set') {
-      return;
+  const isPttSet = (pttIndex: number): boolean => {
+    if (pttIndex == 1) {
+        return ptt1KeyName !== 'Not Set';
+    } else if (pttIndex == 2) {
+        return ptt2KeyName !== 'Not Set';
     }
 
+    return false;
+  }
+
+  const handleClearPtt = (pttIndex: number) => {
     if (pttIndex === 1) {
       updatePtt1KeySet(false);
     } else if (pttIndex === 2) {
@@ -617,59 +623,93 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ closeModal }) => {
                         <option value="true">Enabled</option>
                         <option value="false">Disabled</option>
                       </select>
-
                       <div className="row mt-3">
                         <div className="col-6">
-                          <button
-                            className="btn text-box-container w-100"
-                            onClick={() => {
-                              handleClearPtt(1);
-                            }}
-                          >
-                            {`Ptt 1: ${!hasPtt1BeenSetDuringSetup ? 'Press any key/button' : ptt1KeyName}`}
-                          </button>
-                          <button
-                            className={clsx(
-                              'btn mt-2 w-100',
-                              !pttIsOn && 'btn-info',
-                              pttIsOn && 'btn-warning'
-                            )}
-                            onClick={() => {
-                              handleSetPtt(1, true);
-                            }}
-                            onContextMenu={(e) => {
-                              e.preventDefault();
-                              handleSetPtt(1, false);
-                            }}
-                          >
-                            Set new PTT 1
-                          </button>
+                          <label className="label-box-container w-100">
+                            {`Ptt 1: ${
+                              !hasPtt1BeenSetDuringSetup
+                                ? 'Press any key/button'
+                                : ptt1KeyName
+                            }`}
+                          </label>
+
+                          <div className="row g-2 mt-0">
+                            <div className="col-6">
+                              <button
+                                className={clsx(
+                                  'btn w-100',
+                                  !pttIsOn && 'btn-info',
+                                  pttIsOn && 'btn-warning'
+                                )}
+                                onClick={() => {
+                                  handleSetPtt(1, true);
+                                }}
+                                onContextMenu={(e) => {
+                                  e.preventDefault();
+                                  handleSetPtt(1, false);
+                                }}
+                              >
+                                Set PTT 1
+                              </button>
+                            </div>
+
+                            <div className="col-6">
+                              <button
+                                type="button"
+                                className="btn btn-danger w-100"
+                                disabled={!isPttSet(1)}
+                                onClick={() => {
+                                  handleClearPtt(1);
+                                }}
+                              >
+                                Unbind PTT 1
+                              </button>
+                            </div>
+                          </div>
                         </div>
+
                         <div className="col-6">
-                          <button
-                            className="btn text-box-container w-100"
-                            onClick={() => {
-                              handleClearPtt(2);
-                            }}
-                          >
-                            {`Ptt 2: ${!hasPtt2BeenSetDuringSetup ? 'Press any key/button' : ptt2KeyName}`}
-                          </button>
-                          <button
-                            className={clsx(
-                              'btn mt-2 w-100',
-                              !pttIsOn && 'btn-info',
-                              pttIsOn && 'btn-warning'
-                            )}
-                            onClick={() => {
-                              handleSetPtt(2, true);
-                            }}
-                            onContextMenu={(e) => {
-                              e.preventDefault();
-                              handleSetPtt(2, false);
-                            }}
-                          >
-                            Set new PTT 2
-                          </button>
+                          <label className="label-box-container w-100">
+                            {`Ptt 2: ${
+                              !hasPtt2BeenSetDuringSetup
+                                ? 'Press any key/button'
+                                : ptt2KeyName
+                            }`}
+                          </label>
+
+                          <div className="row g-2 mt-0">
+                            <div className="col-6">
+                              <button
+                                className={clsx(
+                                  'btn w-100',
+                                  !pttIsOn && 'btn-info',
+                                  pttIsOn && 'btn-warning'
+                                )}
+                                onClick={() => {
+                                  handleSetPtt(2, true);
+                                }}
+                                onContextMenu={(e) => {
+                                  e.preventDefault();
+                                  handleSetPtt(2, false);
+                                }}
+                              >
+                                Set PTT 2
+                              </button>
+                            </div>
+
+                            <div className="col-6">
+                              <button
+                                type="button"
+                                className="btn btn-danger w-100"
+                                disabled={!isPttSet(2)}
+                                onClick={() => {
+                                  handleClearPtt(2);
+                                }}
+                              >
+                                Unbind PTT 2
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

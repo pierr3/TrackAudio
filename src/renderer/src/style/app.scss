@@ -250,6 +250,18 @@ button:disabled {
   outline: color.adjust($disabled, $lightness: 15%) solid 2px;
 }
 
+.label-box-container {
+  min-height: 25px;
+  line-height: 13px;
+  color: $btn-text-color;
+  background-color: $disabled;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 6px;
+}
+
 .box-container {
   color: $btn-text-color;
   background-color: $disabled;
