@@ -48,6 +48,7 @@
   - [Before opening an issue](#before-opening-an-issue)
 - [Troubleshooting](#troubleshooting)
   - [TrackAudio won't start or crashes on launch (Windows)](#trackaudio-wont-start-or-crashes-on-launch-windows)
+  - ["TrackAudio could not reach the version server"](#trackaudio-could-not-reach-the-version-server)
   - ["Error starting audio devices" or no sound](#error-starting-audio-devices-or-no-sound)
   - [TrackAudio cannot connect or frequently disconnects](#trackaudio-cannot-connect-or-frequently-disconnects)
   - [My microphone is too quiet](#my-microphone-is-too-quiet)
@@ -158,6 +159,10 @@ If you still need help, [open an issue](https://github.com/pierr3/TrackAudio/iss
 2. Delete the config folder at `%LocalAppData%\trackaudio` and reinstall TrackAudio
 3. Check that your antivirus or firewall is not blocking TrackAudio
 4. Try the [latest release or beta](https://github.com/pierr3/TrackAudio/releases) — older versions may have Windows-specific bugs that have since been fixed
+
+### "TrackAudio could not reach the version server"
+
+TrackAudio checks its mandatory version at startup. Check your internet connection and make sure that your firewall, antivirus, or proxy permits HTTPS access to `raw.githubusercontent.com` on port 443. If the problem continues, include the displayed error and your log file when [opening an issue](https://github.com/pierr3/TrackAudio/issues/new).
 
 ### "Error starting audio devices" or no sound
 
