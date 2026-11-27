@@ -20,6 +20,7 @@
 #include <semver.hpp>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include "Helpers.hpp"
 #include "InputHandler.hpp"
@@ -899,53 +900,73 @@ Napi::String GetStateFolderNapi(const Napi::CallbackInfo& info)
 }
 
 struct VersionCheckResponse {
-    VersionCheckResponse(bool succeded, bool update)
-        : success(succeded)
+    VersionCheckResponse(bool succeeded, bool update, std::string error = {})
+        : success(succeeded)
         , needUpdate(update)
+        , errorDetail(std::move(error))
     {
     }
     bool success = false;
     bool needUpdate = false;
+    std::string errorDetail;
 };
 
 VersionCheckResponse CheckVersionSync()
 {
-    // We force do a mandatory version check, if an update is needed, the
-    // programme won't run
+    constexpr int maxAttempts = 3;
+    std::string errorDetail;
 
-    try {
-        httplib::Client client(VERSION_CHECK_BASE_URL);
-        client.set_connection_timeout(10);
-        client.set_read_timeout(10);
-        auto res = client.Get(VERSION_CHECK_ENDPOINT);
-        if (!res || res->status != httplib::StatusCode::OK_200) {
-            std::string errorDetail;
-            if (res) {
-                errorDetail = "HTTP error " + std::to_string(res->status);
-            } else {
-                errorDetail = "Unable to reach server at all or no internet connection";
+    for (int attempt = 0; attempt < maxAttempts; ++attempt) {
+        try {
+            httplib::Client client(VERSION_CHECK_BASE_URL);
+            client.set_connection_timeout(3);
+            client.set_read_timeout(3);
+            auto res = client.Get(VERSION_CHECK_ENDPOINT);
+            if (res && res->status == httplib::StatusCode::OK_200) {
+                std::string cleanBody = res->body;
+                absl::StripAsciiWhitespace(&cleanBody);
+                auto mandatoryVersion = semver::version(cleanBody);
+                if (VERSION < mandatoryVersion) {
+                    MainThreadShared::ShouldRun = false;
+                    PLOGE << "Mandatory update required: " << VERSION.to_string() << " -> "
+                          << mandatoryVersion.to_string();
+                    return { true, true };
+                }
+
+                return { true, false };
             }
-            PLOGE << "Error fetching version: " << errorDetail;
-            MainThreadShared::ShouldRun = false;
-            return { false, false };
-        }
 
-        std::string cleanBody = res->body;
-        absl::StripAsciiWhitespace(&cleanBody);
-        auto mandatoryVersion = semver::version(cleanBody);
-        if (VERSION < mandatoryVersion) {
-            MainThreadShared::ShouldRun = false;
-            PLOGE << "Mandatory update required: " << VERSION.to_string() << " -> "
-                  << mandatoryVersion.to_string();
-            return { true, true };
+            errorDetail = res ? "HTTP error " + std::to_string(res->status)
+                              : "Unable to reach the version server";
+
+            if (attempt + 1 < maxAttempts) {
+                auto retryDelay = std::chrono::milliseconds(250 * (1 << attempt));
+                if (res && res->status == httplib::StatusCode::TooManyRequests_429
+                    && res->has_header("Retry-After")) {
+                    try {
+                        retryDelay = std::chrono::seconds(std::stoi(res->get_header_value("Retry-After")));
+                    } catch (const std::exception&) {
+                        PLOGW << "Invalid Retry-After header; using exponential backoff";
+                    }
+                }
+
+                PLOGW << "Version check attempt " << attempt + 1 << " failed: " << errorDetail
+                      << "; retrying";
+                std::this_thread::sleep_for(retryDelay);
+            }
+        } catch (const std::exception& e) {
+            errorDetail = e.what();
+            if (attempt + 1 < maxAttempts) {
+                const auto retryDelay = std::chrono::milliseconds(250 * (1 << attempt));
+                PLOGW << "Version check attempt " << attempt + 1 << " failed: " << errorDetail
+                      << "; retrying";
+                std::this_thread::sleep_for(retryDelay);
+            }
         }
-    } catch (const std::exception& e) {
-        MainThreadShared::ShouldRun = false;
-        PLOGE << "Error parsing version: " << e.what();
-        return { false, false };
     }
 
-    return { true, false };
+    PLOGE << "Error fetching version after " << maxAttempts << " attempts: " << errorDetail;
+    return { false, false, errorDetail };
 }
 
 Napi::Object Bootstrap(const Napi::CallbackInfo& info)
@@ -958,6 +979,7 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     outObject["canRun"] = Napi::Boolean::New(info.Env(), true);
     outObject["needUpdate"] = Napi::Boolean::New(info.Env(), false);
     outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), true);
+    outObject["versionCheckError"] = Napi::String::New(info.Env(), "");
 
     PLOGI << "Checking version...";
     const auto versionCheckResponse = CheckVersionSync();
@@ -966,8 +988,11 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
     if (!versionCheckResponse.success) {
         outObject["canRun"] = Napi::Boolean::New(info.Env(), false);
         outObject["checkSuccessful"] = Napi::Boolean::New(info.Env(), versionCheckResponse.success);
+        outObject["versionCheckError"] = Napi::String::New(info.Env(), versionCheckResponse.errorDetail);
         PLOGE << "Version check failed, cannot run TrackAudio";
         return outObject;
+    } else {
+        PLOGI << "Version check successful, continuing...";
     }
 
     if (versionCheckResponse.needUpdate) {
@@ -976,8 +1001,6 @@ Napi::Object Bootstrap(const Napi::CallbackInfo& info)
         PLOGE << "Mandatory update required, cannot run TrackAudio";
         return outObject;
     }
-
-    PLOGI << "Version check successful, continuing...";
 
     if (info.Length() < 1 || !info[0].IsString()) {
         throw Napi::Error::New(info.Env(), "Resource path is required");

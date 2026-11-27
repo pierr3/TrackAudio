@@ -368,6 +368,7 @@ app
       needUpdate: boolean;
       version: string;
       canRun: boolean;
+      versionCheckError?: string;
     };
 
     const _v = (i: string) => Buffer.from(i, 'base64').toString('utf8');
@@ -388,15 +389,21 @@ app
         buttons: ['OK']
       });
       app.quit();
+      return;
     }
 
     if (!bootstrapOutput.canRun) {
+      const message = !bootstrapOutput.checkSuccessful
+        ? `TrackAudio could not reach the version server: ${bootstrapOutput.versionCheckError ?? 'Unknown error'}\n\nCheck your internet connection and make sure your firewall or proxy allows access to raw.githubusercontent.com, then try again.`
+        : 'TrackAudio could not finish starting. Restart the application and check its logs if the problem continues.';
+
       dialog.showMessageBoxSync({
         type: 'error',
-        message: 'This application cannot run on this platform.',
+        message,
         buttons: ['OK']
       });
       app.quit();
+      return;
     }
 
     version = bootstrapOutput.version;
